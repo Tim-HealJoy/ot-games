@@ -1,0 +1,931 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>打地鼠 · 鏡頭體感復健遊戲</title>
+<style>
+  :root{
+    --bg:#101418; --panel:#1b2027; --panel2:#232a33;
+    --ink:#f4efe3; --sub:#a7b0bb; --line:#333d48;
+    --accent:#f4b942; --good:#4cc38a; --affected:#ff7a59; --blue:#5aa9e6;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html,body{height:100%;}
+  body{background:var(--bg);color:var(--ink);
+    font-family:-apple-system,"PingFang TC","Noto Sans TC",system-ui,sans-serif;overflow:hidden;}
+  #stage{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;}
+  #game{position:relative;width:100vw;height:100vh;}
+  canvas{position:absolute;inset:0;width:100%;height:100%;display:block;background:#000;}
+
+  #hud{position:absolute;top:0;left:0;right:0;padding:14px 18px;
+    display:flex;gap:10px;align-items:flex-start;flex-wrap:wrap;pointer-events:none;z-index:5;}
+  .stat{background:rgba(20,25,31,.62);backdrop-filter:blur(6px);
+    border:1px solid var(--line);border-radius:14px;padding:8px 14px;min-width:92px;}
+  .stat .k{font-size:12px;color:var(--sub);letter-spacing:.5px;}
+  .stat .v{font-size:26px;font-weight:800;line-height:1.1;}
+  .stat.affected .v{color:var(--affected);}
+  .stat.time .v{color:var(--blue);}
+  #hud .spacer{flex:1;}
+  .hud-btn{pointer-events:auto;background:var(--panel2);color:var(--ink);
+    border:1px solid var(--line);border-radius:12px;padding:10px 14px;font-size:15px;font-weight:700;cursor:pointer;}
+  .hud-btn:hover{background:#2c3542;}
+
+  .overlay{position:absolute;inset:0;z-index:10;display:flex;align-items:center;justify-content:center;padding:24px;
+    background:radial-gradient(circle at 50% 30%,rgba(30,38,48,.7),rgba(10,13,16,.94));}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:22px;
+    padding:30px 34px;width:min(560px,94vw);max-height:92vh;overflow:auto;box-shadow:0 24px 60px rgba(0,0,0,.5);}
+  .card h1{font-size:30px;margin-bottom:4px;}
+  .card .lead{color:var(--sub);font-size:16.5px;margin-bottom:22px;line-height:1.65;}
+  .row{margin-bottom:20px;}
+  .row > .label{font-size:15.5px;color:var(--sub);margin-bottom:9px;font-weight:600;}
+  .seg{display:flex;gap:8px;flex-wrap:wrap;}
+  .seg button{flex:1;min-width:78px;background:var(--panel2);color:var(--ink);
+    border:1.5px solid var(--line);border-radius:12px;padding:14px 8px;font-size:17px;font-weight:700;cursor:pointer;transition:.15s;}
+  .seg button.on{border-color:var(--accent);background:rgba(244,185,66,.16);color:var(--accent);}
+  .slider{display:flex;align-items:center;gap:12px;}
+  .slider input{flex:1;accent-color:var(--accent);}
+  .slider .val{font-size:14px;color:var(--ink);min-width:60px;text-align:right;font-weight:700;}
+  .start{width:100%;margin-top:6px;background:var(--accent);color:#1a1205;border:none;
+    border-radius:14px;padding:18px;font-size:20px;font-weight:800;cursor:pointer;}
+  .start:hover{filter:brightness(1.05);}
+  .start.go{background:var(--good);color:#04140c;}
+  .note{font-size:12.5px;color:var(--sub);margin-top:14px;line-height:1.6;}
+  .end-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:20px 0;}
+  .end-grid.three{grid-template-columns:1fr 1fr 1fr;}
+  .end-grid .cell{background:var(--panel2);border-radius:14px;padding:14px 16px;}
+  .end-grid .cell .k{font-size:13px;color:var(--sub);}
+  .end-grid .cell .v{font-size:26px;font-weight:800;}
+  .end-grid .cell.affected .v{color:var(--affected);}
+  #loading{position:absolute;inset:0;z-index:20;display:none;align-items:center;justify-content:center;
+    flex-direction:column;gap:16px;background:rgba(10,13,16,.92);}
+  .spinner{width:44px;height:44px;border:4px solid var(--line);border-top-color:var(--accent);
+    border-radius:50%;animation:spin 1s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+  .hidden{display:none !important;}
+  .pill{display:inline-block;background:rgba(90,169,230,.16);color:var(--blue);
+    border-radius:999px;padding:2px 10px;font-size:12px;font-weight:700;margin-left:8px;}
+  /* 開場動作示範 */
+  .demo-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:16px 0;}
+  .demo{background:var(--panel2);border:1px solid var(--line);border-radius:16px;padding:12px 10px;text-align:center;}
+  .demo svg{width:100%;height:auto;max-height:150px;}
+  .demo .dt{font-size:15.5px;font-weight:800;margin-top:6px;color:var(--accent);}
+  .demo .dd{font-size:12.5px;color:var(--sub);margin-top:4px;line-height:1.55;}
+  .train{background:rgba(76,195,138,.1);border:1px solid rgba(76,195,138,.3);border-radius:12px;padding:12px 16px;margin-bottom:10px;}
+  .train h3{font-size:15px;margin-bottom:6px;color:var(--good);}
+  .train ul{margin:0 0 0 18px;font-size:13.5px;line-height:1.85;}
+  .train ul b{color:var(--ink);}
+  .link-btn{display:block;width:100%;background:none;border:none;color:var(--blue);font-size:13px;cursor:pointer;text-decoration:underline;padding:10px 6px 2px;}
+  @media (max-width:640px){ .demo-grid{grid-template-columns:1fr;} }
+  /* 復能報表 */
+  .card.report{width:min(880px,96vw);}
+  .rep-head{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap;}
+  .rep-head h1{font-size:26px;}
+  .rep-sub{color:var(--sub);font-size:13.5px;margin:4px 0 16px;line-height:1.6;}
+  .rep-chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;}
+  .rep-chips span{background:var(--panel2);border:1px solid var(--line);border-radius:999px;padding:3px 10px;font-size:12px;color:var(--sub);}
+  .metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:6px 0 18px;}
+  .metric{background:var(--panel2);border:1px solid var(--line);border-radius:14px;padding:12px 14px;}
+  .metric .k{font-size:12.5px;color:var(--sub);}
+  .metric .v{font-size:24px;font-weight:800;line-height:1.15;margin-top:2px;}
+  .metric .s{font-size:11.5px;color:var(--sub);margin-top:3px;}
+  .metric.aff .v{color:var(--affected);}
+  .dl{font-size:12px;font-weight:700;margin-left:6px;white-space:nowrap;}
+  .dl.up{color:var(--good);} .dl.down{color:var(--affected);} .dl.flat{color:var(--sub);}
+  .charts{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px;}
+  .chart{background:var(--panel2);border:1px solid var(--line);border-radius:14px;padding:12px 14px;}
+  .chart h3{font-size:14px;margin-bottom:2px;} .chart .cnote{font-size:11.5px;color:var(--sub);margin-bottom:8px;line-height:1.5;}
+  .rep-note{background:rgba(90,169,230,.1);border:1px solid rgba(90,169,230,.3);border-radius:12px;padding:12px 14px;font-size:13.5px;line-height:1.75;margin-bottom:16px;}
+  .report-actions{display:flex;gap:10px;flex-wrap:wrap;}
+  .report-actions .start{flex:2;margin-top:0;} .report-actions .hud-btn{flex:1;}
+  @media (max-width:640px){ .metrics{grid-template-columns:repeat(2,1fr);} .charts{grid-template-columns:1fr;} }
+  @media print{
+    body{background:#fff !important;overflow:visible !important;}
+    #cv,#hud,#setup,#calib,#loading{display:none !important;}
+    .overlay{position:static !important;background:none !important;padding:0 !important;}
+    #end .card{background:#fff !important;border:none !important;box-shadow:none !important;color:#111 !important;width:100% !important;max-width:100% !important;max-height:none !important;overflow:visible !important;padding:0 !important;}
+    .rep-sub,.metric .k,.metric .s,.chart .cnote,.rep-chips span{color:#555 !important;}
+    .rep-head h1,.metric .v,.chart h3{color:#111 !important;}
+    .metric,.chart,.rep-chips span{background:#f5f5f3 !important;border-color:#ddd !important;}
+    .rep-note{background:#eef4fb !important;border-color:#bcd !important;color:#111 !important;}
+    .report-actions{display:none !important;}
+    .chart,.metric{break-inside:avoid;}
+  }
+</style>
+</head>
+<body>
+<div id="stage">
+  <div id="game">
+    <canvas id="cv"></canvas>
+
+    <!-- HUD -->
+    <div id="hud" class="hidden">
+      <div class="stat"><div class="k">分數</div><div class="v" id="hScore">0</div></div>
+      <div class="stat"><div class="k">命中</div><div class="v" id="hHits">0</div></div>
+      <div class="stat affected"><div class="k">患側使用率</div><div class="v" id="hAff">–</div></div>
+      <div class="stat affected"><div class="k">跨中線</div><div class="v" id="hCross">0</div></div>
+      <div class="spacer"></div>
+      <div class="stat"><div class="k">FPS</div><div class="v" id="hFps" style="font-size:20px">–</div></div>
+      <div class="stat time"><div class="k">剩餘</div><div class="v" id="hTime">–</div></div>
+      <button class="hud-btn" id="btnMute" title="音樂/音效">🔊</button>
+      <button class="hud-btn" id="btnEnd">結束</button>
+    </div>
+
+    <!-- Intro / 動作示範 -->
+    <div class="overlay" id="intro">
+      <div class="card">
+        <h1>這個遊戲在練什麼？ <span class="pill">開始前先看</span></h1>
+        <p class="lead">用鏡頭玩的復健遊戲：坐著、伸手去碰畫面上冒出的目標。下面示範怎麼玩，以及它在訓練哪些動作功能。</p>
+        <div class="demo-grid">
+          <div class="demo">
+            <svg viewBox="0 0 150 160" xmlns="http://www.w3.org/2000/svg" aria-label="坐姿示範">
+              <line x1="8" y1="146" x2="142" y2="146" stroke="#4a5560" stroke-width="3" stroke-linecap="round"/>
+              <rect x="58" y="92" width="52" height="7" rx="3" fill="#333d48"/>
+              <rect x="103" y="50" width="7" height="49" rx="3" fill="#333d48"/>
+              <line x1="63" y1="99" x2="63" y2="145" stroke="#333d48" stroke-width="5" stroke-linecap="round"/>
+              <line x1="105" y1="99" x2="105" y2="145" stroke="#333d48" stroke-width="5" stroke-linecap="round"/>
+              <line x1="88" y1="22" x2="88" y2="90" stroke="#4cc38a" stroke-width="2" stroke-dasharray="5 4"/>
+              <circle cx="88" cy="36" r="13" fill="#f4b942"/>
+              <rect x="80.5" y="48" width="15" height="46" rx="7.5" fill="#e0d6c2"/>
+              <rect x="58" y="84" width="38" height="13" rx="6.5" fill="#e0d6c2"/>
+              <rect x="57" y="96" width="12" height="48" rx="6" fill="#cabfa8"/>
+              <rect x="44" y="138" width="24" height="8" rx="4" fill="#cabfa8"/>
+            </svg>
+            <div class="dt">① 坐姿</div><div class="dd">坐正、背打直、雙腳踏地坐穩；全程保持坐姿、身體不要晃動。</div>
+          </div>
+          <div class="demo">
+            <svg viewBox="0 0 150 160" xmlns="http://www.w3.org/2000/svg" aria-label="手部伸取示範">
+              <line x1="8" y1="146" x2="142" y2="146" stroke="#4a5560" stroke-width="3" stroke-linecap="round"/>
+              <rect x="22" y="104" width="48" height="8" rx="3" fill="#333d48"/>
+              <line x1="30" y1="112" x2="30" y2="146" stroke="#333d48" stroke-width="5" stroke-linecap="round"/>
+              <line x1="62" y1="112" x2="62" y2="146" stroke="#333d48" stroke-width="5" stroke-linecap="round"/>
+              <line x1="40" y1="106" x2="40" y2="142" stroke="#cabfa8" stroke-width="11" stroke-linecap="round"/>
+              <rect x="32" y="93" width="36" height="13" rx="6.5" fill="#cabfa8"/>
+              <rect x="38" y="52" width="15" height="44" rx="7.5" fill="#e0d6c2"/>
+              <circle cx="46" cy="42" r="12.5" fill="#f4b942"/>
+              <polyline points="52,60 79,57 104,44" fill="none" stroke="#e0d6c2" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+              <circle cx="107" cy="43" r="7" fill="#f4efe3"/>
+              <circle cx="123" cy="35" r="10" fill="#ff7a59"/>
+              <circle cx="123" cy="35" r="16" fill="none" stroke="#ff7a59" stroke-width="1.5" opacity=".45"/>
+              <path d="M57 84 Q92 44 115 37" fill="none" stroke="#f4b942" stroke-width="2.2" stroke-dasharray="5 4"/>
+            </svg>
+            <div class="dt">② 手部動作</div><div class="dd">肩膀帶動、手肘伸直，把手伸出去碰到目標（練肩關節穩定）。</div>
+          </div>
+          <div class="demo">
+            <svg viewBox="0 0 150 160" xmlns="http://www.w3.org/2000/svg" aria-label="軀幹旋轉跨中線示範">
+              <line x1="8" y1="146" x2="142" y2="146" stroke="#4a5560" stroke-width="3" stroke-linecap="round"/>
+              <line x1="75" y1="14" x2="75" y2="146" stroke="#5aa9e6" stroke-width="2.5" stroke-dasharray="6 5"/>
+              <text x="79" y="22" font-size="10" fill="#5aa9e6">中線</text>
+              <rect x="58" y="104" width="36" height="7" rx="3" fill="#333d48"/>
+              <line x1="66" y1="111" x2="66" y2="141" stroke="#333d48" stroke-width="5" stroke-linecap="round"/>
+              <line x1="88" y1="111" x2="88" y2="141" stroke="#333d48" stroke-width="5" stroke-linecap="round"/>
+              <rect x="72" y="57" width="18" height="45" rx="9" fill="#e0d6c2"/>
+              <line x1="71" y1="61" x2="93" y2="56" stroke="#cabfa8" stroke-width="6" stroke-linecap="round"/>
+              <circle cx="83" cy="43" r="12.5" fill="#f4b942"/>
+              <polyline points="74,62 50,55 28,49" fill="none" stroke="#e0d6c2" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+              <circle cx="25" cy="48" r="7" fill="#f4efe3"/>
+              <circle cx="15" cy="44" r="9.5" fill="#ff7a59"/>
+              <path d="M97 66 Q108 85 90 99" fill="none" stroke="#4cc38a" stroke-width="2.5"/>
+              <path d="M90 99 l7 -1 M90 99 l1 -7" stroke="#4cc38a" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+            </svg>
+            <div class="dt">③ 軀幹動作</div><div class="dd">轉身、重心轉移，伸手越過身體中線去拿對側（練跨中線協調）。</div>
+          </div>
+        </div>
+        <div class="train">
+          <h3>訓練的動作功能</h3>
+          <ul>
+            <li><b>上肢伸取</b>（reach）：肩屈曲／外展、手肘伸直</li>
+            <li><b>肩關節穩定度</b>：手臂持續舉著抗重力</li>
+            <li><b>手眼協調與反應速度</b>：看到目標快速伸手</li>
+            <li><b>跨中線協調能力</b>：手越過身體中線去拿對側、雙側整合</li>
+            <li><b>坐姿平衡與軀幹穩定</b>：坐穩不晃、重心轉移</li>
+            <li><b>患側使用</b>：多用受影響的手，對抗「習得性廢用」</li>
+          </ul>
+        </div>
+        <div style="background:rgba(244,185,66,.1);border:1px solid rgba(244,185,66,.3);border-radius:12px;padding:11px 15px;font-size:13px;color:var(--ink);margin-bottom:12px;line-height:1.6">💡 <b>提醒</b>：全程盡量<b>保持坐姿、身體不要晃動</b>——除了讓追蹤更穩，這本身也是在練坐姿平衡與軀幹穩定。</div>
+        <button class="start" id="btnIntroGo">我了解了，開始設定 →</button>
+      </div>
+    </div>
+
+    <!-- Setup -->
+    <div class="overlay hidden" id="setup">
+      <div class="card">
+        <h1>伸手接星星 <span class="pill">鏡頭復健原型</span></h1>
+        <p class="lead">坐姿．鏡頭追蹤手部．把手移到目標上就得分。<br>開始前會先做一次「活動範圍校正」，讓每個人的能力都能玩。</p>
+
+        <div class="row">
+          <div class="label">患側（會多出現在患側，鼓勵伸取）</div>
+          <div class="seg" id="segSide">
+            <button data-side="left" class="on">左側患側</button>
+            <button data-side="right">右側患側</button>
+            <button data-side="none">不分側</button>
+          </div>
+        </div>
+        <div class="row" id="rowMode">
+          <div class="label">模式</div>
+          <div class="seg" id="segMode">
+            <button data-mode="mole" class="on">打地鼠（草地）</button>
+            <button data-mode="star">接星星（夜空）</button>
+          </div>
+        </div>
+        <div class="row">
+          <div class="label">畫面（不顯示臉，可自己選）</div>
+          <div class="seg" id="segDisplay">
+            <button data-disp="focus" class="on">專注模式</button>
+            <button data-disp="silhouette">手骨架模式</button>
+          </div>
+        </div>
+        <div class="row">
+          <div class="label">目標大小</div>
+          <div class="slider"><input type="range" id="rSize" min="40" max="110" value="88"><span class="val" id="vSize">中</span></div>
+        </div>
+        <div class="row">
+          <div class="label">速度 / 節奏</div>
+          <div class="slider"><input type="range" id="rSpeed" min="1" max="5" value="2"><span class="val" id="vSpeed">慢</span></div>
+        </div>
+        <div class="row">
+          <div class="label">伸取幅度（目標離身體多遠）</div>
+          <div class="slider"><input type="range" id="rReach" min="1" max="3" value="2"><span class="val" id="vReach">中</span></div>
+        </div>
+        <div class="row">
+          <div class="label">單局時間</div>
+          <div class="slider"><input type="range" id="rDur" min="30" max="180" step="15" value="90"><span class="val" id="vDur">90 秒</span></div>
+        </div>
+
+        <button class="start" id="btnStart">開啟鏡頭 → 校正</button>
+        <button class="link-btn" id="btnShowIntro">↺ 重看動作示範</button>
+        <p class="note">首次會請求鏡頭權限與播放音樂。請在光線充足處、坐正、上半身入鏡。建議用 Chrome。</p>
+      </div>
+    </div>
+
+    <!-- Calibration -->
+    <div class="overlay hidden" id="calib">
+      <div class="card">
+        <h1 id="calibTitle">校正：把你的活動範圍變成整個畫面</h1>
+        <p class="lead" id="calibIntro">先讓系統認識你的手能移動多大。按開始後，請用<b>要玩的那隻手</b>在空中盡量畫大——
+          <b>上、下、左、右都伸到你的極限</b>（像擦一面大鏡子），維持約 6 秒。<br>手不靈活也沒關係，範圍多小都可以，之後會幫你放大。</p>
+
+        <div id="calibReview" class="hidden">
+          <div class="end-grid three">
+            <div class="cell"><div class="k">左右範圍</div><div class="v" id="cvW">–</div></div>
+            <div class="cell"><div class="k">上下範圍</div><div class="v" id="cvH">–</div></div>
+            <div class="cell"><div class="k">狀態</div><div class="v" id="cvOk" style="font-size:20px">–</div></div>
+          </div>
+          <div class="row">
+            <div class="label">靈敏度（手移動一點 → 游標移動多少）</div>
+            <div class="seg" id="segSens">
+              <button data-g="0.9">低（穩）</button>
+              <button data-g="1.12" class="on">中</button>
+              <button data-g="1.4">高（省力）</button>
+            </div>
+          </div>
+        </div>
+
+        <button class="start" id="btnCalibStart">🎯 開始校正</button>
+        <button class="start go hidden" id="btnCalibGo">開始遊戲 →</button>
+        <button class="hud-btn hidden" id="btnRecalib" style="margin-top:10px;width:100%">重新校正</button>
+      </div>
+    </div>
+
+    <!-- End -->
+    <div class="overlay hidden" id="end">
+      <div class="card report">
+        <div id="reportBody"></div>
+        <div class="report-actions">
+          <button class="start" id="btnAgain">再玩一局</button>
+          <button class="hud-btn" id="btnPrint">🖨️ 列印 / 存 PDF</button>
+          <button class="hud-btn" id="btnReCalib2">重新校正範圍</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="loading"><div class="spinner"></div><div id="loadMsg">正在載入動作偵測模型…</div></div>
+  </div>
+</div>
+
+<script type="module">
+import { HandLandmarker, FilesetResolver }
+  from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14";
+
+const cv=document.getElementById('cv'), ctx=cv.getContext('2d');
+const hud=document.getElementById('hud'), setupEl=document.getElementById('setup'), introEl=document.getElementById('intro'),
+  calibEl=document.getElementById('calib'), endEl=document.getElementById('end'),
+  loading=document.getElementById('loading'), loadMsg=document.getElementById('loadMsg');
+const $=id=>document.getElementById(id);
+
+/* ---------------- 設定 ---------------- */
+const LOCK_MODE='mole';   // null＝兩種模式可選；'mole'或'star'＝鎖成單一遊戲（拆分成獨立產品用：複製檔只改這行，標題會自動變）
+const cfg={ side:'left', mode:'mole', display:'focus', size:72, speed:2, reach:2, dur:90, sound:true, gain:1.12 };
+if(LOCK_MODE){ cfg.mode=LOCK_MODE;
+  const r=document.getElementById('rowMode'); if(r)r.classList.add('hidden');
+  const nm=LOCK_MODE==='mole'?'打地鼠':'摘星星';
+  document.title=nm+' · 鏡頭復健遊戲';
+  const h=document.querySelector('#setup h1'); if(h)h.firstChild.textContent=nm+' ';
+}
+const MUSIC_CREDIT='♪ 音樂：Monkeys Spinning Monkeys — Kevin MacLeod (incompetech.com)．CC-BY 4.0';   // 音樂出處標示（CC-BY 授權必填）；拆分複製檔用 sed 填入
+if(MUSIC_CREDIT){ const c=document.createElement('div');
+  c.style.cssText='font-size:11px;color:var(--sub);margin-top:10px;text-align:center;opacity:.75;line-height:1.5';
+  c.textContent=MUSIC_CREDIT; const card=document.querySelector('#setup .card'); if(card)card.appendChild(c); }
+$('segSide').onclick=e=>seg(e,'side'); $('segMode').onclick=e=>seg(e,'mode'); $('segDisplay').onclick=e=>seg(e,'disp');
+function seg(e,key){ const d=e.target.dataset; const map={side:'side',mode:'mode',disp:'display'};
+  const attr=key==='disp'?'disp':key; if(!d[attr])return;
+  [...e.currentTarget.children].forEach(b=>b.classList.remove('on')); e.target.classList.add('on');
+  cfg[map[key]]=d[attr]; }
+$('segSens').onclick=e=>{ if(!e.target.dataset.g)return;
+  [...e.currentTarget.children].forEach(b=>b.classList.remove('on')); e.target.classList.add('on');
+  cfg.gain=+e.target.dataset.g; };
+const bind=(id,vid,fn)=>{const r=$(id),v=$(vid);const u=()=>v.textContent=fn(+r.value);r.oninput=u;u();return r;};
+const rSize=bind('rSize','vSize',x=>x<58?'小':x<90?'中':'大');
+const rSpeed=bind('rSpeed','vSpeed',x=>['','很慢','慢','中','快','很快'][x]);
+const rReach=bind('rReach','vReach',x=>['','近','中','遠'][x]);
+const rDur=bind('rDur','vDur',x=>x+' 秒');
+
+/* ---------------- One-Euro 濾波 ---------------- */
+function oneEuro(min=1.0,beta=0.02,dcut=1.0){   // ⚠️在 pixel space 濾波（餵正規化×像素尺度）→ 可用 One-Euro 經典參數；靜止抖↓min、拖尾↑beta
+  let xP=null,dxP=0,tP=null; const a=(c,dt)=>{const t=1/(2*Math.PI*c);return 1/(1+t/dt);};
+  return { reset(){xP=null;dxP=0;tP=null;},
+    f(x,t){ if(xP===null){xP=x;tP=t;return x;} const dt=Math.max((t-tP)/1000,1e-3);tP=t;
+      const dx=(x-xP)/dt; const ad=a(dcut,dt); const dh=ad*dx+(1-ad)*dxP; dxP=dh;
+      const c=min+beta*Math.abs(dh); const al=a(c,dt); const xh=al*x+(1-al)*xP; xP=xh; return xh; } };
+}
+const euro={ left:{x:oneEuro(),y:oneEuro(),t:0}, right:{x:oneEuro(),y:oneEuro(),t:0} };
+
+/* ---------------- 音訊 ---------------- */
+function makeAudio(){
+  const C=window.AudioContext||window.webkitAudioContext; const ac=new C();
+  const music=ac.createGain();music.gain.value=0.16;music.connect(ac.destination);
+  const sfx=ac.createGain();sfx.gain.value=0.32;sfx.connect(ac.destination);
+  const penta=[329.63,392,440,523.25,587.33,659.25,783.99]; let timer=null,pad=[];
+  function tone(dest,f,t,dur,vol,ty='triangle'){const o=ac.createOscillator();o.type=ty;o.frequency.value=f;
+    const g=ac.createGain();g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(vol,t+0.03);
+    g.gain.exponentialRampToValueAtTime(0.0001,t+dur);o.connect(g);g.connect(dest);o.start(t);o.stop(t+dur+0.05);}
+  function startPad(){[130.81,196].forEach(f=>{const o=ac.createOscillator();o.type='sine';o.frequency.value=f;
+    const g=ac.createGain();g.gain.value=0.05;o.connect(g);g.connect(music);o.start();pad.push(o);});}
+  function tick(){ if(Math.random()<0.68) tone(music,penta[Math.floor(Math.random()*penta.length)],ac.currentTime,1.4,0.12); }
+  // 背景音樂：優先播放同資料夾的 music.mp3（老闆自備免版權曲）；載不到就退回程式生成的柔和五聲音階
+  let bgm=null; try{ bgm=new Audio(); bgm.loop=true; bgm.volume=0.5; }catch(e){}
+  function startProc(){ if(!pad.length)startPad(); if(!timer)timer=setInterval(tick,820); }
+  function playBgm(list){ if(!bgm||!list.length){ startProc(); return; } bgm.src=list[0]; bgm.play().then(()=>{}).catch(()=>playBgm(list.slice(1))); }   // 依序試 music.mp3 / music.ogg，都沒有才用程式音樂
+  return { ac,
+    start(){ if(ac.state==='suspended')ac.resume();
+      if(bgm){ playBgm(['music.mp3','music.ogg']); } else startProc(); },
+    stop(){ if(bgm){try{bgm.pause();}catch(e){}} if(timer){clearInterval(timer);timer=null;} },
+    hit(){const t=ac.currentTime;tone(sfx,659.25,t,0.18,0.35,'sine');tone(sfx,987.77,t+0.05,0.22,0.3,'sine');},
+    squeak(){const t=ac.currentTime;   // 打到一般地鼠：卡通「吱」叫（方波快速上揚再下滑）
+      const o=ac.createOscillator();o.type='square';
+      o.frequency.setValueAtTime(680,t);o.frequency.exponentialRampToValueAtTime(1450,t+0.05);o.frequency.exponentialRampToValueAtTime(520,t+0.19);
+      const g=ac.createGain();g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(0.3,t+0.02);g.gain.exponentialRampToValueAtTime(0.0001,t+0.2);
+      o.connect(g);g.connect(sfx);o.start(t);o.stop(t+0.22);},
+    fierceSqueak(){const t=ac.currentTime;   // 打到兇地鼠：更兇的低吼＋吱
+      const o=ac.createOscillator();o.type='sawtooth';
+      o.frequency.setValueAtTime(300,t);o.frequency.exponentialRampToValueAtTime(920,t+0.06);o.frequency.exponentialRampToValueAtTime(200,t+0.24);
+      const g=ac.createGain();g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(0.34,t+0.02);g.gain.exponentialRampToValueAtTime(0.0001,t+0.28);
+      o.connect(g);g.connect(sfx);o.start(t);o.stop(t+0.3);},
+    beep(f=880){const t=ac.currentTime;tone(sfx,f,t,0.12,0.3,'sine');},
+    setMuted(m){ if(bgm)bgm.muted=m; music.gain.value=m?0:0.16;sfx.gain.value=m?0:0.32;} };
+}
+let AE=null;
+
+/* ---------------- 相機 + 模型 ---------------- */
+let handLandmarker=null,video=null,camReady=false;
+async function initModel(){
+  const vision=await FilesetResolver.forVisionTasks("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm");
+  handLandmarker=await HandLandmarker.createFromOptions(vision,{
+    baseOptions:{modelAssetPath:"https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task",delegate:"GPU"},
+    runningMode:"VIDEO",numHands:2,minHandDetectionConfidence:0.5,minHandPresenceConfidence:0.4,minTrackingConfidence:0.35 });
+}
+async function initCamera(){
+  video=document.createElement('video');video.playsInline=true;video.muted=true;
+  const st=await navigator.mediaDevices.getUserMedia({video:{width:{ideal:640},height:{ideal:480},frameRate:{ideal:30},facingMode:'user'},audio:false});
+  video.srcObject=st;await video.play();
+  try{ const tr=st.getVideoTracks()[0], caps=tr.getCapabilities?.();   // 嘗試 zoom 拉到最小＝更廣角、人更小、手不易出框
+    if(caps&&caps.zoom&&caps.zoom.min!=null) await tr.applyConstraints({advanced:[{zoom:caps.zoom.min}]}); }catch(e){}
+  camReady=true;
+}
+
+/* ---------------- 畫布 ---------------- */
+let CW=0,CH=0,_rw=0,_rh=0,_rdpr=0;
+function resize(){                                   // 只在尺寸真的變動時重設畫布（避免每幀重配置＝卡頓）
+  const dpr=Math.min(window.devicePixelRatio||1,2), w=cv.clientWidth, h=cv.clientHeight;
+  CW=w; CH=h;
+  if(w===_rw && h===_rh && dpr===_rdpr) return;
+  _rw=w;_rh=h;_rdpr=dpr; cv.width=w*dpr; cv.height=h*dpr; ctx.setTransform(dpr,0,0,dpr,0,0);
+}
+window.addEventListener('resize',resize);
+
+/* ---------------- 手部追蹤（HandLandmarker：直接偵測手部 21 點，比 Pose 外插指尖穩定得多） ---------------- */
+// handRaw：平滑後的正規化座標（影像空間，未鏡像）；raw=上一幀原始座標（離群判斷用）；lm=21 點原始座標（手骨架模式繪製）
+const handRaw={ left:{x:0.5,y:0.5,t:0,valid:false,bad:0,raw:null,lm:null}, right:{x:0.5,y:0.5,t:0,valid:false,bad:0,raw:null,lm:null} };
+let calib=null; // calib={minX,maxX,minY,maxY}
+const JUMP=0.32;              // 單幀原始座標跳超過此距離 → 視為誤判丟棄
+const PALM=[0,5,9,13,17];     // 掌心中心＝手腕＋四指根平均，當游標（比單一指尖穩）
+let HAND_SWAP=true;           // 前鏡頭原始影像非鏡像 → MediaPipe 手性需交換才對應解剖左右；若實測左右相反改成 false
+
+function palmCenter(lm){ let x=0,y=0; for(const i of PALM){x+=lm[i].x;y+=lm[i].y;} return {x:x/PALM.length,y:y/PALM.length}; }
+
+function trackHands(now){
+  if(_detT){ _detFps=_detFps?_detFps*0.9+(1000/(now-_detT))*0.1:1000/(now-_detT); } _detT=now;
+  let res; try{ res=handLandmarker.detectForVideo(video,now); }catch(e){ return; }
+  const SX=(video&&video.videoWidth)||640, SY=(video&&video.videoHeight)||480;   // pixel space 濾波用的尺度
+  const seen={left:false,right:false};
+  const n=(res&&res.landmarks)?res.landmarks.length:0;
+  for(let i=0;i<n;i++){
+    const lm=res.landmarks[i];
+    const label=(res.handedness&&res.handedness[i]&&res.handedness[i][0]&&res.handedness[i][0].categoryName)||(i===0?'Right':'Left');
+    let side=(label==='Left')?'left':'right'; if(HAND_SWAP)side=otherSide(side);
+    if(seen[side])side=otherSide(side);                          // 兩手被判成同一側 → 強制分開，避免互相蓋掉
+    const c=palmCenter(lm), H=handRaw[side], E=euro[side];
+    if(H.valid && H.raw && Math.hypot(c.x-H.raw.x,c.y-H.raw.y)>JUMP && H.bad<5){ H.bad++; seen[side]=true; continue; } // 離群→丟棄、保持上一位置
+    H.raw={x:c.x,y:c.y};
+    if(now-E.t>250){E.x.reset();E.y.reset();} E.t=now;
+    H.x=E.x.f(c.x*SX,now)/SX; H.y=E.y.f(c.y*SY,now)/SY;          // One-Euro 在 pixel space 濾波
+    H.t=now; H.valid=true; H.bad=0; H.lm=lm;
+    seen[side]=true;
+  }
+  for(const s of ['left','right']) if(!seen[s] && now-handRaw[s].t>200){ handRaw[s].valid=false; handRaw[s].lm=null; }  // 漏偵測：保持 200ms 再失效
+}
+// 遊戲映射：把校正方框放大對應到整個畫面
+function mapScreen(nx,ny){
+  let u=nx,v=ny;
+  if(calib){ u=(nx-calib.minX)/Math.max(0.05,calib.maxX-calib.minX);
+             v=(ny-calib.minY)/Math.max(0.05,calib.maxY-calib.minY); }
+  u=0.5+(u-0.5)*cfg.gain; v=0.5+(v-0.5)*cfg.gain;
+  u=Math.max(-0.05,Math.min(1.05,u)); v=Math.max(-0.05,Math.min(1.05,v));
+  return { x:CW*(1-u), y:CH*v };   // 鏡像
+}
+
+/* ---------------- 遊戲狀態 ---------------- */
+let phase='setup';   // setup / calibIntro / calibCapture / calibReview / play
+let running=false, targets=[], particles=[], score=0, hits=0, affHits=0, cross=0, presented=0, rts=[], hitLog=[], maxStreak=0, curStreak=0, hammerHitT=-9999;
+let startT=0, lastSpawn=0, lastVideoTime=-1;
+let bgStars=[], bgFlowers=[], moon={}, moleHold={x:0,y:0,t:0,side:null};
+let capBox=null, capEnd=0, capReadyEnd=0, _fpsT=0, _fps=0, _detT=0, _detFps=0;
+
+function affSide(){ return cfg.side==='right'?'right':'left'; }
+function otherSide(s){ return s==='left'?'right':'left'; }
+function speedParams(){const s=cfg.speed;return{spawnGap:1500-(s-1)*230,dwell:2600-(s-1)*380,fall:1.2+(s-1)*0.9,maxActive:cfg.mode==='mole'?2:3};}
+function reachSpread(){return[0,0.30,0.42,0.50][cfg.reach];}
+
+function spawnTarget(now){
+  const spread=reachSpread(); const mid=CW/2;
+  let onAff=cfg.side==='none'?Math.random()<0.5:Math.random()<0.72;
+  const affLeft=(cfg.side==='left');
+  const toLeft=cfg.side==='none'?(Math.random()<0.5):(onAff?affLeft:!affLeft);
+  const dx=(0.15+Math.random()*spread)*CW;
+  let x=Math.max(cfg.size,Math.min(CW-cfg.size, toLeft?mid-dx:mid+dx));
+  presented++;
+  if(cfg.mode==='mole'){ const y=CH*(0.42+Math.random()*0.42); const fierce=Math.random()<0.28;   // 約 28% 兇地鼠：冒出/縮回更快、分數更高
+    targets.push({x,y,r:cfg.size*(fierce?1.06:1),born:now,ttl:speedParams().dwell*(fierce?0.62:1),mode:'mole',hit:false,fierce}); }
+  else { targets.push({x,y:-cfg.size,r:cfg.size,born:now,vy:speedParams().fall,mode:'star',hit:false,rot:Math.random()*6}); }
+}
+function burst(x,y,c){for(let i=0;i<14;i++){const a=Math.random()*6.28,sp=2+Math.random()*5;
+  particles.push({x,y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp-2,life:1,color:c});}}
+function resetPlay(){
+  targets=[];particles=[];score=0;hits=0;affHits=0;cross=0;presented=0;rts=[];hitLog=[];maxStreak=0;curStreak=0;
+  rcur.left.on=false;rcur.right.on=false;
+  startT=performance.now()+3000;lastSpawn=0;moleHold={x:0,y:0,t:0,side:null};  // +3 秒開場倒數
+  bgStars=Array.from({length:60},()=>({x:Math.random()*CW,y:Math.random()*CH*0.7,r:Math.random()*1.8+0.5,p:Math.random()*6}));
+  bgFlowers=Array.from({length:14},()=>({x:Math.random()*CW,y:CH*(0.72+Math.random()*0.26),e:['🌼','🌸','🌿','🍀'][Math.floor(Math.random()*4)],s:18+Math.random()*14}));
+  moon={x:CW*0.82,y:CH*0.2,r:46};
+}
+
+/* ---------------- 遊戲用手部游標（每幀插值，消除偵測幀率造成的「當當」） ---------------- */
+const rcur={left:{x:0,y:0,on:false},right:{x:0,y:0,on:false}};
+const RCUR_K=0.6;   // 游標朝最新偵測位置「每畫面」滑移的比例（大＝跟手、小＝滑順）；補偵測(15-30fps)與畫面(60fps)的空檔
+function easeCur(side,tx,ty){ const r=rcur[side];
+  if(!r.on){ r.x=tx; r.y=ty; r.on=true; } else { r.x+=(tx-r.x)*RCUR_K; r.y+=(ty-r.y)*RCUR_K; }
+  return {x:r.x,y:r.y}; }
+function gameHands(now){
+  if(cfg.mode==='star'){
+    const out=[];
+    for(const s of ['left','right']){ const H=handRaw[s];
+      if(H.valid){ const p=mapScreen(H.x,H.y), e=easeCur(s,p.x,p.y); out.push({x:e.x,y:e.y,side:s}); }
+      else rcur[s].on=false; }
+    return out;
+  }
+  // 打地鼠：單一游標，患側優先，短暫定格避免跨身體亂跳
+  const a=affSide(), o=otherSide(a), A=handRaw[a], O=handRaw[o];
+  if(A.valid){ const p=mapScreen(A.x,A.y), e=easeCur(a,p.x,p.y); moleHold={x:e.x,y:e.y,t:now,side:a}; return [{x:e.x,y:e.y,side:a}]; }
+  if(now-moleHold.t<450 && moleHold.side) return [{x:moleHold.x,y:moleHold.y,side:moleHold.side}]; // 定格
+  if(O.valid){ const p=mapScreen(O.x,O.y), e=easeCur(o,p.x,p.y); moleHold={x:e.x,y:e.y,t:now,side:o}; return [{x:e.x,y:e.y,side:o}]; }
+  if(now-moleHold.t<900 && moleHold.side) return [{x:moleHold.x,y:moleHold.y,side:moleHold.side}];
+  return [];
+}
+
+/* ---------------- 主迴圈 ---------------- */
+function loop(){
+  if(!running)return;
+  const now=performance.now();
+  if(_fpsT){ _fps = _fps ? _fps*0.9 + (1000/(now-_fpsT))*0.1 : 1000/(now-_fpsT); } _fpsT=now;
+  resize();
+  if(camReady && video.currentTime!==lastVideoTime){ lastVideoTime=video.currentTime; trackHands(now); }
+  ctx.clearRect(0,0,CW,CH);
+
+  if(phase==='play'){ drawPlay(now); }
+  else { drawCalib(now); }
+  requestAnimationFrame(loop);
+}
+
+/* ---------------- 校正畫面 ---------------- */
+let vtf={s:1,ox:0,oy:0,dw:0,dh:0};
+function computeVtf(){ const vw=(video&&video.videoWidth)||4, vh=(video&&video.videoHeight)||3;
+  const s=Math.min(CW/vw,CH/vh)*0.9;                 // contain 再縮 10%＝廣角感、人更小、留邊
+  vtf={s,dw:vw*s,dh:vh*s,ox:(CW-vw*s)/2,oy:(CH-vh*s)/2}; }
+function calX(nx){ return vtf.ox+vtf.dw*(1-nx); }     // 校正顯示：正規化→鏡頭框內（鏡像）
+function calY(ny){ return vtf.oy+vtf.dh*ny; }
+function drawVideoFaint(a){
+  const vw=video.videoWidth,vh=video.videoHeight; if(!vw)return;
+  ctx.save();ctx.globalAlpha=a;ctx.translate(CW,0);ctx.scale(-1,1);
+  ctx.drawImage(video, CW-vtf.ox-vtf.dw, vtf.oy, vtf.dw, vtf.dh);ctx.restore();ctx.globalAlpha=1;
+  ctx.strokeStyle='rgba(255,255,255,.16)';ctx.lineWidth=2;ctx.strokeRect(vtf.ox,vtf.oy,vtf.dw,vtf.dh);
+}
+function drawCalib(now){
+  computeVtf();
+  const g=ctx.createLinearGradient(0,0,0,CH); g.addColorStop(0,'#16202b');g.addColorStop(1,'#0b1015');
+  ctx.fillStyle=g; ctx.fillRect(0,0,CW,CH);
+  if(camReady) drawVideoFaint(0.45);
+  ctx.fillStyle='rgba(255,255,255,.8)';ctx.textAlign='left';ctx.font='700 18px sans-serif';
+  ctx.fillText('畫面 '+Math.round(_fps)+' FPS　偵測 '+Math.round(_detFps)+' FPS', 18, 30);
+
+  const HH=handRaw[affSide()].valid?handRaw[affSide()]:(handRaw[otherSide(affSide())].valid?handRaw[otherSide(affSide())]:null);
+
+  if(phase==='calibCapture'){
+    if(now<capReadyEnd){                                 // 準備倒數，給長者時間就位
+      const n=Math.ceil((capReadyEnd-now)/1000);
+      ctx.fillStyle='#fff';ctx.textAlign='center';ctx.font='800 140px sans-serif';ctx.fillText(n,CW/2,CH*0.52);
+      ctx.font='800 34px sans-serif';ctx.fillText('準備好～等一下把手伸到最大',CW/2,CH*0.52+92);
+    } else {
+      if(HH){ capBox.minX=Math.min(capBox.minX,HH.x);capBox.maxX=Math.max(capBox.maxX,HH.x);
+        capBox.minY=Math.min(capBox.minY,HH.y);capBox.maxY=Math.max(capBox.maxY,HH.y); }
+      if(capBox.maxX>capBox.minX){
+        const x1=calX(capBox.maxX),x2=calX(capBox.minX),y1=calY(capBox.minY),y2=calY(capBox.maxY);
+        ctx.strokeStyle='rgba(76,195,138,.95)';ctx.lineWidth=5;ctx.setLineDash([12,9]);
+        ctx.strokeRect(Math.min(x1,x2),y1,Math.abs(x2-x1),y2-y1);ctx.setLineDash([]);
+        ctx.fillStyle='rgba(76,195,138,.14)';ctx.fillRect(Math.min(x1,x2),y1,Math.abs(x2-x1),y2-y1);
+      }
+      ctx.fillStyle='#fff';ctx.textAlign='center';ctx.font='800 38px sans-serif';
+      ctx.fillText('慢慢把手伸到最大：上、下、左、右都畫到！',CW/2,CH*0.12);
+      const p=Math.max(0,Math.min(1,(now-capReadyEnd)/(capEnd-capReadyEnd)));   // 進度條
+      const bw=Math.min(560,CW*0.7),bx=(CW-bw)/2,by=CH*0.12+26;
+      ctx.fillStyle='rgba(255,255,255,.2)';ctx.fillRect(bx,by,bw,18);
+      ctx.fillStyle='#4cc38a';ctx.fillRect(bx,by,bw*p,18);
+      if(now>=capEnd) finishCapture();
+    }
+  }
+  if(HH){ const x=calX(HH.x),y=calY(HH.y);                // 真實游標（校正框內、應貼手）
+    ctx.beginPath();ctx.arc(x,y,34,0,7);ctx.fillStyle='rgba(255,122,89,.3)';ctx.fill();
+    ctx.beginPath();ctx.arc(x,y,17,0,7);ctx.fillStyle='rgba(255,122,89,.97)';ctx.fill();
+    ctx.lineWidth=5;ctx.strokeStyle='rgba(255,255,255,.95)';ctx.stroke();
+  } else if(camReady && phase!=='calibReview'){
+    ctx.fillStyle='rgba(255,255,255,.9)';ctx.textAlign='center';ctx.font='700 24px sans-serif';
+    ctx.fillText('偵測不到手，請讓手入鏡、坐遠一點',CW/2,CH*0.66);
+  }
+}
+function startCapture(){
+  phase='calibCapture'; calibEl.classList.add('hidden');
+  capBox={minX:1,maxX:0,minY:1,maxY:0};
+  const t=performance.now(); capReadyEnd=t+3000; capEnd=t+3000+12000;   // 3 秒準備 + 12 秒擷取
+  if(AE&&cfg.sound)AE.beep(660);
+}
+function finishCapture(){
+  // 邊界檢查 + 加一點邊界緩衝
+  let {minX,maxX,minY,maxY}=capBox;
+  const w=maxX-minX, h=maxY-minY;
+  const okW=w>0.05, okH=h>0.05;
+  if(!okW){ minX=Math.max(0,minX-0.1); maxX=Math.min(1,maxX+0.1); }
+  if(!okH){ minY=Math.max(0,minY-0.1); maxY=Math.min(1,maxY+0.1); }
+  const padX=(maxX-minX)*0.06, padY=(maxY-minY)*0.06;
+  calib={minX:minX-padX,maxX:maxX+padX,minY:minY-padY,maxY:maxY+padY};
+  phase='calibReview';
+  $('cvW').textContent=Math.round((maxX-minX)*100)+'%';
+  $('cvH').textContent=Math.round((maxY-minY)*100)+'%';
+  $('cvOk').textContent=(okW&&okH)?'✅ 良好':'⚠️ 偏小';
+  $('cvOk').style.color=(okW&&okH)?'var(--good)':'var(--accent)';
+  $('calibIntro').classList.add('hidden'); $('calibReview').classList.remove('hidden');
+  $('btnCalibStart').classList.add('hidden'); $('btnCalibGo').classList.remove('hidden');
+  $('btnRecalib').classList.remove('hidden'); $('calibTitle').textContent='校正完成！可微調靈敏度';
+  calibEl.classList.remove('hidden');
+  if(AE&&cfg.sound)AE.beep(990);
+}
+
+/* ---------------- 遊戲畫面 ---------------- */
+function drawPlay(now){
+  cfg.mode==='mole'?drawBgGarden(now):drawBgNight(now);
+  if(cfg.display==='silhouette') drawHandSkeletons();
+
+  const P=speedParams(), mid=CW/2, aff=affSide();
+  const counting = now<startT;                              // 開場 3-2-1 倒數期間不生目標、不計時
+  const active=targets.filter(t=>!t.hit).length;
+  if(!counting && now-lastSpawn>P.spawnGap && active<P.maxActive){ spawnTarget(now); lastSpawn=now; }
+
+  const hands=gameHands(now);
+  for(const t of targets){
+    if(t.hit)continue;
+    if(t.mode==='star') t.y+=t.vy*CH/60;
+    for(const h of hands){
+      if(Math.hypot(h.x-t.x,h.y-t.y)<t.r+40){
+        t.hit=true;t.hitT=now;hits++;curStreak++;if(curStreak>maxStreak)maxStreak=curStreak;hammerHitT=now;let pts=t.fierce?30:10;   // 兇地鼠 +30、一般地鼠/星星 +10；hammerHitT 觸發錘子揮下
+        const byAff=(cfg.side!=='none'&&h.side===aff);
+        // 跨中線＝患側手打到「對側」目標：右手→畫面左側目標(t.x<mid)、左手→畫面右側目標(t.x>mid)。用目標位置判定（比游標穩、符合「手越過身體中線去拿對側」的定義）
+        if(byAff){affHits++;pts+=10; const crossed=aff==='left'?(t.x>mid):(t.x<mid); if(crossed){cross++;pts+=5;} }
+        score+=pts;t.pop=pts;burst(t.x,t.y,cfg.mode==='mole'?(t.fierce?'#ff9a6a':'#ffd27a'):'#bfe3ff');
+        rts.push(now-(t.born||now)); hitLog.push({x:t.x/CW,y:t.y/CH,t:Math.max(0,now-startT),side:h.side,aff:byAff});  // 反應時間＋命中座標（報表用）
+        if(AE&&cfg.sound){ cfg.mode==='mole'?(t.fierce?AE.fierceSqueak():AE.squeak()):AE.hit(); } break;
+      }
+    }
+  }
+  targets=targets.filter(t=>{ if(t.hit)return now-t.hitT<450;
+    const alive=(t.mode==='mole')?(now-t.born<t.ttl):(t.y<CH+t.r);
+    if(!alive)curStreak=0;   // 沒打到就消失＝miss，連擊歸零
+    return alive; });
+
+  for(const t of targets){
+    const age=now-(t.born||now);
+    if(t.hit){ const k=(now-t.hitT)/450; ctx.save();ctx.globalAlpha=1-k;
+      if(t.mode==='mole')drawMole(t.x,t.y-k*30,t.r*(1-k*0.3),1,true,t.fierce); else drawStar(t.x,t.y-k*40,t.r*(1+k*0.5));
+      ctx.restore();
+      ctx.fillStyle=cfg.mode==='mole'?'#ffd27a':'#bfe3ff';ctx.font='bold 28px sans-serif';ctx.textAlign='center';
+      ctx.globalAlpha=1-k;ctx.fillText('+'+t.pop,t.x,t.y-40-k*40);ctx.globalAlpha=1;
+    } else if(t.mode==='mole'){ drawMole(t.x,t.y,t.r,moleRise(t,now),false,t.fierce); }
+    else drawStar(t.x,t.y,t.r,now/600+t.rot);
+  }
+
+  for(const p of particles){p.x+=p.vx;p.y+=p.vy;p.vy+=0.35;p.life-=0.03;}
+  particles=particles.filter(p=>p.life>0);
+  for(const p of particles){ctx.globalAlpha=Math.max(0,p.life);ctx.fillStyle=p.color;
+    ctx.beginPath();ctx.arc(p.x,p.y,4,0,7);ctx.fill();} ctx.globalAlpha=1;
+
+  for(const h of hands){
+    if(cfg.mode==='mole'){ drawHammer(h.x,h.y,now); }        // 打地鼠：錘子游標＋揮下動畫
+    else { ctx.beginPath();ctx.arc(h.x,h.y,30,0,7);ctx.fillStyle='rgba(90,169,230,.28)';ctx.fill();
+      ctx.beginPath();ctx.arc(h.x,h.y,15,0,7);ctx.fillStyle='rgba(90,169,230,.95)';ctx.fill();
+      ctx.lineWidth=4;ctx.strokeStyle='rgba(255,255,255,.9)';ctx.stroke(); }
+  }
+  if(hands.length===0&&camReady){ctx.fillStyle='rgba(255,255,255,.85)';ctx.font='600 20px sans-serif';ctx.textAlign='center';
+    ctx.fillText('偵測不到手部，請讓手入鏡',CW/2,CH-40);}
+
+  const remain=Math.max(0,cfg.dur-Math.max(0,(now-startT))/1000);
+  hScore.textContent=score;hHits.textContent=hits;
+  hAff.textContent=hits?Math.round(affHits/hits*100)+'%':'–';hCross.textContent=cross;hTime.textContent=Math.ceil(remain)+'s';
+  hFps.textContent=Math.round(_fps);
+
+  if(counting){                                             // 開場倒數畫面
+    const n=Math.ceil((startT-now)/1000);
+    ctx.fillStyle='rgba(0,0,0,.4)';ctx.fillRect(0,0,CW,CH);
+    ctx.fillStyle='#fff';ctx.textAlign='center';ctx.font='800 150px sans-serif';ctx.fillText(n>0?n:'GO',CW/2,CH*0.5);
+    ctx.font='800 36px sans-serif';ctx.fillText(cfg.mode==='mole'?'準備打地鼠！':'準備接星星！',CW/2,CH*0.5+96);
+  }
+  if(!counting && remain<=0){ endGame(); }
+}
+
+/* ---------------- 繪圖 ---------------- */
+function drawBgGarden(){
+  const s=ctx.createLinearGradient(0,0,0,CH);
+  s.addColorStop(0,'#bfe3f2');s.addColorStop(0.55,'#e8f3d8');s.addColorStop(0.56,'#8ec96b');s.addColorStop(1,'#5fa544');
+  ctx.fillStyle=s;ctx.fillRect(0,0,CW,CH);
+  ctx.fillStyle='rgba(255,236,150,.9)';ctx.beginPath();ctx.arc(CW*0.14,CH*0.16,42,0,7);ctx.fill();
+  ctx.fillStyle='rgba(255,236,150,.25)';ctx.beginPath();ctx.arc(CW*0.14,CH*0.16,64,0,7);ctx.fill();
+  ctx.fillStyle='#7bbe5a';ctx.beginPath();ctx.moveTo(0,CH*0.56);
+  ctx.quadraticCurveTo(CW*0.3,CH*0.44,CW*0.6,CH*0.56);ctx.quadraticCurveTo(CW*0.85,CH*0.64,CW,CH*0.55);
+  ctx.lineTo(CW,CH);ctx.lineTo(0,CH);ctx.fill();
+  ctx.textAlign='center';for(const f of bgFlowers){ctx.font=f.s+'px sans-serif';ctx.fillText(f.e,f.x,f.y);}
+}
+function drawBgNight(now){
+  const s=ctx.createLinearGradient(0,0,0,CH);
+  s.addColorStop(0,'#0b1533');s.addColorStop(0.6,'#152046');s.addColorStop(1,'#243056');
+  ctx.fillStyle=s;ctx.fillRect(0,0,CW,CH);
+  ctx.fillStyle='rgba(245,240,210,.95)';ctx.beginPath();ctx.arc(moon.x||CW*.82,moon.y||CH*.2,moon.r||46,0,7);ctx.fill();
+  ctx.fillStyle='rgba(245,240,210,.18)';ctx.beginPath();ctx.arc(moon.x||CW*.82,moon.y||CH*.2,(moon.r||46)+22,0,7);ctx.fill();
+  for(const st of bgStars){const tw=0.5+0.5*Math.sin(now/500+st.p);ctx.globalAlpha=0.3+0.6*tw;ctx.fillStyle='#fff';
+    ctx.beginPath();ctx.arc(st.x,st.y,st.r,0,7);ctx.fill();} ctx.globalAlpha=1;
+}
+function hrect(x,y,w,h,r){ ctx.beginPath(); ctx.roundRect(x,y,w,h,r); }
+let _hgrad=null;   // 漸層只建一次（每幀重建會拖慢＝之前「卡卡」的主因）
+function drawHammer(x,y,now){       // 錘子游標：以「手」為支點、槌頭在遠端；rot=0 時槌面正好敲在游標(地鼠)上
+  const s=1.1+cfg.size/180, HL=64, hh=30, hw=64, L=HL+hh;
+  const idle=-0.9, strike=0, e=now-hammerHitT;
+  let rot;
+  if(e<70) rot=idle+(strike-idle)*(e/70);                                   // 揮下
+  else if(e<250){ const p=(e-70)/180; rot=strike+(idle-strike)*(p*(2-p)); } // 回彈（easeOut）
+  else rot=idle;                                                            // 待機：槌頭舉在上，看得到地鼠
+  ctx.save();
+  ctx.translate(x,y); ctx.scale(s,s);
+  ctx.translate(0,-L); ctx.rotate(rot); ctx.translate(0,L);                 // 以手為支點旋轉，槌面掃到游標
+  ctx.lineCap='round'; ctx.lineJoin='round';
+  ctx.strokeStyle='#5f3f1f'; ctx.lineWidth=15; ctx.beginPath(); ctx.moveTo(0,-hh); ctx.lineTo(0,-L); ctx.stroke();
+  ctx.strokeStyle='#b07d43'; ctx.lineWidth=10; ctx.beginPath(); ctx.moveTo(0,-hh); ctx.lineTo(0,-L); ctx.stroke();
+  ctx.fillStyle='#e7c07a'; ctx.beginPath(); ctx.arc(0,-L,7.5,0,7); ctx.fill();
+  if(!_hgrad){ _hgrad=ctx.createLinearGradient(0,-hh,0,0); _hgrad.addColorStop(0,'#c3ccd6'); _hgrad.addColorStop(.45,'#9aa4b1'); _hgrad.addColorStop(1,'#616a76'); }
+  ctx.fillStyle='#3d434c'; hrect(-hw/2-1,-hh-1,hw+2,hh+2,11); ctx.fill();
+  ctx.fillStyle=_hgrad; hrect(-hw/2,-hh,hw,hh,10); ctx.fill();
+  ctx.fillStyle='#767f8b'; hrect(-hw/2,-hh,11,hh,6); ctx.fill(); hrect(hw/2-11,-hh,11,hh,6); ctx.fill();
+  ctx.fillStyle='rgba(255,255,255,.45)'; hrect(-hw/2+13,-hh+4,hw-26,5,3); ctx.fill();
+  ctx.restore();
+}
+function moleRise(t,now){                    // 冒出 → 停留 → 鑽回土裡（消失前縮回）
+  const age=now-(t.born||now), inD=t.fierce?150:220, outD=340;
+  if(age<inD) return age/inD;
+  if(age>t.ttl-outD) return Math.max(0,(t.ttl-age)/outD);
+  return 1;
+}
+function drawMole(x,y,r,rise,ko,fierce){
+  ctx.fillStyle='#6b4a28';ctx.beginPath();ctx.ellipse(x,y+r*0.62,r*1.2,r*0.5,0,0,7);ctx.fill();
+  ctx.fillStyle='#5a3d20';ctx.beginPath();ctx.ellipse(x,y+r*0.62,r*0.85,r*0.32,0,0,7);ctx.fill();
+  ctx.save();ctx.beginPath();ctx.rect(x-r*1.4,0,r*2.8,y+r*0.6);ctx.clip();
+  const cy=y+(1-rise)*r*1.3;
+  if(fierce){ ctx.fillStyle='#6f2f16';ctx.beginPath();   // 兇地鼠：兩隻尖耳角
+    ctx.moveTo(x-r*0.72,cy-r*0.5);ctx.lineTo(x-r*0.42,cy-r*1.0);ctx.lineTo(x-r*0.14,cy-r*0.58);ctx.closePath();
+    ctx.moveTo(x+r*0.72,cy-r*0.5);ctx.lineTo(x+r*0.42,cy-r*1.0);ctx.lineTo(x+r*0.14,cy-r*0.58);ctx.closePath();ctx.fill(); }
+  ctx.fillStyle=fierce?'#9a4526':'#7c5a3a';ctx.beginPath();ctx.arc(x,cy,r,0,7);ctx.fill();
+  ctx.fillStyle=fierce?'#d69a72':'#caa878';ctx.beginPath();ctx.ellipse(x,cy+r*0.18,r*0.58,r*0.66,0,0,7);ctx.fill();
+  ctx.fillStyle=fierce?'#f0c29a':'#ecd0a6';ctx.beginPath();ctx.ellipse(x,cy+r*0.3,r*0.4,r*0.3,0,0,7);ctx.fill();
+  if(ko){ctx.strokeStyle='#2a1e12';ctx.lineWidth=3;
+    ctx.beginPath();ctx.moveTo(x-r*0.4,cy-r*0.28);ctx.lineTo(x-r*0.16,cy-r*0.04);
+    ctx.moveTo(x-r*0.16,cy-r*0.28);ctx.lineTo(x-r*0.4,cy-r*0.04);
+    ctx.moveTo(x+r*0.16,cy-r*0.28);ctx.lineTo(x+r*0.4,cy-r*0.04);
+    ctx.moveTo(x+r*0.4,cy-r*0.28);ctx.lineTo(x+r*0.16,cy-r*0.04);ctx.stroke();
+  }else{ctx.fillStyle=fierce?'#c62a20':'#2a1e12';
+    ctx.beginPath();ctx.arc(x-r*0.26,cy-r*0.12,r*0.12,0,7);ctx.fill();
+    ctx.beginPath();ctx.arc(x+r*0.26,cy-r*0.12,r*0.12,0,7);ctx.fill();
+    ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(x-r*0.22,cy-r*0.16,r*0.04,0,7);ctx.fill();
+    ctx.beginPath();ctx.arc(x+r*0.3,cy-r*0.16,r*0.04,0,7);ctx.fill();
+    if(fierce){ ctx.strokeStyle='#2a1e12';ctx.lineWidth=Math.max(2,r*0.07);ctx.lineCap='round';   // 怒眉
+      ctx.beginPath();ctx.moveTo(x-r*0.44,cy-r*0.34);ctx.lineTo(x-r*0.12,cy-r*0.18);
+      ctx.moveTo(x+r*0.44,cy-r*0.34);ctx.lineTo(x+r*0.12,cy-r*0.18);ctx.stroke();
+      ctx.fillStyle='#fff';ctx.beginPath();   // 兩顆獠牙
+      ctx.moveTo(x-r*0.15,cy+r*0.27);ctx.lineTo(x-r*0.04,cy+r*0.27);ctx.lineTo(x-r*0.1,cy+r*0.45);ctx.closePath();
+      ctx.moveTo(x+r*0.15,cy+r*0.27);ctx.lineTo(x+r*0.04,cy+r*0.27);ctx.lineTo(x+r*0.1,cy+r*0.45);ctx.closePath();ctx.fill(); } }
+  ctx.fillStyle='#c56a7a';ctx.beginPath();ctx.arc(x,cy+r*0.2,r*0.11,0,7);ctx.fill();
+  ctx.restore();
+  ctx.fillStyle='#7a5528';ctx.beginPath();ctx.ellipse(x,y+r*0.62,r*1.2,r*0.26,0,0,Math.PI);ctx.fill();
+}
+function drawStar(cx,cy,r,rot=0){
+  ctx.save();ctx.translate(cx,cy);ctx.rotate(rot*0.15);
+  const gl=ctx.createRadialGradient(0,0,r*0.2,0,0,r*1.7);
+  gl.addColorStop(0,'rgba(255,235,150,.55)');gl.addColorStop(1,'rgba(255,235,150,0)');
+  ctx.fillStyle=gl;ctx.beginPath();ctx.arc(0,0,r*1.7,0,7);ctx.fill();
+  const sp=5,o=r,ir=r*0.44;ctx.beginPath();
+  for(let i=0;i<sp*2;i++){const rad=i%2===0?o:ir,a=Math.PI/sp*i-Math.PI/2;const x=Math.cos(a)*rad,y=Math.sin(a)*rad;i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);}
+  ctx.closePath();const g=ctx.createRadialGradient(0,0,ir*0.3,0,0,o);
+  g.addColorStop(0,'#fff');g.addColorStop(.5,'#ffd54a');g.addColorStop(1,'#f4a72a');
+  ctx.fillStyle=g;ctx.fill();ctx.lineWidth=3;ctx.strokeStyle='rgba(120,70,0,.35)';ctx.stroke();ctx.restore();
+}
+const HAND_CONN=[[0,1],[1,2],[2,3],[3,4],[0,5],[5,6],[6,7],[7,8],[5,9],[9,10],[10,11],[11,12],[9,13],[13,14],[14,15],[15,16],[13,17],[17,18],[18,19],[19,20],[0,17]];
+function drawHandSkeletons(){                          // 手骨架模式：直接畫偵測到的手（無臉，且與游標對齊）
+  for(const s of ['left','right']){ const H=handRaw[s]; if(!H.valid||!H.lm)continue;
+    const pts=H.lm.map(l=>mapScreen(l.x,l.y));
+    ctx.lineCap='round';ctx.lineJoin='round';ctx.strokeStyle='rgba(255,255,255,.5)';ctx.lineWidth=7;
+    for(const[a,b]of HAND_CONN){ctx.beginPath();ctx.moveTo(pts[a].x,pts[a].y);ctx.lineTo(pts[b].x,pts[b].y);ctx.stroke();}
+    ctx.fillStyle='rgba(255,255,255,.82)';
+    for(const p of pts){ctx.beginPath();ctx.arc(p.x,p.y,4.5,0,7);ctx.fill();}
+  }
+}
+
+/* ---------------- 流程控制 ---------------- */
+async function beginSession(){
+  cfg.size=+rSize.value;cfg.speed=+rSpeed.value;cfg.reach=+rReach.value;cfg.dur=+rDur.value;
+  setupEl.classList.add('hidden'); loading.style.display='flex';
+  try{
+    resize();
+    if(!handLandmarker){loadMsg.textContent='正在載入手部偵測模型…';await initModel();}
+    if(!camReady){loadMsg.textContent='正在開啟鏡頭…';await initCamera();}
+    if(!AE)AE=makeAudio(); if(cfg.sound){AE.start();AE.setMuted(false);}
+  }catch(err){ loading.style.display='none';
+    alert('無法啟動：'+err.message+'\n\n請確認已允許鏡頭權限，並用 Chrome 開啟。');
+    setupEl.classList.remove('hidden'); return; }
+  loading.style.display='none';
+  enterCalibIntro();
+  running=true; requestAnimationFrame(loop);
+}
+function enterCalibIntro(){
+  phase='calibIntro'; calib=null;
+  $('calibTitle').textContent='校正：把你的活動範圍變成整個畫面';
+  $('calibIntro').classList.remove('hidden'); $('calibReview').classList.add('hidden');
+  $('btnCalibStart').classList.remove('hidden'); $('btnCalibGo').classList.add('hidden');
+  $('btnRecalib').classList.add('hidden');
+  calibEl.classList.remove('hidden'); endEl.classList.add('hidden'); hud.classList.add('hidden');
+}
+function startPlay(){
+  calibEl.classList.add('hidden'); hud.classList.remove('hidden');
+  phase='play'; resetPlay();
+}
+/* ---------------- 復能報表 ---------------- */
+const LS_KEY='reachcatch_sessions';
+const _mean=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:0;
+function loadSessions(){ try{return JSON.parse(localStorage.getItem(LS_KEY)||'[]');}catch(e){return[];} }
+function _std(a,m){ if(a.length<2)return 0; return Math.sqrt(a.reduce((s,x)=>s+(x-m)*(x-m),0)/a.length); }
+function buildSession(){
+  const pres=Math.max(presented,hits);
+  const rt=rts.slice(); const m=_mean(rt);                        // 每次命中的反應時間(ms)
+  const avgRT=rt.length?Math.round(m):null, bestRT=rt.length?Math.round(Math.min(...rt)):null;
+  const cvRT=rt.length>1&&m?Math.round(_std(rt,m)/m*100):null;    // 反應穩定度 CV%（越低越穩）
+  const series=hitLog.map((h,i)=>[h.t, rt[i]]);                   // [相對時間ms, RT ms]
+  let fatigue=null;                                              // 疲勞指數：後半局平均RT vs 前半局（正=後段變慢=疲勞）
+  if(series.length>=4){ const mid=series.length>>1;
+    const e=_mean(series.slice(0,mid).map(s=>s[1])), l=_mean(series.slice(mid).map(s=>s[1]));
+    fatigue=e?Math.round((l-e)/e*100):null; }
+  return { date:new Date().toISOString(), mode:cfg.mode, side:cfg.side, dur:cfg.dur,
+    size:cfg.size, speed:cfg.speed, reach:cfg.reach, score, hits, presented:pres, misses:Math.max(0,pres-hits),
+    accuracy: pres?Math.round(hits/pres*100):0, affPct: hits?Math.round(affHits/hits*100):0, cross,
+    avgRT, bestRT, cvRT, fatigue, maxStreak, series };
+}
+function rtLineSVG(series,durSec){   // 本局反應時間逐次曲線＋線性趨勢（疲勞）
+  const W=380,H=168,padL=36,padR=12,padT=14,padB=22;
+  if(series.length<2) return `<svg viewBox="0 0 ${W} ${H}" width="100%" style="max-width:${W}px"><text x="${W/2}" y="${H/2}" text-anchor="middle" font-size="12" fill="#8a94a0">命中太少，資料不足</text></svg>`;
+  const ys=series.map(s=>s[1]); let lo=Math.min(...ys), hi=Math.max(...ys); if(hi-lo<50){hi+=50;lo=Math.max(0,lo-50);} const p=(hi-lo)*0.12; lo=Math.max(0,lo-p); hi+=p;
+  const xF=t=>padL+Math.min(1,(t/1000)/durSec)*(W-padL-padR);
+  const yF=r=>(H-padB)-((r-lo)/(hi-lo))*(H-padB-padT);
+  let g=`<line x1="${padL}" y1="${H-padB}" x2="${W-padR}" y2="${H-padB}" stroke="#333d48"/>`;
+  g+=`<text x="${padL-5}" y="${(yF(hi)+7).toFixed(1)}" text-anchor="end" font-size="9" fill="#8a94a0">${(hi/1000).toFixed(1)}s</text>`;
+  g+=`<text x="${padL-5}" y="${yF(lo).toFixed(1)}" text-anchor="end" font-size="9" fill="#8a94a0">${(lo/1000).toFixed(1)}s</text>`;
+  const n=series.length; let sx=0,sy=0,sxy=0,sxx=0;
+  series.forEach(s=>{const x=s[0]/1000,y=s[1];sx+=x;sy+=y;sxy+=x*y;sxx+=x*x;});
+  const b=(n*sxy-sx*sy)/Math.max(1e-6,n*sxx-sx*sx), a=(sy-b*sx)/n;   // 線性回歸斜率 b (ms/秒)
+  g+=`<line x1="${xF(0).toFixed(1)}" y1="${yF(a).toFixed(1)}" x2="${xF(durSec*1000).toFixed(1)}" y2="${yF(a+b*durSec).toFixed(1)}" stroke="${b>0.5?'#ff7a59':'#4cc38a'}" stroke-width="2.5" stroke-dasharray="6 4"/>`;
+  g+=`<polyline points="${series.map(s=>`${xF(s[0]).toFixed(1)},${yF(s[1]).toFixed(1)}`).join(' ')}" fill="none" stroke="#5aa9e6" stroke-width="2"/>`;
+  series.forEach(s=>{g+=`<circle cx="${xF(s[0]).toFixed(1)}" cy="${yF(s[1]).toFixed(1)}" r="2.6" fill="#5aa9e6"/>`;});
+  return `<svg viewBox="0 0 ${W} ${H}" width="100%" style="max-width:${W}px">${g}</svg>`;
+}
+function trendSVG(sess,series,maxY){
+  const W=380,H=170,padL=30,padR=10,padT=12,padB=22, n=sess.length;
+  const xw=(W-padL-padR)/Math.max(1,n-1), yTop=padT, yBot=H-padB, yFor=v=>yBot-((v||0)/maxY)*(yBot-yTop); let g='';
+  g+=`<line x1="${padL}" y1="${yBot}" x2="${W-padR}" y2="${yBot}" stroke="#333d48"/>`;
+  [0,maxY/2,maxY].forEach(v=>{ g+=`<line x1="${padL}" y1="${yFor(v).toFixed(1)}" x2="${W-padR}" y2="${yFor(v).toFixed(1)}" stroke="rgba(140,148,160,.18)"/><text x="${padL-4}" y="${(yFor(v)+3).toFixed(1)}" text-anchor="end" font-size="9" fill="#8a94a0">${Math.round(v)}</text>`; });
+  for(const se of series){ const pts=sess.map((s,i)=>`${(padL+i*xw).toFixed(1)},${yFor(s[se.k]).toFixed(1)}`).join(' ');
+    g+=`<polyline points="${pts}" fill="none" stroke="${se.color}" stroke-width="2.5"/>`;
+    sess.forEach((s,i)=>{ g+=`<circle cx="${(padL+i*xw).toFixed(1)}" cy="${yFor(s[se.k]).toFixed(1)}" r="3" fill="${se.color}"/>`; }); }
+  return `<svg viewBox="0 0 ${W} ${H}" width="100%" style="max-width:${W}px">${g}</svg>`;
+}
+function legend(series){ return '<div class="rep-chips">'+series.map(s=>`<span style="color:${s.color}">● ${s.label}</span>`).join('')+'</div>'; }
+function renderReport(){
+  const s=buildSession(), sSave={...s}; delete sSave.heat;
+  const all=loadSessions(); all.push(sSave); const saved=all.slice(-300);
+  try{ localStorage.setItem(LS_KEY,JSON.stringify(saved)); }catch(e){}
+  const prev=saved.length>=2?saved[saved.length-2]:null;
+  const sideL={left:'左側患側',right:'右側患側',none:'不分側'}[s.side];
+  const modeL={mole:'打地鼠',star:'接星星'}[s.mode];
+  const sizeL=s.size<58?'小':s.size<90?'中':'大', speedL=['','很慢','慢','中','快','很快'][s.speed], reachL=['','近','中','遠'][s.reach];
+  const d=new Date(s.date), p2=x=>String(x).padStart(2,'0');
+  const dateStr=`${d.getFullYear()}/${p2(d.getMonth()+1)}/${p2(d.getDate())} ${p2(d.getHours())}:${p2(d.getMinutes())}`;
+  const dl=(cur,pre,unit,inv)=>{ if(pre==null||cur==null)return ''; const dd=+(cur-pre).toFixed(2); if(!dd)return ' <span class="dl flat">→持平</span>'; const good=inv?dd<0:dd>0; return ` <span class="dl ${good?'up':'down'}">${dd>0?'▲+':'▼'}${Math.abs(dd)}${unit}</span>`; };
+  const M=(k,v,sub,cls)=>`<div class="metric ${cls||''}"><div class="k">${k}</div><div class="v">${v}</div><div class="s">${sub||''}</div></div>`;
+  const rtS=s.avgRT!=null?(s.avgRT/1000).toFixed(2):null, bestS=s.bestRT!=null?(s.bestRT/1000).toFixed(2):null;
+  const rtDelta=(rtS!=null&&prev&&prev.avgRT!=null)?dl(+rtS,+(prev.avgRT/1000).toFixed(2),'s',true):'';
+  const metrics=
+    M('平均反應時間', (rtS!=null?rtS+' s':'–')+rtDelta, bestS!=null?'最快 '+bestS+' s':'看到→碰到')+
+    M('命中率', s.accuracy+'%'+(prev?dl(s.accuracy,prev.accuracy,'%',false):''), `${s.hits}/${s.presented}．最長連擊 ${s.maxStreak}`)+
+    M('反應穩定度', (s.cvRT!=null?s.cvRT+'%':'–')+(s.cvRT!=null&&prev&&prev.cvRT!=null?dl(s.cvRT,prev.cvRT,'%',true):''), 'CV，越低越穩')+
+    M('疲勞指數', (s.fatigue!=null?s.fatigue+'%':'–')+(s.fatigue!=null&&prev&&prev.fatigue!=null?dl(s.fatigue,prev.fatigue,'%',true):''), '後段比前段慢')+
+    M('患側使用率', s.affPct+'%'+(prev?dl(s.affPct,prev.affPct,'%',false):''), '目標 72%','aff')+
+    M('跨中線', s.cross+' 次'+(prev?dl(s.cross,prev.cross,'',false):''), '右手打左側/左手打右側');
+  let trend='';
+  if(saved.length>=2){
+    const recent=saved.slice(-8), maxRT=Math.max(500,...recent.map(x=>x.avgRT||0))*1.1;
+    trend=`<div class="charts">
+      <div class="chart"><h3>跨次趨勢：平均反應時間</h3><div class="cnote">最近 ${recent.length} 局（毫秒，越低越好）</div>
+        ${trendSVG(recent.map(x=>({v:x.avgRT||0})),[{k:'v',color:'#5aa9e6'}],maxRT)}</div>
+      <div class="chart"><h3>跨次趨勢：患側使用率 / 命中率</h3><div class="cnote">最近 ${recent.length} 局（%）</div>
+        ${legend([{label:'患側使用率',color:'#ff7a59'},{label:'命中率',color:'#4cc38a'}])}
+        ${trendSVG(recent,[{k:'affPct',color:'#ff7a59'},{k:'accuracy',color:'#4cc38a'}],100)}</div>
+    </div>`;
+  }
+  const notes=[];
+  if(s.avgRT!=null) notes.push(`平均反應時間 ${(s.avgRT/1000).toFixed(2)}s、最快 ${(s.bestRT/1000).toFixed(2)}s（含「看到→伸手碰到」的整體反應）。`);
+  if(s.fatigue!=null) notes.push(s.fatigue>=15?`⚠️疲勞指數 ${s.fatigue}%：後段反應明顯變慢，抗重力（手持續舉著）耐力受限，建議縮短單局或中途休息。`:(s.fatigue<=5?`疲勞指數 ${s.fatigue}%：整局反應穩定，耐力足以撐完全程。`:`疲勞指數 ${s.fatigue}%：後段略微變慢。`));
+  if(s.cvRT!=null) notes.push(`反應穩定度 CV ${s.cvRT}%（越低越穩；偏高可能是注意力波動或動作控制不穩）。`);
+  notes.push(s.affPct>=72?`患側使用率 ${s.affPct}% 已達鼓勵目標（72%），對抗習得性廢用（learned non-use）成效佳。`:`患側使用率 ${s.affPct}%（目標 72%），可提高偏患側目標比例、或提示個案多用患側。`);
+  notes.push(`跨中線 ${s.cross} 次（患側手打到對側目標＝手越過身體中線）。`);
+  $('reportBody').innerHTML=`
+    <div class="rep-head"><h1>復能訓練報表 <span class="pill">治療師版</span></h1></div>
+    <div class="rep-sub">${dateStr}
+      <div class="rep-chips"><span>${sideL}</span><span>${modeL}</span><span>目標 ${sizeL}</span><span>速度 ${speedL}</span><span>幅度 ${reachL}</span><span>時長 ${s.dur}s</span></div>
+    </div>
+    <div class="metrics">${metrics}</div>
+    <div class="chart" style="margin-bottom:16px"><h3>本局反應時間趨勢（耐力／疲勞）</h3><div class="cnote">每次命中的反應時間；藍線＝逐次，虛線＝趨勢（<span style="color:#ff7a59">紅＝越來越慢＝疲勞</span> ／ <span style="color:#4cc38a">綠＝維持穩定</span>）</div>${rtLineSVG(s.series,s.dur)}</div>
+    ${trend}
+    <div class="rep-note"><b>臨床判讀</b><br>${notes.join('<br>')}</div>`;
+}
+function endGame(){
+  phase='setup'; running=false; hud.classList.add('hidden'); if(AE)AE.stop();
+  renderReport();
+  endEl.classList.remove('hidden');
+}
+
+$('btnIntroGo').onclick=()=>{ introEl.classList.add('hidden'); setupEl.classList.remove('hidden'); };
+$('btnShowIntro').onclick=()=>{ setupEl.classList.add('hidden'); introEl.classList.remove('hidden'); };
+$('btnStart').onclick=beginSession;
+$('btnCalibStart').onclick=startCapture;
+$('btnCalibGo').onclick=()=>{ if(AE&&cfg.sound){AE.start();AE.setMuted(false);} startPlay(); };
+$('btnRecalib').onclick=enterCalibIntro;
+$('btnAgain').onclick=()=>{ endEl.classList.add('hidden'); running=true; requestAnimationFrame(loop); startPlay(); };
+$('btnReCalib2').onclick=()=>{ endEl.classList.add('hidden'); running=true; requestAnimationFrame(loop); enterCalibIntro(); };
+$('btnEnd').onclick=endGame;
+$('btnPrint').onclick=()=>window.print();
+$('btnMute').onclick=e=>{ cfg.sound=!cfg.sound; e.target.textContent=cfg.sound?'🔊':'🔇';
+  if(AE){ if(cfg.sound){AE.start();AE.setMuted(false);} else AE.setMuted(true); } };
+
+const hScore=$('hScore'),hHits=$('hHits'),hAff=$('hAff'),hCross=$('hCross'),hTime=$('hTime'),hFps=$('hFps');
+resize();
+</script>
+</body>
+</html>
