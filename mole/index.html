@@ -387,7 +387,7 @@
         <button class="link-btn" id="btnShowIntro">↺ 重看動作示範</button>
         <p class="note">首次會請求鏡頭權限與播放音樂。請在光線充足處、坐正、上半身入鏡。<br>
           手機請橫著拿、立在桌上；電腦用 Chrome，iPhone／iPad 用 Safari。<br>
-          影像只在你的裝置上運算，不會上傳也不會儲存。</p>
+          影像只在你的裝置上運算，不會上傳也不會儲存（本站僅統計造訪量，無 cookie）。</p>
       </div>
     </div>
 
@@ -1177,5 +1177,7 @@ $('btnMute').onclick=e=>{ cfg.sound=!cfg.sound; e.target.textContent=cfg.sound?'
 const hScore=$('hScore'),hHits=$('hHits'),hAff=$('hAff'),hCross=$('hCross'),hTime=$('hTime'),hFps=$('hFps');
 resize();
 </script>
+<!-- Cloudflare Web Analytics：無 cookie、不追蹤個人，只統計造訪量 -->
+<script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "3df68cf5d6bd4975b97a157f7ff3cafb"}'></script>
 </body>
 </html>
