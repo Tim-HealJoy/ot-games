@@ -1,8 +1,5 @@
 <!DOCTYPE html>
 <!--
-  【民眾版 V2】情境化開場、極簡設定與校正、結束後才談復健效果。
-  治療師版（患側／靈敏度／臨床報表）請看同資料夾的 打地鼠.html。
-
   美術素材授權（2026-07-21 改版起）
   ・角色與道具（地鼠／山豬／槌子／爆炸／太陽）：Microsoft Fluent Emoji — MIT License
     https://github.com/microsoft/fluentui-emoji
@@ -18,15 +15,15 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#101418">
-<title>趕走山豬 · 農場大作戰</title>
-<meta name="description" content="職能治療師設計的體感小遊戲：打開鏡頭、揮手把闖進農場的山豬打回洞裡。不用買設備、不用穿戴，手機或電腦就能玩。影像只在你的裝置上運算，不上傳也不儲存。">
-<link rel="icon" href="../favicon.png">
-<link rel="apple-touch-icon" href="icon-180.png">
+<title>打地鼠（治療師版） · 鏡頭體感復健遊戲</title>
+<meta name="description" content="職能治療師設計的鏡頭體感復健遊戲。不用買設備、不用穿戴，手機或電腦打開鏡頭伸手就能玩，玩完附一份復能報表。影像只在你的裝置上運算，不上傳也不儲存。">
+<link rel="icon" href="../../favicon.png">
+<link rel="apple-touch-icon" href="../icon-180.png">
 <meta property="og:type" content="website">
-<meta property="og:site_name" content="復能小遊戲">
-<meta property="og:title" content="趕走山豬 · 農場大作戰">
-<meta property="og:description" content="打開鏡頭、揮手把山豬打回洞裡！不用設備，手機或電腦就能玩的體感小遊戲。">
-<meta property="og:url" content="https://games.otshih.com/mole/">
+<meta property="og:site_name" content="鏡頭體感復健遊戲">
+<meta property="og:title" content="打地鼠 · 鏡頭體感復健遊戲">
+<meta property="og:description" content="不用買設備、不用穿戴，手機打開鏡頭伸手就能玩。玩完附一份復能報表。">
+<meta property="og:url" content="https://games.otshih.com/mole/pro/">
 <meta property="og:image" content="https://games.otshih.com/mole/share.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
@@ -197,39 +194,6 @@
     .report-actions{display:none !important;}
     .chart,.metric{break-inside:avoid;}
   }
-
-  /* ===== 民眾版（V2）：字少、按鈕大、圖示先行 ===== */
-  .hero{text-align:center;}
-  .hero .boar{width:126px;height:auto;margin:2px auto 10px;display:block;
-    filter:drop-shadow(0 10px 20px rgba(0,0,0,.45));}
-  .hero h1{font-size:33px;margin-bottom:10px;letter-spacing:.5px;}
-  .hero .say{font-size:20px;color:var(--ink);margin-bottom:22px;line-height:1.5;}
-  .tips{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:22px;}
-  .tip{background:var(--panel2);border:1px solid var(--line);border-radius:14px;padding:13px 6px;text-align:center;}
-  .tip .ic{font-size:31px;line-height:1.15;}
-  .tip .tx{font-size:13.5px;color:var(--sub);margin-top:6px;font-weight:700;line-height:1.4;}
-  .big-seg button{padding:19px 8px;font-size:19px;}
-  .card .lead.big{font-size:19px;color:var(--ink);}
-  /* 結束：白話成績卡 */
-  .card.report{width:min(600px,95vw);}
-  .score-hero{text-align:center;padding:4px 0 2px;}
-  .score-hero .big{font-size:38px;font-weight:900;color:var(--accent);line-height:1.25;}
-  .score-hero .cheer{font-size:17.5px;margin-top:10px;line-height:1.6;}
-  .why{background:rgba(76,195,138,.1);border:1px solid rgba(76,195,138,.32);
-    border-radius:14px;padding:15px 18px;margin:18px 0 10px;}
-  .why h3{font-size:16.5px;color:var(--good);margin-bottom:9px;}
-  .why ul{margin-left:18px;} .why li{font-size:14.5px;line-height:1.95;}
-  .why li b{color:var(--ink);}
-  .ref{font-size:11px;color:var(--sub);opacity:.78;line-height:1.65;margin:8px 0 14px;}
-  @media (max-height:560px){
-    .hero .boar{width:78px;margin-bottom:4px;} .hero h1{font-size:22px;margin-bottom:5px;}
-    .hero .say{font-size:15px;margin-bottom:12px;}
-    .tips{gap:7px;margin-bottom:12px;} .tip{padding:8px 4px;} .tip .ic{font-size:22px;} .tip .tx{font-size:11.5px;}
-    .big-seg button{padding:11px 6px;font-size:15.5px;}
-    .card .lead.big{font-size:14px;}
-    .score-hero .big{font-size:26px;} .score-hero .cheer{font-size:14px;}
-    .why{padding:10px 14px;margin:10px 0 8px;} .why h3{font-size:14px;} .why li{font-size:12.5px;line-height:1.7;}
-  }
 </style>
 </head>
 <body>
@@ -240,10 +204,14 @@
     <!-- HUD -->
     <div id="hud" class="hidden">
       <div class="stat"><div class="k">分數</div><div class="v" id="hScore">0</div></div>
+      <div class="stat sm-hide"><div class="k">命中</div><div class="v" id="hHits">0</div></div>
+      <div class="stat affected sm-hide"><div class="k">患側使用率</div><div class="v" id="hAff">–</div></div>
+      <div class="stat affected sm-hide"><div class="k">跨中線</div><div class="v" id="hCross">0</div></div>
       <div class="spacer"></div>
+      <div class="stat sm-hide"><div class="k">畫面/偵測 FPS</div><div class="v" id="hFps" style="font-size:20px">–</div></div>
       <div class="stat time"><div class="k">剩餘</div><div class="v" id="hTime">–</div></div>
-      <button class="hud-btn" id="btnMute" title="音樂">🔊</button>
-      <button class="hud-btn" id="btnSetup" title="回到開始畫面">⚙</button>
+      <button class="hud-btn" id="btnMute" title="音樂/音效">🔊</button>
+      <button class="hud-btn" id="btnSetup" title="放棄本局，回到遊戲設定">⚙ 設定</button>
       <button class="hud-btn" id="btnEnd">結束</button>
     </div>
 
@@ -251,73 +219,205 @@
     <div id="rotate">
       <div>
         <div class="rot-ico">📱</div>
-        <h2>請把手機轉橫的</h2>
-        <p>橫著拿，才照得到你左右伸手的範圍。</p>
+        <h2>請把手機轉成橫向</h2>
+        <p>橫著拿，鏡頭才照得到你左右伸手的範圍。<br>
+           建議把手機立在桌上（或請人幫忙拿），<br>坐遠一點讓上半身完整入鏡。</p>
         <button class="hud-btn" id="btnRotateSkip" style="pointer-events:auto">還是要直向玩</button>
       </div>
     </div>
 
-    <!-- Intro：情境故事（主文案 18 字）+ 設備提醒 -->
+    <!-- Intro / 動作示範 -->
     <div class="overlay" id="intro">
-      <div class="card hero">
-        <img id="introBoar" class="boar" alt="山豬">
-        <h1>山豬闖進農場了！</h1>
-        <p class="say">揮手把山豬打回洞裡。</p>
-        <div class="tips">
-          <div class="tip"><div class="ic">💻</div><div class="tx">用電腦<br>最好玩</div></div>
-          <div class="tip"><div class="ic">📱</div><div class="tx">手機要<br>架起來</div></div>
-          <div class="tip"><div class="ic">🪑</div><div class="tx">坐著玩<br>坐遠一點</div></div>
+      <div class="card">
+        <h1>這個遊戲在練什麼？ <span class="pill">開始前先看</span></h1>
+        <p class="lead">用鏡頭玩的復健遊戲：坐著、伸手去碰畫面上冒出的目標。下面示範怎麼玩，以及它在訓練哪些動作功能。</p>
+        <div class="demo-grid">
+          <div class="demo">
+            <svg viewBox="0 0 150 160" xmlns="http://www.w3.org/2000/svg" aria-label="坐姿示範：坐正、背打直、雙腳踏地">
+              <line x1="8" y1="146" x2="142" y2="146" stroke="#4a5560" stroke-width="3" stroke-linecap="round"/>
+              <!-- 椅子（側面）：椅背、椅面、椅腳 -->
+              <rect x="96" y="40" width="8" height="60" rx="4" fill="#333d48"/>
+              <rect x="50" y="94" width="56" height="8" rx="4" fill="#333d48"/>
+              <line x1="57" y1="102" x2="57" y2="145" stroke="#333d48" stroke-width="5" stroke-linecap="round"/>
+              <line x1="99" y1="102" x2="99" y2="145" stroke="#333d48" stroke-width="5" stroke-linecap="round"/>
+              <!-- 鉛垂線：耳朵-肩膀-髖部呈一直線＝背打直 -->
+              <line x1="83" y1="8" x2="83" y2="142" stroke="#4cc38a" stroke-width="2.2" stroke-dasharray="5 4"/>
+              <!-- 人（側面）：軀幹垂直、大腿水平、小腿垂直、腳掌平貼地面 -->
+              <rect x="40" y="84" width="48" height="14" rx="7" fill="#cabfa8"/>
+              <rect x="38" y="92" width="13" height="48" rx="6.5" fill="#cabfa8"/>
+              <rect x="24" y="138" width="28" height="8" rx="4" fill="#8a94a0"/>
+              <rect x="75" y="38" width="16" height="52" rx="8" fill="#e0d6c2"/>
+              <polyline points="83,50 74,68 60,84" fill="none" stroke="#e0d6c2" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+              <circle cx="58" cy="86" r="5" fill="#f4efe3"/>
+              <circle cx="83" cy="25" r="12" fill="#f4b942"/>
+              <!-- 對齊提示點：肩、髖都落在綠線上 -->
+              <circle cx="83" cy="42" r="3.2" fill="#4cc38a"/>
+              <circle cx="83" cy="88" r="3.2" fill="#4cc38a"/>
+              <!-- 背打直 ✓ -->
+              <path d="M106 16 l5 6 l9 -11" fill="none" stroke="#4cc38a" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+              <!-- 腳踏穩：地面強調線 -->
+              <path d="M26 152 h26" stroke="#4cc38a" stroke-width="2.5" stroke-linecap="round"/>
+              <path d="M30 156 h18" stroke="#4cc38a" stroke-width="2" opacity=".55" stroke-linecap="round"/>
+            </svg>
+            <div class="dt">① 坐姿</div><div class="dd">坐正、背打直、雙腳踏地坐穩；全程保持坐姿、身體不要晃動。</div>
+          </div>
+          <div class="demo">
+            <svg viewBox="0 0 150 160" xmlns="http://www.w3.org/2000/svg" aria-label="手部伸取示範：肩膀帶動、手肘伸直去碰目標">
+              <line x1="8" y1="146" x2="142" y2="146" stroke="#4a5560" stroke-width="3" stroke-linecap="round"/>
+              <!-- 椅子（側面，人朝右伸手） -->
+              <rect x="14" y="56" width="8" height="56" rx="4" fill="#333d48"/>
+              <rect x="14" y="104" width="50" height="8" rx="4" fill="#333d48"/>
+              <line x1="21" y1="112" x2="21" y2="145" stroke="#333d48" stroke-width="5" stroke-linecap="round"/>
+              <line x1="58" y1="112" x2="58" y2="145" stroke="#333d48" stroke-width="5" stroke-linecap="round"/>
+              <!-- 人：坐穩，只有手臂伸出去 -->
+              <rect x="30" y="96" width="42" height="13" rx="6.5" fill="#cabfa8"/>
+              <rect x="58" y="102" width="13" height="42" rx="6.5" fill="#cabfa8"/>
+              <rect x="52" y="138" width="26" height="8" rx="4" fill="#8a94a0"/>
+              <rect x="30" y="54" width="16" height="48" rx="8" fill="#e0d6c2"/>
+              <circle cx="40" cy="42" r="12" fill="#f4b942"/>
+              <!-- 手臂：肩→肘→手呈一直線（手肘伸直） -->
+              <polyline points="44,62 78,55 110,47" fill="none" stroke="#e0d6c2" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+              <circle cx="113" cy="46" r="6" fill="#f4efe3"/>
+              <!-- 肩膀＝發動點（綠圈強調）、手肘打直（綠點在直線上） -->
+              <circle cx="44" cy="62" r="7" fill="none" stroke="#4cc38a" stroke-width="2.5"/>
+              <circle cx="78" cy="55" r="3.2" fill="#4cc38a"/>
+              <!-- 目標 -->
+              <circle cx="128" cy="38" r="10" fill="#ff7a59"/>
+              <circle cx="128" cy="38" r="16" fill="none" stroke="#ff7a59" stroke-width="1.5" opacity=".45"/>
+              <!-- 伸手路徑：從大腿上出發 → 目標（含箭頭） -->
+              <path d="M52 92 Q96 84 122 46" fill="none" stroke="#4cc38a" stroke-width="2.4" stroke-dasharray="5 4"/>
+              <path d="M122 46 l-8 0.5 M122 46 l-1.5 8" stroke="#4cc38a" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+            </svg>
+            <div class="dt">② 手部動作</div><div class="dd">肩膀帶動、手肘伸直，把手伸出去碰到目標（練肩關節穩定）。</div>
+          </div>
+          <div class="demo">
+            <svg viewBox="0 0 150 160" xmlns="http://www.w3.org/2000/svg" aria-label="軀幹旋轉跨中線示範：右手越過身體中線去拿左邊的目標">
+              <line x1="8" y1="146" x2="142" y2="146" stroke="#4a5560" stroke-width="3" stroke-linecap="round"/>
+              <!-- 身體中線（正面視角） -->
+              <line x1="75" y1="12" x2="75" y2="146" stroke="#5aa9e6" stroke-width="2.5" stroke-dasharray="6 5"/>
+              <text x="79" y="22" font-size="10" fill="#5aa9e6">中線</text>
+              <!-- 手的移動路徑（畫在人後面）：右邊幽靈起點 → 大弧線跨過藍色中線 → 對側目標 -->
+              <circle cx="118" cy="76" r="6" fill="#f4efe3" opacity=".4"/>
+              <path d="M118 76 Q92 8 32 50" fill="none" stroke="#4cc38a" stroke-width="2.6" stroke-dasharray="6 4"/>
+              <path d="M32 50 l8 -0.5 M32 50 l4.8 -6.4" stroke="#4cc38a" stroke-width="2.6" fill="none" stroke-linecap="round"/>
+              <!-- 椅子（正面） -->
+              <rect x="58" y="112" width="54" height="8" rx="4" fill="#333d48"/>
+              <line x1="64" y1="120" x2="64" y2="145" stroke="#333d48" stroke-width="5" stroke-linecap="round"/>
+              <line x1="106" y1="120" x2="106" y2="145" stroke="#333d48" stroke-width="5" stroke-linecap="round"/>
+              <!-- 人（正面，坐在中線右側）：右手越過中線伸向左側目標 -->
+              <rect x="76" y="64" width="28" height="50" rx="12" fill="#e0d6c2"/>
+              <circle cx="90" cy="50" r="11" fill="#f4b942"/>
+              <!-- 另一手自然垂放身側＝坐穩 -->
+              <polyline points="102,72 108,90 105,106" fill="none" stroke="#e0d6c2" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+              <!-- 伸出的手：肩 → 越過中線 → 對側 -->
+              <polyline points="78,70 52,60 30,52" fill="none" stroke="#e0d6c2" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+              <circle cx="27" cy="51" r="6" fill="#f4efe3"/>
+              <!-- 目標在對側 -->
+              <circle cx="14" cy="46" r="9.5" fill="#ff7a59"/>
+              <circle cx="14" cy="46" r="15" fill="none" stroke="#ff7a59" stroke-width="1.5" opacity=".45"/>
+              <!-- 軀幹旋轉提示：肩胛外側小弧線箭頭 -->
+              <path d="M108 98 Q118 86 112 74" fill="none" stroke="#4cc38a" stroke-width="2.2"/>
+              <path d="M112 74 l7 2.5 M112 74 l1.5 7.5" stroke="#4cc38a" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+            </svg>
+            <div class="dt">③ 軀幹動作</div><div class="dd">轉身、重心轉移，伸手越過身體中線去拿對側（練跨中線協調）。</div>
+          </div>
         </div>
-        <button class="start" id="btnIntroGo">開始 →</button>
+        <div class="train">
+          <h3>訓練的動作功能</h3>
+          <ul>
+            <li><b>上肢伸取</b>（reach）：肩屈曲／外展、手肘伸直</li>
+            <li><b>肩關節穩定度</b>：手臂持續舉著抗重力</li>
+            <li><b>手眼協調與反應速度</b>：看到目標快速伸手</li>
+            <li><b>跨中線協調能力</b>：手越過身體中線去拿對側、雙側整合</li>
+            <li><b>坐姿平衡與軀幹穩定</b>：坐穩不晃、重心轉移</li>
+            <li><b>患側使用</b>：多用受影響的手，對抗「習得性廢用」</li>
+          </ul>
+        </div>
+        <div style="background:rgba(244,185,66,.1);border:1px solid rgba(244,185,66,.3);border-radius:12px;padding:11px 15px;font-size:13px;color:var(--ink);margin-bottom:12px;line-height:1.6">💡 <b>提醒</b>：全程盡量<b>保持坐姿、身體不要晃動</b>——除了讓追蹤更穩，這本身也是在練坐姿平衡與軀幹穩定。</div>
+        <button class="start" id="btnIntroGo">我了解了，開始設定 →</button>
       </div>
     </div>
 
-    <!-- Setup：只留兩個選擇 -->
+    <!-- Setup -->
     <div class="overlay hidden" id="setup">
       <div class="card">
-        <h1>準備開始</h1>
-        <p class="lead big">選好就可以玩了。</p>
+        <h1>伸手接星星 <span class="pill">鏡頭復健原型</span></h1>
+        <p class="lead">坐姿．鏡頭追蹤手部．把手移到目標上就得分。<br>開始前會先做一次「活動範圍校正」，讓每個人的能力都能玩。</p>
 
         <div class="row">
-          <div class="label">要練哪隻手？</div>
-          <div class="seg big-seg" id="segHand">
-            <button data-hand="right">右手</button>
-            <button data-hand="left">左手</button>
-            <button data-hand="both" class="on">兩隻手</button>
+          <div class="label">患側（會多出現在患側，鼓勵伸取）</div>
+          <div class="seg" id="segSide">
+            <button data-side="left" class="on">左側患側</button>
+            <button data-side="right">右側患側</button>
+            <button data-side="none">不分側</button>
+          </div>
+        </div>
+        <div class="row" id="rowMode">
+          <div class="label">模式</div>
+          <div class="seg" id="segMode">
+            <button data-mode="mole" class="on">打地鼠（草地）</button>
+            <button data-mode="star">接星星（夜空）</button>
           </div>
         </div>
         <div class="row">
-          <div class="label">難度</div>
-          <div class="seg big-seg" id="segDiff">
-            <button data-diff="easy">輕鬆</button>
-            <button data-diff="normal" class="on">普通</button>
-            <button data-diff="hard">挑戰</button>
+          <div class="label">畫面（不顯示臉，可自己選）</div>
+          <div class="seg" id="segDisplay">
+            <button data-disp="focus" class="on">專注模式</button>
+            <button data-disp="silhouette">手骨架模式</button>
           </div>
         </div>
+        <div class="row">
+          <div class="label">目標大小</div>
+          <div class="slider"><input type="range" id="rSize" min="40" max="110" value="88"><span class="val" id="vSize">中</span></div>
+        </div>
+        <div class="row">
+          <div class="label">速度 / 節奏</div>
+          <div class="slider"><input type="range" id="rSpeed" min="1" max="5" value="2"><span class="val" id="vSpeed">慢</span></div>
+        </div>
+        <div class="row">
+          <div class="label">伸取幅度（目標離身體多遠）</div>
+          <div class="slider"><input type="range" id="rReach" min="1" max="3" value="2"><span class="val" id="vReach">中</span></div>
+        </div>
+        <div class="row">
+          <div class="label">單局時間</div>
+          <div class="slider"><input type="range" id="rDur" min="15" max="180" step="15" value="90"><span class="val" id="vDur">90 秒</span></div>
+        </div>
 
-        <button class="start" id="btnStart">開啟鏡頭 →</button>
-        <button class="link-btn" id="btnShowIntro">↺ 再看一次說明</button>
-        <p class="note">畫面只在你的手機／電腦上運算，不會上傳、不會存下來。<br>
-          <span id="demoNote" class="hidden">🟡 目前是示範模式：不會開鏡頭，畫面上的手是程式模擬的。</span></p>
+        <button class="start" id="btnStart">開啟鏡頭 → 校正</button>
+        <button class="link-btn" id="btnShowIntro">↺ 重看動作示範</button>
+        <p class="note">首次會請求鏡頭權限與播放音樂。請在光線充足處、坐正、上半身入鏡。<br>
+          手機請橫著拿、立在桌上；電腦用 Chrome，iPhone／iPad 用 Safari。<br>
+          影像只在你的裝置上運算，不會上傳也不會儲存（本站僅統計造訪量，無 cookie）。</p>
       </div>
     </div>
 
-    <!-- Calibration：一句話講完 -->
+    <!-- Calibration -->
     <div class="overlay hidden" id="calib">
       <div class="card">
-        <h1 id="calibTitle">先量你的手能伸多遠</h1>
-        <p class="lead big" id="calibIntro">🪑 先坐遠一點，讓鏡頭拍到整個上半身。<br>再舉起手，在空中畫一個大圈。畫多大都可以。</p>
+        <h1 id="calibTitle">校正：把你的活動範圍變成整個畫面</h1>
+        <p class="lead" id="calibIntro">先讓系統認識你的手能移動多大。按開始後，請用<b>要玩的那隻手</b>在空中盡量畫大——
+          <b>上、下、左、右都伸到你的極限</b>（像擦一面大鏡子），維持約 6 秒。<br>手不靈活也沒關係，範圍多小都可以，之後會幫你放大。</p>
 
         <div id="calibReview" class="hidden">
-          <div class="score-hero" style="margin:6px 0 16px">
-            <div class="big" id="cvOk">–</div>
+          <div class="end-grid three">
+            <div class="cell"><div class="k">左右範圍</div><div class="v" id="cvW">–</div></div>
+            <div class="cell"><div class="k">上下範圍</div><div class="v" id="cvH">–</div></div>
+            <div class="cell"><div class="k">狀態</div><div class="v" id="cvOk" style="font-size:20px">–</div></div>
+          </div>
+          <div class="row">
+            <div class="label">靈敏度（手移動一點 → 游標移動多少）</div>
+            <div class="seg" id="segSens">
+              <button data-g="0.9">低（穩）</button>
+              <button data-g="1.12" class="on">中</button>
+              <button data-g="1.4">高（省力）</button>
+            </div>
           </div>
         </div>
 
-        <button class="start" id="btnCalibStart">🎯 開始</button>
-        <button class="start go hidden" id="btnCalibGo">開始玩 →</button>
-        <button class="hud-btn hidden" id="btnRecalib" style="margin-top:10px;width:100%">再量一次</button>
-        <button class="link-btn" id="btnCalibBack">← 回上一頁</button>
+        <button class="start" id="btnCalibStart">🎯 開始校正</button>
+        <button class="start go hidden" id="btnCalibGo">開始遊戲 →</button>
+        <button class="hud-btn hidden" id="btnRecalib" style="margin-top:10px;width:100%">重新校正</button>
+        <button class="link-btn" id="btnCalibBack">← 回設定畫面</button>
       </div>
     </div>
 
@@ -327,8 +427,9 @@
         <div id="reportBody"></div>
         <div class="report-actions">
           <button class="start" id="btnAgain">再玩一局</button>
-          <button class="hud-btn" id="btnReCalib2">再量一次範圍</button>
-          <button class="hud-btn" id="btnHome">⚙ 回開始畫面</button>
+          <button class="hud-btn" id="btnPrint">🖨️ 列印 / 存 PDF</button>
+          <button class="hud-btn" id="btnReCalib2">重新校正範圍</button>
+          <button class="hud-btn" id="btnHome">⚙ 回設定畫面</button>
         </div>
       </div>
     </div>
@@ -349,28 +450,31 @@ const $=id=>document.getElementById(id);
 
 /* ---------------- 設定 ---------------- */
 const LOCK_MODE='mole';   // null＝兩種模式可選；'mole'或'star'＝鎖成單一遊戲（拆分成獨立產品用：複製檔只改這行，標題會自動變）
-/* 民眾版：難度一鍵包好（目標大小改成畫面比例，見 baseSize()） */
-const DIFF={
-  easy  :{sizeFrac:0.140, speed:1, reach:1, dur:60},
-  normal:{sizeFrac:0.118, speed:2, reach:2, dur:90},
-  hard  :{sizeFrac:0.098, speed:4, reach:3, dur:90}
-};
-const cfg={ side:'none', mode:'mole', display:'focus', sizeFrac:0.118, diff:'normal',
-            speed:2, reach:2, dur:90, sound:true, gain:1.12 };
+const cfg={ side:'left', mode:'mole', display:'focus', size:72, speed:2, reach:2, dur:90, sound:true, gain:1.12 };
 if(LOCK_MODE){ cfg.mode=LOCK_MODE;
   const r=document.getElementById('rowMode'); if(r)r.classList.add('hidden');
-  document.title='趕走山豬 · 農場大作戰';
+  const nm=LOCK_MODE==='mole'?'打地鼠':'摘星星';
+  document.title=nm+' · 鏡頭體感復健遊戲';
+  const h=document.querySelector('#setup h1'); if(h)h.firstChild.textContent=nm+' ';
 }
 const MUSIC_CREDIT='♪ 音樂：Monkeys Spinning Monkeys — Kevin MacLeod (incompetech.com)．CC-BY 4.0';   // 音樂出處標示（CC-BY 授權必填）；拆分複製檔用 sed 填入
 if(MUSIC_CREDIT){ const c=document.createElement('div');
   c.className='credit';
   c.style.cssText='font-size:11px;color:var(--sub);margin-top:10px;text-align:center;opacity:.75;line-height:1.5';
   c.textContent=MUSIC_CREDIT; const card=document.querySelector('#setup .card'); if(card)card.appendChild(c); }
-function pick(el,attr,fn){ el.onclick=e=>{ const v=e.target.dataset[attr]; if(!v)return;
-  [...el.children].forEach(b=>b.classList.remove('on')); e.target.classList.add('on'); fn(v); }; }
-// 「兩隻手」＝ side:'none'（兩手都能打）；選單手則該側目標較多，鼓勵多用那隻手
-pick($('segHand'),'hand',v=>{ cfg.side = (v==='both')?'none':v; });
-pick($('segDiff'),'diff',v=>{ cfg.diff=v; Object.assign(cfg,DIFF[v]); });
+$('segSide').onclick=e=>seg(e,'side'); $('segMode').onclick=e=>seg(e,'mode'); $('segDisplay').onclick=e=>seg(e,'disp');
+function seg(e,key){ const d=e.target.dataset; const map={side:'side',mode:'mode',disp:'display'};
+  const attr=key==='disp'?'disp':key; if(!d[attr])return;
+  [...e.currentTarget.children].forEach(b=>b.classList.remove('on')); e.target.classList.add('on');
+  cfg[map[key]]=d[attr]; }
+$('segSens').onclick=e=>{ if(!e.target.dataset.g)return;
+  [...e.currentTarget.children].forEach(b=>b.classList.remove('on')); e.target.classList.add('on');
+  cfg.gain=+e.target.dataset.g; };
+const bind=(id,vid,fn)=>{const r=$(id),v=$(vid);const u=()=>v.textContent=fn(+r.value);r.oninput=u;u();return r;};
+const rSize=bind('rSize','vSize',x=>x<58?'小':x<90?'中':'大');
+const rSpeed=bind('rSpeed','vSpeed',x=>['','很慢','慢','中','快','很快'][x]);
+const rReach=bind('rReach','vReach',x=>['','近','中','遠'][x]);
+const rDur=bind('rDur','vDur',x=>x+' 秒');
 
 /* ---------------- One-Euro 濾波 ---------------- */
 function oneEuro(min=1.0,beta=0.02,dcut=1.0){   // ⚠️在 pixel space 濾波（餵正規化×像素尺度）→ 可用 One-Euro 經典參數；靜止抖↓min、拖尾↑beta
@@ -400,7 +504,7 @@ function makeAudio(){
   function playBgm(list){ if(!bgm||!list.length){ startProc(); return; } bgm.src=list[0]; bgm.play().then(()=>{}).catch(()=>playBgm(list.slice(1))); }   // 依序試 music.mp3 / music.ogg，都沒有才用程式音樂
   return { ac,
     start(){ if(ac.state==='suspended')ac.resume();
-      if(bgm){ playBgm(['music.mp3','music.ogg']); } else startProc(); },
+      if(bgm){ playBgm(['../music.mp3','music.mp3']); } else startProc(); },
     stop(){ if(bgm){try{bgm.pause();}catch(e){}} if(timer){clearInterval(timer);timer=null;} },
     hit(){const t=ac.currentTime;tone(sfx,659.25,t,0.18,0.35,'sine');tone(sfx,987.77,t+0.05,0.22,0.3,'sine');},
     squeak(){const t=ac.currentTime;   // 打到一般地鼠：卡通「吱」叫（方波快速上揚再下滑）
@@ -419,17 +523,12 @@ function makeAudio(){
 let AE=null;
 
 /* ---------------- 相機 + 模型 ---------------- */
-let handLandmarker=null,video=null,camReady=false,_lmHands=0,_vision=null;
+let handLandmarker=null,video=null,camReady=false;
 async function initModel(){
-  // ⭐只練單手時 numHands:1 —— 推論成本大約少一半，是「游標卡頓」最直接的一刀
-  const want=(cfg.side==='none')?2:1;
-  if(handLandmarker&&_lmHands===want) return;
-  if(handLandmarker){ try{handLandmarker.close();}catch(e){} handLandmarker=null; }
-  if(!_vision) _vision=await FilesetResolver.forVisionTasks("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm");
-  handLandmarker=await HandLandmarker.createFromOptions(_vision,{
+  const vision=await FilesetResolver.forVisionTasks("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm");
+  handLandmarker=await HandLandmarker.createFromOptions(vision,{
     baseOptions:{modelAssetPath:"https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task",delegate:"GPU"},
-    runningMode:"VIDEO",numHands:want,minHandDetectionConfidence:0.5,minHandPresenceConfidence:0.4,minTrackingConfidence:0.35 });
-  _lmHands=want;
+    runningMode:"VIDEO",numHands:2,minHandDetectionConfidence:0.5,minHandPresenceConfidence:0.4,minTrackingConfidence:0.35 });
 }
 let _vfcOn=false, _videoDirty=false;
 async function initCamera(){
@@ -477,16 +576,11 @@ function trackHands(now){
   const SX=(video&&video.videoWidth)||640, SY=(video&&video.videoHeight)||480;   // pixel space 濾波用的尺度
   const seen={left:false,right:false};
   const n=(res&&res.landmarks)?res.landmarks.length:0;
-  // ⭐單手模式：只偵測一隻手（numHands:1），偵測到什麼就當「選的那隻手」。
-  //   左右手判別（handedness）會偶爾閃爍誤判，單手模式若靠它認手，
-  //   誤判的那幾幀資料會被塞到另一側 → 游標掉進定格 → 一頓一頓（雙手反而順的原因）。
-  const FORCE=(cfg.side!=='none')?affSide():null;
   for(let i=0;i<n;i++){
     const lm=res.landmarks[i];
     const label=(res.handedness&&res.handedness[i]&&res.handedness[i][0]&&res.handedness[i][0].categoryName)||(i===0?'Right':'Left');
-    let side; if(FORCE){ side=FORCE; }
-    else { side=(label==='Left')?'left':'right'; if(HAND_SWAP)side=otherSide(side); }
-    if(seen[side]){ if(FORCE)continue; side=otherSide(side); }   // 兩手被判成同一側 → 強制分開；單手模式多的直接丟
+    let side=(label==='Left')?'left':'right'; if(HAND_SWAP)side=otherSide(side);
+    if(seen[side])side=otherSide(side);                          // 兩手被判成同一側 → 強制分開，避免互相蓋掉
     const c=palmCenter(lm), H=handRaw[side], E=euro[side];
     if(H.valid && H.raw && Math.hypot(c.x-H.raw.x,c.y-H.raw.y)>JUMP && H.bad<5){ H.bad++; seen[side]=true; continue; } // 離群→丟棄、保持上一位置
     H.raw={x:c.x,y:c.y};
@@ -517,15 +611,6 @@ let capBox=null, capEnd=0, capReadyEnd=0, _fpsT=0, _fps=0, _detT=0, _detFps=0, _
 
 function affSide(){ return cfg.side==='right'?'right':'left'; }
 function otherSide(s){ return s==='left'?'right':'left'; }
-/* ⭐目標大小依「畫面短邊」而不是固定 px：
-   桌機 1280×800 → 短邊 800、普通難度 r≈94（與舊版 88 相當）
-   手機橫向 812×375 → 短邊 375、再乘 0.85 的手機係數 → r≈38
-   舊版寫死 px，在 375px 高的手機上山豬會佔掉半個畫面 */
-function baseSize(){
-  const m=Math.min(CW,CH)||600;
-  const phone=(CH<520||CW<820)?0.85:1;
-  return Math.max(24, m*cfg.sizeFrac*phone);
-}
 function speedParams(){const s=cfg.speed;return{spawnGap:1500-(s-1)*230,dwell:2600-(s-1)*380,fall:1.2+(s-1)*0.9,maxActive:cfg.mode==='mole'?2:3};}
 function reachSpread(){return[0,0.30,0.42,0.50][cfg.reach];}
 
@@ -534,14 +619,12 @@ function spawnTarget(now){
   let onAff=cfg.side==='none'?Math.random()<0.5:Math.random()<0.72;
   const affLeft=(cfg.side==='left');
   const toLeft=cfg.side==='none'?(Math.random()<0.5):(onAff?affLeft:!affLeft);
-  const R=baseSize();
   const dx=(0.15+Math.random()*spread)*CW;
-  const M=R*1.6;                                    // 洞口比地鼠寬（hw=r*1.55），留這個邊界才不會被畫面切掉
-  let x=Math.max(M,Math.min(CW-M, toLeft?mid-dx:mid+dx));
+  let x=Math.max(cfg.size,Math.min(CW-cfg.size, toLeft?mid-dx:mid+dx));
   presented++;
-  if(cfg.mode==='mole'){ const y=CH*(0.42+Math.random()*0.40); const fierce=Math.random()<0.28;
-    targets.push({x,y,r:R*(fierce?1.06:1),born:now,ttl:speedParams().dwell*(fierce?0.62:1),mode:'mole',hit:false,fierce}); }
-  else { targets.push({x,y:-R,r:R,born:now,vy:speedParams().fall,mode:'star',hit:false,rot:Math.random()*6}); }
+  if(cfg.mode==='mole'){ const y=CH*(0.42+Math.random()*0.42); const fierce=Math.random()<0.28;   // 約 28% 兇地鼠：冒出/縮回更快、分數更高
+    targets.push({x,y,r:cfg.size*(fierce?1.06:1),born:now,ttl:speedParams().dwell*(fierce?0.62:1),mode:'mole',hit:false,fierce}); }
+  else { targets.push({x,y:-cfg.size,r:cfg.size,born:now,vy:speedParams().fall,mode:'star',hit:false,rot:Math.random()*6}); }
 }
 function burst(x,y,c){for(let i=0;i<14;i++){const a=Math.random()*6.28,sp=2+Math.random()*5;
   particles.push({x,y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp-2,life:1,color:c});}}
@@ -564,9 +647,7 @@ function resetPlay(){
         再加一點前瞻（lead）抵銷鏡頭＋推論的管線延遲。 */
 const rcur={ left:{x:0,y:0,vx:0,vy:0,zx:0,zy:0,zt:0,t:0,on:false},
              right:{x:0,y:0,vx:0,vy:0,zx:0,zy:0,zt:0,t:0,on:false} };
-const AB_A=0.85, AB_B=0.42;   // α＝位置修正力道、β＝速度修正力道
-                              // 2026-07-26：0.92→0.85。0.92 等於每次偵測都硬貼上去，
-                              // 配上下面的速度衰減＝「滑一下→慢下來→突然跳」的頓挫感
+const AB_A=0.92, AB_B=0.42;   // α＝位置修正力道、β＝速度修正力道
                               // 2026-07-21 v6：0.55→0.92。上游 trackHands 已有 One-Euro 濾波，這裡再低通一次＝二次平滑，
                               // 造成「骨架跟得上、錘子跟不上」的延遲感。α 拉到接近 1＝有新偵測就貼上去（抖動交給 One-Euro 處理），
                               // α-β 只負責偵測空檔（15-30fps→60fps）的速度外推補幀
@@ -584,10 +665,7 @@ function easeCur(side,tx,ty,now){
     r.x+=AB_A*ex; r.y+=AB_A*ey;
     r.vx+=AB_B*ex/dz; r.vy+=AB_B*ey/dz;
     const sp=Math.hypot(r.vx,r.vy); if(sp>VMAX){ r.vx=r.vx/sp*VMAX; r.vy=r.vy/sp*VMAX; }
-  } else { const d=Math.exp(-dt/0.35); r.vx*=d; r.vy*=d; }       // 沒新資料 → 速度緩慢衰減
-                              // ⚠️舊版 *=0.86 是「每畫面」衰減：60fps 下 50ms 只剩 0.64 倍，
-                              // 偵測空檔中游標會自己慢下來，下次偵測再被拉回去＝一頓一頓。
-                              // 改成以「時間」為準的長衰減（τ=0.35s），空檔中維持等速滑行。
+  } else { r.vx*=0.86; r.vy*=0.86; }                             // 沒新資料 → 速度衰減，避免一直漂
   let lx=r.vx*CUR_LEAD, ly=r.vy*CUR_LEAD;
   const lm=Math.hypot(lx,ly); if(lm>LEAD_MAX){ lx=lx/lm*LEAD_MAX; ly=ly/lm*LEAD_MAX; }
   return { x:Math.max(-40,Math.min(CW+40,r.x+lx)), y:Math.max(-40,Math.min(CH+40,r.y+ly)) }; }
@@ -599,13 +677,7 @@ function gameHands(now){
       else rcur[s].on=false; }
     return out;
   }
-  // 民眾版選「兩隻手」→ 兩手都能打（比單游標直覺，長輩不會覺得「另一隻手沒反應」）
-  if(cfg.side==='none'){ const out=[];
-    for(const s of ['left','right']){ const H=handRaw[s];
-      if(H.valid){ const p=mapScreen(H.x,H.y), e=easeCur(s,p.x,p.y,now); out.push({x:e.x,y:e.y,side:s}); }
-      else rcur[s].on=false; }
-    if(out.length) return out; }
-  // 指定單手：單一游標，該側優先，短暫定格避免跨身體亂跳
+  // 打地鼠：單一游標，患側優先，短暫定格避免跨身體亂跳（定格太久＝畫面凍住，所以縮短到 220ms）
   const a=affSide(), o=otherSide(a), A=handRaw[a], O=handRaw[o];
   if(A.valid){ const p=mapScreen(A.x,A.y), e=easeCur(a,p.x,p.y,now); moleHold={x:e.x,y:e.y,t:now,side:a}; return [{x:e.x,y:e.y,side:a}]; }
   if(now-moleHold.t<220 && moleHold.side) return [{x:moleHold.x,y:moleHold.y,side:moleHold.side}]; // 定格
@@ -621,11 +693,9 @@ function loop(){
   if(_fpsT){ _fps = _fps ? _fps*0.9 + (1000/(now-_fpsT))*0.1 : 1000/(now-_fpsT); } _fpsT=now;
   resize();
   // 有新影格 + 上次推論已經隔夠久 → 才跑偵測（_detGap 依實測推論耗時自動調整）
-  if(DEMO){ demoTick(now); }
-  else {
-    const fresh = _vfcOn ? _videoDirty : (camReady && video.currentTime!==lastVideoTime);
-    if(camReady && fresh && now-_lastDet>=_detGap){
-      _videoDirty=false; _lastDet=now; lastVideoTime=video.currentTime; trackHands(now); } }
+  const fresh = _vfcOn ? _videoDirty : (camReady && video.currentTime!==lastVideoTime);
+  if(camReady && fresh && now-_lastDet>=_detGap){
+    _videoDirty=false; _lastDet=now; lastVideoTime=video.currentTime; trackHands(now); }
   ctx.clearRect(0,0,CW,CH);
 
   if(phase==='play'){ drawPlay(now); }
@@ -650,9 +720,9 @@ function drawCalib(now){
   computeVtf();
   const g=ctx.createLinearGradient(0,0,0,CH); g.addColorStop(0,'#16202b');g.addColorStop(1,'#0b1015');
   ctx.fillStyle=g; ctx.fillRect(0,0,CW,CH);
-  if(camReady && video) drawVideoFaint(0.45);
-  if(DEMO){ ctx.fillStyle='rgba(255,255,255,.5)';ctx.textAlign='left';ctx.font='700 15px sans-serif';
-    ctx.fillText('示範模式（沒有用鏡頭）',16,26); }
+  if(camReady) drawVideoFaint(0.45);
+  ctx.fillStyle='rgba(255,255,255,.8)';ctx.textAlign='left';ctx.font='700 18px sans-serif';
+  ctx.fillText('畫面 '+Math.round(_fps)+' FPS　偵測 '+Math.round(_detFps)+' FPS', 18, 30);
 
   const HH=handRaw[affSide()].valid?handRaw[affSide()]:(handRaw[otherSide(affSide())].valid?handRaw[otherSide(affSide())]:null);
 
@@ -660,7 +730,7 @@ function drawCalib(now){
     if(now<capReadyEnd){                                 // 準備倒數，給長者時間就位
       const n=Math.ceil((capReadyEnd-now)/1000);
       ctx.fillStyle='#fff';ctx.textAlign='center';ctx.font='800 140px sans-serif';ctx.fillText(n,CW/2,CH*0.52);
-      ctx.font='800 34px sans-serif';ctx.fillText('坐遠一點，準備舉手',CW/2,CH*0.52+92);
+      ctx.font='800 34px sans-serif';ctx.fillText('準備好～等一下把手伸到最大',CW/2,CH*0.52+92);
     } else {
       if(HH){ capBox.minX=Math.min(capBox.minX,HH.x);capBox.maxX=Math.max(capBox.maxX,HH.x);
         capBox.minY=Math.min(capBox.minY,HH.y);capBox.maxY=Math.max(capBox.maxY,HH.y); }
@@ -671,7 +741,7 @@ function drawCalib(now){
         ctx.fillStyle='rgba(76,195,138,.14)';ctx.fillRect(Math.min(x1,x2),y1,Math.abs(x2-x1),y2-y1);
       }
       ctx.fillStyle='#fff';ctx.textAlign='center';ctx.font='800 38px sans-serif';
-      ctx.fillText('畫大圈！',CW/2,CH*0.12);
+      ctx.fillText('慢慢把手伸到最大：上、下、左、右都畫到！',CW/2,CH*0.12);
       const p=Math.max(0,Math.min(1,(now-capReadyEnd)/(capEnd-capReadyEnd)));   // 進度條
       const bw=Math.min(560,CW*0.7),bx=(CW-bw)/2,by=CH*0.12+26;
       ctx.fillStyle='rgba(255,255,255,.2)';ctx.fillRect(bx,by,bw,18);
@@ -683,16 +753,15 @@ function drawCalib(now){
     ctx.beginPath();ctx.arc(x,y,34,0,7);ctx.fillStyle='rgba(255,122,89,.3)';ctx.fill();
     ctx.beginPath();ctx.arc(x,y,17,0,7);ctx.fillStyle='rgba(255,122,89,.97)';ctx.fill();
     ctx.lineWidth=5;ctx.strokeStyle='rgba(255,255,255,.95)';ctx.stroke();
-  } else if(camReady && phase!=='calibReview' && !(phase==='calibCapture'&&now<capReadyEnd)){
-    // 倒數期間不畫這行：會跟中央的「坐遠一點，準備舉手」疊在一起（且那時本來就還沒舉手）
+  } else if(camReady && phase!=='calibReview'){
     ctx.fillStyle='rgba(255,255,255,.9)';ctx.textAlign='center';ctx.font='700 24px sans-serif';
-    ctx.fillText('把手舉起來，讓鏡頭看到',CW/2,CH*0.8);
+    ctx.fillText('偵測不到手，請讓手入鏡、坐遠一點',CW/2,CH*0.66);
   }
 }
 function startCapture(){
   phase='calibCapture'; calibEl.classList.add('hidden');
   capBox={minX:1,maxX:0,minY:1,maxY:0};
-  const t=performance.now(); capReadyEnd=t+3000; capEnd=t+3000+8000;    // 3 秒準備 + 8 秒擷取（民眾版縮短，12 秒長輩會撐不住）
+  const t=performance.now(); capReadyEnd=t+3000; capEnd=t+3000+12000;   // 3 秒準備 + 12 秒擷取
   if(AE&&cfg.sound)AE.beep(660);
 }
 function finishCapture(){
@@ -705,11 +774,13 @@ function finishCapture(){
   const padX=(maxX-minX)*0.06, padY=(maxY-minY)*0.06;
   calib={minX:minX-padX,maxX:maxX+padX,minY:minY-padY,maxY:maxY+padY};
   phase='calibReview';
-  $('cvOk').textContent=(okW&&okH)?'✅ 量好了':'量到了，範圍偏小';
+  $('cvW').textContent=Math.round((maxX-minX)*100)+'%';
+  $('cvH').textContent=Math.round((maxY-minY)*100)+'%';
+  $('cvOk').textContent=(okW&&okH)?'✅ 良好':'⚠️ 偏小';
   $('cvOk').style.color=(okW&&okH)?'var(--good)':'var(--accent)';
   $('calibIntro').classList.add('hidden'); $('calibReview').classList.remove('hidden');
   $('btnCalibStart').classList.add('hidden'); $('btnCalibGo').classList.remove('hidden');
-  $('btnRecalib').classList.remove('hidden'); $('calibTitle').textContent='好了！';
+  $('btnRecalib').classList.remove('hidden'); $('calibTitle').textContent='校正完成！可微調靈敏度';
   calibEl.classList.remove('hidden');
   if(AE&&cfg.sound)AE.beep(990);
 }
@@ -729,7 +800,7 @@ function drawPlay(now){
     if(t.hit)continue;
     if(t.mode==='star') t.y+=t.vy*CH/60;
     for(const h of hands){
-      if(Math.hypot(h.x-t.x,h.y-t.y)<t.r+baseSize()*0.42){   // 容錯半徑跟著畫面縮放（手機不會變得過寬鬆）
+      if(Math.hypot(h.x-t.x,h.y-t.y)<t.r+40){
         t.hit=true;t.hitT=now;hits++;curStreak++;if(curStreak>maxStreak)maxStreak=curStreak;hammerHitT=now;let pts=t.fierce?30:10;   // 兇地鼠 +30、一般地鼠/星星 +10；hammerHitT 觸發錘子揮下
         const byAff=(cfg.side!=='none'&&h.side===aff);
         // 跨中線＝患側手打到「對側」目標：右手→畫面左側目標(t.x<mid)、左手→畫面右側目標(t.x>mid)。用目標位置判定（比游標穩、符合「手越過身體中線去拿對側」的定義）
@@ -768,30 +839,19 @@ function drawPlay(now){
       ctx.lineWidth=4;ctx.strokeStyle='rgba(255,255,255,.9)';ctx.stroke(); }
   }
   if(hands.length===0&&camReady){ctx.fillStyle='rgba(255,255,255,.85)';ctx.font='600 20px sans-serif';ctx.textAlign='center';
-    ctx.fillText('把手舉起來，讓鏡頭看到',CW/2,CH-40);}
+    ctx.fillText('偵測不到手部，請讓手入鏡',CW/2,CH-40);}
 
-  if(DEMO){ ctx.fillStyle='rgba(255,255,255,.42)';ctx.textAlign='left';ctx.font='700 14px sans-serif';
-    ctx.fillText('示範模式（沒有用鏡頭）',16,CH-14); }
-  if(document.body.classList.contains('debug')){        // ?debug=1：真機回報效能數字用（畫在 canvas 上，不動 DOM）
-    ctx.save();ctx.fillStyle='rgba(0,0,0,.55)';ctx.fillRect(8,CH-34,300,26);
-    ctx.fillStyle='#fff';ctx.textAlign='left';ctx.font='700 14px monospace';
-    ctx.fillText('畫面 '+Math.round(_fps)+' / 偵測 '+Math.round(_detFps)+' fps  推論 '+_detMs.toFixed(0)+'ms',14,CH-15);
-    ctx.restore(); }
   const remain=Math.max(0,cfg.dur-Math.max(0,(now-startT))/1000);
-  if(now-_hudT>160){ _hudT=now;
-    hScore.textContent=score; hTime.textContent=Math.ceil(remain)+'s';
-    hTime.style.color=(remain<=10&&!counting)?'#ff7a59':''; }        // 最後 10 秒轉紅＝快結束了
-  if(!counting && remain<=10.02 && remain>0){                        // 收尾提示：大字倒數，長輩知道還要撐多久
-    const k=Math.ceil(remain);
-    ctx.save();ctx.globalAlpha=0.42;ctx.fillStyle='#fff';ctx.textAlign='center';
-    ctx.font='900 '+Math.round(Math.min(CW,CH)*0.30)+'px sans-serif';
-    ctx.fillText(k,CW/2,CH*0.62);ctx.restore(); }
+  if(now-_hudT>160){ _hudT=now;                       // HUD 每 0.16 秒更新即可（每幀寫 DOM 會多觸發 layout，數字也看不清）
+    hScore.textContent=score;hHits.textContent=hits;
+    hAff.textContent=hits?Math.round(affHits/hits*100)+'%':'–';hCross.textContent=cross;hTime.textContent=Math.ceil(remain)+'s';
+    hFps.textContent=Math.round(_fps)+'/'+Math.round(_detFps)+(_detMs?' ('+_detMs.toFixed(0)+'ms)':''); }
 
   if(counting){                                             // 開場倒數畫面
     const n=Math.ceil((startT-now)/1000);
     ctx.fillStyle='rgba(0,0,0,.4)';ctx.fillRect(0,0,CW,CH);
     ctx.fillStyle='#fff';ctx.textAlign='center';ctx.font='800 150px sans-serif';ctx.fillText(n>0?n:'GO',CW/2,CH*0.5);
-    ctx.font='800 36px sans-serif';ctx.fillText('準備趕山豬！',CW/2,CH*0.5+96);
+    ctx.font='800 36px sans-serif';ctx.fillText(cfg.mode==='mole'?'準備打地鼠！':'準備接星星！',CW/2,CH*0.5+96);
   }
   if(!counting && remain<=0){ endGame(); }
 }
@@ -806,7 +866,6 @@ const SPR={};
 const spritesReady=new Promise(res=>{const ks=Object.keys(SPRITES);let left=ks.length;
   for(const k of ks){const im=new Image();im.onload=im.onerror=()=>{if(--left===0)res();};im.src=SPRITES[k];SPR[k]=im;}});
 const _ok=im=>im&&im.complete&&im.naturalWidth>0;
-{ const ib=document.getElementById('introBoar'); if(ib&&SPRITES['3d_boar'])ib.src=SPRITES['3d_boar']; }   // 開場頁的山豬直接用遊戲貼圖
 function spr(im,cx,cy,w,alpha){ if(!_ok(im))return;                    // 以中心點貼圖
   const h=w*im.naturalHeight/im.naturalWidth;
   if(alpha!=null){ctx.save();ctx.globalAlpha=alpha;}
@@ -864,32 +923,31 @@ function drawBgNight(now){
 }
 function hrect(x,y,w,h,r){ ctx.beginPath(); ctx.roundRect(x,y,w,h,r); }
 let _hgrad=null;   // 漸層只建一次（每幀重建會拖慢）
-/* ⭐錘子 v12（民眾版 2026-07-26）：錘頭永遠壓在命中點上
-   老闆回饋：「直覺是拿錘頭去敲動物，實際卻要對到白點」。
-   舊版以「握把」為支點，待機時錘子扛在斜上方＝錘頭離命中點很遠，所見不等於所打。
-   改成以「錘頭」為支點：錘頭鎖在游標上不離開，待機只有握把小幅上抬＋微晃，
-   敲擊時握把快速壓下、錘頭原地一沉再回彈。看到錘頭蓋住山豬，就是真的打得到。 */
+/* 錘子 v6：像真人揮錘 —— 以「握把（手）」為支點的旋轉揮擊
+   ・待機：錘子扛在游標「外側斜上方」（右手扛右邊、左手扛左邊，符合左右手真實握錘姿勢）
+   ・敲擊：整支錘子以握把為軸心加速旋下（easeIn＝有重量感），錘頭正好落在瞄準點，
+     敲住一拍讓長者看清楚「敲到了」，再舉回待機
+   ・瞄準虛線圈固定跟著游標不動，長者永遠知道會敲在哪裡（臨床：不誤判方向） */
 function drawHammer(x,y,now,side){
-  const R=baseSize(), dir=(side==='left')?-1:1;
+  const s=(1.15+cfg.size/170)*0.72, dir=(side==='left')?-1:1;        // 槌子略小於地鼠，才不會整個蓋住目標
+  const e=now-hammerHitT, REST=1.22;                                 // 待機舉起角度（約 70°，扛在肩上的感覺）
+  let ang;
+  if(e<80) ang=REST*(1-(e/80)*(e/80));                                 // 揮下：加速（重量感）
+  else if(e<170) ang=0;                                                // 敲住一拍：impact 停留 90ms
+  else if(e<430){ const p=(e-170)/260; ang=REST*p*(2-p); }             // 舉回（easeOut）
+  else ang=REST+0.05*Math.sin(now/420);                                // 待機微晃＝「隨時準備敲」
+  ctx.save();                                                          // 瞄準點：告訴長者「會敲在這裡」
+  ctx.strokeStyle='rgba(255,255,255,.6)'; ctx.lineWidth=3.5; ctx.setLineDash([7,6]);
+  ctx.beginPath(); ctx.arc(x,y,22,0,7); ctx.stroke();
+  ctx.setLineDash([]); ctx.fillStyle='rgba(255,255,255,.65)';
+  ctx.beginPath(); ctx.arc(x,y,3.5,0,7); ctx.fill(); ctx.restore();
   const im=SPR['3d_hammer']; if(!_ok(im))return;
-  const W=R*2.15;                                  // 比舊版 2.6 小一點（老闆回饋：錘子再小一點）
-  const e=now-hammerHitT, TILT=0.34, LIFT=0.46, DIP=R*0.10;
-  // TILT＝敲到時握把仍保留的傾角（不要垂直豎起來整支蓋住山豬）；LIFT＝待機再往上抬的角度
-  let ang, push;
-  if(e<70){        const p=e/70;        ang=TILT+LIFT*(1-p)*(1-p); push=DIP*p; }        // 揮下（加速）
-  else if(e<150){                       ang=TILT;                  push=DIP; }          // 敲住一拍
-  else if(e<420){  const p=(e-150)/270; ang=TILT+LIFT*p*(2-p);     push=DIP*(1-p); }    // 舉回
-  else {                                ang=TILT+LIFT+0.05*Math.sin(now/560); push=0; } // 待機微晃
+  const W=200*s;
+  const pivX=x+dir*W*0.46, pivY=y+W*0.40;                              // 支點＝握把（手）位置：游標外側斜下
   ctx.save();
-  ctx.translate(x,y+push);                         // ⭐原點＝錘頭中心＝命中點
-  ctx.rotate(dir*ang);
+  ctx.translate(pivX,pivY); ctx.rotate(dir*ang); ctx.translate(x-pivX,y-pivY);  // 繞握把旋轉；ang=0 時錘頭正好在瞄準點
   ctx.scale(dir,1); ctx.rotate(-2.36);
-  ctx.drawImage(im,-W*0.32,-W*0.30,W,W);           // 圖中錘頭中心約在 (0.32,0.30)
-  ctx.restore();
-  ctx.save();                                      // 錘頭正中心的小白點：精準落點仍看得見
-  ctx.beginPath(); ctx.arc(x,y+push,R*0.05+2,0,7);
-  ctx.fillStyle='rgba(255,255,255,.92)'; ctx.fill();
-  ctx.lineWidth=2; ctx.strokeStyle='rgba(0,0,0,.35)'; ctx.stroke();
+  ctx.drawImage(im,-W*0.32,-W*0.30,W,W);                               // 圖中槌頭中心約在 (0.32,0.30)
   ctx.restore();
 }
 function moleRise(t,now){                    // 冒出 → 停留 → 鑽回土裡（消失前縮回）
@@ -955,56 +1013,17 @@ async function keepAwake(on){
 }
 document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible'&&running)keepAwake(true); });
 if(new URLSearchParams(location.search).has('debug')) document.body.classList.add('debug');
-/* ?demo=1：免鏡頭示範模式 —— 用程式畫一隻「假手」在畫面上繞，
-   給沒有鏡頭／不想開鏡頭的人先看畫面比例與流程（也方便在手機上確認山豬大小） */
-const DEMO=new URLSearchParams(location.search).has('demo');
-function invMap(x,y){                       // mapScreen 的反函數：螢幕座標 → 影像正規化座標
-  let u=1-x/CW, v=y/CH;
-  u=0.5+(u-0.5)/cfg.gain; v=0.5+(v-0.5)/cfg.gain;
-  if(calib){ u=calib.minX+u*(calib.maxX-calib.minX); v=calib.minY+v*(calib.maxY-calib.minY); }
-  return {x:u,y:v};
-}
-const demoPos={left:{x:0.5,y:0.5},right:{x:0.5,y:0.5},_t:0};
-function demoTick(now){
-  const t=now/1000;
-  const set=(s,x,y)=>{const H=handRaw[s];H.x=x;H.y=y;H.t=now;H.valid=true;H.raw={x,y};H.lm=null;};
-  if(phase!=='play'){                       // 校正階段：畫一個大圈，讓範圍量得出來
-    if(cfg.side==='none'){ set('left', 0.5+0.32*Math.sin(t*0.90), 0.5+0.24*Math.cos(t*1.30));
-                           set('right',0.5+0.32*Math.sin(t*0.75+2.4), 0.5+0.24*Math.cos(t*1.05+1.1)); }
-    else { set(affSide(), 0.5+0.34*Math.sin(t*0.90), 0.5+0.26*Math.cos(t*1.30));
-           handRaw[otherSide(affSide())].valid=false; }
-    return;
-  }
-  // 遊戲階段：假手慢慢伸向最近的山豬（示範模式要看得出「真的在玩」，不是亂繞）
-  const dt=demoPos._t?Math.min(0.1,(now-demoPos._t)/1000):0.016; demoPos._t=now;
-  const k=1-Math.exp(-dt/0.20);            // 以時間為準的平滑（幀率低也會走到位）
-  const sides=(cfg.side==='none')?['left','right']:[affSide()];
-  if(sides.length===1) handRaw[otherSide(affSide())].valid=false;
-  const live=targets.filter(t=>!t.hit);
-  sides.forEach((sd,i)=>{
-    // 鏡像後：解剖左手出現在畫面右半邊，所以左手負責右半邊的目標
-    const half=(sides.length===2)?live.filter(t=>sd==='left'?t.x>CW/2:t.x<=CW/2):live;
-    const tgt=(half.length?half:live)[0];
-    const P=demoPos[sd]; let gx,gy;
-    if(tgt){ const n=invMap(tgt.x,tgt.y); gx=n.x; gy=n.y; }
-    else { gx=0.5+0.20*Math.sin(t*0.8+i*2.1); gy=0.5+0.15*Math.cos(t*1.1+i); }
-    P.x+=(gx-P.x)*k; P.y+=(gy-P.y)*k;
-    set(sd,P.x,P.y);
-  });
-}
 $('btnRotateSkip').onclick=()=>document.body.classList.add('rot-ok');
 
 /* ---------------- 流程控制 ---------------- */
 async function beginSession(){
-  Object.assign(cfg,DIFF[cfg.diff]);
+  cfg.size=+rSize.value;cfg.speed=+rSpeed.value;cfg.reach=+rReach.value;cfg.dur=+rDur.value;
   setupEl.classList.add('hidden'); loading.style.display='flex';
   try{
     resize();
     loadMsg.textContent='正在載入美術素材…'; await spritesReady;
-    if(!DEMO){
-      loadMsg.textContent='正在載入手部偵測模型…'; await initModel();   // 換手數會自動重建模型
-      if(!camReady){loadMsg.textContent='正在開啟鏡頭…';await initCamera();}
-    }
+    if(!handLandmarker){loadMsg.textContent='正在載入手部偵測模型…';await initModel();}
+    if(!camReady){loadMsg.textContent='正在開啟鏡頭…';await initCamera();}
     if(!AE)AE=makeAudio(); if(cfg.sound){AE.start();AE.setMuted(false);}
   }catch(err){ loading.style.display='none';
     const denied=/denied|NotAllowed/i.test(err.name+err.message);
@@ -1019,7 +1038,7 @@ async function beginSession(){
 }
 function enterCalibIntro(){
   phase='calibIntro'; calib=null;
-  $('calibTitle').textContent='先量你的手能伸多遠';
+  $('calibTitle').textContent='校正：把你的活動範圍變成整個畫面';
   $('calibIntro').classList.remove('hidden'); $('calibReview').classList.add('hidden');
   $('btnCalibStart').classList.remove('hidden'); $('btnCalibGo').classList.add('hidden');
   $('btnRecalib').classList.add('hidden');
@@ -1030,7 +1049,7 @@ function startPlay(){
   phase='play'; resetPlay();
 }
 /* ---------------- 復能報表 ---------------- */
-const LS_KEY='mole_public_sessions';
+const LS_KEY='reachcatch_sessions';
 const _mean=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:0;
 function loadSessions(){ try{return JSON.parse(localStorage.getItem(LS_KEY)||'[]');}catch(e){return[];} }
 function _std(a,m){ if(a.length<2)return 0; return Math.sqrt(a.reduce((s,x)=>s+(x-m)*(x-m),0)/a.length); }
@@ -1045,49 +1064,85 @@ function buildSession(){
     const e=_mean(series.slice(0,mid).map(s=>s[1])), l=_mean(series.slice(mid).map(s=>s[1]));
     fatigue=e?Math.round((l-e)/e*100):null; }
   return { date:new Date().toISOString(), mode:cfg.mode, side:cfg.side, dur:cfg.dur,
-    diff:cfg.diff, sizeFrac:cfg.sizeFrac, speed:cfg.speed, reach:cfg.reach, score, hits, presented:pres, misses:Math.max(0,pres-hits),
+    size:cfg.size, speed:cfg.speed, reach:cfg.reach, score, hits, presented:pres, misses:Math.max(0,pres-hits),
     accuracy: pres?Math.round(hits/pres*100):0, affPct: hits?Math.round(affHits/hits*100):0, cross,
     avgRT, bestRT, cvRT, fatigue, maxStreak, series };
 }
-/* ───── 民眾版結束畫面：先講成績，再白話講「剛剛在練什麼」 ───── */
+function rtLineSVG(series,durSec){   // 本局反應時間逐次曲線＋線性趨勢（疲勞）
+  const W=380,H=168,padL=36,padR=12,padT=14,padB=22;
+  if(series.length<2) return `<svg viewBox="0 0 ${W} ${H}" width="100%" style="max-width:${W}px"><text x="${W/2}" y="${H/2}" text-anchor="middle" font-size="12" fill="#8a94a0">命中太少，資料不足</text></svg>`;
+  const ys=series.map(s=>s[1]); let lo=Math.min(...ys), hi=Math.max(...ys); if(hi-lo<50){hi+=50;lo=Math.max(0,lo-50);} const p=(hi-lo)*0.12; lo=Math.max(0,lo-p); hi+=p;
+  const xF=t=>padL+Math.min(1,(t/1000)/durSec)*(W-padL-padR);
+  const yF=r=>(H-padB)-((r-lo)/(hi-lo))*(H-padB-padT);
+  let g=`<line x1="${padL}" y1="${H-padB}" x2="${W-padR}" y2="${H-padB}" stroke="#333d48"/>`;
+  g+=`<text x="${padL-5}" y="${(yF(hi)+7).toFixed(1)}" text-anchor="end" font-size="9" fill="#8a94a0">${(hi/1000).toFixed(1)}s</text>`;
+  g+=`<text x="${padL-5}" y="${yF(lo).toFixed(1)}" text-anchor="end" font-size="9" fill="#8a94a0">${(lo/1000).toFixed(1)}s</text>`;
+  const n=series.length; let sx=0,sy=0,sxy=0,sxx=0;
+  series.forEach(s=>{const x=s[0]/1000,y=s[1];sx+=x;sy+=y;sxy+=x*y;sxx+=x*x;});
+  const b=(n*sxy-sx*sy)/Math.max(1e-6,n*sxx-sx*sx), a=(sy-b*sx)/n;   // 線性回歸斜率 b (ms/秒)
+  g+=`<line x1="${xF(0).toFixed(1)}" y1="${yF(a).toFixed(1)}" x2="${xF(durSec*1000).toFixed(1)}" y2="${yF(a+b*durSec).toFixed(1)}" stroke="${b>0.5?'#ff7a59':'#4cc38a'}" stroke-width="2.5" stroke-dasharray="6 4"/>`;
+  g+=`<polyline points="${series.map(s=>`${xF(s[0]).toFixed(1)},${yF(s[1]).toFixed(1)}`).join(' ')}" fill="none" stroke="#5aa9e6" stroke-width="2"/>`;
+  series.forEach(s=>{g+=`<circle cx="${xF(s[0]).toFixed(1)}" cy="${yF(s[1]).toFixed(1)}" r="2.6" fill="#5aa9e6"/>`;});
+  return `<svg viewBox="0 0 ${W} ${H}" width="100%" style="max-width:${W}px">${g}</svg>`;
+}
+function trendSVG(sess,series,maxY){
+  const W=380,H=170,padL=30,padR=10,padT=12,padB=22, n=sess.length;
+  const xw=(W-padL-padR)/Math.max(1,n-1), yTop=padT, yBot=H-padB, yFor=v=>yBot-((v||0)/maxY)*(yBot-yTop); let g='';
+  g+=`<line x1="${padL}" y1="${yBot}" x2="${W-padR}" y2="${yBot}" stroke="#333d48"/>`;
+  [0,maxY/2,maxY].forEach(v=>{ g+=`<line x1="${padL}" y1="${yFor(v).toFixed(1)}" x2="${W-padR}" y2="${yFor(v).toFixed(1)}" stroke="rgba(140,148,160,.18)"/><text x="${padL-4}" y="${(yFor(v)+3).toFixed(1)}" text-anchor="end" font-size="9" fill="#8a94a0">${Math.round(v)}</text>`; });
+  for(const se of series){ const pts=sess.map((s,i)=>`${(padL+i*xw).toFixed(1)},${yFor(s[se.k]).toFixed(1)}`).join(' ');
+    g+=`<polyline points="${pts}" fill="none" stroke="${se.color}" stroke-width="2.5"/>`;
+    sess.forEach((s,i)=>{ g+=`<circle cx="${(padL+i*xw).toFixed(1)}" cy="${yFor(s[se.k]).toFixed(1)}" r="3" fill="${se.color}"/>`; }); }
+  return `<svg viewBox="0 0 ${W} ${H}" width="100%" style="max-width:${W}px">${g}</svg>`;
+}
+function legend(series){ return '<div class="rep-chips">'+series.map(s=>`<span style="color:${s.color}">● ${s.label}</span>`).join('')+'</div>'; }
 function renderReport(){
-  const s=buildSession(), sSave={...s};
+  const s=buildSession(), sSave={...s}; delete sSave.heat;
   const all=loadSessions(); all.push(sSave); const saved=all.slice(-300);
   try{ localStorage.setItem(LS_KEY,JSON.stringify(saved)); }catch(e){}
   const prev=saved.length>=2?saved[saved.length-2]:null;
-
-  const bestS = s.bestRT!=null ? (s.bestRT/1000).toFixed(2)+' 秒' : '–';
-  const cheer = s.accuracy>=80 ? '太厲害了，山豬都被你趕跑！'
-              : s.accuracy>=55 ? '做得很好！再玩一局會更順手。'
-              : '有打到就是進步，慢慢來就好。';
-  const better = prev ? ( s.score>prev.score ? `比上一局多了 ${s.score-prev.score} 分 👍`
-                        : s.score===prev.score ? '和上一局一樣穩。'
-                        : '這局稍微少一點，休息一下再來。') : '';
-
-  const M=(k,v,sub)=>`<div class="metric"><div class="k">${k}</div><div class="v">${v}</div><div class="s">${sub||''}</div></div>`;
-
+  const sideL={left:'左側患側',right:'右側患側',none:'不分側'}[s.side];
+  const modeL={mole:'打地鼠',star:'接星星'}[s.mode];
+  const sizeL=s.size<58?'小':s.size<90?'中':'大', speedL=['','很慢','慢','中','快','很快'][s.speed], reachL=['','近','中','遠'][s.reach];
+  const d=new Date(s.date), p2=x=>String(x).padStart(2,'0');
+  const dateStr=`${d.getFullYear()}/${p2(d.getMonth()+1)}/${p2(d.getDate())} ${p2(d.getHours())}:${p2(d.getMinutes())}`;
+  const dl=(cur,pre,unit,inv)=>{ if(pre==null||cur==null)return ''; const dd=+(cur-pre).toFixed(2); if(!dd)return ' <span class="dl flat">→持平</span>'; const good=inv?dd<0:dd>0; return ` <span class="dl ${good?'up':'down'}">${dd>0?'▲+':'▼'}${Math.abs(dd)}${unit}</span>`; };
+  const M=(k,v,sub,cls)=>`<div class="metric ${cls||''}"><div class="k">${k}</div><div class="v">${v}</div><div class="s">${sub||''}</div></div>`;
+  const rtS=s.avgRT!=null?(s.avgRT/1000).toFixed(2):null, bestS=s.bestRT!=null?(s.bestRT/1000).toFixed(2):null;
+  const rtDelta=(rtS!=null&&prev&&prev.avgRT!=null)?dl(+rtS,+(prev.avgRT/1000).toFixed(2),'s',true):'';
+  const metrics=
+    M('平均反應時間', (rtS!=null?rtS+' s':'–')+rtDelta, bestS!=null?'最快 '+bestS+' s':'看到→碰到')+
+    M('命中率', s.accuracy+'%'+(prev?dl(s.accuracy,prev.accuracy,'%',false):''), `${s.hits}/${s.presented}．最長連擊 ${s.maxStreak}`)+
+    M('反應穩定度', (s.cvRT!=null?s.cvRT+'%':'–')+(s.cvRT!=null&&prev&&prev.cvRT!=null?dl(s.cvRT,prev.cvRT,'%',true):''), 'CV，越低越穩')+
+    M('疲勞指數', (s.fatigue!=null?s.fatigue+'%':'–')+(s.fatigue!=null&&prev&&prev.fatigue!=null?dl(s.fatigue,prev.fatigue,'%',true):''), '後段比前段慢')+
+    M('患側使用率', s.affPct+'%'+(prev?dl(s.affPct,prev.affPct,'%',false):''), '目標 72%','aff')+
+    M('跨中線', s.cross+' 次'+(prev?dl(s.cross,prev.cross,'',false):''), '右手打左側/左手打右側');
+  let trend='';
+  if(saved.length>=2){
+    const recent=saved.slice(-8), maxRT=Math.max(500,...recent.map(x=>x.avgRT||0))*1.1;
+    trend=`<div class="charts">
+      <div class="chart"><h3>跨次趨勢：平均反應時間</h3><div class="cnote">最近 ${recent.length} 局（毫秒，越低越好）</div>
+        ${trendSVG(recent.map(x=>({v:x.avgRT||0})),[{k:'v',color:'#5aa9e6'}],maxRT)}</div>
+      <div class="chart"><h3>跨次趨勢：患側使用率 / 命中率</h3><div class="cnote">最近 ${recent.length} 局（%）</div>
+        ${legend([{label:'患側使用率',color:'#ff7a59'},{label:'命中率',color:'#4cc38a'}])}
+        ${trendSVG(recent,[{k:'affPct',color:'#ff7a59'},{k:'accuracy',color:'#4cc38a'}],100)}</div>
+    </div>`;
+  }
+  const notes=[];
+  if(s.avgRT!=null) notes.push(`平均反應時間 ${(s.avgRT/1000).toFixed(2)}s、最快 ${(s.bestRT/1000).toFixed(2)}s（含「看到→伸手碰到」的整體反應）。`);
+  if(s.fatigue!=null) notes.push(s.fatigue>=15?`⚠️疲勞指數 ${s.fatigue}%：後段反應明顯變慢，抗重力（手持續舉著）耐力受限，建議縮短單局或中途休息。`:(s.fatigue<=5?`疲勞指數 ${s.fatigue}%：整局反應穩定，耐力足以撐完全程。`:`疲勞指數 ${s.fatigue}%：後段略微變慢。`));
+  if(s.cvRT!=null) notes.push(`反應穩定度 CV ${s.cvRT}%（越低越穩；偏高可能是注意力波動或動作控制不穩）。`);
+  notes.push(s.affPct>=72?`患側使用率 ${s.affPct}% 已達鼓勵目標（72%），對抗習得性廢用（learned non-use）成效佳。`:`患側使用率 ${s.affPct}%（目標 72%），可提高偏患側目標比例、或提示個案多用患側。`);
+  notes.push(`跨中線 ${s.cross} 次（患側手打到對側目標＝手越過身體中線）。`);
   $('reportBody').innerHTML=`
-    <div class="score-hero">
-      <div class="big">趕走了 ${s.hits} 隻山豬！</div>
-      <div class="cheer">${cheer}${better?'<br>'+better:''}</div>
+    <div class="rep-head"><h1>復能訓練報表 <span class="pill">治療師版</span></h1></div>
+    <div class="rep-sub">${dateStr}
+      <div class="rep-chips"><span>${sideL}</span><span>${modeL}</span><span>目標 ${sizeL}</span><span>速度 ${speedL}</span><span>幅度 ${reachL}</span><span>時長 ${s.dur}s</span></div>
     </div>
-    <div class="metrics" style="grid-template-columns:repeat(3,1fr);margin:18px 0 4px">
-      ${M('分數',s.score,'')}
-      ${M('打中率',s.accuracy+'%',`出現 ${s.presented} 隻`)}
-      ${M('最快反應',bestS,'看到就出手')}
-    </div>
-    <div class="why">
-      <h3>剛剛你在練什麼？</h3>
-      <ul>
-        <li><b>伸手去打</b>：練肩膀、手臂的力氣和活動範圍。</li>
-        <li><b>手伸到另一邊</b>：練轉身和左右兩邊的協調。</li>
-        <li><b>看到就馬上出手</b>：練眼睛和手的反應速度。</li>
-        <li><b>坐著不晃</b>：練坐姿的穩定和身體的核心。</li>
-      </ul>
-    </div>
-    <p class="ref">白話說：復健的重點是「同一個動作，開心地做很多次」。遊戲把重複練習變成有回饋、有分數的事，比乾坐著抬手更容易撐下去。<br>
-      參考：Langhorne, P., Bernhardt, J., &amp; Kwakkel, G. (2011). Stroke rehabilitation. <i>The Lancet, 377</i>(9778), 1693–1702.<br>
-      ※ 本遊戲為健康促進與居家活動用途，不能取代治療師的評估與治療。身體不適請立刻停止。</p>`;
+    <div class="metrics">${metrics}</div>
+    <div class="chart" style="margin-bottom:16px"><h3>本局反應時間趨勢（耐力／疲勞）</h3><div class="cnote">每次命中的反應時間；藍線＝逐次，虛線＝趨勢（<span style="color:#ff7a59">紅＝越來越慢＝疲勞</span> ／ <span style="color:#4cc38a">綠＝維持穩定</span>）</div>${rtLineSVG(s.series,s.dur)}</div>
+    ${trend}
+    <div class="rep-note"><b>臨床判讀</b><br>${notes.join('<br>')}</div>`;
 }
 function endGame(){
   phase='setup'; running=false; hud.classList.add('hidden'); if(AE)AE.stop();
@@ -1115,11 +1170,11 @@ $('btnHome').onclick=backToSetup;
 $('btnAgain').onclick=()=>{ endEl.classList.add('hidden'); running=true; document.body.classList.add('playing'); keepAwake(true); requestAnimationFrame(loop); startPlay(); };
 $('btnReCalib2').onclick=()=>{ endEl.classList.add('hidden'); running=true; document.body.classList.add('playing'); keepAwake(true); requestAnimationFrame(loop); enterCalibIntro(); };
 $('btnEnd').onclick=endGame;
+$('btnPrint').onclick=()=>window.print();
 $('btnMute').onclick=e=>{ cfg.sound=!cfg.sound; e.target.textContent=cfg.sound?'🔊':'🔇';
   if(AE){ if(cfg.sound){AE.start();AE.setMuted(false);} else AE.setMuted(true); } };
 
-if(DEMO){ const d=$('demoNote'); if(d)d.classList.remove('hidden'); }
-const hScore=$('hScore'),hTime=$('hTime');
+const hScore=$('hScore'),hHits=$('hHits'),hAff=$('hAff'),hCross=$('hCross'),hTime=$('hTime'),hFps=$('hFps');
 resize();
 </script>
 <!-- Cloudflare Web Analytics：無 cookie、不追蹤個人，只統計造訪量 -->
