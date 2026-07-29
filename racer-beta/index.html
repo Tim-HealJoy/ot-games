@@ -1,0 +1,1763 @@
+<!DOCTYPE html>
+<!--
+  傾斜賽車 · 治療師版
+  ─────────────────────────────────────────────────────────────
+  控制＝手機傾斜（DeviceOrientation）
+    A 模式（螢幕橫式）：手機夾自拍桿、雙手握持，整條上肢帶動左右傾 → 用 beta 軸
+    B 模式（螢幕直式）：單手持機，前臂旋前／旋後 → 用 gamma 軸
+    軸的正負由「校正流程」自動判定，不靠裝置慣例猜。
+  美術＝沿用 美術升級版.html 已驗收的偽 3D 引擎
+    ・地面＝低頻雙色帶＋透視稻列＋地平線霧化（⚠️絕不可用照片紋理逐掃描線取樣，會 texture shimmering）
+    ・柏油＝6 階手動 mipmap
+    ・sprites＝綠純度軟鍵去背＋trimAlpha 貼地；影子統一右下（光源左上）
+    ・金幣旋轉最扁鉗 35%
+  素材：assets/ 全 AI 生成，無版權疑慮。
+  ?demo=1 ＝ 免感測器展示模式（鍵盤 ← →）
+-->
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#101418">
+<title>傾斜賽車 · 治療師版</title>
+<style>
+  :root{
+    --bg:#101418; --panel:#1b2027; --panel2:#232a33;
+    --ink:#f4efe3; --sub:#a7b0bb; --line:#333d48;
+    --accent:#f4b942; --good:#4cc38a; --warn:#ff7a59; --blue:#5aa9e6; --nitro:#7fe3ff;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html,body{height:100%;}
+  body{background:var(--bg);color:var(--ink);
+    font-family:-apple-system,"PingFang TC","Noto Sans TC",system-ui,sans-serif;overflow:hidden;
+    touch-action:none;overscroll-behavior:none;
+    -webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;}
+  #stage{position:fixed;inset:0;}
+  #game{position:relative;width:100vw;height:100vh;height:100dvh;}
+  canvas#cv{position:absolute;inset:0;width:100%;height:100%;display:block;background:#0a0d10;}
+
+  /* ---------- HUD ---------- */
+  #hud{position:absolute;top:0;left:0;right:0;z-index:5;pointer-events:none;
+    padding:12px 16px;
+    padding-top:max(12px,env(safe-area-inset-top));
+    padding-left:max(16px,env(safe-area-inset-left));
+    padding-right:max(16px,env(safe-area-inset-right));
+    display:flex;gap:8px;align-items:flex-start;flex-wrap:wrap;}
+  .stat{background:rgba(20,25,31,.80);border:1px solid var(--line);border-radius:13px;padding:7px 13px;min-width:80px;}
+  .stat .k{font-size:11.5px;color:var(--sub);letter-spacing:.5px;white-space:nowrap;}
+  .stat .v{font-size:24px;font-weight:800;line-height:1.12;}
+  .stat.time .v{color:var(--blue);} .stat.crash .v{color:var(--warn);}
+  #hud .spacer{flex:1;}
+  .hud-btn{pointer-events:auto;background:var(--panel2);color:var(--ink);
+    border:1px solid var(--line);border-radius:12px;padding:9px 13px;font-size:14.5px;font-weight:700;cursor:pointer;}
+  .hud-btn:hover{background:#2c3542;}
+  #hudBtns{position:absolute;z-index:6;right:max(14px,env(safe-area-inset-right));
+    bottom:max(14px,env(safe-area-inset-bottom));display:flex;gap:8px;}
+  #feverTag{position:absolute;z-index:5;left:50%;transform:translateX(-50%);
+    top:max(64px,calc(env(safe-area-inset-top) + 64px));
+    background:rgba(12,60,80,.82);border:1.5px solid var(--nitro);color:var(--nitro);
+    border-radius:999px;padding:6px 18px;font-size:17px;font-weight:800;letter-spacing:1px;}
+  @media (max-width:820px),(max-height:520px){
+    #hud{padding:7px 10px;padding-top:max(7px,env(safe-area-inset-top));gap:6px;flex-wrap:nowrap;align-items:center;}
+    .stat{padding:4px 9px;min-width:0;border-radius:10px;}
+    .stat .k{font-size:10px;letter-spacing:0;} .stat .v{font-size:18px;}
+    .hud-btn{padding:8px 10px;font-size:13px;border-radius:10px;}
+  }
+
+  /* ---------- 覆蓋層與卡片 ---------- */
+  .overlay{position:absolute;inset:0;z-index:10;display:flex;align-items:center;justify-content:center;padding:22px;
+    background:radial-gradient(circle at 50% 30%,rgba(30,38,48,.72),rgba(10,13,16,.95));}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:22px;
+    padding:28px 30px;width:min(600px,94vw);max-height:92vh;overflow:auto;box-shadow:0 24px 60px rgba(0,0,0,.5);}
+  .card h1{font-size:28px;margin-bottom:4px;}
+  .card .lead{color:var(--sub);font-size:16px;margin-bottom:20px;line-height:1.7;}
+  .row{margin-bottom:17px;}
+  .row > .label{font-size:15px;color:var(--sub);margin-bottom:8px;font-weight:600;}
+  .row > .label b{color:var(--ink);}
+  .seg{display:flex;gap:8px;flex-wrap:wrap;}
+  .seg button{flex:1;min-width:70px;background:var(--panel2);color:var(--ink);
+    border:1.5px solid var(--line);border-radius:12px;padding:13px 8px;font-size:17px;font-weight:700;cursor:pointer;transition:.15s;}
+  .seg button.on{border-color:var(--accent);background:rgba(244,185,66,.16);color:var(--accent);}
+  .slider{display:flex;align-items:center;gap:12px;}
+  .slider input{flex:1;accent-color:var(--accent);height:26px;}
+  .slider .val{font-size:14px;color:var(--ink);min-width:88px;text-align:right;font-weight:700;}
+  select{width:100%;background:var(--panel2);color:var(--ink);border:1.5px solid var(--line);
+    border-radius:12px;padding:13px 10px;font-size:16.5px;font-weight:700;}
+  select option:disabled{color:#6b7480;}
+  .start{width:100%;margin-top:6px;background:var(--accent);color:#1a1205;border:none;
+    border-radius:14px;padding:17px;font-size:20px;font-weight:800;cursor:pointer;}
+  .start:hover{filter:brightness(1.06);}
+  .start.go{background:var(--good);color:#04140c;}
+  .row-btns{display:flex;gap:9px;margin-top:10px;}
+  .row-btns .hud-btn{flex:1;text-align:center;padding:13px 10px;font-size:15px;}
+  .note{font-size:12.5px;color:var(--sub);margin-top:13px;line-height:1.7;}
+  .warnbox{background:rgba(255,122,89,.12);border:1px solid rgba(255,122,89,.42);border-radius:12px;
+    padding:12px 14px;font-size:14px;line-height:1.7;margin-bottom:14px;}
+  .infobox{background:rgba(90,169,230,.10);border:1px solid rgba(90,169,230,.32);border-radius:12px;
+    padding:12px 14px;font-size:13.5px;line-height:1.75;margin-bottom:14px;}
+  .pill{display:inline-block;background:rgba(90,169,230,.16);color:var(--blue);
+    border-radius:999px;padding:2px 11px;font-size:12.5px;font-weight:700;margin-left:8px;vertical-align:middle;}
+  .pill.demo{background:rgba(244,185,66,.18);color:var(--accent);}
+  .hidden{display:none !important;}
+  #loading{position:absolute;inset:0;z-index:30;display:flex;align-items:center;justify-content:center;
+    flex-direction:column;gap:16px;background:rgba(10,13,16,.94);}
+  .spinner{width:44px;height:44px;border:4px solid var(--line);border-top-color:var(--accent);
+    border-radius:50%;animation:spin 1s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  /* ---------- 校正 ---------- */
+  .tiltwrap{margin:6px 0 18px;}
+  .tb-track{position:relative;height:26px;background:var(--panel2);border:1px solid var(--line);border-radius:13px;overflow:hidden;}
+  .tb-fill{position:absolute;top:0;bottom:0;background:linear-gradient(90deg,rgba(90,169,230,.85),rgba(127,227,255,.85));}
+  .tb-mid{position:absolute;left:50%;top:0;bottom:0;width:2px;background:var(--accent);opacity:.85;}
+  .tb-num{text-align:center;font-size:15px;font-weight:800;margin-top:7px;color:var(--sub);}
+  .tb-num b{color:var(--ink);font-size:21px;}
+  .calib-step{font-size:24px;font-weight:800;line-height:1.55;margin-bottom:10px;}
+  .calib-hint{font-size:16px;color:var(--sub);line-height:1.75;margin-bottom:14px;}
+  .prog{height:14px;background:var(--panel2);border:1px solid var(--line);border-radius:9px;overflow:hidden;margin-bottom:16px;}
+  .prog-fill{height:100%;width:0;background:var(--good);transition:width .08s linear;}
+  .big-count{font-size:52px;font-weight:900;text-align:center;color:var(--accent);line-height:1;margin:4px 0 14px;}
+  .rom-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:6px 0 16px;}
+  .rom-grid .cell{background:var(--panel2);border:1px solid var(--line);border-radius:13px;padding:12px 14px;text-align:center;}
+  .rom-grid .cell .k{font-size:12.5px;color:var(--sub);} .rom-grid .cell .v{font-size:25px;font-weight:800;}
+
+  /* ---------- 結算 ---------- */
+  .end-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:11px;margin:18px 0;}
+  .end-grid .cell{background:var(--panel2);border-radius:14px;padding:14px 12px;text-align:center;}
+  .end-grid .cell .k{font-size:12.5px;color:var(--sub);} .end-grid .cell .v{font-size:26px;font-weight:800;}
+  #recBanner{background:linear-gradient(100deg,#f4b942,#ffe08a,#f4b942);color:#2a1c02;border-radius:14px;
+    padding:14px 16px;text-align:center;font-size:20px;font-weight:900;letter-spacing:1px;
+    animation:shine 1.6s ease-in-out infinite;}
+  @keyframes shine{0%,100%{filter:brightness(1)}50%{filter:brightness(1.22)}}
+  #confetti{position:absolute;inset:0;z-index:11;pointer-events:none;overflow:hidden;}
+  #confetti i{position:absolute;top:-24px;width:9px;height:14px;border-radius:2px;animation:fall linear forwards;}
+  @keyframes fall{to{transform:translateY(110vh) rotate(720deg);opacity:.15}}
+
+  /* ---------- 復能報表 ---------- */
+  .card.report{width:min(900px,96vw);}
+  .rep-head{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap;}
+  .rep-head h1{font-size:25px;}
+  .rep-sub{color:var(--sub);font-size:13.5px;margin:4px 0 16px;line-height:1.6;}
+  .rep-chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;}
+  .rep-chips span{background:var(--panel2);border:1px solid var(--line);border-radius:999px;padding:3px 10px;font-size:12px;color:var(--sub);}
+  .metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:6px 0 18px;}
+  .metric{background:var(--panel2);border:1px solid var(--line);border-radius:14px;padding:12px 14px;}
+  .metric .k{font-size:12.5px;color:var(--sub);}
+  .metric .v{font-size:23px;font-weight:800;line-height:1.15;margin-top:2px;}
+  .metric .s{font-size:11.5px;color:var(--sub);margin-top:3px;line-height:1.5;}
+  .metric.sym .v{color:var(--accent);} .metric.bad .v{color:var(--warn);}
+  .dl{font-size:12px;font-weight:700;margin-left:6px;white-space:nowrap;}
+  .dl.up{color:var(--good);} .dl.down{color:var(--warn);} .dl.flat{color:var(--sub);}
+  .charts{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px;}
+  .chart{background:var(--panel2);border:1px solid var(--line);border-radius:14px;padding:12px 14px;}
+  .chart h3{font-size:14px;margin-bottom:2px;}
+  .chart .cnote{font-size:11.5px;color:var(--sub);margin-bottom:8px;line-height:1.5;}
+  .rep-note{background:rgba(90,169,230,.10);border:1px solid rgba(90,169,230,.30);border-radius:12px;
+    padding:12px 14px;font-size:13.5px;line-height:1.85;margin-bottom:14px;}
+  .rep-ref{font-size:11.5px;color:var(--sub);line-height:1.7;margin-bottom:16px;}
+  .report-actions{display:flex;gap:10px;flex-wrap:wrap;}
+  .report-actions .start{flex:2;margin-top:0;} .report-actions .hud-btn{flex:1;}
+  @media (max-width:660px){ .metrics{grid-template-columns:repeat(2,1fr);} .charts{grid-template-columns:1fr;} .end-grid{grid-template-columns:1fr 1fr;} }
+
+  /* 矮螢幕（手機橫拿）：卡片壓縮，主按鈕留在第一屏 */
+  @media (max-height:520px){
+    .overlay{padding:10px;}
+    .card{padding:16px 20px;width:min(820px,96vw);max-height:96vh;border-radius:16px;}
+    .card h1{font-size:20px;} .card .lead{font-size:13px;margin-bottom:10px;line-height:1.55;}
+    .row{margin-bottom:10px;} .row > .label{font-size:12.5px;margin-bottom:5px;}
+    .seg button{padding:9px 6px;font-size:14px;min-width:56px;}
+    select{padding:9px 8px;font-size:14px;}
+    .slider .val{font-size:12.5px;min-width:72px;}
+    .start{padding:12px;font-size:17px;border-radius:12px;margin-top:2px;}
+    .note{font-size:11px;line-height:1.6;} .infobox,.warnbox{padding:9px 11px;font-size:12px;margin-bottom:9px;}
+    .calib-step{font-size:19px;} .calib-hint{font-size:13.5px;margin-bottom:9px;}
+    .big-count{font-size:38px;} .rom-grid .cell .v{font-size:21px;}
+  }
+  @media (max-height:520px) and (min-width:680px){
+    #setup .card{display:grid;grid-template-columns:1fr 1fr;gap:0 20px;align-items:start;}
+    #setup .card > h1,#setup .card > .lead,#setup .card > .infobox,#setup .card > .warnbox,
+    #setup .card > .start,#setup .card > .row-btns,#setup .card > .note{grid-column:1/-1;}
+  }
+
+  @media print{
+    body{background:#fff !important;overflow:visible !important;}
+    #cv,#hud,#hudBtns,#feverTag,#setup,#calib,#end,#reorient,#loading,#confetti{display:none !important;}
+    #report.overlay{position:static !important;background:none !important;padding:0 !important;display:block !important;}
+    #report .card{background:#fff !important;border:none !important;box-shadow:none !important;color:#111 !important;
+      width:100% !important;max-width:100% !important;max-height:none !important;overflow:visible !important;padding:0 !important;}
+    .rep-sub,.metric .k,.metric .s,.chart .cnote,.rep-chips span,.rep-ref{color:#555 !important;}
+    .rep-head h1,.metric .v,.chart h3{color:#111 !important;}
+    .metric,.chart,.rep-chips span{background:#f5f5f3 !important;border-color:#ddd !important;}
+    .rep-note{background:#eef4fb !important;border-color:#bcd !important;color:#111 !important;}
+    .report-actions{display:none !important;}
+    .chart,.metric{break-inside:avoid;}
+  }
+</style>
+</head>
+<body>
+<div id="stage">
+  <div id="game">
+    <canvas id="cv"></canvas>
+
+    <!-- ===== HUD ===== -->
+    <div id="hud" class="hidden">
+      <div class="stat"><div class="k">金幣</div><div class="v" id="hScore">0</div></div>
+      <div class="stat"><div class="k">距離</div><div class="v" id="hDist">0</div></div>
+      <div class="stat crash"><div class="k">撞擊</div><div class="v" id="hCrash">0</div></div>
+      <div class="spacer"></div>
+      <div class="stat time"><div class="k">剩餘</div><div class="v" id="hTime">–</div></div>
+    </div>
+    <div id="hudBtns" class="hidden">
+      <button class="hud-btn" id="btnMute" title="音樂／音效">🔊</button>
+      <button class="hud-btn" id="btnEnd">結束本局</button>
+      <button class="hud-btn" id="btnHome">⚙ 回設定</button>
+    </div>
+    <div id="feverTag" class="hidden">氮氣加速中！</div>
+
+    <!-- ===== 設定頁 ===== -->
+    <div id="setup" class="overlay">
+      <div class="card">
+        <h1>傾斜賽車 <span class="pill">治療師版</span><span class="pill demo hidden" id="demoTag">展示模式</span></h1>
+        <div class="lead" id="setupLead">用手機傾斜控制方向，吃金幣、閃障礙。金幣位置＝動作處方，四個旋鈕分開調難度。</div>
+
+        <div class="infobox" id="modeBox">偵測中…</div>
+        <div class="warnbox hidden" id="sensorWarn"></div>
+
+        <div class="row"><div class="label">路線（同一條路線可重複比較）</div>
+          <div class="seg" id="segRoute">
+            <button data-route="1" class="on">路線 A</button>
+            <button data-route="2">路線 B</button>
+            <button data-route="3">路線 C</button>
+          </div></div>
+
+        <div class="row"><div class="label">時長</div>
+          <div class="seg" id="segDur">
+            <button data-dur="60">60 秒</button>
+            <button data-dur="90" class="on">90 秒</button>
+            <button data-dur="120">120 秒</button>
+          </div></div>
+
+        <div class="row"><div class="label">轉向靈敏度<b id="lbSens"></b></div>
+          <div class="slider"><input type="range" id="rSens" min="1" max="5" step="1" value="3">
+            <div class="val" id="vSens"></div></div></div>
+
+        <div class="row"><div class="label">車速</div>
+          <div class="slider"><input type="range" id="rSpeed" min="1" max="5" step="1" value="3">
+            <div class="val" id="vSpeed"></div></div></div>
+
+        <div class="row"><div class="label">金幣／障礙密度</div>
+          <div class="slider"><input type="range" id="rDens" min="1" max="5" step="1" value="3">
+            <div class="val" id="vDens"></div></div></div>
+
+        <div class="row"><div class="label">輔助駕駛（無輸入自動回正＋車道吸附）</div>
+          <div class="seg" id="segAssist">
+            <button data-assist="1" class="on">開（建議）</button>
+            <button data-assist="0">關</button>
+          </div></div>
+
+        <div class="row"><div class="label">場景</div>
+          <select id="selScene"></select></div>
+
+        <div class="row"><div class="label">音樂／音效</div>
+          <div class="seg" id="segSound">
+            <button data-sound="1" class="on">開</button>
+            <button data-sound="0">關</button>
+          </div></div>
+
+        <button class="start" id="btnStart">啟用感測器並開始</button>
+        <div class="row-btns"><button class="hud-btn" id="btnDemoMode">改用鍵盤展示模式（← →）</button></div>
+        <div class="note">安全提醒：坐姿進行，手機請牢固夾好；本遊戲撞到不會結束，不必催促個案。所有設定會自動記住。</div>
+      </div>
+    </div>
+
+    <!-- ===== 校正 ===== -->
+    <div id="calib" class="overlay hidden">
+      <div class="card">
+        <h1>動作校正 <span class="pill" id="calibModeTag">—</span></h1>
+        <div class="lead">校正會記錄「中立點」與「左右各自的最大舒適角度」，之後左右車道就對應到個案自己的活動範圍。</div>
+
+        <div class="tiltwrap">
+          <div class="tb-track"><div class="tb-fill" id="tbFill"></div><div class="tb-mid"></div></div>
+          <div class="tb-num" id="tbNum">目前傾斜 <b>0°</b></div>
+        </div>
+
+        <div class="calib-step" id="calibStep">準備好了嗎？</div>
+        <div class="calib-hint" id="calibHint">坐正、手機拿穩。按下方按鈕開始，一共三個步驟，每步都有充足時間，不用趕。</div>
+        <div class="big-count hidden" id="calibCount">3</div>
+        <div class="prog"><div class="prog-fill" id="progFill"></div></div>
+
+        <div class="rom-grid hidden" id="romGrid">
+          <div class="cell"><div class="k">向左最大角</div><div class="v" id="romL">–</div></div>
+          <div class="cell"><div class="k">向右最大角</div><div class="v" id="romR">–</div></div>
+        </div>
+
+        <button class="start" id="btnCalibNext">開始校正</button>
+        <div class="row-btns">
+          <button class="hud-btn" id="btnCalibSkip">跳過（用預設值）</button>
+          <button class="hud-btn" id="btnCalibBack">← 回設定</button>
+        </div>
+        <div class="note" id="calibNote"></div>
+      </div>
+    </div>
+
+    <!-- ===== 方向改變 ===== -->
+    <div id="reorient" class="overlay hidden">
+      <div class="card">
+        <h1>螢幕方向改變了</h1>
+        <div class="lead">橫式與直式用的是不同的傾斜軸（橫式＝雙手握桿、直式＝前臂旋轉），必須重新校正才會準。</div>
+        <button class="start" id="btnReorientCalib">重新校正</button>
+        <div class="row-btns"><button class="hud-btn" id="btnReorientHome">⚙ 回設定</button></div>
+      </div>
+    </div>
+
+    <!-- ===== 結算 ===== -->
+    <div id="end" class="overlay hidden">
+      <div class="card">
+        <h1>本局結束</h1>
+        <div class="lead" id="endLead">辛苦了！以下是本局成績。</div>
+        <div id="recBanner" class="hidden">🏆 破紀錄！這是目前最好的一次</div>
+        <div class="end-grid">
+          <div class="cell"><div class="k">金幣</div><div class="v" id="eScore">0</div></div>
+          <div class="cell"><div class="k">距離</div><div class="v" id="eDist">0</div></div>
+          <div class="cell"><div class="k">撞擊</div><div class="v" id="eCrash">0</div></div>
+        </div>
+        <div class="note" id="eBest"></div>
+        <button class="start go" id="btnReport">查看復能報表</button>
+        <div class="row-btns">
+          <button class="hud-btn" id="btnAgain">再玩一次</button>
+          <button class="hud-btn" id="btnEndHome">⚙ 回設定</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== 報表 ===== -->
+    <div id="report" class="overlay hidden">
+      <div class="card report">
+        <div id="reportBody"></div>
+        <div class="report-actions">
+          <button class="start go" id="btnAgain2">再玩一次</button>
+          <button class="hud-btn" id="btnPrint">列印／存 PDF</button>
+          <button class="hud-btn" id="btnRepHome">⚙ 回設定</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="confetti" class="hidden"></div>
+
+    <div id="loading"><div class="spinner"></div><div>素材載入中…</div></div>
+  </div>
+</div>
+
+<script>
+"use strict";
+const $ = id => document.getElementById(id);
+const QS = new URLSearchParams(location.search);
+let demoMode = QS.get('demo') === '1';       // 免感測器：鍵盤 ← → 模擬傾斜
+
+/* ==================================================================
+   一、素材載入與去背（沿用美術升級版已驗收做法）
+   ================================================================== */
+const SRC = {
+  bg:'assets/bg_countryside.png', car:'assets/car_sedan.png', road:'assets/road_asphalt.png',
+  tree:'assets/tree_betel.png', pole:'assets/pole_power.png', hay:'assets/haybale_straw.png',
+  coin:'assets/coin_gold.png', cone:'assets/cone_traffic.png'
+};
+// 綠幕去背門檻逐張調（檳榔樹葉本身是深綠，門檻要抓「高亮度純綠」才不會吃掉葉子）
+const KEY = {
+  car:{grHi:70,grLo:26,gHi:120,gLo:80}, tree:{grHi:110,grLo:62,gHi:170,gLo:125},
+  pole:{grHi:70,grLo:26,gHi:130,gLo:90}, hay:{grHi:70,grLo:26,gHi:130,gLo:90},
+  coin:{grHi:70,grLo:26,gHi:130,gLo:90}, cone:{grHi:70,grLo:26,gHi:130,gLo:90}
+};
+const clamp01 = v => v<0?0:v>1?1:v;
+const clamp = (v,a,b) => v<a?a:v>b?b:v;
+const loadImg = src => new Promise(r=>{const im=new Image();im.onload=()=>r(im);im.onerror=()=>r(null);im.src=src;});
+
+function keyOutGreen(img,o){
+  const c=document.createElement('canvas'); c.width=img.width; c.height=img.height;
+  const x=c.getContext('2d',{willReadFrequently:true}); x.drawImage(img,0,0);
+  const d=x.getImageData(0,0,c.width,c.height), p=d.data;
+  for(let i=0;i<p.length;i+=4){
+    const r=p[i],g=p[i+1],b=p[i+2];
+    const gr=g-Math.max(r,b);                                       // 綠的「純度」
+    const k=clamp01((gr-o.grLo)/(o.grHi-o.grLo))*clamp01((g-o.gLo)/(o.gHi-o.gLo));
+    if(k>0) p[i+3]=Math.round(p[i+3]*(1-k));
+    if(p[i+3]>0&&gr>12) p[i+1]=Math.min(g,Math.max(r,b)+12);         // 去綠溢色
+  }
+  x.putImageData(d,0,0); return trimAlpha(c);
+}
+function trimAlpha(c){
+  const x=c.getContext('2d',{willReadFrequently:true});
+  const p=x.getImageData(0,0,c.width,c.height).data;
+  let x0=c.width,y0=c.height,x1=-1,y1=-1;
+  for(let y=0;y<c.height;y++) for(let xx=0;xx<c.width;xx++){
+    if(p[(y*c.width+xx)*4+3]>24){ if(xx<x0)x0=xx; if(xx>x1)x1=xx; if(y<y0)y0=y; if(y>y1)y1=y; }
+  }
+  if(x1<0) return c;
+  const o=document.createElement('canvas'); o.width=x1-x0+1; o.height=y1-y0+1;
+  o.getContext('2d').drawImage(c,x0,y0,o.width,o.height,0,0,o.width,o.height);
+  return o;
+}
+function shrink(c,maxW){                     // 去背後降解析度：手機記憶體與 blit 成本都省
+  if(c.width<=maxW) return c;
+  const h=Math.round(c.height*maxW/c.width);
+  const o=document.createElement('canvas'); o.width=maxW; o.height=h;
+  const x=o.getContext('2d'); x.imageSmoothingQuality='high'; x.drawImage(c,0,0,maxW,h);
+  return o;
+}
+/** 色相旋轉：NPC 車換色用（不靠 ctx.filter，Safari 支援度不穩） */
+function hueShift(src,deg){
+  const c=document.createElement('canvas'); c.width=src.width; c.height=src.height;
+  const x=c.getContext('2d',{willReadFrequently:true}); x.drawImage(src,0,0);
+  const d=x.getImageData(0,0,c.width,c.height), p=d.data;
+  const a=deg*Math.PI/180, cs=Math.cos(a), sn=Math.sin(a);
+  const m=[0.213+cs*0.787-sn*0.213, 0.715-cs*0.715-sn*0.715, 0.072-cs*0.072+sn*0.928,
+           0.213-cs*0.213+sn*0.143, 0.715+cs*0.285+sn*0.140, 0.072-cs*0.072-sn*0.283,
+           0.213-cs*0.213-sn*0.787, 0.715-cs*0.715+sn*0.715, 0.072+cs*0.928+sn*0.072];
+  for(let i=0;i<p.length;i+=4){
+    if(p[i+3]===0) continue;
+    const r=p[i],g=p[i+1],b=p[i+2];
+    p[i]  =clamp(m[0]*r+m[1]*g+m[2]*b,0,255);
+    p[i+1]=clamp(m[3]*r+m[4]*g+m[5]*b,0,255);
+    p[i+2]=clamp(m[6]*r+m[7]*g+m[8]*b,0,255);
+  }
+  x.putImageData(d,0,0); return c;
+}
+function makeTileable(img,w){                // 路面紋理：縮圖＋上下鏡射堆疊 → 垂直捲動無接縫
+  const h=Math.round(img.height*w/img.width);
+  const c=document.createElement('canvas'); c.width=w; c.height=h*2;
+  const x=c.getContext('2d');
+  x.drawImage(img,0,0,w,h);
+  x.save(); x.translate(0,h*2); x.scale(1,-1); x.drawImage(img,0,0,w,h); x.restore();
+  return c;
+}
+function buildMips(base,levels){             // 手動 mipmap：遠處掃描線取粗階＝不沸騰
+  const mips=[base];
+  for(let i=1;i<=levels;i++){
+    const p=mips[i-1], w=Math.max(4,p.width>>1), h=Math.max(4,p.height>>1);
+    const c=document.createElement('canvas'); c.width=w; c.height=h;
+    const x=c.getContext('2d'); x.imageSmoothingEnabled=true; x.imageSmoothingQuality='high';
+    x.drawImage(p,0,0,w,h); mips.push(c);
+  }
+  return mips;
+}
+function avgColor(src){
+  const c=document.createElement('canvas'); c.width=c.height=1;
+  const x=c.getContext('2d',{willReadFrequently:true}); x.drawImage(src,0,0,1,1);
+  const d=x.getImageData(0,0,1,1).data; return [d[0],d[1],d[2]];
+}
+function samplePalette(bg){                  // 從背景照片取樣配色 → 繪製地面與照片同一套色
+  const c=document.createElement('canvas'); c.width=8; c.height=64;
+  const x=c.getContext('2d',{willReadFrequently:true}); x.drawImage(bg,0,0,8,64);
+  const d=x.getImageData(0,0,8,64).data;
+  const row=ry=>{const y=Math.round(ry*63); let r=0,g=0,b=0;
+    for(let i=0;i<8;i++){const o=(y*8+i)*4; r+=d[o]; g+=d[o+1]; b+=d[o+2];}
+    return [r/8,g/8,b/8];};
+  return { far:row(0.795), near:row(0.985), haze:row(0.78) };
+}
+const ROW_TEX_W=32;
+function makeRowPattern(ctx,col){            // 稻列：柔邊細線，之後用 transform 縮成隨透視變化的間距
+  const c=document.createElement('canvas'); c.width=ROW_TEX_W; c.height=1;
+  const x=c.getContext('2d');
+  const g=x.createLinearGradient(0,0,ROW_TEX_W,0), cs=`${col[0]},${col[1]},${col[2]}`;
+  g.addColorStop(0,`rgba(${cs},0)`); g.addColorStop(0.34,`rgba(${cs},0)`);
+  g.addColorStop(0.50,`rgba(${cs},1)`);
+  g.addColorStop(0.66,`rgba(${cs},0)`); g.addColorStop(1,`rgba(${cs},0)`);
+  x.fillStyle=g; x.fillRect(0,0,ROW_TEX_W,1);
+  return ctx.createPattern(c,'repeat');
+}
+const mix=(a,b,t)=>[a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t,a[2]+(b[2]-a[2])*t];
+const rgb=(c,m=1)=>`rgb(${Math.min(255,c[0]*m)|0},${Math.min(255,c[1]*m)|0},${Math.min(255,c[2]*m)|0})`;
+
+/* ==================================================================
+   二、場景參數化（v1 只有金黃稻田；其餘預留）
+   ================================================================== */
+const SCENES = {
+  // ground.far/near＝金黃參考色，與背景照片取樣色照 blend 混合。
+  // 參考值是對著 bg_countryside 的稻田實測調的（照片稻田約 rgb(218,176,29)）：
+  // 混完 far≈(215,176,50)、near≈(180,147,40)，繪製地面才不會比照片偏綠。
+  rice: { name:'金黃稻田 · 台灣鄉間', enabled:true,
+          ground:{ far:[214,176,58], near:[190,156,48], blend:0.72 },   // 老闆拍板：地面整體金黃調
+          rowColor:[124,98,36],
+          props:['tree','pole','tree','hay','tree','tree','pole','hay','tree','hay'] },
+  coast:{ name:'海線公路（v2 規劃中）', enabled:false },
+  tea:  { name:'山線茶園（v2 規劃中）', enabled:false }
+};
+
+/* ==================================================================
+   三、確定性亂數與賽道生成（seed 決定固定路線，處方可重現）
+   ================================================================== */
+function mulberry32(a){ return function(){ a|=0; a=a+0x6D2B79F5|0;
+  let t=Math.imul(a^a>>>15,1|a); t=t+Math.imul(t^t>>>7,61|t)^t;
+  return ((t^t>>>14)>>>0)/4294967296; }; }
+
+const SEG = 3.2;                       // 曲率控制點間距（odo 單位）
+function buildRoute(seed,totalOdo){
+  const rnd=mulberry32(seed), n=Math.ceil(totalOdo/SEG)+6, k=[0,0];
+  for(let i=2;i<n;i++){
+    const prev=k[i-1];
+    let v = rnd()<0.32 ? 0 : (rnd()*1.7-0.85);
+    if(v!==0 && Math.sign(v)===Math.sign(prev) && Math.abs(prev)>0.42) v=-v;   // 避免同向連彎太久
+    k.push(clamp(v,-0.92,0.92));
+  }
+  // 彎道預告牌：曲率由平轉急的那一段，提前 2.4 個 odo 立牌
+  const signs=[];
+  for(let i=2;i<n;i++){
+    if(Math.abs(k[i])>=0.46 && Math.abs(k[i-1])<0.30)
+      signs.push({ pos:Math.max(2,i*SEG-2.4), dir:Math.sign(k[i]) });
+  }
+  // 小地圖折線：把曲率沿路徑積分成俯視蜿蜒線
+  const ds=0.5, pts=[]; let hx=0,hy=0,head=0;
+  for(let o=0;o<=totalOdo;o+=ds){
+    head += curveOf(k,o)*ds*0.30;
+    hx += Math.sin(head)*ds; hy += Math.cos(head)*ds;
+    if((o/ds)%3<1) pts.push([hx,hy]);
+  }
+  let x0=1e9,x1=-1e9,y0=1e9,y1=-1e9;
+  for(const p of pts){ if(p[0]<x0)x0=p[0]; if(p[0]>x1)x1=p[0]; if(p[1]<y0)y0=p[1]; if(p[1]>y1)y1=p[1]; }
+  return { k, signs, pts, bounds:[x0,y0,x1,y1], totalOdo };
+}
+function curveOf(k,o){                 // smoothstep 內插曲率
+  const f=o/SEG, i=Math.floor(f), u=f-i;
+  const a=k[clamp(i,0,k.length-1)], b=k[clamp(i+1,0,k.length-1)];
+  return a+(b-a)*(u*u*(3-2*u));
+}
+
+/* ---- 道具與障礙：由 seed 生成，車道分佈可加權（處方保留參數） ---- */
+function buildItems(seed,totalOdo,cfg){
+  const rnd=mulberry32(seed^0x9e3779b9);
+  const gapBase=[0,4.4,3.6,2.9,2.3,1.8][cfg.dens];        // 密度 1(疏)→5(密)
+  const W=cfg.laneWeight||[1,1,1];                        // 左／中／右 車道權重（處方加權用）
+  const pickLane=()=>{ const s=W[0]+W[1]+W[2]; let r=rnd()*s;
+    if((r-=W[0])<0) return -1; if((r-=W[1])<0) return 0; return 1; };
+  const items=[], npcs=[];
+  // 氮氣＝獎勵脈衝，必須稀有才有價值：約每 14～23 秒一次（90 秒局內 4～6 次）
+  let pos=7, nitroAt=38+rnd()*22;
+  while(pos<totalOdo){
+    const gap=gapBase*(0.82+rnd()*0.4);
+    if(pos>=nitroAt){
+      items.push({kind:'nitro',pos,lane:pickLane()});
+      nitroAt=pos+70+rnd()*45; pos+=gap; continue;
+    }
+    const roll=rnd();
+    if(roll<0.16){                                        // 三角錐
+      items.push({kind:'cone',pos,lane:pickLane()});
+      pos+=gap*0.95;
+    }else if(roll<0.27){                                  // 慢速前車（同向 NPC）
+      const lane=pickLane();
+      npcs.push({ lane, pos, startOdo:pos-12.5, col:Math.floor(rnd()*3), active:false, done:false, spent:false });
+      pos+=gap*1.5;
+    }else{                                                // 金幣串（ROM 引導）
+      let lane=pickLane();
+      const nCoin=3+Math.floor(rnd()*4), stp=0.62, migrate=rnd()<0.34;
+      for(let i=0;i<nCoin;i++){
+        let ln=lane;
+        if(migrate && i>=Math.ceil(nCoin/2)) ln=clamp(lane+(lane===0?(rnd()<0.5?-1:1):-lane),-1,1);
+        items.push({kind:'coin',pos:pos+i*stp,lane:ln,head:i===0});
+      }
+      pos+=nCoin*stp+gap*0.85;
+    }
+  }
+  items.sort((a,b)=>a.pos-b.pos);
+  npcs.sort((a,b)=>a.pos-b.pos);
+  return {items,npcs};
+}
+function buildScenery(seed,totalOdo){
+  const rnd=mulberry32(seed^0x5bf03635), list=[], kinds=SCENES.rice.props;
+  for(let pos=3;pos<totalOdo+16;pos+=0.75+rnd()*0.7){
+    list.push({ pos, kind:kinds[Math.floor(rnd()*kinds.length)],
+      side:rnd()<0.5?-1:1, off:1.25+rnd()*1.15, sc:0.82+rnd()*0.5 });
+  }
+  return list;
+}
+
+/* ==================================================================
+   四、One-Euro 濾波（平滑傾斜角，單位＝度）
+   ================================================================== */
+function oneEuro(min=1.4,beta=0.035,dcut=1.0){
+  let xP=null,dxP=0,tP=null; const a=(c,dt)=>{const t=1/(2*Math.PI*c);return 1/(1+t/dt);};
+  return { reset(){xP=null;dxP=0;tP=null;},
+    f(x,t){ if(xP===null){xP=x;tP=t;return x;} const dt=Math.max((t-tP)/1000,1e-3);tP=t;
+      const dx=(x-xP)/dt, ad=a(dcut,dt), dh=ad*dx+(1-ad)*dxP; dxP=dh;
+      const c=min+beta*Math.abs(dh), al=a(c,dt), xh=al*x+(1-al)*xP; xP=xh; return xh; } };
+}
+const tiltFilter = oneEuro();
+
+/* ==================================================================
+   五、音訊：WebAudio 合成賽車風 loop（同資料夾有 music.mp3 即改用）
+   ================================================================== */
+function makeAudio(){
+  const C=window.AudioContext||window.webkitAudioContext; if(!C) return null;
+  const ac=new C();
+  const music=ac.createGain(); music.gain.value=0.11; music.connect(ac.destination);   // 預設低音量：治療師要能講話
+  const sfx=ac.createGain();   sfx.gain.value=0.30;   sfx.connect(ac.destination);
+  // 白噪音緩衝（撞擊音效用）
+  const nb=ac.createBuffer(1,ac.sampleRate*0.5,ac.sampleRate), nd=nb.getChannelData(0);
+  for(let i=0;i<nd.length;i++) nd[i]=Math.random()*2-1;
+
+  function tone(dest,f,t,dur,vol,ty='triangle'){
+    const o=ac.createOscillator(); o.type=ty; o.frequency.value=f;
+    const g=ac.createGain();
+    g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(vol,t+0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+    o.connect(g); g.connect(dest); o.start(t); o.stop(t+dur+0.05);
+  }
+  // ---- 合成 BGM：走路型低音 ＋ 上行琶音（A 小調五聲），輕快賽車感 ----
+  const BASS=[110,110,164.81,110, 130.81,130.81,196,130.81, 146.83,146.83,220,146.83, 164.81,164.81,123.47,98];
+  const LEAD=[440,523.25,659.25,523.25, 587.33,659.25,783.99,659.25,
+              440,523.25,659.25,880,   587.33,523.25,440,392];
+  let step=0, sched=null, nextT=0;
+  const STEP=0.1875;                                   // 160 BPM 的八分音符
+  function pump(){
+    const now=ac.currentTime;
+    while(nextT<now+0.25){
+      const i=step%16;
+      tone(music,BASS[i],nextT,0.16,0.18,'sawtooth');
+      if(i%2===0||i%8===7) tone(music,LEAD[i],nextT+0.005,0.20,0.085,'square');
+      if(i%4===2){ const s=ac.createBufferSource(); s.buffer=nb;      // 沙鈴般的節奏襯底
+        const g=ac.createGain(); g.gain.setValueAtTime(0.035,nextT); g.gain.exponentialRampToValueAtTime(0.0005,nextT+0.07);
+        const bp=ac.createBiquadFilter(); bp.type='highpass'; bp.frequency.value=5200;
+        s.connect(bp); bp.connect(g); g.connect(music); s.start(nextT); s.stop(nextT+0.09); }
+      nextT+=STEP; step++;
+    }
+  }
+  let bgm=null; try{ bgm=new Audio(); bgm.loop=true; bgm.volume=0.42; }catch(e){}
+  function startProc(){ if(!sched){ nextT=ac.currentTime+0.06; sched=setInterval(pump,60); pump(); } }
+  function stopProc(){ if(sched){ clearInterval(sched); sched=null; } }
+  function playBgm(list){ if(!bgm||!list.length){ startProc(); return; }
+    bgm.src=list[0]; bgm.play().then(()=>{}).catch(()=>playBgm(list.slice(1))); }
+  return { ac,
+    start(){ if(ac.state==='suspended') ac.resume();
+             if(bgm) playBgm(['music.mp3','music.ogg']); else startProc(); },
+    stop(){ if(bgm){try{bgm.pause();}catch(e){}} stopProc(); },
+    coin(n){ const t=ac.currentTime, f=880*Math.pow(1.0595,Math.min(8,n||0));
+             tone(sfx,f,t,0.10,0.30,'sine'); tone(sfx,f*1.5,t+0.045,0.14,0.24,'sine'); },
+    crash(){ const t=ac.currentTime;
+      const s=ac.createBufferSource(); s.buffer=nb;
+      const g=ac.createGain(); g.gain.setValueAtTime(0.42,t); g.gain.exponentialRampToValueAtTime(0.0005,t+0.34);
+      const lp=ac.createBiquadFilter(); lp.type='lowpass'; lp.frequency.setValueAtTime(1400,t);
+      lp.frequency.exponentialRampToValueAtTime(180,t+0.3);
+      s.connect(lp); lp.connect(g); g.connect(sfx); s.start(t); s.stop(t+0.36);
+      const o=ac.createOscillator(); o.type='sawtooth';
+      o.frequency.setValueAtTime(210,t); o.frequency.exponentialRampToValueAtTime(60,t+0.3);
+      const g2=ac.createGain(); g2.gain.setValueAtTime(0.26,t); g2.gain.exponentialRampToValueAtTime(0.0005,t+0.3);
+      o.connect(g2); g2.connect(sfx); o.start(t); o.stop(t+0.32); },
+    nitro(){ const t=ac.currentTime;
+      const o=ac.createOscillator(); o.type='sawtooth';
+      o.frequency.setValueAtTime(260,t); o.frequency.exponentialRampToValueAtTime(1900,t+0.45);
+      const g=ac.createGain(); g.gain.setValueAtTime(0.0001,t);
+      g.gain.exponentialRampToValueAtTime(0.30,t+0.08); g.gain.exponentialRampToValueAtTime(0.0005,t+0.55);
+      const bp=ac.createBiquadFilter(); bp.type='bandpass'; bp.Q.value=3; bp.frequency.value=900;
+      o.connect(bp); bp.connect(g); g.connect(sfx); o.start(t); o.stop(t+0.58); },
+    beep(f=680,d=0.13){ tone(sfx,f,ac.currentTime,d,0.30,'sine'); },
+    fanfare(){ const t=ac.currentTime; [523.25,659.25,783.99,1046.5].forEach((f,i)=>
+      tone(sfx,f,t+i*0.13,0.34,0.28,'triangle')); },
+    setMuted(m){ if(bgm)bgm.muted=m; music.gain.value=m?0:0.11; sfx.gain.value=m?0:0.30; }
+  };
+}
+let AE=null, muted=false;
+
+/* ==================================================================
+   六、設定
+   ================================================================== */
+const LS_CFG='tiltracer_cfg', LS_SESS='tiltracer_sessions', LS_BEST='tiltracer_best';
+const cfg = { route:1, dur:90, sens:3, speed:3, dens:3, assist:1, scene:'rice', sound:1, laneWeight:[1,1,1] };
+try{ const s=JSON.parse(localStorage.getItem(LS_CFG)||'{}'); Object.assign(cfg,s); cfg.laneWeight=[1,1,1]; }catch(e){}
+const saveCfg=()=>{ try{ localStorage.setItem(LS_CFG,JSON.stringify(cfg)); }catch(e){} };
+
+const SENS_REQ=[0,0.35,0.50,0.66,0.83,1.00];    // 靈敏度→需要用掉多少比例的 ROM 才打滿
+const SENS_TXT=['','很靈敏 35%','靈敏 50%','中等 66%','鈍 83%','很鈍 100%'];
+const SPEED_V =[0,3.4,4.2,5.0,5.9,6.9];         // odo/s
+const SPEED_TXT=['','很慢','慢','中','快','很快'];
+const DENS_TXT=['','很疏','疏','中','密','很密'];
+
+/* ==================================================================
+   七、傾斜輸入
+   ================================================================== */
+let rawAngle=0, haveSensor=false, lastSensorT=0;
+let axisMode='land';                                     // 'land'=A 橫式(beta) / 'port'=B 直式(gamma)
+function detectAxis(){
+  const a=(screen.orientation&&screen.orientation.angle)!=null?screen.orientation.angle:(window.orientation||0);
+  const land = Math.abs(a)===90 || window.innerWidth>window.innerHeight;
+  return land?'land':'port';
+}
+function onOrient(ev){
+  if(demoMode) return;
+  const b=ev.beta, g=ev.gamma;
+  if(b==null&&g==null) return;
+  haveSensor=true; lastSensorT=performance.now();
+  rawAngle = axisMode==='land' ? (b||0) : (g||0);        // 正負由校正自動判定，不猜裝置慣例
+}
+// 展示模式：鍵盤 ← → 直接模擬傾斜角（下游流程與真感測器完全一致）
+let keyL=false, keyR=false, demoRaw=0;
+addEventListener('keydown',e=>{
+  if(e.key==='ArrowLeft'){keyL=true;e.preventDefault();}
+  if(e.key==='ArrowRight'){keyR=true;e.preventDefault();}
+});
+addEventListener('keyup',e=>{
+  if(e.key==='ArrowLeft')keyL=false;
+  if(e.key==='ArrowRight')keyR=false;
+});
+function stepDemoTilt(dt){
+  if(!demoMode) return;
+  const rate=95;
+  if(keyL&&!keyR) demoRaw-=rate*dt; else if(keyR&&!keyL) demoRaw+=rate*dt;
+  else demoRaw += (0-demoRaw)*Math.min(1,dt*5);
+  demoRaw=clamp(demoRaw,-30,30); rawAngle=demoRaw;
+}
+
+// 校正結果
+const calib = { zero:0, romL:20, romR:20, axisSign:1, done:false };
+// ⚠️One-Euro 每幀只能餵一次：多次呼叫會讓 dt→0，濾波器行為失真。
+// 每幀在主迴圈更新 tiltF，其餘全部讀這個值。
+let tiltF=0;
+function pumpTilt(){ tiltF=tiltFilter.f(rawAngle,performance.now()); }
+function tiltSigned(){ return (tiltF-calib.zero)*calib.axisSign; }        // 左負右正
+function tiltNorm(){
+  const s=tiltSigned(), req=SENS_REQ[cfg.sens];
+  const rom = s<0 ? calib.romL : calib.romR;
+  return clamp(s/Math.max(3,rom*req),-1,1);
+}
+
+/* ==================================================================
+   八、畫布
+   ================================================================== */
+const cv=$('cv'); const ctx=cv.getContext('2d');
+let CW=0,CH=0,DPR=1,_sizeDirty=true;
+function resize(){
+  if(!_sizeDirty) return; _sizeDirty=false;
+  DPR=Math.min(window.devicePixelRatio||1,2);
+  CW=cv.clientWidth; CH=cv.clientHeight;
+  cv.width=Math.round(CW*DPR); cv.height=Math.round(CH*DPR);
+  ctx.setTransform(DPR,0,0,DPR,0,0);
+}
+addEventListener('resize',()=>{_sizeDirty=true;});
+const so=screen.orientation;
+if(so&&so.addEventListener) so.addEventListener('change',onOrientationChange);
+else addEventListener('orientationchange',onOrientationChange);
+function onOrientationChange(){
+  _sizeDirty=true;
+  const m=detectAxis();
+  if(m!==axisMode){
+    axisMode=m; updateModeBox();
+    if(phase==='play'||phase==='count'){ pauseForReorient(); }
+    else if(phase==='calib'){ resetCalib(); }
+  }
+}
+
+/* ==================================================================
+   九、遊戲狀態
+   ================================================================== */
+let phase='setup';                       // setup / calib / count / play / end / report / reorient
+let ASSET=null, PAL=null, rowPat=null, roadMips=null, ROAD_AVG='#55585e';
+let route=null, items=[], npcs=[], scen=[], bonus=[];
+let iHead=0, nHead=0, sHead=0;
+let odo=0, elapsed=0, score=0, crashes=0, coneHits=0, npcHits=0, feverCount=0;
+let px=0, pxPrev=0, normPrev=0;
+let feverUntil=0, crashUntil=0, invulnUntil=0, shake=0, flash=0;
+let floats=[], sparks=[];
+let countT=0, lastBeep=-1;
+let nowT=0;                              // 遊戲內累積時間（秒）
+let coinStreak=0;
+
+// 臨床量測
+const M = {
+  presented:[0,0,0], collected:[0,0,0],       // 依車道（左/中/右）
+  leftPeaks:[], rightPeaks:[],                // 每次左／右轉的峰值傾斜角（度）
+  rts:[], series:[],                          // 反應時間（ms）
+  turnState:0, turnPeak:0,                    // 轉向事件偵測
+  cue:null                                    // 待回應提示
+};
+function resetMetrics(){
+  M.presented=[0,0,0]; M.collected=[0,0,0]; M.leftPeaks=[]; M.rightPeaks=[];
+  M.rts=[]; M.series=[]; M.turnState=0; M.turnPeak=0; M.cue=null;
+}
+
+const SCENE_ACTIVE = () => SCENES[cfg.scene] || SCENES.rice;
+const Z0=0.70, DRAW_DZ=14, CUE_DZ=7.0;                  // t = Z0/(Z0+dz)；CUE_DZ＝反應時間計時起點
+const tOf = dz => Z0/(Z0+Math.max(dz,-0.35));
+const LANE_OFF=0.62;                                    // 車道中心（halfW 單位）
+
+function newGame(){
+  const seedBase=[0,20260729,880517,110711][cfg.route];
+  const seed=seedBase ^ (cfg.dur*7919) ^ (cfg.dens*104729);
+  const totalOdo=SPEED_V[cfg.speed]*cfg.dur*1.05;       // 略長於基準里程：預留氮氣多跑的部分，小地圖的點才會剛好跑到終點
+  route=buildRoute(seed,totalOdo);
+  const built=buildItems(seed,totalOdo,cfg);
+  items=built.items; npcs=built.npcs; scen=buildScenery(seed,totalOdo);
+  bonus=[]; iHead=0; nHead=0; sHead=0;
+  odo=0; elapsed=0; nowT=0; score=0; crashes=0; coneHits=0; npcHits=0; feverCount=0;
+  px=0; pxPrev=0; normPrev=0; coinStreak=0;
+  feverUntil=0; crashUntil=0; invulnUntil=0; shake=0; flash=0; floats=[]; sparks=[];
+  resetMetrics(); tiltFilter.reset();
+}
+
+/* ---- 螢幕喚醒 ---- */
+let _wakeLock=null;
+async function keepAwake(on){
+  try{
+    if(on){ if(!_wakeLock&&'wakeLock'in navigator) _wakeLock=await navigator.wakeLock.request('screen'); }
+    else if(_wakeLock){ const w=_wakeLock; _wakeLock=null; await w.release(); }
+  }catch(e){}
+}
+document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible'&&phase==='play')keepAwake(true); });
+
+/* ==================================================================
+   十、遊戲邏輯
+   ================================================================== */
+function updatePlay(dt){
+  nowT += dt;                 // 遊戲時鐘由這裡推進：fever／無敵／減速全靠它，別放到外層迴圈（換呼叫端就會停擺）
+  const fever = nowT<feverUntil;
+  // --- 速度 ---
+  let v=SPEED_V[cfg.speed];
+  if(fever) v*=1.6;
+  if(nowT<crashUntil) v*=0.42+0.58*(1-(crashUntil-nowT)/1.2);
+  odo += v*dt;
+  elapsed += dt;
+
+  // --- 轉向 ---
+  const norm=tiltNorm();
+  let target=norm;
+  if(cfg.assist){                                  // 輔助駕駛：車道吸附＋無輸入自動回正
+    const lanes=[-LANE_OFF,0,LANE_OFF];
+    let best=lanes[0];
+    for(const l of lanes) if(Math.abs(norm-l)<Math.abs(norm-best)) best=l;
+    if(Math.abs(norm-best)<0.24) target=best+(norm-best)*0.32;
+    if(Math.abs(norm)<0.09) target=0;
+  }
+  pxPrev=px;
+  px += (target-px)*Math.min(1,dt*9);
+  px = clamp(px,-0.98,0.98);
+
+  // --- 轉向事件（峰值角，臨床用） ---
+  const sg=tiltSigned(), an=Math.abs(sg);
+  if(M.turnState===0){
+    if(norm<-0.18){M.turnState=-1;M.turnPeak=an;}
+    else if(norm>0.18){M.turnState=1;M.turnPeak=an;}
+  }else{
+    M.turnPeak=Math.max(M.turnPeak,an);
+    if(Math.abs(norm)<0.10||Math.sign(norm)===-M.turnState){
+      (M.turnState<0?M.leftPeaks:M.rightPeaks).push(M.turnPeak);
+      M.turnState=0; M.turnPeak=0;
+    }
+  }
+  // --- 反應時間：提示出現 → 開始朝該方向轉 ---
+  if(M.cue){
+    if(nowT-M.cue.t>2.5) M.cue=null;
+    else if((norm-M.cue.n0)*M.cue.dir>0.09 && nowT-M.cue.t>0.06){
+      const rt=(nowT-M.cue.t)*1000;
+      M.rts.push(rt); M.series.push([M.cue.t*1000,rt]); M.cue=null;
+    }
+  }
+  normPrev=norm;
+
+  // --- 道具視窗 ---
+  while(iHead<items.length && items[iHead].pos-odo < -1.2) iHead++;
+  const myLane=clamp(Math.round(px/LANE_OFF),-1,1);
+  for(let i=iHead;i<items.length;i++){
+    const it=items[i], dz=it.pos-odo;
+    if(dz>DRAW_DZ) break;
+    if(!it.seen && dz<12){ it.seen=true; if(it.kind==='coin') M.presented[it.lane+1]++; }
+    // 反應時間的「出現」＝脫離地平線霧化、看得清楚的那一刻（dz≈7），不是剛冒出天際線
+    if(!it.cued && dz<CUE_DZ){
+      it.cued=true;
+      if(!M.cue){
+        if(it.kind==='coin' && it.head && it.lane!==myLane)
+          M.cue={t:nowT,dir:Math.sign(it.lane-myLane),n0:tiltNorm()};
+        else if(it.kind==='cone' && it.lane===myLane)
+          M.cue={t:nowT,dir:(it.lane===0?(px<=0?1:-1):-Math.sign(it.lane)),n0:tiltNorm()};
+      }
+    }
+    if(!it.done && dz<=0.10){ it.done=true; resolveItem(it); }
+  }
+  // 氮氣期間額外撒的金幣
+  for(let i=bonus.length-1;i>=0;i--){
+    const b=bonus[i], dz=b.pos-odo;
+    if(!b.seen&&dz<12){ b.seen=true; M.presented[b.lane+1]++; }
+    if(!b.done&&dz<=0.10){ b.done=true; resolveItem(b); }
+    if(dz<-1.2) bonus.splice(i,1);
+  }
+  // --- 慢速前車 ---
+  while(nHead<npcs.length && npcs[nHead].pos-odo < -2.5) nHead++;
+  for(let i=nHead;i<npcs.length;i++){
+    const n=npcs[i];
+    if(!n.active){
+      if(odo>=n.startOdo) n.active=true; else if(n.startOdo-odo>2) break;
+    }
+    if(n.active) n.pos += v*0.55*dt;                       // 直線行駛不變道、速度＝玩家 0.55 倍
+    const dz=n.pos-odo;
+    if(!n.done && dz<=0.26 && dz>-1.6){
+      n.done=true;
+      if(Math.abs(px-n.lane*LANE_OFF)<0.46) doCrash('npc');
+    }
+  }
+  while(sHead<scen.length && scen[sHead].pos-odo < -1.2) sHead++;
+
+  // --- 特效衰減 ---
+  shake=Math.max(0,shake-dt*2.2); flash=Math.max(0,flash-dt*3.2);
+  for(let i=floats.length-1;i>=0;i--){ floats[i].t+=dt; if(floats[i].t>0.95) floats.splice(i,1); }
+  for(let i=sparks.length-1;i>=0;i--){ const s=sparks[i]; s.t+=dt; s.x+=s.vx*dt; s.y+=s.vy*dt; s.vy+=520*dt;
+    if(s.t>0.7) sparks.splice(i,1); }
+
+  if(elapsed>=cfg.dur) endGame();
+}
+
+/** 倒數期間：同樣推進道具／前車指標，但不計分、不判撞、不記臨床資料 */
+function sweepSilently(dt){
+  const v=SPEED_V[cfg.speed];
+  while(iHead<items.length && items[iHead].pos-odo < -1.2) iHead++;
+  for(let i=iHead;i<items.length;i++){
+    const it=items[i], dz=it.pos-odo;
+    if(dz>DRAW_DZ) break;
+    if(!it.done && dz<=0.10){ it.done=true; it.taken=true; }
+  }
+  while(nHead<npcs.length && npcs[nHead].pos-odo < -2.5) nHead++;
+  for(let i=nHead;i<npcs.length;i++){
+    const n=npcs[i];
+    if(!n.active){ if(odo>=n.startOdo) n.active=true; else if(n.startOdo-odo>2) break; }
+    if(n.active) n.pos += v*0.55*dt;
+    if(!n.done && n.pos-odo<=0.26) n.done=true;
+  }
+  while(sHead<scen.length && scen[sHead].pos-odo < -1.2) sHead++;
+}
+
+function resolveItem(it){
+  const carY=CH*0.60;          // 飄字要浮在車子上方，壓在車身上長者讀不到
+  if(it.kind==='coin'){
+    const mul = nowT<feverUntil ? 2 : 1;
+    if(Math.abs(px-it.lane*LANE_OFF)<0.38){
+      score += 10*mul; coinStreak++; it.taken=true;   // 吃到才消失；沒吃到讓它掃過去（視覺才連貫）
+      M.collected[it.lane+1]++;
+      if(AE&&cfg.sound) AE.coin(coinStreak);
+      floats.push({txt:'+'+(10*mul),col:'#ffd23e',t:0,x:CW/2+it.lane*CW*0.13,y:carY});
+    }else coinStreak=0;
+  }else if(it.kind==='nitro'){
+    if(Math.abs(px-it.lane*LANE_OFF)<0.44){ it.taken=true; startFever(); }
+  }else if(it.kind==='cone'){
+    if(Math.abs(px-it.lane*LANE_OFF)<0.30) doCrash('cone');
+  }
+}
+function startFever(){
+  feverUntil=nowT+3.0; feverCount++;
+  if(AE&&cfg.sound) AE.nitro();
+  $('feverTag').classList.remove('hidden');
+  // 氮氣期間沿路金幣變密：蛇行掃過三個車道，順便把 ROM 引導拉滿
+  const snake=[0,-1,-1,0,1,1,0,-1,-1,0,1,1,0,0,-1,1];
+  for(let i=0;i<snake.length;i++)
+    bonus.push({kind:'coin',pos:odo+4.5+i*0.62,lane:snake[i],bonus:true});
+  for(let i=0;i<12;i++) sparks.push({x:CW/2,y:CH*0.62,vx:(Math.random()-0.5)*640,vy:-180-Math.random()*280,t:0,col:'#7fe3ff'});
+}
+function doCrash(src){
+  if(nowT<invulnUntil) return;                       // 撞後 1.5 秒無敵，防連撞
+  invulnUntil=nowT+1.5; crashUntil=nowT+1.2;
+  crashes++; if(src==='cone')coneHits++; else npcHits++;
+  shake=1; flash=1; coinStreak=0;
+  const wasFever = nowT<feverUntil;
+  if(wasFever){                                       // Fever 中撞到＝提前結束 Fever，不額外扣分
+    feverUntil=0; $('feverTag').classList.add('hidden');
+    floats.push({txt:'加速中斷',col:'#ff7a59',t:0,x:CW/2,y:CH*0.56});
+  }else{
+    score=Math.max(0,score-10);                       // 扣 10 金幣，下限 0 不歸負
+    floats.push({txt:'−10',col:'#ff7a59',t:0,x:CW/2,y:CH*0.56});
+  }
+  if(AE&&cfg.sound) AE.crash();
+  for(let i=0;i<14;i++) sparks.push({x:CW/2,y:CH*0.78,vx:(Math.random()-0.5)*700,vy:-260-Math.random()*300,t:0,col:'#ffb066'});
+}
+
+/* ==================================================================
+   十一、繪圖
+   ================================================================== */
+const roadCenterPx=(t,W,cpx)=>W/2+cpx*(1-t)*(1-t);
+const halfWAt=(t,W)=>t*W*0.46;
+
+function render(){
+  resize();
+  const W=CW,H=CH,HOR=H*0.52,DEPTH=H-HOR;
+  const S=SCENE_ACTIVE();
+  const fever=nowT<feverUntil;
+  const curv=route?curveOf(route.k,odo):0;
+  const cpx=curv*W*0.42;
+
+  ctx.save();
+  if(shake>0){ const m=shake*shake*11;
+    ctx.translate((Math.random()-0.5)*m,(Math.random()-0.5)*m); }
+
+  // ---- 背景照片 ----
+  ctx.clearRect(-20,-20,W+40,H+40);
+  const par=-cpx*0.25;
+  if(ASSET.bg) ctx.drawImage(ASSET.bg,0,0,ASSET.bg.width,ASSET.bg.height*0.80,-W*0.15+par,-14,W*1.3,HOR+22);
+  else { ctx.fillStyle='#8ec6f0'; ctx.fillRect(-20,-20,W+40,HOR+22); }
+
+  // ---- 地面：金黃稻田（低頻雙色帶＋透視稻列）＋柏油 mipmap ----
+  for(let y=Math.ceil(HOR);y<H+20;y++){
+    const t=(y-HOR)/DEPTH; if(t<=0.002) continue;
+    const z=1/Math.max(t,0.02);
+    const cx=roadCenterPx(t,W,cpx), halfW=halfWAt(t,W);
+    const zphase=z*3+odo*2;
+    const band=Math.floor(zphase)%2;                  // 路緣（高頻）
+    const fband=Math.floor(zphase*0.36)%2;            // 地面（低頻，遠處不沸騰）
+    const gcol=mix(PAL.far,PAL.near,Math.pow(t,1.2));
+    ctx.fillStyle=rgb(gcol,fband?1.045:0.965);
+    ctx.fillRect(-20,y,W+40,1);
+
+    const period=halfW*0.42;
+    const rowA=clamp01((t-0.10)/0.18)*0.38;
+    if(rowPat&&rowA>0.01&&period>6){
+      const k=period/ROW_TEX_W;
+      ctx.save(); ctx.globalAlpha=rowA; ctx.translate(cx,y); ctx.scale(k,1);
+      ctx.fillStyle=rowPat; ctx.fillRect(-(cx+20)/k,0,(W+40)/k,1); ctx.restore();
+    }
+    const sh=halfW*0.13+2;
+    ctx.fillStyle=rgb(mix(gcol,[126,110,84],0.62));
+    ctx.fillRect(cx-halfW-sh,y,(halfW+sh)*2,1);
+
+    if(roadMips){
+      const vv=z*9+odo*26;
+      const minif=Math.max(9/(t*t*DEPTH),512/Math.max(4,halfW*2));
+      const L=clamp(Math.floor(Math.log2(Math.max(1,minif))),0,roadMips.length-1);
+      const m=roadMips[L], sc=1<<L;
+      const sy=(((vv/sc)%m.height)+m.height)%m.height;
+      ctx.drawImage(m,0,sy|0,m.width,1,cx-halfW,y,halfW*2,1);
+      const flat=clamp01((0.32-t)/0.32);
+      if(flat>0.01){ ctx.globalAlpha=flat*0.9; ctx.fillStyle=ROAD_AVG;
+        ctx.fillRect(cx-halfW,y,halfW*2,1); ctx.globalAlpha=1; }
+    }else{ ctx.fillStyle=band?'#5a5d63':'#54575d'; ctx.fillRect(cx-halfW,y,halfW*2,1); }
+
+    const edge=Math.max(2,halfW*0.05);
+    ctx.fillStyle=band?'#d33':'#eee';
+    ctx.fillRect(cx-halfW,y,edge,1); ctx.fillRect(cx+halfW-edge,y,edge,1);
+    if(band===0){
+      const lw=Math.max(1,halfW*0.02);
+      ctx.fillStyle='rgba(238,238,238,0.92)';
+      ctx.fillRect(cx-halfW/3-lw/2,y,lw,1); ctx.fillRect(cx+halfW/3-lw/2,y,lw,1);
+    }
+  }
+
+  // ---- 路旁景物（遠→近）----
+  const SCEN_CFG={ tree:{hf:2.60,sl:0.55,sw:0.10}, pole:{hf:2.15,sl:0.60,sw:0.05}, hay:{hf:0.44,sl:0.85,sw:0.55} };
+  const drawList=[];
+  for(let i=sHead;i<scen.length;i++){
+    const sc=scen[i], dz=sc.pos-odo; if(dz>DRAW_DZ) break; if(dz<-0.9) continue;
+    drawList.push({type:'scen',dz,o:sc});
+  }
+  if(route) for(const sg of route.signs){
+    const dz=sg.pos-odo; if(dz>0&&dz<DRAW_DZ) drawList.push({type:'sign',dz,o:sg});
+  }
+  for(let i=iHead;i<items.length;i++){
+    const it=items[i], dz=it.pos-odo; if(dz>DRAW_DZ) break; if(dz<-0.30||it.taken) continue;
+    drawList.push({type:'item',dz,o:it});
+  }
+  for(const b of bonus){ const dz=b.pos-odo; if(dz>-0.30&&dz<DRAW_DZ&&!b.taken) drawList.push({type:'item',dz,o:b}); }
+  for(let i=nHead;i<npcs.length;i++){
+    const n=npcs[i]; if(!n.active) continue; const dz=n.pos-odo;
+    if(dz>DRAW_DZ) break; if(dz<-0.30) continue;
+    drawList.push({type:'npc',dz,o:n});
+  }
+  drawList.sort((a,b)=>b.dz-a.dz);
+
+  for(const d of drawList){
+    const t=tOf(d.dz), baseY=HOR+t*DEPTH, halfW=halfWAt(t,W), cx=roadCenterPx(t,W,cpx);
+    if(d.type==='scen'){
+      const sc=d.o, cf=SCEN_CFG[sc.kind], h=cf.hf*t*DEPTH*sc.sc;
+      if(h<3) continue;
+      const x=cx+sc.side*sc.off*halfW;
+      if(x<-W*0.6||x>W*1.6) continue;
+      castShadow(x,baseY,h*cf.sl,h*cf.sw,0.25);
+      const sp=ASSET.sp[sc.kind];
+      if(sp){ const w=h*sp.width/sp.height; ctx.drawImage(sp,x-w/2,baseY-h,w,h); }
+    }else if(d.type==='sign'){
+      drawCurveSign(cx+1.20*halfW,baseY,0.95*t*DEPTH,d.o.dir);
+    }else if(d.type==='item'){
+      const it=d.o, x=cx+it.lane*LANE_OFF*halfW, s=3+t*H*0.078;
+      if(it.kind==='coin') drawCoin(x,baseY,s*0.68,it.pos);
+      else if(it.kind==='nitro'){ contactShadow(x,baseY,s*0.9,0.32); drawNitro(x,baseY-s*0.62,s*0.66); }
+      else if(it.kind==='cone'){
+        const hgt=s*1.35; castShadow(x,baseY,hgt*0.55,hgt*0.30,0.30);
+        const sp=ASSET.sp.cone;
+        if(sp){ const w=hgt*sp.width/sp.height; ctx.drawImage(sp,x-w/2,baseY-hgt,w,hgt); }
+      }
+    }else if(d.type==='npc'){
+      const n=d.o, x=cx+n.lane*LANE_OFF*halfW;
+      const cw=CAR_K*t, sp=ASSET.npc[n.col];
+      if(sp){ const ch=cw*sp.height/sp.width;
+        ctx.save(); ctx.fillStyle='rgba(18,24,12,0.36)';
+        ctx.beginPath(); ctx.ellipse(x+cw*0.06,baseY-ch*0.03,cw*0.46,ch*0.09,0,0,7); ctx.fill(); ctx.restore();
+        ctx.drawImage(sp,x-cw/2,baseY-ch,cw,ch); }
+    }
+  }
+
+  // ---- 地平線霧化：藏掉繪製路面與照片背景的接縫 ----
+  const fogH=DEPTH*0.20, hz=PAL.haze.map(v=>v|0).join(',');
+  const fg=ctx.createLinearGradient(0,HOR-8,0,HOR+fogH);
+  fg.addColorStop(0,`rgba(${hz},0.97)`); fg.addColorStop(0.22,`rgba(${hz},0.62)`);
+  fg.addColorStop(0.55,`rgba(${hz},0.22)`); fg.addColorStop(1,`rgba(${hz},0)`);
+  ctx.fillStyle=fg; ctx.fillRect(-20,HOR-8,W+40,fogH+8);
+
+  // ---- 氮氣速度線 ----
+  if(fever){
+    ctx.save(); ctx.strokeStyle='rgba(255,255,255,0.42)'; ctx.lineWidth=2;
+    for(let i=0;i<16;i++){
+      const a=(i/16)*Math.PI*2+nowT*3, r1=W*0.16+W*0.05*Math.sin(nowT*20+i);
+      ctx.beginPath();
+      ctx.moveTo(W/2+Math.cos(a)*r1,HOR+Math.sin(a)*r1*0.5);
+      ctx.lineTo(W/2+Math.cos(a)*(r1+W*0.13),HOR+Math.sin(a)*(r1+W*0.13)*0.5);
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  // ---- 玩家車 ----
+  const tCar=0.97, carX=roadCenterPx(tCar,W,cpx)+px*halfWAt(tCar,W);
+  const carW=Math.min(W*0.22,H*0.34);
+  const carImg=ASSET.car, carH=carImg?carW*(carImg.height/carImg.width):carW*0.52;
+  const blink = nowT<invulnUntil && Math.floor(nowT*12)%2===0;
+  ctx.save();
+  ctx.translate(carX,H*0.978);
+  ctx.rotate(clamp((px-pxPrev)*2.2+tiltNorm()*0.06,-0.16,0.16));
+  ctx.fillStyle='rgba(18,24,12,0.42)';
+  ctx.beginPath(); ctx.ellipse(carW*0.06,-6,carW*0.47,carW*0.062,0,0,7); ctx.fill();
+  if(blink) ctx.globalAlpha=0.45;
+  if(carImg) ctx.drawImage(carImg,-carW/2,-carH,carW,carH);
+  else { ctx.fillStyle='#c62828'; ctx.fillRect(-carW/2,-carW*0.5,carW,carW*0.5); }
+  ctx.restore();
+
+  // ---- 火花與飄字 ----
+  for(const s of sparks){ ctx.globalAlpha=Math.max(0,1-s.t/0.7); ctx.fillStyle=s.col;
+    ctx.fillRect(s.x-2,s.y-2,4,4); }
+  ctx.globalAlpha=1;
+  ctx.textAlign='center';
+  for(const f of floats){
+    const a=Math.max(0,1-f.t/0.95), fy=f.y-f.t*70;
+    ctx.globalAlpha=a;
+    ctx.font=`900 ${Math.round(H*0.056)}px -apple-system,"PingFang TC",sans-serif`;
+    ctx.lineWidth=Math.max(3,H*0.007); ctx.strokeStyle='rgba(18,14,4,0.9)';   // 描邊：壓在車身或路面上都讀得到
+    ctx.strokeText(f.txt,f.x,fy);
+    ctx.fillStyle=f.col; ctx.fillText(f.txt,f.x,fy);
+  }
+  ctx.globalAlpha=1;
+
+  if(flash>0){ ctx.fillStyle=`rgba(255,90,60,${flash*0.22})`; ctx.fillRect(-20,-20,W+40,H+40); }
+  ctx.restore();
+
+  drawMinimap(W,H);
+  if(phase==='count') drawCountdown(W,H);
+}
+
+let CAR_K = 1;      // NPC 車寬係數＝玩家車寬 / t_car，隨 t 線性縮放（載入時算，resize 時更新）
+
+function castShadow(x,y,len,wid,alpha){        // 光源左上 → 影子往右下的窄長橢圓
+  len=Math.max(3,len); wid=Math.max(2,wid);
+  ctx.save(); ctx.translate(x,y); ctx.rotate(0.20);
+  ctx.fillStyle=`rgba(22,30,16,${alpha})`;
+  ctx.beginPath(); ctx.ellipse(len*0.42,0,len*0.52,wid*0.5,0,0,7); ctx.fill(); ctx.restore();
+}
+function contactShadow(x,y,w,alpha){
+  w=Math.max(4,w);
+  ctx.save(); ctx.fillStyle=`rgba(20,26,14,${alpha})`;
+  ctx.beginPath(); ctx.ellipse(x+w*0.16,y+w*0.04,w*0.52,w*0.18,0,0,7); ctx.fill(); ctx.restore();
+}
+function drawCoin(x,groundY,r,phaseSeed){
+  const raw0=Math.sin(nowT*3.6+phaseSeed*1.7);
+  const shaped=Math.pow(Math.abs(raw0),0.55);
+  const ax=0.35+0.65*shaped;                   // ⚠️最扁鉗 35%：永遠看得出是金幣
+  const sx=(raw0<0?-1:1)*ax, cyc=groundY-r*0.95;
+  contactShadow(x,groundY,r*2.0*(0.55+0.45*ax),0.38);
+  const sp=ASSET.sp.coin;
+  if(sp){
+    const w=r*2*sp.width/sp.height, h=r*2;
+    ctx.save(); ctx.translate(x,cyc); ctx.scale(sx,1); ctx.drawImage(sp,-w/2,-h/2,w,h); ctx.restore();
+    const gl=0.22+0.55*clamp01((0.55-shaped)/0.55);
+    ctx.save(); ctx.globalCompositeOperation='lighter';
+    const hx=x-r*0.3*sx, hy=cyc-r*0.35;
+    const rg=ctx.createRadialGradient(hx,hy,0,hx,hy,r*1.1);
+    rg.addColorStop(0,`rgba(255,250,215,${gl})`); rg.addColorStop(1,'rgba(255,240,180,0)');
+    ctx.fillStyle=rg; ctx.beginPath(); ctx.ellipse(x,cyc,r*ax*1.25,r*1.25,0,0,7); ctx.fill(); ctx.restore();
+  }else{
+    ctx.save(); ctx.translate(x,cyc); ctx.scale(Math.max(0.06,Math.abs(sx)),1);
+    const g=ctx.createRadialGradient(-r*0.3,-r*0.3,r*0.1,0,0,r);
+    g.addColorStop(0,'#fff2b0'); g.addColorStop(0.5,'#ffd23e'); g.addColorStop(1,'#c8860a');
+    ctx.fillStyle=g; ctx.beginPath(); ctx.arc(0,0,r,0,7); ctx.fill(); ctx.restore();
+  }
+}
+function drawNitro(x,y,s){
+  ctx.save(); ctx.translate(x,y);
+  const w=s,h=s*1.6;
+  const g=ctx.createLinearGradient(-w/2,0,w/2,0);
+  g.addColorStop(0,'#0aa2d8'); g.addColorStop(0.5,'#7fe3ff'); g.addColorStop(1,'#0aa2d8');
+  ctx.fillStyle=g; ctx.beginPath();
+  if(ctx.roundRect) ctx.roundRect(-w/2,-h/2,w,h,w*0.35); else ctx.rect(-w/2,-h/2,w,h);
+  ctx.fill();
+  ctx.fillStyle='#08608a'; ctx.fillRect(-w*0.18,-h/2-s*0.25,w*0.36,s*0.25);
+  if(s>13){ ctx.fillStyle='#fff'; ctx.font=`bold ${s*0.4}px sans-serif`;
+    ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText('N₂O',0,h*0.05); ctx.textBaseline='alphabetic'; }
+  ctx.restore();
+}
+/** 台灣公路彎道警示牌：黃底黑箭頭（程式繪製，避開 AI 圖生文字的老問題） */
+function drawCurveSign(x,baseY,h,dir){
+  if(h<12) return;
+  const sw=h*0.52;
+  ctx.save();
+  castShadow(x,baseY,h*0.5,h*0.06,0.24);
+  ctx.fillStyle='#9a9a94'; ctx.fillRect(x-h*0.022,baseY-h,h*0.044,h);      // 柱
+  ctx.translate(x,baseY-h);
+  ctx.rotate(Math.PI/4);
+  ctx.fillStyle='#f2c31b'; ctx.strokeStyle='#20200f'; ctx.lineWidth=Math.max(1,sw*0.06);
+  ctx.fillRect(-sw/2,-sw/2,sw,sw); ctx.strokeRect(-sw/2,-sw/2,sw,sw);
+  ctx.rotate(-Math.PI/4);
+  ctx.fillStyle='#181808';                                                  // 箭頭
+  const a=sw*0.30;
+  ctx.beginPath();
+  ctx.moveTo(-a*dir,a*0.42); ctx.lineTo(-a*dir,-a*0.05);
+  ctx.lineTo(a*0.25*dir,-a*0.05); ctx.lineTo(a*0.25*dir,-a*0.42);
+  ctx.lineTo(a*1.05*dir,0.12*a); ctx.lineTo(a*0.25*dir,a*0.62);
+  ctx.lineTo(a*0.25*dir,a*0.42); ctx.closePath(); ctx.fill();
+  ctx.restore();
+}
+/** 小地圖：整條 seed 路線＋玩家位置點（瑪利歐賽車式） */
+function drawMinimap(W,H){
+  if(!route||(phase!=='play'&&phase!=='count')) return;
+  const mmW=Math.min(120,W*0.17), mmH=Math.min(H*0.40,mmW*1.45);
+  const x0=W-mmW-16, y0=Math.max(16,H*0.03)+ (W<560?46:56);
+  ctx.save();
+  ctx.fillStyle='rgba(14,18,24,0.62)'; ctx.strokeStyle='rgba(120,132,148,0.5)'; ctx.lineWidth=1;
+  ctx.beginPath();
+  if(ctx.roundRect) ctx.roundRect(x0,y0,mmW,mmH,10); else ctx.rect(x0,y0,mmW,mmH);
+  ctx.fill(); ctx.stroke();
+  const [bx0,by0,bx1,by1]=route.bounds;
+  const pad=9, sw=(mmW-pad*2)/Math.max(1e-3,bx1-bx0), sh=(mmH-pad*2)/Math.max(1e-3,by1-by0);
+  const s=Math.min(sw,sh);
+  const ox=x0+mmW/2-((bx0+bx1)/2)*s, oy=y0+mmH/2+((by0+by1)/2)*s;
+  const P=route.pts;
+  ctx.beginPath();
+  for(let i=0;i<P.length;i++){ const X=ox+P[i][0]*s, Y=oy-P[i][1]*s;
+    if(i===0) ctx.moveTo(X,Y); else ctx.lineTo(X,Y); }
+  ctx.strokeStyle='rgba(240,235,220,0.55)'; ctx.lineWidth=3; ctx.lineJoin='round'; ctx.stroke();
+  // 已跑過的段落
+  const prog=clamp(odo/route.totalOdo,0,1), idx=prog*(P.length-1);
+  ctx.beginPath();
+  for(let i=0;i<=Math.floor(idx);i++){ const X=ox+P[i][0]*s, Y=oy-P[i][1]*s;
+    if(i===0) ctx.moveTo(X,Y); else ctx.lineTo(X,Y); }
+  ctx.strokeStyle='rgba(244,185,66,0.95)'; ctx.lineWidth=3; ctx.stroke();
+  // 起點／終點／玩家
+  const pt=i=>[ox+P[clamp(i,0,P.length-1)][0]*s, oy-P[clamp(i,0,P.length-1)][1]*s];
+  const [sxp,syp]=pt(0), [exp,eyp]=pt(P.length-1);
+  ctx.fillStyle='#4cc38a'; ctx.beginPath(); ctx.arc(sxp,syp,3.2,0,7); ctx.fill();
+  ctx.fillStyle='#eee'; ctx.beginPath(); ctx.arc(exp,eyp,3.2,0,7); ctx.fill();
+  const i0=Math.floor(idx), u=idx-i0, [ax,ay]=pt(i0), [bxx,byy]=pt(i0+1);
+  const pxm=ax+(bxx-ax)*u, pym=ay+(byy-ay)*u;
+  ctx.fillStyle='#ff5a3c'; ctx.strokeStyle='#fff'; ctx.lineWidth=1.6;
+  ctx.beginPath(); ctx.arc(pxm,pym,5,0,7); ctx.fill(); ctx.stroke();
+  ctx.restore();
+}
+function drawCountdown(W,H){
+  const left=3.4-countT;
+  let txt = left>2.4?'3' : left>1.4?'2' : left>0.4?'1' : '出發！';
+  const n = left>2.4?3 : left>1.4?2 : left>0.4?1 : 0;
+  if(n!==lastBeep){ lastBeep=n; if(AE&&cfg.sound) AE.beep(n===0?990:680,n===0?0.3:0.13); }
+  ctx.save();
+  ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillStyle='rgba(8,11,15,0.52)'; ctx.fillRect(0,H*0.30,W,H*0.26);   // 底板固定不透明：長者要看得清楚
+  const pop=0.86+0.14*clamp01((left%1)*3);                                // 只讓數字本身有節拍感
+  ctx.font=`900 ${Math.round(Math.min(W*0.22,H*0.20)*pop)}px -apple-system,"PingFang TC",sans-serif`;
+  ctx.lineWidth=Math.max(3,H*0.008); ctx.strokeStyle='rgba(20,14,2,0.85)';
+  ctx.strokeText(txt,W/2,H*0.43);
+  ctx.fillStyle='#ffd772'; ctx.fillText(txt,W/2,H*0.43);
+  ctx.restore(); ctx.textBaseline='alphabetic';
+}
+
+/* ==================================================================
+   十二、主迴圈
+   ================================================================== */
+let lastRaf=0;
+function loop(ts){
+  requestAnimationFrame(loop);
+  const dt=Math.min(0.05,(ts-lastRaf)/1000||0.016); lastRaf=ts;
+  stepDemoTilt(dt);
+  pumpTilt();
+  if(phase==='calib') stepCalib(dt);
+  if(phase==='count'){ nowT+=dt; countT+=dt;
+    odo+=SPEED_V[cfg.speed]*dt*clamp(countT/3.4,0.18,1);
+    sweepSilently(dt);                     // 倒數期間路已在跑：把掃過的道具靜默消耗掉，開局才不會瞬間爆一堆事件
+    render(); if(countT>=3.4) startPlay(); return; }
+  if(phase==='play'){ updatePlay(dt); if(phase!=='play') return; render(); updateHUD(); return; }
+}
+function updateHUD(){
+  $('hScore').textContent=score;
+  $('hDist').textContent=Math.round(odo*4.4)+'m';
+  $('hCrash').textContent=crashes;
+  $('hTime').textContent=Math.max(0,Math.ceil(cfg.dur-elapsed))+'s';
+  if(nowT>=feverUntil) $('feverTag').classList.add('hidden');
+}
+
+/* ==================================================================
+   十三、畫面切換
+   ================================================================== */
+const scr={ setup:$('setup'), calib:$('calib'), end:$('end'), report:$('report'), reorient:$('reorient') };
+function show(name){
+  for(const k in scr) scr[k].classList.toggle('hidden',k!==name);
+  const playing = (name===null);
+  $('hud').classList.toggle('hidden',!playing);
+  $('hudBtns').classList.toggle('hidden',!playing);
+}
+function goSetup(){
+  phase='setup'; show('setup'); keepAwake(false);
+  $('feverTag').classList.add('hidden'); $('confetti').classList.add('hidden');
+  if(AE) AE.stop();
+}
+function pauseForReorient(){ phase='reorient'; show('reorient'); if(AE)AE.stop(); }
+
+/* ---- 校正流程 ---- */
+const CAL={ state:'idle', t:0, samples:[], ext:0, extL:0, extR:0 };
+const CAL_DUR={ neutral:3.0, left:4.0, right:4.0 };
+function enterCalib(){
+  phase='calib'; show('calib'); resetCalib();
+  $('calibModeTag').textContent = axisMode==='land' ? 'A 橫式・雙手握桿' : 'B 直式・單手旋轉前臂';
+  $('calibNote').textContent = demoMode
+    ? '展示模式：用鍵盤 ← → 模擬傾斜，或直接按「跳過」。'
+    : '若個案左右活動度不同，系統會各自記錄，遊戲中左右車道都到得了；不對稱的程度會寫進報表。';
+}
+function resetCalib(){
+  CAL.state='idle'; CAL.t=0; CAL.samples=[]; CAL.extL=0; CAL.extR=0;
+  tiltFilter.reset();
+  $('calibStep').textContent='準備好了嗎？';
+  $('calibHint').textContent='坐正、手機拿穩。按下方按鈕開始，一共三個步驟，每步都有充足時間，不用趕。';
+  $('calibCount').classList.add('hidden');
+  $('romGrid').classList.add('hidden');
+  $('progFill').style.width='0%';
+  $('btnCalibNext').textContent='開始校正';
+  $('btnCalibNext').classList.remove('go');
+}
+function stepCalib(dt){
+  const raw=tiltF;
+  // 傾斜指示條（校正中一律以「目前中立點」為 0）
+  const rel = CAL.state==='idle' ? clamp(raw/40,-1,1) : clamp((raw-calib.zero)/40,-1,1);
+  const f=$('tbFill');
+  if(rel>=0){ f.style.left='50%'; f.style.width=(rel*50)+'%'; }
+  else { f.style.left=(50+rel*50)+'%'; f.style.width=(-rel*50)+'%'; }
+  $('tbNum').innerHTML='目前傾斜 <b>'+Math.round(CAL.state==='idle'?raw:(raw-calib.zero))+'°</b>';
+
+  if(CAL.state==='idle'||CAL.state==='done') return;
+  CAL.t+=dt;
+  const total=CAL_DUR[CAL.state];
+  $('progFill').style.width=Math.min(100,CAL.t/total*100)+'%';
+  $('calibCount').textContent=Math.max(0,Math.ceil(total-CAL.t));
+
+  if(CAL.state==='neutral') CAL.samples.push(raw);
+  else{
+    const d=raw-calib.zero;
+    if(CAL.state==='left'){ if(Math.abs(d)>Math.abs(CAL.extL)) CAL.extL=d; }
+    else { if(Math.abs(d)>Math.abs(CAL.extR)) CAL.extR=d; }
+  }
+  if(CAL.t>=total) nextCalibState();
+}
+function nextCalibState(){
+  if(CAL.state==='neutral'){
+    calib.zero = CAL.samples.length ? CAL.samples.reduce((a,b)=>a+b,0)/CAL.samples.length : 0;
+    setCalibState('left','② 向左傾到最大','像轉方向盤一樣，慢慢向左傾到你覺得舒服的最大角度，並保持住。不要勉強。');
+  }else if(CAL.state==='left'){
+    setCalibState('right','③ 向右傾到最大','換邊。慢慢向右傾到舒服的最大角度，並保持住。');
+  }else if(CAL.state==='right'){
+    finishCalib();
+  }
+}
+function setCalibState(st,title,hint){
+  CAL.state=st; CAL.t=0;
+  $('calibStep').textContent=title;
+  $('calibHint').textContent=hint;
+  $('calibCount').classList.remove('hidden');
+  $('progFill').style.width='0%';
+  if(AE&&cfg.sound) AE.beep(760,0.12);
+}
+function finishCalib(){
+  CAL.state='done';
+  // 軸的正負由校正決定：向左那次若讀到負值 → 原始值需 ×1 才會左負右正
+  calib.axisSign = CAL.extL<0 ? 1 : -1;
+  calib.romL = Math.max(4,Math.abs(CAL.extL));
+  calib.romR = Math.max(4,Math.abs(CAL.extR));
+  calib.done = true;
+  $('calibStep').textContent='校正完成 ✓';
+  $('calibHint').textContent='左右各自的最大角度已記錄。若覺得太吃力，可以回設定把「轉向靈敏度」調靈敏一點。';
+  $('calibCount').classList.add('hidden');
+  $('progFill').style.width='100%';
+  $('romL').textContent=Math.round(calib.romL)+'°';
+  $('romR').textContent=Math.round(calib.romR)+'°';
+  $('romGrid').classList.remove('hidden');
+  $('btnCalibNext').textContent='開始遊戲';
+  $('btnCalibNext').classList.add('go');
+  if(AE&&cfg.sound) AE.beep(980,0.2);
+}
+function skipCalib(){
+  calib.zero=0; calib.axisSign=1; calib.romL=20; calib.romR=20; calib.done=true;
+  CAL.state='done';
+  $('calibStep').textContent='已跳過（使用預設值）';
+  $('calibHint').textContent='中立點 0°、左右各 20°。適合展示與快速試玩；正式訓練建議完整校正。';
+  $('calibCount').classList.add('hidden'); $('progFill').style.width='100%';
+  $('romL').textContent='20°'; $('romR').textContent='20°';
+  $('romGrid').classList.remove('hidden');
+  $('btnCalibNext').textContent='開始遊戲'; $('btnCalibNext').classList.add('go');
+}
+
+/* ---- 開局 ---- */
+function beginCountdown(){
+  newGame();
+  phase='count'; countT=0; lastBeep=-1;
+  show(null); keepAwake(true);
+  if(AE&&cfg.sound){ AE.start(); AE.setMuted(muted); }
+  updateHUD();
+}
+function startPlay(){ phase='play'; }
+
+function endGame(){
+  phase='end';
+  keepAwake(false); if(AE) AE.stop();
+  $('feverTag').classList.add('hidden');
+  const dist=Math.round(odo*4.4);
+  $('eScore').textContent=score;
+  $('eDist').textContent=dist+'m';
+  $('eCrash').textContent=crashes;
+  // 破紀錄（依設定組合分開記）
+  const sig=`${cfg.route}_${cfg.dur}_${cfg.sens}_${cfg.speed}_${cfg.dens}_${cfg.assist}`;
+  let best={}; try{ best=JSON.parse(localStorage.getItem(LS_BEST)||'{}'); }catch(e){}
+  const prev=best[sig];
+  const isRec = !prev || score>prev.score;
+  if(isRec){ best[sig]={score,dist,date:new Date().toISOString()};
+    try{ localStorage.setItem(LS_BEST,JSON.stringify(best)); }catch(e){} }
+  $('recBanner').classList.toggle('hidden',!isRec);
+  $('eBest').textContent = prev
+    ? (isRec ? `上次同設定最佳：${prev.score} 金幣 → 這次 ${score} 金幣。`
+             : `同設定最佳紀錄：${prev.score} 金幣（${prev.dist}m）。`)
+    : '這是這組設定的第一筆紀錄。';
+  if(isRec){ celebrate(); if(AE&&cfg.sound){ AE.setMuted(muted); AE.fanfare(); } }
+  show('end');
+}
+function celebrate(){
+  const box=$('confetti'); box.innerHTML=''; box.classList.remove('hidden');
+  const cols=['#f4b942','#ffe08a','#4cc38a','#5aa9e6','#ff7a59'];
+  for(let i=0;i<34;i++){
+    const s=document.createElement('i');
+    s.style.left=(Math.random()*100)+'%';
+    s.style.background=cols[i%cols.length];
+    s.style.animationDuration=(1.6+Math.random()*1.5)+'s';
+    s.style.animationDelay=(Math.random()*0.6)+'s';
+    box.appendChild(s);
+  }
+  setTimeout(()=>box.classList.add('hidden'),3600);
+}
+
+/* ==================================================================
+   十四、復能報表
+   ================================================================== */
+const _mean=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:0;
+const _std=(a,m)=>{ if(a.length<2)return 0; return Math.sqrt(a.reduce((s,x)=>s+(x-m)*(x-m),0)/a.length); };
+function loadSessions(){ try{return JSON.parse(localStorage.getItem(LS_SESS)||'[]');}catch(e){return[];} }
+
+function buildSession(){
+  const presT=M.presented[0]+M.presented[1]+M.presented[2];
+  const collT=M.collected[0]+M.collected[1]+M.collected[2];
+  const pct=(c,p)=>p?Math.round(c/p*100):null;
+  const mL=_mean(M.leftPeaks), mR=_mean(M.rightPeaks);
+  const symAngle = (mL>0&&mR>0) ? Math.round(Math.min(mL,mR)/Math.max(mL,mR)*100) : null;
+  const rateL=pct(M.collected[0],M.presented[0]), rateR=pct(M.collected[2],M.presented[2]);
+  const symRate = (rateL!=null&&rateR!=null&&Math.max(rateL,rateR)>0)
+    ? Math.round(Math.min(rateL,rateR)/Math.max(rateL,rateR)*100) : null;
+  const m=_mean(M.rts);
+  return {
+    date:new Date().toISOString(), route:cfg.route, dur:cfg.dur, sens:cfg.sens, speed:cfg.speed,
+    dens:cfg.dens, assist:cfg.assist, scene:cfg.scene, mode:axisMode, demo:demoMode,
+    score, dist:Math.round(odo*4.4), crashes, coneHits, npcHits, feverCount,
+    presented:M.presented.slice(), collected:M.collected.slice(),
+    coinRate:pct(collT,presT), rateL, rateC:pct(M.collected[1],M.presented[1]), rateR,
+    peakL:mL?+mL.toFixed(1):null, peakR:mR?+mR.toFixed(1):null,
+    turnsL:M.leftPeaks.length, turnsR:M.rightPeaks.length,
+    romL:Math.round(calib.romL), romR:Math.round(calib.romR),
+    symAngle, symRate,
+    avgRT:M.rts.length?Math.round(m):null,
+    bestRT:M.rts.length?Math.round(Math.min(...M.rts)):null,
+    cvRT:(M.rts.length>1&&m)?Math.round(_std(M.rts,m)/m*100):null,
+    series:M.series.slice()
+  };
+}
+function barsSVG(rows,maxV,unit){
+  const W=380,H=170,padL=54,padR=14,padT=12,padB=26;
+  const bw=(W-padL-padR)/rows.length;
+  let g=`<line x1="${padL}" y1="${H-padB}" x2="${W-padR}" y2="${H-padB}" stroke="#333d48"/>`;
+  rows.forEach((r,i)=>{
+    const h=((r.v||0)/Math.max(1e-6,maxV))*(H-padB-padT);
+    const x=padL+i*bw+bw*0.20, w=bw*0.60, y=H-padB-h;
+    g+=`<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${w.toFixed(1)}" height="${Math.max(1,h).toFixed(1)}" rx="4" fill="${r.color}"/>`;
+    g+=`<text x="${(x+w/2).toFixed(1)}" y="${(y-5).toFixed(1)}" text-anchor="middle" font-size="12" font-weight="700" fill="#f4efe3">${r.v==null?'–':r.v}${unit}</text>`;
+    g+=`<text x="${(x+w/2).toFixed(1)}" y="${H-padB+16}" text-anchor="middle" font-size="11" fill="#8a94a0">${r.label}</text>`;
+  });
+  return `<svg viewBox="0 0 ${W} ${H}" width="100%" style="max-width:${W}px">${g}</svg>`;
+}
+function trendSVG(sess,series,maxY){
+  const W=380,H=170,padL=30,padR=10,padT=12,padB=22,n=sess.length;
+  const xw=(W-padL-padR)/Math.max(1,n-1), yTop=padT, yBot=H-padB;
+  const yFor=v=>yBot-((v||0)/maxY)*(yBot-yTop);
+  let g=`<line x1="${padL}" y1="${yBot}" x2="${W-padR}" y2="${yBot}" stroke="#333d48"/>`;
+  [0,maxY/2,maxY].forEach(v=>{ g+=`<line x1="${padL}" y1="${yFor(v).toFixed(1)}" x2="${W-padR}" y2="${yFor(v).toFixed(1)}" stroke="rgba(140,148,160,.18)"/><text x="${padL-4}" y="${(yFor(v)+3).toFixed(1)}" text-anchor="end" font-size="9" fill="#8a94a0">${Math.round(v)}</text>`; });
+  for(const se of series){
+    const pts=sess.map((s,i)=>`${(padL+i*xw).toFixed(1)},${yFor(s[se.k]).toFixed(1)}`).join(' ');
+    g+=`<polyline points="${pts}" fill="none" stroke="${se.color}" stroke-width="2.5"/>`;
+    sess.forEach((s,i)=>{ g+=`<circle cx="${(padL+i*xw).toFixed(1)}" cy="${yFor(s[se.k]).toFixed(1)}" r="3" fill="${se.color}"/>`; });
+  }
+  return `<svg viewBox="0 0 ${W} ${H}" width="100%" style="max-width:${W}px">${g}</svg>`;
+}
+function legend(series){ return '<div class="rep-chips">'+series.map(s=>`<span style="color:${s.color}">● ${s.label}</span>`).join('')+'</div>'; }
+
+function renderReport(){
+  const s=buildSession();
+  const all=loadSessions(); all.push(s);
+  const saved=all.slice(-300);
+  try{ localStorage.setItem(LS_SESS,JSON.stringify(saved)); }catch(e){}
+  const prev=saved.length>=2?saved[saved.length-2]:null;
+
+  const d=new Date(s.date), p2=x=>String(x).padStart(2,'0');
+  const dateStr=`${d.getFullYear()}/${p2(d.getMonth()+1)}/${p2(d.getDate())} ${p2(d.getHours())}:${p2(d.getMinutes())}`;
+  const dl=(cur,pre,unit,inv)=>{ if(pre==null||cur==null)return '';
+    const dd=+(cur-pre).toFixed(1); if(!dd)return ' <span class="dl flat">→持平</span>';
+    const good=inv?dd<0:dd>0; return ` <span class="dl ${good?'up':'down'}">${dd>0?'▲+':'▼'}${Math.abs(dd)}${unit}</span>`; };
+  const M2=(k,v,sub,cls)=>`<div class="metric ${cls||''}"><div class="k">${k}</div><div class="v">${v}</div><div class="s">${sub||''}</div></div>`;
+  const rtS=s.avgRT!=null?(s.avgRT/1000).toFixed(2):null;
+
+  const metrics=
+    M2('吃幣率', (s.coinRate!=null?s.coinRate+'%':'–')+(prev?dl(s.coinRate,prev.coinRate,'%',false):''),
+       `${s.collected.reduce((a,b)=>a+b,0)}/${s.presented.reduce((a,b)=>a+b,0)} 顆`)+
+    M2('左右轉向對稱性', (s.symAngle!=null?s.symAngle+'%':'–')+(prev?dl(s.symAngle,prev.symAngle,'%',false):''),
+       '傾斜角使用量 小/大．100%＝完全對稱','sym')+
+    M2('左／右吃幣率', `${s.rateL!=null?s.rateL:'–'}% / ${s.rateR!=null?s.rateR:'–'}%`,
+       `左車道 ${s.collected[0]}/${s.presented[0]}．右車道 ${s.collected[2]}/${s.presented[2]}`)+
+    M2('平均反應時間', (rtS!=null?rtS+' s':'–')+(rtS!=null&&prev&&prev.avgRT!=null?dl(+rtS,+(prev.avgRT/1000).toFixed(2),'s',true):''),
+       s.bestRT!=null?`最快 ${(s.bestRT/1000).toFixed(2)} s．物件出現→開始轉向`:'物件出現→開始轉向')+
+    M2('撞擊次數', s.crashes+' 次'+(prev?dl(s.crashes,prev.crashes,'',false):''),
+       `三角錐 ${s.coneHits}．前車 ${s.npcHits}`, s.crashes>6?'bad':'')+
+    M2('本局成績', s.score+' 金幣', `距離 ${s.dist} m．氮氣 ${s.feverCount} 次`);
+
+  const angleChart=barsSVG([
+    {label:'左傾平均峰值',v:s.peakL,color:'#5aa9e6'},
+    {label:'左側校正 ROM',v:s.romL,color:'rgba(90,169,230,.38)'},
+    {label:'右傾平均峰值',v:s.peakR,color:'#f4b942'},
+    {label:'右側校正 ROM',v:s.romR,color:'rgba(244,185,66,.38)'}
+  ], Math.max(10,s.romL,s.romR,s.peakL||0,s.peakR||0)*1.18, '°');
+
+  const laneChart=barsSVG([
+    {label:'左車道',v:s.rateL,color:'#5aa9e6'},
+    {label:'中車道',v:s.rateC,color:'#4cc38a'},
+    {label:'右車道',v:s.rateR,color:'#f4b942'}
+  ], 100, '%');
+
+  let trend='';
+  if(saved.length>=2){
+    const recent=saved.slice(-8);
+    trend=`<div class="charts">
+      <div class="chart"><h3>跨次趨勢：吃幣率 / 對稱性</h3><div class="cnote">最近 ${recent.length} 局（%，越高越好）</div>
+        ${legend([{label:'吃幣率',color:'#4cc38a'},{label:'對稱性',color:'#f4b942'}])}
+        ${trendSVG(recent,[{k:'coinRate',color:'#4cc38a'},{k:'symAngle',color:'#f4b942'}],100)}</div>
+      <div class="chart"><h3>跨次趨勢：平均反應時間</h3><div class="cnote">最近 ${recent.length} 局（毫秒，越低越好）</div>
+        ${trendSVG(recent,[{k:'avgRT',color:'#5aa9e6'}],Math.max(600,...recent.map(x=>x.avgRT||0))*1.1)}</div>
+    </div>`;
+  }
+
+  const notes=[];
+  notes.push(`本局在<b>${s.mode==='land'?'A 橫式（雙手握桿、整條上肢帶動）':'B 直式（單手前臂旋前／旋後）'}</b>下進行，時長 ${s.dur} 秒。`);
+  if(s.coinRate!=null) notes.push(`吃幣率 ${s.coinRate}%（金幣位置即動作處方，吃幣率反映「引導到位的動作有沒有做出來」）。`);
+  if(s.symAngle!=null){
+    notes.push(s.symAngle>=85
+      ? `左右轉向對稱性 ${s.symAngle}%：兩側傾斜角使用量接近（左 ${s.peakL}° / 右 ${s.peakR}°），雙側整合表現良好。`
+      : `⚠️左右轉向對稱性 ${s.symAngle}%：左 ${s.peakL}° vs 右 ${s.peakR}°，${s.peakL<s.peakR?'向左':'向右'}的動作幅度明顯較小，建議把金幣加權往該側配置，或先降低轉向靈敏度以誘發較大的動作。`);
+  }else notes.push('左右轉向對稱性資料不足（轉向次數太少），建議提高金幣密度或延長時長。');
+  if(s.rateL!=null&&s.rateR!=null&&s.symRate!=null)
+    notes.push(`左車道達成率 ${s.rateL}%、右車道 ${s.rateR}%（達成率對稱性 ${s.symRate}%）；與角度對稱性合看，可分辨是「動作做不到」還是「反應來不及」。`);
+  if(s.avgRT!=null) notes.push(`平均反應時間 ${(s.avgRT/1000).toFixed(2)} s（含看到目標→啟動轉向）；CV ${s.cvRT!=null?s.cvRT+'%':'–'}，越低代表啟動越穩定。`);
+  notes.push(s.crashes<=3
+    ? `撞擊 ${s.crashes} 次（三角錐 ${s.coneHits}、前車 ${s.npcHits}），路徑控制穩定，可考慮提高車速或密度。`
+    : `撞擊 ${s.crashes} 次（三角錐 ${s.coneHits}、前車 ${s.npcHits}）偏多，可先降低車速或開啟輔助駕駛，讓個案先建立成功經驗。`);
+  notes.push(`校正 ROM：左 ${s.romL}°／右 ${s.romR}°；本局實際平均只用到左 ${s.peakL??'–'}°／右 ${s.peakR??'–'}°，若明顯低於 ROM，可把轉向靈敏度調鈍（要求 ${Math.round(SENS_REQ[cfg.sens]*100)}% → 更高）以逼出更大的動作。`);
+  if(s.demo) notes.push('⚠️本局為鍵盤展示模式，角度資料為模擬值，不可作為臨床紀錄。');
+
+  $('reportBody').innerHTML=`
+    <div class="rep-head"><h1>復能訓練報表 <span class="pill">治療師版・傾斜賽車</span></h1></div>
+    <div class="rep-sub">${dateStr}
+      <div class="rep-chips">
+        <span>${s.mode==='land'?'A 橫式雙手':'B 直式單手'}</span>
+        <span>路線 ${['','A','B','C'][s.route]}</span>
+        <span>時長 ${s.dur}s</span>
+        <span>靈敏度 ${SENS_TXT[s.sens]}</span>
+        <span>車速 ${SPEED_TXT[s.speed]}</span>
+        <span>密度 ${DENS_TXT[s.dens]}</span>
+        <span>輔助駕駛 ${s.assist?'開':'關'}</span>
+        <span>${(SCENES[s.scene]||SCENES.rice).name}</span>
+      </div>
+    </div>
+    <div class="metrics">${metrics}</div>
+    <div class="charts">
+      <div class="chart"><h3>左右傾斜角使用量（核心臨床指標）</h3>
+        <div class="cnote">實線＝本局每次轉向的平均峰值角；淡色＝校正時測到的最大 ROM。兩側落差大＝動作不對稱</div>
+        ${angleChart}</div>
+      <div class="chart"><h3>各車道吃幣率</h3>
+        <div class="cnote">金幣分佈＝動作處方；哪個車道漏得多，代表往該方向的動作較弱</div>
+        ${laneChart}</div>
+    </div>
+    ${trend}
+    <div class="rep-note"><b>臨床判讀</b><br>${notes.join('<br>')}</div>
+    <div class="rep-ref">臨床說帖參考：Choi, Y.-H., &amp; Paik, N.-J. (2018). Mobile game-based virtual reality program for upper extremity stroke rehabilitation. <i>Journal of Visualized Experiments</i>, (133), e56241. ／ Amorim, P., Santos, B. S., Dias, P., Silva, S., &amp; Martins, H. (2020). Serious games for stroke telerehabilitation of upper limb — A review for future research. <i>International Journal of Telerehabilitation</i>, 12(2), 65–76.</div>`;
+}
+
+/* ==================================================================
+   十五、UI 綁定
+   ================================================================== */
+function segBind(id,key,cast){
+  $(id).onclick=e=>{
+    const b=e.target.closest('button'); if(!b) return;
+    const v=b.dataset[key]; if(v===undefined) return;
+    [...e.currentTarget.children].forEach(x=>x.classList.remove('on'));
+    b.classList.add('on'); cfg[key]=cast?cast(v):v; saveCfg();
+  };
+  const cur=String(cfg[key]);
+  [...$(id).children].forEach(b=>b.classList.toggle('on',b.dataset[key]===cur));
+}
+segBind('segRoute','route',Number);
+segBind('segDur','dur',Number);
+segBind('segAssist','assist',Number);
+segBind('segSound','sound',Number);
+
+function sliderBind(rid,vid,key,txt){
+  const r=$(rid), v=$(vid);
+  r.value=cfg[key];
+  const u=()=>{ cfg[key]=+r.value; v.textContent=txt(+r.value); saveCfg(); };
+  r.oninput=u; u();
+}
+sliderBind('rSens','vSens','sens',x=>SENS_TXT[x]);
+sliderBind('rSpeed','vSpeed','speed',x=>SPEED_TXT[x]);
+sliderBind('rDens','vDens','dens',x=>DENS_TXT[x]);
+$('lbSens').textContent='（數字越大＝要用掉越多活動範圍才轉得動，逼大動作）';
+
+(function initScene(){
+  const sel=$('selScene');
+  for(const k in SCENES){
+    const o=document.createElement('option');
+    o.value=k; o.textContent=SCENES[k].name; o.disabled=!SCENES[k].enabled;
+    sel.appendChild(o);
+  }
+  if(!SCENES[cfg.scene]||!SCENES[cfg.scene].enabled) cfg.scene='rice';
+  sel.value=cfg.scene;
+  sel.onchange=()=>{ cfg.scene=sel.value; saveCfg(); };
+})();
+
+function updateModeBox(){
+  const land=axisMode==='land';
+  $('modeBox').innerHTML = demoMode
+    ? '🎮 <b>展示模式</b>：用鍵盤 <b>←</b> <b>→</b> 控制方向，不需要感測器。適合投影展示與開發驗證。'
+    : (land
+      ? '📱 目前偵測到<b>橫式螢幕 → A 模式（雙手握桿）</b>：手機夾在自拍桿上、雙手互握，用整條上肢帶動左右傾。訓練雙側整合與肩前屈耐力。'
+      : '📱 目前偵測到<b>直式螢幕 → B 模式（單手持機）</b>：單手握手機，用前臂旋前／旋後轉動。訓練遠端動作控制。');
+  $('demoTag').classList.toggle('hidden',!demoMode);
+  $('btnStart').textContent = demoMode ? '開始（鍵盤展示模式）' : '啟用感測器並開始';
+  $('btnDemoMode').classList.toggle('hidden',demoMode);
+}
+
+/* ---- 感測器啟用（iOS 需使用者手勢） ---- */
+async function enableSensor(){
+  if(demoMode) return true;
+  if(!window.isSecureContext){
+    showSensorWarn('這個網址不是 HTTPS（或 localhost），瀏覽器不會提供動作感測器。請改用 https:// 或 localhost 開啟；也可以先用鍵盤展示模式試玩。');
+    return false;
+  }
+  if(typeof DeviceOrientationEvent==='undefined'){
+    showSensorWarn('這台裝置／瀏覽器沒有動作感測器（桌機通常沒有）。可以改用鍵盤展示模式，或換用手機開啟。');
+    return false;
+  }
+  try{
+    if(typeof DeviceOrientationEvent.requestPermission==='function'){
+      const res=await DeviceOrientationEvent.requestPermission();     // iOS：必須由使用者手勢觸發
+      if(res!=='granted'){
+        showSensorWarn('iOS 沒有授權動作感測器。請到 Safari 設定 →「動作與方向存取權」開啟後重新整理，或先用鍵盤展示模式。');
+        return false;
+      }
+    }
+  }catch(e){
+    showSensorWarn('要求感測器權限失敗：'+e.message+'。請確認是用 HTTPS 開啟，或先用鍵盤展示模式。');
+    return false;
+  }
+  window.addEventListener('deviceorientation',onOrient,true);
+  const t0=performance.now();
+  await new Promise(r=>setTimeout(r,1300));                            // 等第一筆資料
+  if(!haveSensor||performance.now()-lastSensorT>1500){
+    showSensorWarn('已取得權限，但 1.3 秒內收不到任何傾斜資料（桌機或模擬器常見）。可以先用鍵盤展示模式試玩。');
+    return false;
+  }
+  $('sensorWarn').classList.add('hidden');
+  return true;
+}
+function showSensorWarn(msg){
+  const w=$('sensorWarn');
+  w.innerHTML='⚠️ '+msg;
+  w.classList.remove('hidden');
+}
+
+$('btnStart').onclick=async()=>{
+  if(!AE){ AE=makeAudio(); }
+  if(AE&&AE.ac.state==='suspended') AE.ac.resume();
+  $('btnStart').disabled=true; const old=$('btnStart').textContent; $('btnStart').textContent='啟用中…';
+  const ok=await enableSensor();
+  $('btnStart').disabled=false; $('btnStart').textContent=old;
+  if(!ok&&!demoMode) return;
+  axisMode=detectAxis(); updateModeBox();
+  enterCalib();
+};
+$('btnDemoMode').onclick=()=>{ demoMode=true; updateModeBox(); $('sensorWarn').classList.add('hidden'); };
+$('btnCalibNext').onclick=()=>{
+  if(CAL.state==='idle'){
+    if(!AE){AE=makeAudio();}
+    setCalibState('neutral','① 手機擺好，放鬆','把手機拿到你平常最舒服的位置，保持不動 3 秒，系統會記下中立點。');
+  }else if(CAL.state==='done'){ beginCountdown(); }
+};
+$('btnCalibSkip').onclick=skipCalib;
+$('btnCalibBack').onclick=goSetup;
+$('btnHome').onclick=goSetup;
+$('btnEndHome').onclick=goSetup;
+$('btnRepHome').onclick=goSetup;
+$('btnReorientHome').onclick=goSetup;
+$('btnReorientCalib').onclick=()=>{ axisMode=detectAxis(); updateModeBox(); enterCalib(); };
+$('btnEnd').onclick=()=>{ if(phase==='play'||phase==='count') endGame(); };
+$('btnReport').onclick=()=>{ renderReport(); show('report'); };
+$('btnAgain').onclick=beginCountdown;
+$('btnAgain2').onclick=beginCountdown;
+$('btnPrint').onclick=()=>window.print();
+$('btnMute').onclick=()=>{ muted=!muted; if(AE)AE.setMuted(muted); $('btnMute').textContent=muted?'🔇':'🔊'; };
+
+/* ==================================================================
+   十六、啟動
+   ================================================================== */
+(async function init(){
+  axisMode=detectAxis(); updateModeBox();
+  resize();
+  const raw={};
+  await Promise.all(Object.keys(SRC).map(async k=>{ raw[k]=await loadImg(SRC[k]); }));
+  const sp={};
+  for(const k of ['tree','pole','hay','coin','cone'])
+    sp[k]= raw[k] ? shrink(keyOutGreen(raw[k],KEY[k]),560) : null;
+  const car = raw.car ? shrink(keyOutGreen(raw.car,KEY.car),640) : null;
+  const npc = car ? [hueShift(shrink(car,340),150), hueShift(shrink(car,340),-105), hueShift(shrink(car,340),58)] : [null,null,null];
+  roadMips = raw.road ? buildMips(makeTileable(raw.road,512),5) : null;
+  ROAD_AVG = roadMips ? rgb(avgColor(roadMips[roadMips.length-1])) : '#55585e';
+
+  const S=SCENE_ACTIVE();
+  const base = raw.bg ? samplePalette(raw.bg) : {far:[190,170,80],near:[120,140,60],haze:[200,190,120]};
+  PAL = { far: mix(base.far,S.ground.far,S.ground.blend),      // 老闆拍板：整體金黃調對齊照片稻田色
+          near: mix(base.near,S.ground.near,S.ground.blend),
+          // 霧色要落在「照片地平線色」與「繪製遠景色」之間，否則地平線會出現一條比兩邊都暗的帶子
+          haze: mix(base.haze, mix(base.far,S.ground.far,S.ground.blend), 0.45) };
+  rowPat = makeRowPattern(ctx,S.rowColor);
+  ASSET = { bg:raw.bg, car, sp, npc };
+  const updCarK=()=>{ CAR_K=Math.min(cv.clientWidth*0.22,cv.clientHeight*0.34)/0.97; };
+  updCarK(); addEventListener('resize',()=>setTimeout(updCarK,60));
+
+  $('loading').classList.add('hidden');
+  requestAnimationFrame(loop);
+})();
+</script>
+</body>
+</html>
