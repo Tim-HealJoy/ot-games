@@ -360,10 +360,11 @@ let demoMode = QS.get('demo') === '1';       // 免感測器：鍵盤 ← → �
 /* ==================================================================
    一、素材載入與去背（沿用美術升級版已驗收做法）
    ================================================================== */
+// 手機流量優化：全部用壓縮 JPEG（PNG 原檔 17MB 手機載不完；綠幕去背讀像素做，JPEG 一樣能去）
 const SRC = {
-  bg:'assets/bg_countryside.png', car:'assets/car_sedan.png', road:'assets/road_asphalt.png',
-  tree:'assets/tree_betel.png', pole:'assets/pole_power.png', hay:'assets/haybale_straw.png',
-  coin:'assets/coin_gold.png', cone:'assets/cone_traffic.png'
+  bg:'assets/bg_countryside.jpg', car:'assets/car_sedan.jpg', road:'assets/road_asphalt.jpg',
+  tree:'assets/tree_betel.jpg', pole:'assets/pole_power.jpg', hay:'assets/haybale_straw.jpg',
+  coin:'assets/coin_gold.jpg', cone:'assets/cone_traffic.jpg'
 };
 // 綠幕去背門檻逐張調（檳榔樹葉本身是深綠，門檻要抓「高亮度純綠」才不會吃掉葉子）
 const KEY = {
