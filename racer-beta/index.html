@@ -125,7 +125,10 @@
   .rom-grid .cell .k{font-size:12.5px;color:var(--sub);} .rom-grid .cell .v{font-size:25px;font-weight:800;}
 
   /* ---------- 結算 ---------- */
-  .end-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:11px;margin:18px 0;}
+  .end-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:11px;margin:18px 0;}
+  #finBanner{background:linear-gradient(100deg,#4cc38a,#9be8c3,#4cc38a);color:#03301b;border-radius:14px;
+    padding:12px 16px;text-align:center;font-size:19px;font-weight:900;letter-spacing:1px;margin-bottom:10px;
+    animation:shine 1.6s ease-in-out infinite;}
   .end-grid .cell{background:var(--panel2);border-radius:14px;padding:14px 12px;text-align:center;}
   .end-grid .cell .k{font-size:12.5px;color:var(--sub);} .end-grid .cell .v{font-size:26px;font-weight:800;}
   #recBanner{background:linear-gradient(100deg,#f4b942,#ffe08a,#f4b942);color:#2a1c02;border-radius:14px;
@@ -196,7 +199,6 @@
     .chart,.metric{break-inside:avoid;}
   }
 </style>
-<script src="/open-in-browser.js"></script>
 </head>
 <body>
 <div id="stage">
@@ -206,7 +208,7 @@
     <!-- ===== HUD ===== -->
     <div id="hud" class="hidden">
       <div class="stat"><div class="k">金幣</div><div class="v" id="hScore">0</div></div>
-      <div class="stat"><div class="k">距離</div><div class="v" id="hDist">0</div></div>
+      <div class="stat"><div class="k">時速</div><div class="v" id="hSpd">0</div></div>
       <div class="stat crash"><div class="k">撞擊</div><div class="v" id="hCrash">0</div></div>
       <div class="spacer"></div>
       <div class="stat time"><div class="k">剩餘</div><div class="v" id="hTime">–</div></div>
@@ -222,7 +224,7 @@
     <div id="setup" class="overlay">
       <div class="card">
         <h1>傾斜賽車 <span class="pill">治療師版</span><span class="pill demo hidden" id="demoTag">展示模式</span></h1>
-        <div class="lead" id="setupLead">用手機傾斜控制方向，吃金幣、閃障礙。金幣位置＝動作處方，四個旋鈕分開調難度。</div>
+        <div class="lead" id="setupLead">用手機傾斜控制方向：吃金幣、閃障礙、搶氮氣，在時間內衝過終點線。金幣位置＝動作處方，四個旋鈕分開調難度。</div>
 
         <div class="infobox" id="modeBox">偵測中…</div>
         <div class="warnbox hidden" id="sensorWarn"></div>
@@ -319,10 +321,12 @@
       <div class="card">
         <h1>本局結束</h1>
         <div class="lead" id="endLead">辛苦了！以下是本局成績。</div>
+        <div id="finBanner" class="hidden">🏁 跑完全程！</div>
         <div id="recBanner" class="hidden">🏆 破紀錄！這是目前最好的一次</div>
         <div class="end-grid">
           <div class="cell"><div class="k">金幣</div><div class="v" id="eScore">0</div></div>
-          <div class="cell"><div class="k">距離</div><div class="v" id="eDist">0</div></div>
+          <div class="cell"><div class="k">完成度</div><div class="v" id="eComp">0%</div></div>
+          <div class="cell"><div class="k">吃幣率</div><div class="v" id="eRate">–</div></div>
           <div class="cell"><div class="k">撞擊</div><div class="v" id="eCrash">0</div></div>
         </div>
         <div class="note" id="eBest"></div>
@@ -510,16 +514,14 @@ function buildRoute(seed,totalOdo){
     if(Math.abs(k[i])>=0.46 && Math.abs(k[i-1])<0.30)
       signs.push({ pos:Math.max(2,i*SEG-2.4), dir:Math.sign(k[i]) });
   }
-  // 小地圖折線：把曲率沿路徑積分成俯視蜿蜒線
-  const ds=0.5, pts=[]; let hx=0,hy=0,head=0;
-  for(let o=0;o<=totalOdo;o+=ds){
+  // 導航窗路徑：每 ds 一點的俯視座標＋航向（局部導航窗用，不再畫整條路線縮圖）
+  const ds=0.5, pts=[[0,0]], heads=[0]; let hx=0,hy=0,head=0;
+  for(let o=ds;o<=totalOdo+ds;o+=ds){
     head += curveOf(k,o)*ds*0.30;
     hx += Math.sin(head)*ds; hy += Math.cos(head)*ds;
-    if((o/ds)%3<1) pts.push([hx,hy]);
+    pts.push([hx,hy]); heads.push(head);
   }
-  let x0=1e9,x1=-1e9,y0=1e9,y1=-1e9;
-  for(const p of pts){ if(p[0]<x0)x0=p[0]; if(p[0]>x1)x1=p[0]; if(p[1]<y0)y0=p[1]; if(p[1]>y1)y1=p[1]; }
-  return { k, signs, pts, bounds:[x0,y0,x1,y1], totalOdo };
+  return { k, signs, pts, heads, ds, totalOdo };
 }
 function curveOf(k,o){                 // smoothstep 內插曲率
   const f=o/SEG, i=Math.floor(f), u=f-i;
@@ -532,8 +534,11 @@ function buildItems(seed,totalOdo,cfg){
   const rnd=mulberry32(seed^0x9e3779b9);
   const gapBase=[0,4.4,3.6,2.9,2.3,1.8][cfg.dens];        // 密度 1(疏)→5(密)
   const W=cfg.laneWeight||[1,1,1];                        // 左／中／右 車道權重（處方加權用）
-  const pickLane=()=>{ const s=W[0]+W[1]+W[2]; let r=rnd()*s;
-    if((r-=W[0])<0) return -1; if((r-=W[1])<0) return 0; return 1; };
+  const pick=w=>{ const s=w[0]+w[1]+w[2]; let r=rnd()*s;
+    if((r-=w[0])<0) return -1; if((r-=w[1])<0) return 0; return 1; };
+  const pickLane=()=>pick(W);
+  // 金幣少排中央：輔助駕駛置中就吃得到＝零動作獎勵，會稀釋分數的臨床意義（實測 AFK 曾拿 960 金幣）
+  const coinLane=()=>pick([W[0],W[1]*0.3,W[2]]);
   const items=[], npcs=[];
   // 氮氣＝獎勵脈衝，必須稀有才有價值：約每 14～23 秒一次（90 秒局內 4～6 次）
   let pos=7, nitroAt=38+rnd()*22;
@@ -552,11 +557,12 @@ function buildItems(seed,totalOdo,cfg){
       npcs.push({ lane, pos, startOdo:pos-12.5, col:Math.floor(rnd()*3), active:false, done:false, spent:false });
       pos+=gap*1.5;
     }else{                                                // 金幣串（ROM 引導）
-      let lane=pickLane();
+      let lane=coinLane();
       const nCoin=3+Math.floor(rnd()*4), stp=0.62, migrate=rnd()<0.34;
       for(let i=0;i<nCoin;i++){
         let ln=lane;
-        if(migrate && i>=Math.ceil(nCoin/2)) ln=clamp(lane+(lane===0?(rnd()<0.5?-1:1):-lane),-1,1);
+        // 遷移一律「換到對側」：側→對側＝跨全幅大擺盪（ROM 處方更好），中→隨機側；絕不遷入中央（AFK 白吃）
+        if(migrate && i>=Math.ceil(nCoin/2)) ln = lane===0 ? (rnd()<0.5?-1:1) : -lane;
         items.push({kind:'coin',pos:pos+i*stp,lane:ln,head:i===0});
       }
       pos+=nCoin*stp+gap*0.85;
@@ -568,9 +574,10 @@ function buildItems(seed,totalOdo,cfg){
 }
 function buildScenery(seed,totalOdo){
   const rnd=mulberry32(seed^0x5bf03635), list=[], kinds=SCENES.rice.props;
-  for(let pos=3;pos<totalOdo+16;pos+=0.75+rnd()*0.7){
+  // 間距拉開＋50% 鏡像：同一張 sprite 排排站的重複感就散掉了
+  for(let pos=3;pos<totalOdo+16;pos+=1.05+rnd()*1.0){
     list.push({ pos, kind:kinds[Math.floor(rnd()*kinds.length)],
-      side:rnd()<0.5?-1:1, off:1.25+rnd()*1.15, sc:0.82+rnd()*0.5 });
+      side:rnd()<0.5?-1:1, off:1.25+rnd()*1.15, sc:0.82+rnd()*0.5, flip:rnd()<0.5 });
   }
   return list;
 }
@@ -761,6 +768,8 @@ let px=0, pxPrev=0, normPrev=0;
 let feverUntil=0, crashUntil=0, invulnUntil=0, shake=0, flash=0;
 let floats=[], sparks=[];
 let countT=0, lastBeep=-1;
+let lastV=0, finished=false, overtakes=0;   // lastV＝本幀實際車速（時速表用）
+let lastInputT=-9;                          // 最後一次有效轉向輸入的時刻（超車獎勵防 AFK 白領）
 let nowT=0;                              // 遊戲內累積時間（秒）
 let coinStreak=0;
 
@@ -785,13 +794,13 @@ const LANE_OFF=0.62;                                    // 車道中心（halfW 
 function newGame(){
   const seedBase=[0,20260729,880517,110711][cfg.route];
   const seed=seedBase ^ (cfg.dur*7919) ^ (cfg.dens*104729);
-  const totalOdo=SPEED_V[cfg.speed]*cfg.dur*1.05;       // 略長於基準里程：預留氮氣多跑的部分，小地圖的點才會剛好跑到終點
+  const totalOdo=SPEED_V[cfg.speed]*cfg.dur*1.05;       // 終點＝基準里程 ×1.05：要吃到 2～3 次氮氣才跑得完──氮氣是完賽的鑰匙
   route=buildRoute(seed,totalOdo);
   const built=buildItems(seed,totalOdo,cfg);
   items=built.items; npcs=built.npcs; scen=buildScenery(seed,totalOdo);
   bonus=[]; iHead=0; nHead=0; sHead=0;
   odo=0; elapsed=0; nowT=0; score=0; crashes=0; coneHits=0; npcHits=0; feverCount=0;
-  px=0; pxPrev=0; normPrev=0; coinStreak=0;
+  px=0; pxPrev=0; normPrev=0; coinStreak=0; lastV=0; finished=false; overtakes=0; lastInputT=-9;
   feverUntil=0; crashUntil=0; invulnUntil=0; shake=0; flash=0; floats=[]; sparks=[];
   resetMetrics(); tiltFilter.reset();
 }
@@ -816,11 +825,12 @@ function updatePlay(dt){
   let v=SPEED_V[cfg.speed];
   if(fever) v*=1.6;
   if(nowT<crashUntil) v*=0.42+0.58*(1-(crashUntil-nowT)/1.2);
-  odo += v*dt;
+  odo += v*dt; lastV=v;
   elapsed += dt;
 
   // --- 轉向 ---
   const norm=tiltNorm();
+  if(Math.abs(norm)>0.15) lastInputT=nowT;
   let target=norm;
   if(cfg.assist){                                  // 輔助駕駛：車道吸附＋無輸入自動回正
     const lanes=[-LANE_OFF,0,LANE_OFF];
@@ -893,6 +903,11 @@ function updatePlay(dt){
     if(!n.done && dz<=0.26 && dz>-1.6){
       n.done=true;
       if(Math.abs(px-n.lane*LANE_OFF)<0.46) doCrash('npc');
+      else if(nowT-lastInputT<2.0){                        // 安全超車＝有感回饋；要有近期轉向輸入才算（防掛機白領）
+        overtakes++; score+=20;
+        floats.push({txt:'超車 +20',col:'#7fe3ff',t:0,x:CW/2+n.lane*CW*0.15,y:CH*0.50});
+        if(AE&&cfg.sound) AE.beep(940,0.12);
+      }
     }
   }
   while(sHead<scen.length && scen[sHead].pos-odo < -1.2) sHead++;
@@ -903,7 +918,8 @@ function updatePlay(dt){
   for(let i=sparks.length-1;i>=0;i--){ const s=sparks[i]; s.t+=dt; s.x+=s.vx*dt; s.y+=s.vy*dt; s.vy+=520*dt;
     if(s.t>0.7) sparks.splice(i,1); }
 
-  if(elapsed>=cfg.dur) endGame();
+  if(odo>=route.totalOdo){ finished=true; endGame(); }   // 衝過終點線＝提前完賽
+  else if(elapsed>=cfg.dur) endGame();
 }
 
 /** 倒數期間：同樣推進道具／前車指標，但不計分、不判撞、不記臨床資料 */
@@ -926,14 +942,14 @@ function sweepSilently(dt){
 }
 
 function resolveItem(it){
-  const carY=CH*0.60;          // 飄字要浮在車子上方，壓在車身上長者讀不到
+  const carY=CH*0.55;          // 飄字要浮在車子上方，壓在車身上長者讀不到
   if(it.kind==='coin'){
     const mul = nowT<feverUntil ? 2 : 1;
     if(Math.abs(px-it.lane*LANE_OFF)<0.38){
       score += 10*mul; coinStreak++; it.taken=true;   // 吃到才消失；沒吃到讓它掃過去（視覺才連貫）
       M.collected[it.lane+1]++;
       if(AE&&cfg.sound) AE.coin(coinStreak);
-      floats.push({txt:'+'+(10*mul),col:'#ffd23e',t:0,x:CW/2+it.lane*CW*0.13,y:carY});
+      floats.push({txt:'+'+(10*mul),col:'#ffd23e',t:0,x:CW/2+it.lane*CW*0.15,y:carY});
     }else coinStreak=0;
   }else if(it.kind==='nitro'){
     if(Math.abs(px-it.lane*LANE_OFF)<0.44){ it.taken=true; startFever(); }
@@ -945,8 +961,8 @@ function startFever(){
   feverUntil=nowT+3.0; feverCount++;
   if(AE&&cfg.sound) AE.nitro();
   $('feverTag').classList.remove('hidden');
-  // 氮氣期間沿路金幣變密：蛇行掃過三個車道，順便把 ROM 引導拉滿
-  const snake=[0,-1,-1,0,1,1,0,-1,-1,0,1,1,0,0,-1,1];
+  // 氮氣期間沿路金幣變密：蛇行掃過三個車道，順便把 ROM 引導拉滿（中央顆數壓低，AFK 吃不到甜頭）
+  const snake=[0,-1,-1,1,1,0,-1,1,1,-1,-1,1,0,-1,1,1];
   for(let i=0;i<snake.length;i++)
     bonus.push({kind:'coin',pos:odo+4.5+i*0.62,lane:snake[i],bonus:true});
   for(let i=0;i<12;i++) sparks.push({x:CW/2,y:CH*0.62,vx:(Math.random()-0.5)*640,vy:-180-Math.random()*280,t:0,col:'#7fe3ff'});
@@ -1057,6 +1073,8 @@ function render(){
     if(dz>DRAW_DZ) break; if(dz<-0.30) continue;
     drawList.push({type:'npc',dz,o:n});
   }
+  if(route){ const fdz=route.totalOdo-odo;
+    if(fdz>-0.5&&fdz<DRAW_DZ) drawList.push({type:'finish',dz:fdz}); }
   drawList.sort((a,b)=>b.dz-a.dz);
 
   for(const d of drawList){
@@ -1068,9 +1086,13 @@ function render(){
       if(x<-W*0.6||x>W*1.6) continue;
       castShadow(x,baseY,h*cf.sl,h*cf.sw,0.25);
       const sp=ASSET.sp[sc.kind];
-      if(sp){ const w=h*sp.width/sp.height; ctx.drawImage(sp,x-w/2,baseY-h,w,h); }
+      if(sp){ const w=h*sp.width/sp.height;
+        ctx.save(); ctx.translate(x,baseY); if(sc.flip) ctx.scale(-1,1);
+        ctx.drawImage(sp,-w/2,-h,w,h); ctx.restore(); }
     }else if(d.type==='sign'){
       drawCurveSign(cx+1.20*halfW,baseY,0.95*t*DEPTH,d.o.dir);
+    }else if(d.type==='finish'){
+      drawFinish(cx,baseY,halfW,t,H);
     }else if(d.type==='item'){
       const it=d.o, x=cx+it.lane*LANE_OFF*halfW, s=3+t*H*0.078;
       if(it.kind==='coin') drawCoin(x,baseY,s*0.68,it.pos);
@@ -1143,7 +1165,8 @@ function render(){
   if(flash>0){ ctx.fillStyle=`rgba(255,90,60,${flash*0.22})`; ctx.fillRect(-20,-20,W+40,H+40); }
   ctx.restore();
 
-  drawMinimap(W,H);
+  drawNav(W,H);
+  drawTurnHUD(W,H);
   if(phase==='count') drawCountdown(W,H);
 }
 
@@ -1199,7 +1222,7 @@ function drawNitro(x,y,s){
 /** 台灣公路彎道警示牌：黃底黑箭頭（程式繪製，避開 AI 圖生文字的老問題） */
 function drawCurveSign(x,baseY,h,dir){
   if(h<12) return;
-  const sw=h*0.52;
+  const sw=h*0.60;
   ctx.save();
   castShadow(x,baseY,h*0.5,h*0.06,0.24);
   ctx.fillStyle='#9a9a94'; ctx.fillRect(x-h*0.022,baseY-h,h*0.044,h);      // 柱
@@ -1217,40 +1240,124 @@ function drawCurveSign(x,baseY,h,dir){
   ctx.lineTo(a*0.25*dir,a*0.42); ctx.closePath(); ctx.fill();
   ctx.restore();
 }
-/** 小地圖：整條 seed 路線＋玩家位置點（瑪利歐賽車式） */
-function drawMinimap(W,H){
+/** 終點線：路面方格帶＋方格拱門（要看得到終點，氮氣才有目標感） */
+function drawFinish(cx,baseY,halfW,t,H){
+  const x1=cx-halfW*1.02, x2=cx+halfW*1.02, n=10, cw=(x2-x1)/n;
+  const rowH=Math.max(2,t*H*0.024);
+  for(let r=0;r<2;r++) for(let i=0;i<n;i++){          // 路面方格帶
+    ctx.fillStyle=(i+r)%2?'#f2f2f2':'#15181c';
+    ctx.fillRect(x1+i*cw,baseY-rowH*2+r*rowH,cw+0.5,rowH);
+  }
+  const ph=t*H*0.52;
+  if(ph<16) return;
+  const pw=Math.max(2,ph*0.045), bh=ph*0.20, by=baseY-ph, sq=bh/2;
+  ctx.fillStyle='#d8dade';
+  ctx.fillRect(x1-pw/2,by,pw,ph); ctx.fillRect(x2-pw/2,by,pw,ph);
+  for(let r=0;r<2;r++) for(let i=0;i<n;i++){          // 方格橫幅
+    ctx.fillStyle=(i+r)%2?'#f2f2f2':'#15181c';
+    ctx.fillRect(x1+i*cw,by+r*sq,cw+0.5,sq);
+  }
+  if(ph>46){
+    ctx.save(); ctx.textAlign='center';
+    ctx.font=`900 ${Math.round(bh*0.95)}px -apple-system,"PingFang TC",sans-serif`;
+    ctx.lineWidth=Math.max(2,bh*0.14); ctx.strokeStyle='rgba(20,14,2,0.9)';
+    ctx.strokeText('終點',cx,by-bh*0.35);
+    ctx.fillStyle='#ffd23e'; ctx.fillText('終點',cx,by-bh*0.35);
+    ctx.restore();
+  }
+}
+
+/** 導航窗（Google Maps 式）：只畫前方路段、車頭朝上、玩家固定窗底；下方附終點進度條 */
+const NAV_FWD=24, NAV_BACK=3, NAV_EXAG=2.4;   // 前瞻 odo／後顧 odo／彎度視覺誇大倍率
+function drawNav(W,H){
   if(!route||(phase!=='play'&&phase!=='count')) return;
-  const mmW=Math.min(120,W*0.17), mmH=Math.min(H*0.40,mmW*1.45);
-  const x0=W-mmW-16, y0=Math.max(16,H*0.03)+ (W<560?46:56);
+  const mmW=Math.min(150,W*0.21), mmH=mmW*1.28;
+  const x0=W-mmW-14, y0=Math.max(14,H*0.03)+(W<560?44:54);
+  const ds=route.ds, P=route.pts, HD=route.heads;
+  const idx=clamp(odo/ds,0,P.length-1.001), i0=Math.floor(idx), u=idx-i0;
+  const L=(a,b)=>a+(b-a)*u;
+  const pwx=L(P[i0][0],P[i0+1][0]), pwy=L(P[i0][1],P[i0+1][1]);
+  const hd=L(HD[i0],HD[i0+1]), ch=Math.cos(hd), sh=Math.sin(hd);
+  const scl=(mmH-26)/(NAV_FWD+NAV_BACK);
+  const bx=x0+mmW/2, by=y0+mmH-12-NAV_BACK*scl;
+  const proj=i=>{ const dx=P[i][0]-pwx, dy=P[i][1]-pwy;
+    const lx=dx*ch-dy*sh, ly=dx*sh+dy*ch;                      // 旋轉到車頭朝上的局部座標
+    return [bx+clamp(lx*scl*NAV_EXAG,-(mmW/2-9),mmW/2-9), by-ly*scl]; };
   ctx.save();
-  ctx.fillStyle='rgba(14,18,24,0.62)'; ctx.strokeStyle='rgba(120,132,148,0.5)'; ctx.lineWidth=1;
   ctx.beginPath();
-  if(ctx.roundRect) ctx.roundRect(x0,y0,mmW,mmH,10); else ctx.rect(x0,y0,mmW,mmH);
-  ctx.fill(); ctx.stroke();
-  const [bx0,by0,bx1,by1]=route.bounds;
-  const pad=9, sw=(mmW-pad*2)/Math.max(1e-3,bx1-bx0), sh=(mmH-pad*2)/Math.max(1e-3,by1-by0);
-  const s=Math.min(sw,sh);
-  const ox=x0+mmW/2-((bx0+bx1)/2)*s, oy=y0+mmH/2+((by0+by1)/2)*s;
-  const P=route.pts;
+  if(ctx.roundRect) ctx.roundRect(x0,y0,mmW,mmH,12); else ctx.rect(x0,y0,mmW,mmH);
+  ctx.fillStyle='rgba(14,18,24,0.66)'; ctx.fill();
+  ctx.strokeStyle='rgba(120,132,148,0.5)'; ctx.lineWidth=1; ctx.stroke();
+  ctx.clip();
+  const iA=Math.max(0,i0-Math.round(NAV_BACK/ds)), iB=Math.min(P.length-1,i0+Math.round(NAV_FWD/ds));
   ctx.beginPath();
-  for(let i=0;i<P.length;i++){ const X=ox+P[i][0]*s, Y=oy-P[i][1]*s;
-    if(i===0) ctx.moveTo(X,Y); else ctx.lineTo(X,Y); }
-  ctx.strokeStyle='rgba(240,235,220,0.55)'; ctx.lineWidth=3; ctx.lineJoin='round'; ctx.stroke();
-  // 已跑過的段落
-  const prog=clamp(odo/route.totalOdo,0,1), idx=prog*(P.length-1);
+  for(let i=iA;i<=iB;i++){ const [X,Y]=proj(i); if(i===iA) ctx.moveTo(X,Y); else ctx.lineTo(X,Y); }
+  ctx.lineJoin='round'; ctx.lineCap='round';
+  ctx.strokeStyle='rgba(238,234,222,0.92)'; ctx.lineWidth=Math.max(9,mmW*0.11); ctx.stroke();   // 路緣
+  ctx.strokeStyle='rgba(88,94,102,0.96)'; ctx.lineWidth=Math.max(6,mmW*0.11-4); ctx.stroke();   // 路面
+  ctx.setLineDash([4,5]); ctx.strokeStyle='rgba(244,235,210,0.85)'; ctx.lineWidth=1.4;
+  ctx.stroke(); ctx.setLineDash([]);                                                             // 中央虛線
+  if(route.totalOdo-odo<NAV_FWD){ const [fx,fy]=proj(P.length-1); drawFlagIcon(fx,fy,mmW*0.085); }
+  // 玩家箭頭：固定窗底、永遠朝上（Google Maps 導航慣例）
+  ctx.fillStyle='#ff5a3c'; ctx.strokeStyle='#fff'; ctx.lineWidth=1.8;
+  ctx.beginPath(); ctx.moveTo(bx,by-8); ctx.lineTo(bx-6.4,by+6); ctx.lineTo(bx,by+2.6); ctx.lineTo(bx+6.4,by+6);
+  ctx.closePath(); ctx.fill(); ctx.stroke();
+  ctx.restore();
+  // ---- 終點進度條 ----
+  const pbY=y0+mmH+7, pbH=9, prog=clamp(odo/route.totalOdo,0,1);
+  ctx.save();
   ctx.beginPath();
-  for(let i=0;i<=Math.floor(idx);i++){ const X=ox+P[i][0]*s, Y=oy-P[i][1]*s;
-    if(i===0) ctx.moveTo(X,Y); else ctx.lineTo(X,Y); }
-  ctx.strokeStyle='rgba(244,185,66,0.95)'; ctx.lineWidth=3; ctx.stroke();
-  // 起點／終點／玩家
-  const pt=i=>[ox+P[clamp(i,0,P.length-1)][0]*s, oy-P[clamp(i,0,P.length-1)][1]*s];
-  const [sxp,syp]=pt(0), [exp,eyp]=pt(P.length-1);
-  ctx.fillStyle='#4cc38a'; ctx.beginPath(); ctx.arc(sxp,syp,3.2,0,7); ctx.fill();
-  ctx.fillStyle='#eee'; ctx.beginPath(); ctx.arc(exp,eyp,3.2,0,7); ctx.fill();
-  const i0=Math.floor(idx), u=idx-i0, [ax,ay]=pt(i0), [bxx,byy]=pt(i0+1);
-  const pxm=ax+(bxx-ax)*u, pym=ay+(byy-ay)*u;
-  ctx.fillStyle='#ff5a3c'; ctx.strokeStyle='#fff'; ctx.lineWidth=1.6;
-  ctx.beginPath(); ctx.arc(pxm,pym,5,0,7); ctx.fill(); ctx.stroke();
+  if(ctx.roundRect) ctx.roundRect(x0,pbY,mmW,pbH,5); else ctx.rect(x0,pbY,mmW,pbH);
+  ctx.fillStyle='rgba(14,18,24,0.66)'; ctx.fill();
+  ctx.beginPath();
+  if(ctx.roundRect) ctx.roundRect(x0,pbY,Math.max(6,mmW*prog),pbH,5); else ctx.rect(x0,pbY,Math.max(6,mmW*prog),pbH);
+  ctx.fillStyle='#f4b942'; ctx.fill();
+  ctx.font='11px -apple-system,sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillText('🏁',x0+mmW-7,pbY+pbH/2);
+  ctx.textBaseline='alphabetic'; ctx.restore();
+}
+function drawFlagIcon(x,y,s){
+  ctx.save(); ctx.translate(x,y);
+  ctx.strokeStyle='#eee'; ctx.lineWidth=2;
+  ctx.beginPath(); ctx.moveTo(0,4); ctx.lineTo(0,-s*2.4); ctx.stroke();
+  const q=s*0.8;
+  for(let r=0;r<2;r++) for(let i=0;i<3;i++){
+    ctx.fillStyle=(i+r)%2?'#15181c':'#f2f2f2';
+    ctx.fillRect(1+i*q,-s*2.4+r*q,q,q);
+  }
+  ctx.restore();
+}
+
+/** 彎道 HUD 大箭頭：比路旁警示牌更早、更大的預告（長者主要靠這個判斷何時轉彎） */
+function drawTurnHUD(W,H){
+  if(phase!=='play'||!route) return;
+  const lead=SPEED_V[cfg.speed]*2.6;                 // 提前約 2.6 秒出現
+  let act=null;
+  for(const sg of route.signs){
+    const d=(sg.pos+2.4)-odo;                        // sg.pos＝彎前 2.4 odo 的立牌點 → +2.4＝彎道起點
+    if(d>lead) break;
+    if(d>-1.2){ act=sg; break; }
+  }
+  if(!act) return;
+  if(!act.warned){ act.warned=true; if(AE&&cfg.sound) AE.beep(520,0.16); }
+  const cx=W/2, cy=H*0.26, s=Math.min(W,H)*0.052;
+  const pulse=0.74+0.26*Math.abs(Math.sin(nowT*4));
+  ctx.save(); ctx.globalAlpha=pulse;
+  const bw=s*6.6, bh=s*2.3;
+  ctx.fillStyle='rgba(10,14,18,0.62)';
+  ctx.beginPath();
+  if(ctx.roundRect) ctx.roundRect(cx-bw/2,cy-bh/2,bw,bh,bh/2); else ctx.rect(cx-bw/2,cy-bh/2,bw,bh);
+  ctx.fill();
+  ctx.save(); ctx.translate(cx-s*1.8,cy); ctx.scale(act.dir,1);   // dir=1 右彎 → 箭頭朝右
+  ctx.fillStyle='#ffd23e'; ctx.strokeStyle='rgba(20,14,2,0.9)'; ctx.lineWidth=Math.max(2,s*0.12);
+  ctx.beginPath();
+  ctx.moveTo(-s*0.9,-s*0.32); ctx.lineTo(0,-s*0.32); ctx.lineTo(0,-s*0.75);
+  ctx.lineTo(s*0.95,0); ctx.lineTo(0,s*0.75); ctx.lineTo(0,s*0.32); ctx.lineTo(-s*0.9,s*0.32);
+  ctx.closePath(); ctx.fill(); ctx.stroke(); ctx.restore();
+  ctx.fillStyle='#fff'; ctx.font=`900 ${Math.round(s*1.15)}px -apple-system,"PingFang TC",sans-serif`;
+  ctx.textAlign='left'; ctx.textBaseline='middle';
+  ctx.fillText(act.dir>0?'右彎':'左彎',cx-s*0.35,cy+s*0.05);
+  ctx.textBaseline='alphabetic';
   ctx.restore();
 }
 function drawCountdown(W,H){
@@ -1280,14 +1387,17 @@ function loop(ts){
   pumpTilt();
   if(phase==='calib') stepCalib(dt);
   if(phase==='count'){ nowT+=dt; countT+=dt;
-    odo+=SPEED_V[cfg.speed]*dt*clamp(countT/3.4,0.18,1);
+    lastV=SPEED_V[cfg.speed]*clamp(countT/3.4,0.18,1);
+    odo+=lastV*dt;
     sweepSilently(dt);                     // 倒數期間路已在跑：把掃過的道具靜默消耗掉，開局才不會瞬間爆一堆事件
-    render(); if(countT>=3.4) startPlay(); return; }
+    render(); updateHUD(); if(countT>=3.4) startPlay(); return; }
   if(phase==='play'){ updatePlay(dt); if(phase!=='play') return; render(); updateHUD(); return; }
 }
 function updateHUD(){
   $('hScore').textContent=score;
-  $('hDist').textContent=Math.round(odo*4.4)+'m';
+  const sp=$('hSpd');
+  sp.textContent=Math.round(lastV*4.4*3.6);            // odo/s → km/h（1 odo＝4.4 m）
+  sp.style.color = nowT<feverUntil ? 'var(--nitro)' : (nowT<crashUntil ? 'var(--warn)' : '');
   $('hCrash').textContent=crashes;
   $('hTime').textContent=Math.max(0,Math.ceil(cfg.dur-elapsed))+'s';
   if(nowT>=feverUntil) $('feverTag').classList.add('hidden');
@@ -1416,9 +1526,17 @@ function endGame(){
   keepAwake(false); if(AE) AE.stop();
   $('feverTag').classList.add('hidden');
   const dist=Math.round(odo*4.4);
+  const comp=route?Math.min(100,Math.round(odo/route.totalOdo*100)):0;
+  const presT=M.presented[0]+M.presented[1]+M.presented[2];
+  const collT=M.collected[0]+M.collected[1]+M.collected[2];
   $('eScore').textContent=score;
-  $('eDist').textContent=dist+'m';
+  $('eComp').textContent=comp+'%';
+  $('eRate').textContent=presT?Math.round(collT/presT*100)+'%':'–';
   $('eCrash').textContent=crashes;
+  $('finBanner').classList.toggle('hidden',!finished);
+  $('endLead').textContent = finished
+    ? `跑完整條路線！用時 ${Math.round(elapsed)} 秒，提前 ${Math.max(0,Math.round(cfg.dur-elapsed))} 秒完賽。`
+    : `辛苦了！以下是本局成績（路線完成 ${comp}%，吃到氮氣衝刺可以跑得更遠）。`;
   // 破紀錄（依設定組合分開記）
   const sig=`${cfg.route}_${cfg.dur}_${cfg.sens}_${cfg.speed}_${cfg.dens}_${cfg.assist}`;
   let best={}; try{ best=JSON.parse(localStorage.getItem(LS_BEST)||'{}'); }catch(e){}
@@ -1431,7 +1549,7 @@ function endGame(){
     ? (isRec ? `上次同設定最佳：${prev.score} 金幣 → 這次 ${score} 金幣。`
              : `同設定最佳紀錄：${prev.score} 金幣（${prev.dist}m）。`)
     : '這是這組設定的第一筆紀錄。';
-  if(isRec){ celebrate(); if(AE&&cfg.sound){ AE.setMuted(muted); AE.fanfare(); } }
+  if(isRec||finished){ celebrate(); if(AE&&cfg.sound){ AE.setMuted(muted); AE.fanfare(); } }
   show('end');
 }
 function celebrate(){
@@ -1469,15 +1587,18 @@ function buildSession(){
     date:new Date().toISOString(), route:cfg.route, dur:cfg.dur, sens:cfg.sens, speed:cfg.speed,
     dens:cfg.dens, assist:cfg.assist, scene:cfg.scene, mode:axisMode, demo:demoMode,
     score, dist:Math.round(odo*4.4), crashes, coneHits, npcHits, feverCount,
+    finished, overtakes, playTime:Math.round(elapsed),
+    completion:route?Math.min(100,Math.round(odo/route.totalOdo*100)):null,
     presented:M.presented.slice(), collected:M.collected.slice(),
     coinRate:pct(collT,presT), rateL, rateC:pct(M.collected[1],M.presented[1]), rateR,
     peakL:mL?+mL.toFixed(1):null, peakR:mR?+mR.toFixed(1):null,
     turnsL:M.leftPeaks.length, turnsR:M.rightPeaks.length,
     romL:Math.round(calib.romL), romR:Math.round(calib.romR),
     symAngle, symRate,
-    avgRT:M.rts.length?Math.round(m):null,
-    bestRT:M.rts.length?Math.round(Math.min(...M.rts)):null,
-    cvRT:(M.rts.length>1&&m)?Math.round(_std(M.rts,m)/m*100):null,
+    nRT:M.rts.length,                                   // 樣本 <5 不出數字：n=1 的 0.07s 假資料曾誤導判讀
+    avgRT:M.rts.length>=5?Math.round(m):null,
+    bestRT:M.rts.length>=5?Math.round(Math.min(...M.rts)):null,
+    cvRT:(M.rts.length>=5&&m)?Math.round(_std(M.rts,m)/m*100):null,
     series:M.series.slice()
   };
 }
@@ -1532,10 +1653,11 @@ function renderReport(){
     M2('左／右吃幣率', `${s.rateL!=null?s.rateL:'–'}% / ${s.rateR!=null?s.rateR:'–'}%`,
        `左車道 ${s.collected[0]}/${s.presented[0]}．右車道 ${s.collected[2]}/${s.presented[2]}`)+
     M2('平均反應時間', (rtS!=null?rtS+' s':'–')+(rtS!=null&&prev&&prev.avgRT!=null?dl(+rtS,+(prev.avgRT/1000).toFixed(2),'s',true):''),
-       s.bestRT!=null?`最快 ${(s.bestRT/1000).toFixed(2)} s．物件出現→開始轉向`:'物件出現→開始轉向')+
+       s.avgRT!=null?`最快 ${(s.bestRT/1000).toFixed(2)} s．物件出現→開始轉向`:`樣本不足（${s.nRT||0} 次，需 ≥5 次）`)+
     M2('撞擊次數', s.crashes+' 次'+(prev?dl(s.crashes,prev.crashes,'',false):''),
        `三角錐 ${s.coneHits}．前車 ${s.npcHits}`, s.crashes>6?'bad':'')+
-    M2('本局成績', s.score+' 金幣', `距離 ${s.dist} m．氮氣 ${s.feverCount} 次`);
+    M2('本局成績', s.score+' 金幣',
+       `完成度 ${s.completion!=null?s.completion+'%':'–'}${s.finished?'（🏁 完賽）':''}．距離 ${s.dist} m．超車 ${s.overtakes||0}．氮氣 ${s.feverCount} 次`);
 
   const angleChart=barsSVG([
     {label:'左傾平均峰值',v:s.peakL,color:'#5aa9e6'},
@@ -1573,6 +1695,8 @@ function renderReport(){
   if(s.rateL!=null&&s.rateR!=null&&s.symRate!=null)
     notes.push(`左車道達成率 ${s.rateL}%、右車道 ${s.rateR}%（達成率對稱性 ${s.symRate}%）；與角度對稱性合看，可分辨是「動作做不到」還是「反應來不及」。`);
   if(s.avgRT!=null) notes.push(`平均反應時間 ${(s.avgRT/1000).toFixed(2)} s（含看到目標→啟動轉向）；CV ${s.cvRT!=null?s.cvRT+'%':'–'}，越低代表啟動越穩定。`);
+  else if(s.nRT) notes.push(`反應時間樣本僅 ${s.nRT} 次（需 ≥5 次才計），本局不出數字；提高金幣／障礙密度或延長時長可累積樣本。`);
+  if(s.finished) notes.push(`🏁 本局提前 ${Math.max(0,s.dur-s.playTime)} 秒跑完整條路線：氮氣抓取與路徑控制皆有效，可考慮提高車速或密度增加挑戰。`);
   notes.push(s.crashes<=3
     ? `撞擊 ${s.crashes} 次（三角錐 ${s.coneHits}、前車 ${s.npcHits}），路徑控制穩定，可考慮提高車速或密度。`
     : `撞擊 ${s.crashes} 次（三角錐 ${s.coneHits}、前車 ${s.npcHits}）偏多，可先降低車速或開啟輔助駕駛，讓個案先建立成功經驗。`);
