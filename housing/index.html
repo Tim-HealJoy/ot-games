@@ -195,10 +195,21 @@
   .fgroup:last-child{border-bottom:none; margin-bottom:0; padding-bottom:0;}
   .fgroup h3{font-size:.95rem; color:var(--navy); margin-bottom:8px;}
   .chips{display:flex; flex-wrap:wrap; gap:8px;}
-  .chip{border:1.5px solid var(--line); background:#fff; border-radius:999px; padding:6px 14px; font-size:.9rem; cursor:pointer; user-select:none; transition:.15s;}
+  /* 只過渡顏色，不過渡 opacity：灰化要立即生效 */
+  .chip{border:1.5px solid var(--line); background:#fff; border-radius:999px; padding:6px 14px; font-size:.9rem; cursor:pointer; user-select:none; transition:background .15s,border-color .15s,color .15s;}
   .chip.on{background:var(--navy); color:#fff; border-color:var(--navy);}
   label.check{display:flex; gap:8px; align-items:flex-start; font-size:.92rem; padding:4px 0; cursor:pointer;}
   label.check input{width:19px; height:19px; margin-top:3px; accent-color:var(--navy);}
+  /* 條件符合數量 badge ＋ 零結果條件降階 */
+  .cnum{font-style:normal; font-size:.78rem; font-weight:600; color:var(--sub); margin-left:6px;}
+  .chip.on .cnum{color:#fff; opacity:.9;}
+  label.check .cnum{margin-left:auto; padding-left:10px; flex:0 0 auto;}
+  .chip.zero,label.check.zero{opacity:.38; cursor:not-allowed;}
+  label.check.zero input{cursor:not-allowed;}
+  .fcount{margin-top:16px; padding-top:14px; border-top:1px dashed var(--line); text-align:center; font-size:.9rem; color:var(--sub);}
+  .fcount b{color:var(--navy); font-size:1.05rem;}
+  .fcount.zero b{color:var(--warn);}
+  @media (max-width:860px){ .fcount{display:none;} }
   .btnreset{width:100%; margin-top:14px; background:#fff; border:1.5px solid var(--navy); color:var(--navy); border-radius:10px; padding:10px; font-size:.95rem; cursor:pointer; font-weight:700;}
   .btnreset:hover{background:var(--navy); color:#fff;}
 
@@ -246,7 +257,16 @@
   .notes{font-size:.88rem; color:var(--sub); margin-top:10px; border-top:1px dashed var(--line); padding-top:10px;}
   .src{font-size:.8rem; color:var(--sub); margin-top:8px;}
   .src a{margin-right:10px;}
-  .empty{text-align:center; padding:60px 20px; color:var(--sub); font-size:1.05rem; background:var(--card); border-radius:16px; border:1px dashed var(--line);}
+  .empty{text-align:center; padding:38px 20px 32px; color:var(--sub); font-size:1.05rem; background:var(--card); border-radius:16px; border:1px dashed var(--line);}
+  .empty .ebig{font-size:1.15rem; font-weight:700; color:var(--ink); margin-bottom:6px;}
+  .empty .esub{font-size:.95rem; color:var(--sub); margin-bottom:20px;}
+  .erescue{max-width:460px; margin:0 auto; padding-top:18px; border-top:1px dashed var(--line); display:flex; flex-direction:column; gap:10px;}
+  .ertitle{font-size:.92rem; font-weight:700; color:var(--ink); margin-bottom:2px; line-height:1.6;}
+  .erbtn{min-height:48px; padding:11px 16px; border:1.5px solid var(--navy); background:#fff; color:var(--navy); border-radius:12px; font-size:.95rem; font-weight:700; cursor:pointer; font-family:inherit; transition:.15s;}
+  .erbtn:hover{background:var(--navy); color:#fff;}
+  .erbtn b{opacity:.8; font-weight:700;}
+  .erbtn.primary{background:var(--navy); color:#fff;}
+  .erbtn.primary:hover{background:var(--navy-deep); border-color:var(--navy-deep);}
 
   /* ── 已選條件列 ───────────────────────────── */
   .activefilters{display:none; flex-wrap:wrap; gap:8px; align-items:center; margin-bottom:14px; padding:12px 14px; background:var(--card2); border:1px solid var(--line); border-radius:12px;}
@@ -291,7 +311,9 @@
   .bottombar{display:none; position:fixed; left:0; right:0; bottom:0; z-index:60; background:var(--card); border-top:1px solid var(--line); box-shadow:0 -4px 18px rgba(90,70,20,.14); padding:10px 14px calc(10px + env(safe-area-inset-bottom));}
   .bottombar.show{display:block;}
   .bottombar .inner{max-width:1100px; margin:0 auto;}
+  /* 不加 transition：零結果警示要立刻反應，不要淡入 */
   #filterBar .applybtn{width:100%; min-height:52px; border:none; border-radius:12px; background:var(--navy); color:#fff; font-size:1.05rem; font-weight:700; cursor:pointer; font-family:inherit;}
+  #filterBar .applybtn.warn{background:var(--warn);}
   #cmpBar .inner{display:flex; align-items:center; gap:12px; flex-wrap:wrap;}
   .cmpnames{display:flex; gap:8px; flex-wrap:wrap; flex:1 1 200px; min-width:0;}
   .cmpname{display:inline-flex; align-items:center; gap:6px; background:var(--card2); border:1.5px solid var(--line); border-radius:999px; padding:4px 6px 4px 12px; font-size:.85rem; max-width:100%;}
@@ -352,7 +374,7 @@
 </header>
 
 <div class="disclaimer">
-  ⚠️ <b>資料聲明</b>：本工具彙整各機構官網與 2024–2026 年公開報導，價格與制度可能隨時調整，實際費用請以各機構最新公告與現場洽詢為準。標示「健悅輔導案場」者為健悅管理顧問公司輔導之個案，特此揭露。
+  ⚠️ <b>資料聲明</b>：本工具彙整各機構官網與 2024–2026 年公開報導，價格與制度可能隨時調整，實際費用請以各機構最新公告與現場洽詢為準。
 </div>
 
 <div class="layout">
@@ -424,6 +446,7 @@
     </div>
   </div>
 
+  <div class="fcount" id="fcount">目前符合：<b>0</b> 處</div>
   <button class="btnreset" id="reset">清除全部條件</button>
   </div>
 </aside>
@@ -465,7 +488,7 @@
 </section>
 
 <section class="cta">
-  <h2>想更進一步？讓職能治療師陪你一起挑</h2>
+  <h2>想更進一步？</h2>
   <p class="lead">健悅管理顧問專注高齡友善住宅，從評估、設計到營運提供一條龍顧問服務。若您在挑選銀髮住宅時需要專業的第二意見——無論是評估長輩的自理能力與照顧需求，或是判斷案場的無障礙設計是否真的合用——歡迎與我們聯繫。</p>
   <div class="ctabtns">
     <a class="solid" href="https://healjoy-housing.com/" target="_blank" rel="noopener">造訪官網</a>
@@ -877,6 +900,17 @@ function filtered(){
   });
   return r;
 }
+/* 假設性計數：把 state 換成複本讓 mutate() 隨便改，量完結果數再還原。
+   共用同一套 filtered()，保證 badge 數字與實際篩選結果永遠一致。 */
+function countIf(mutate){
+  const bk = {price:state.price, deposit:state.deposit, region:state.region, zone:state.zone, care:state.care, feats:state.feats, q:state.q};
+  state.price=new Set(bk.price); state.deposit=new Set(bk.deposit); state.region=new Set(bk.region);
+  state.zone=new Set(bk.zone);   state.care=new Set(bk.care);       state.feats=new Set(bk.feats);
+  let n;
+  try{ mutate(); n = filtered().length; }
+  finally{ Object.assign(state, bk); }
+  return n;
+}
 function mealTag(m){
   if(m==="yes") return '<span class="mealtag meal-yes">含餐</span>';
   if(m==="opt") return '<span class="mealtag meal-opt">供餐（另計／計次）</span>';
@@ -951,12 +985,72 @@ function tagClass(t){
 }
 function tagsHtml(list){ return list.map(t=>`<span class="${tagClass(t)}">${t}</span>`).join(""); }
 
+/* ── 條件符合數量 badge ─────────────────────────────────── */
+function initBadges(){
+  document.querySelectorAll(".chips .chip, label.check").forEach(el=>{
+    const b=document.createElement("i"); b.className="cnum"; el.appendChild(b);
+  });
+}
+/* price／deposit／region／zone 在 filtered() 裡是 OR；care 是 AND（every），
+   兩者計數口徑必須不同，否則 care 的數字會高估。 */
+const OR_GROUPS = new Set(["price","deposit","region","zone"]);
+function updateCounts(){
+  // OR 群組口徑＝「該群組只換成這個值＋其他群組維持現狀」；AND 群組＝「目前條件再加上這一項」
+  document.querySelectorAll(".chips").forEach(g=>{
+    const group = g.dataset.group;
+    g.querySelectorAll(".chip").forEach(c=>{
+      const n = countIf(()=>{
+        if(OR_GROUPS.has(group)) state[group] = new Set([c.dataset.v]);
+        else state[group].add(c.dataset.v);
+      });
+      c.querySelector(".cnum").textContent = n;
+      const zero = n===0 && !c.classList.contains("on");   // 已選中的永遠可以取消
+      c.classList.toggle("zero", zero);
+      c.setAttribute("aria-disabled", String(zero));
+    });
+  });
+  // checkbox：重點條件是 AND，口徑＝「目前條件再加上這一項」
+  document.querySelectorAll("label.check").forEach(l=>{
+    const cb = l.querySelector("input[data-feat]"); if(!cb) return;
+    const n = countIf(()=>{ state.feats.add(cb.dataset.feat); });
+    l.querySelector(".cnum").textContent = n;
+    const zero = n===0 && !cb.checked;
+    l.classList.toggle("zero", zero);
+    cb.disabled = zero;
+  });
+}
+
+/* ── 零結果救援：拿掉哪個已選條件能救回最多結果 ───────────── */
+function rescueOptions(){
+  return activeItems().map(it=>({
+    it,
+    n: countIf(()=>{
+      if(it.kind==="chip") state[it.group].delete(it.val);
+      else if(it.kind==="feat") state.feats.delete(it.val);
+      else state.q="";
+    })
+  })).filter(o=>o.n>0).sort((a,b)=>b.n-a.n).slice(0,3);
+}
+function emptyHtml(){
+  const opts = rescueOptions();
+  let h = '<div class="empty"><div class="ebig">沒有符合全部條件的機構</div>'
+        + '<p class="esub">建議放寬「每月費用帶」或減少勾選的重點條件試試。</p><div class="erescue">';
+  if(opts.length){
+    h += '<div class="ertitle">試試看拿掉這些條件：</div>'
+       + opts.map(o=>`<button type="button" class="erbtn" data-rescue="1" data-kind="${o.it.kind}" data-group="${o.it.group||""}" data-val="${esc(o.it.val)}">取消「${o.it.label}」<b>（可看 ${o.n} 筆）</b></button>`).join("");
+  } else {
+    h += '<div class="ertitle">拿掉任何單一條件都仍然沒有結果，建議點「清除全部條件」重新開始。</div>'
+       + '<button type="button" class="erbtn primary" data-rescue="all">清除全部條件</button>';
+  }
+  return h + '</div></div>';
+}
+
 function render(){
   const r = filtered();
   document.getElementById("cnt").textContent = r.length;
   const el = document.getElementById("list");
   if(!r.length){
-    el.innerHTML = '<div class="empty">沒有符合全部條件的機構。<br>建議放寬「每月費用帶」或減少勾選的重點條件試試。</div>';
+    el.innerHTML = emptyHtml();
   } else {
     el.innerHTML = r.map(f=>{
       const open = openCards.has(f.id);
@@ -995,7 +1089,8 @@ function render(){
   </div>`;}).join("");
   }
   renderActive();
-  updateFilterCount();
+  updateCounts();
+  updateFilterCount(r.length);
   updateBars();
 }
 
@@ -1021,10 +1116,8 @@ function renderActive(){
     `<span class="afpill">${it.label}<button type="button" aria-label="移除條件" data-kind="${it.kind}" data-group="${it.group||""}" data-val="${esc(it.val)}">✕</button></span>`
   ).join("") + '<button type="button" class="afclear" id="afClear">清除全部</button>';
 }
-document.getElementById("activeFilters").addEventListener("click",e=>{
-  if(e.target.id==="afClear"){ resetAll(); return; }
-  const b = e.target.closest("button[data-kind]"); if(!b) return;
-  const kind=b.dataset.kind, val=b.dataset.val, group=b.dataset.group;
+/* 移除單一條件（已選條件列的 ✕ 與零結果救援按鈕共用） */
+function removeCondition(kind, group, val){
   if(kind==="chip"){
     state[group].delete(val);
     const chip = document.querySelector(`.chips[data-group="${group}"] .chip[data-v="${val}"]`);
@@ -1037,13 +1130,26 @@ document.getElementById("activeFilters").addEventListener("click",e=>{
     state.q=""; document.getElementById("q").value="";
   }
   render();
+}
+document.getElementById("activeFilters").addEventListener("click",e=>{
+  if(e.target.id==="afClear"){ resetAll(); return; }
+  const b = e.target.closest("button[data-kind]"); if(!b) return;
+  removeCondition(b.dataset.kind, b.dataset.group, b.dataset.val);
 });
 
 /* ── 手機篩選回饋 ───────────────────────────────────────── */
-function updateFilterCount(){
+function updateFilterCount(hits){
+  if(hits===undefined) hits = filtered().length;
   const n = panelCount();
   document.getElementById("ftlabel").textContent = n ? `篩選條件（已選 ${n}）` : "篩選條件";
-  document.getElementById("applyBtn").textContent = `顯示 ${filtered().length} 筆結果`;
+  // 手機底部 bar：零結果時轉成警示樣態
+  const ab = document.getElementById("applyBtn");
+  ab.classList.toggle("warn", hits===0);
+  ab.textContent = hits===0 ? "沒有符合的機構，請放寬條件" : `顯示 ${hits} 筆結果`;
+  // 桌機側欄：sticky 面板裡隨時看得到目前結果數
+  const fc = document.getElementById("fcount");
+  fc.classList.toggle("zero", hits===0);
+  fc.innerHTML = `目前符合：<b>${hits}</b> 處`;
 }
 function isMobile(){ return window.matchMedia("(max-width:860px)").matches; }
 function filterPanelOpen(){ return isMobile() && !document.getElementById("filters").classList.contains("collapsed"); }
@@ -1112,6 +1218,12 @@ document.getElementById("cmpNames").addEventListener("click",e=>{
   }
 });
 document.getElementById("list").addEventListener("click",e=>{
+  const res = e.target.closest("button[data-rescue]");
+  if(res){
+    if(res.dataset.rescue==="all") resetAll();
+    else removeCondition(res.dataset.kind, res.dataset.group, res.dataset.val);
+    return;
+  }
   const btn = e.target.closest("button[data-act]"); if(!btn) return;
   const card = btn.closest(".card"), id = card.dataset.id;
   if(btn.dataset.act==="more"){
@@ -1164,6 +1276,8 @@ document.getElementById("cmpClear").addEventListener("click",()=>{
 document.querySelectorAll(".chips").forEach(g=>{
   g.addEventListener("click",e=>{
     const c = e.target.closest(".chip"); if(!c) return;
+    // 零結果條件不可選（但已選中的永遠可以取消）
+    if(c.classList.contains("zero") && !c.classList.contains("on")) return;
     const set = state[g.dataset.group];
     c.classList.toggle("on");
     c.classList.contains("on") ? set.add(c.dataset.v) : set.delete(c.dataset.v);
@@ -1192,6 +1306,7 @@ function resetAll(){
   render();
 }
 document.getElementById("reset").addEventListener("click", resetAll);
+initBadges();
 renderCmpBar();
 render();
 </script>
