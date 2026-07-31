@@ -55,7 +55,9 @@
     border:1px solid var(--line);border-radius:12px;padding:9px 13px;font-size:14.5px;font-weight:700;cursor:pointer;}
   .hud-btn:hover{background:#2c3542;}
   #hudBtns{position:absolute;z-index:6;right:max(14px,env(safe-area-inset-right));
-    bottom:max(14px,env(safe-area-inset-bottom));display:flex;gap:8px;}
+    bottom:max(14px,env(safe-area-inset-bottom));display:flex;gap:8px;transition:opacity .2s;}
+  /* 衝出右側跑道時車子正好被這兩顆按鈕擋住（直式尤其明顯）→ 淡掉但仍可按 */
+  #hudBtns.dim{opacity:.34;}
   #feverTag{position:absolute;z-index:5;left:50%;transform:translateX(-50%);
     top:max(64px,calc(env(safe-area-inset-top) + 64px));
     background:rgba(12,60,80,.82);border:1.5px solid var(--nitro);color:var(--nitro);
@@ -151,7 +153,8 @@
   .rom-grid .cell .k{font-size:12.5px;color:var(--sub);} .rom-grid .cell .v{font-size:25px;font-weight:800;}
 
   /* ---------- 結算 ---------- */
-  .end-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:11px;margin:18px 0;}
+  /* 3 欄：v3.1 加了「衝出跑道」格之後，開對手＝6 格剛好兩列；關對手＝5 格 3+2，都不會落單 */
+  .end-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:11px;margin:18px 0;}
   #finBanner{background:linear-gradient(100deg,#4cc38a,#9be8c3,#4cc38a);color:#03301b;border-radius:14px;
     padding:12px 16px;text-align:center;font-size:19px;font-weight:900;letter-spacing:1px;margin-bottom:10px;
     animation:shine 1.6s ease-in-out infinite;}
@@ -245,13 +248,13 @@
       <button class="hud-btn" id="btnHome">⚙ 回設定</button>
     </div>
     <div id="feverTag" class="hidden">氮氣加速中！</div>
-    <div id="rankBox" class="hidden"><div class="k">名次</div><div class="v" id="hRank">第 1 <small>/4</small></div></div>
+    <div id="rankBox" class="hidden"><div class="k">名次</div><div class="v" id="hRank">第 1 <small>/7</small></div></div>
 
     <!-- ===== 設定頁 ===== -->
     <div id="setup" class="overlay">
       <div class="card">
         <h1>傾斜賽車 <span class="pill">治療師版</span><span class="pill demo hidden" id="demoTag">展示模式</span></h1>
-        <div class="lead" id="setupLead">身體往哪邊傾，重機就往哪邊壓。吃金幣、閃障礙、搶氮氣，甩開對手在時間內衝過終點線。金幣位置＝動作處方，四個旋鈕分開調難度。</div>
+        <div class="lead" id="setupLead">身體往哪邊傾，重機就往哪邊壓。吃金幣、閃障礙、搶氮氣，甩開對手在時間內衝過終點線。<b>過彎要主動往彎內傾</b>，不然離心力會把車推出跑道、掉到草地上減速。金幣位置＝動作處方，四個旋鈕分開調難度。</div>
 
         <div class="infobox" id="modeBox">偵測中…</div>
         <div class="warnbox hidden" id="sensorWarn"></div>
@@ -288,10 +291,11 @@
             <button data-assist="0">關</button>
           </div></div>
 
-        <div class="row"><div class="label">對手競速（3 台對手重機＋名次）</div>
+        <div class="row"><div class="label">對手競速（對手重機＋名次牌，建議 <b>6 台</b>）</div>
           <div class="seg" id="segRivals">
-            <button data-rivals="1" class="on">開（建議）</button>
             <button data-rivals="0">關</button>
+            <button data-rivals="3">3 台</button>
+            <button data-rivals="6" class="on">6 台</button>
           </div></div>
 
         <div class="row"><div class="label">場景</div>
@@ -365,6 +369,7 @@
           <div class="cell"><div class="k">完成度</div><div class="v" id="eComp">0%</div></div>
           <div class="cell"><div class="k">吃幣率</div><div class="v" id="eRate">–</div></div>
           <div class="cell"><div class="k">撞擊</div><div class="v" id="eCrash">0</div></div>
+          <div class="cell"><div class="k">衝出跑道</div><div class="v" id="eOff">0</div></div>
           <div class="cell hidden" id="eRankCell"><div class="k">最終名次</div><div class="v" id="eRank">–</div></div>
         </div>
         <div class="note" id="eBest"></div>
@@ -744,6 +749,25 @@ function makeAudio(){
     E.lp.frequency.setTargetAtTime(460+rpm*2100,t,0.07);
     E.g.gain.setTargetAtTime(0.55+0.45*amp,t,0.09);
   }
+  /* ---- v3.1 草地摩擦聲：連續高頻噪音 loop，衝出跑道期間才開 ----
+     走 eng 層（＝已經比 UI 音效低一階），治療師講話不會被蓋掉。 */
+  let G=null;
+  function grassOn(){
+    if(G) return;
+    const s=ac.createBufferSource(); s.buffer=nb2; s.loop=true;
+    const bp=ac.createBiquadFilter(); bp.type='bandpass'; bp.frequency.value=1500; bp.Q.value=0.55;
+    const hp=ac.createBiquadFilter(); hp.type='highpass'; hp.frequency.value=520;
+    const g=ac.createGain(); g.gain.value=0.0001;
+    s.connect(bp); bp.connect(hp); hp.connect(g); g.connect(eng); s.start();
+    g.gain.setTargetAtTime(0.55,ac.currentTime,0.05);
+    G={s,g};
+  }
+  function grassOff(){
+    if(!G) return; const e=G; G=null;
+    e.g.gain.cancelScheduledValues(ac.currentTime);
+    e.g.gain.setTargetAtTime(0.0001,ac.currentTime,0.09);
+    setTimeout(()=>{ try{e.s.stop();}catch(x){} },420);
+  }
   /** 短促噪音爆點：排氣爆聲／胎聲／呼嘯共用 */
   function burst(dest,f0,f1,Q,vol,dur,type='bandpass'){
     const t=ac.currentTime;
@@ -758,8 +782,19 @@ function makeAudio(){
   return { ac,
     start(){ if(ac.state==='suspended') ac.resume();
              if(bgm) playBgm(['music.mp3','music.ogg']); else startProc(); },
-    stop(){ if(bgm){try{bgm.pause();}catch(e){}} stopProc(); engineStop(); },
+    stop(){ if(bgm){try{bgm.pause();}catch(e){}} stopProc(); engineStop(); grassOff(); },
     engineStart, engineStop, engineSet,
+    /** 草地摩擦：衝出跑道期間持續響 */
+    grass(on){ if(on) grassOn(); else grassOff(); },
+    /** 路緣震動帶：壓到路肩時每 0.11 秒一下的悶「噠」 */
+    rumble(){ burst(sfx,260,110,1.2,0.20,0.06); },
+    /** 衝出跑道瞬間：噴砂似的下墜噪音＋悶響 */
+    offroad(){ burst(sfx,1100,180,0.8,0.34,0.32);
+      const t=ac.currentTime;
+      const o=ac.createOscillator(); o.type='square';
+      o.frequency.setValueAtTime(190,t); o.frequency.exponentialRampToValueAtTime(70,t+0.24);
+      const g=ac.createGain(); g.gain.setValueAtTime(0.26,t); g.gain.exponentialRampToValueAtTime(0.0005,t+0.26);
+      o.connect(g); g.connect(sfx); o.start(t); o.stop(t+0.28); },
     /** 起步催油門：轉速拉高再落回 */
     rev(){ engineStart(); const t=ac.currentTime;
       const o=ac.createOscillator(); o.type='sawtooth';
@@ -817,8 +852,13 @@ let AE=null, muted=false;
    六、設定
    ================================================================== */
 const LS_CFG='tiltracer_cfg', LS_SESS='tiltracer_sessions', LS_BEST='tiltracer_best';
-const cfg = { route:1, dur:90, sens:3, speed:3, dens:3, assist:1, scene:'rice', sound:1, rivals:1, laneWeight:[1,1,1] };
+const cfg = { route:1, dur:90, sens:3, speed:3, dens:3, assist:1, scene:'rice', sound:1, rivals:6, laneWeight:[1,1,1] };
 try{ const s=JSON.parse(localStorage.getItem(LS_CFG)||'{}'); Object.assign(cfg,s); cfg.laneWeight=[1,1,1]; }catch(e){}
+// v3.1：「對手競速」從開關升級成數量（關／3／6）。舊 localStorage 存的是布林 1／0／true／false，先接回來再驗證。
+const RIVAL_OPTS=[0,3,6];
+cfg.rivals = (cfg.rivals===true||cfg.rivals===1||cfg.rivals==='1') ? 3
+           : (cfg.rivals===false||cfg.rivals==null) ? 0 : Number(cfg.rivals);
+if(!RIVAL_OPTS.includes(cfg.rivals)) cfg.rivals=6;
 const saveCfg=()=>{ try{ localStorage.setItem(LS_CFG,JSON.stringify(cfg)); }catch(e){} };
 
 const SENS_REQ=[0,0.35,0.50,0.66,0.83,1.00];    // 靈敏度→需要用掉多少比例的 ROM 才打滿
@@ -910,8 +950,10 @@ let route=null, items=[], npcs=[], scen=[], bonus=[];
 let iHead=0, nHead=0, sHead=0;
 let odo=0, elapsed=0, score=0, crashes=0, coneHits=0, npcHits=0, feverCount=0;
 let px=0, pxPrev=0, normPrev=0;
+let pxSteer=0, driftPx=0, camLat=0;         // 玩家指令位置／離心漂移量／鏡頭橫移（px＝兩者相加）
 let feverUntil=0, crashUntil=0, invulnUntil=0, shake=0, flash=0;
-let floats=[], sparks=[];
+let floats=[], sparks=[], dusts=[];
+let offroad=false, offExitT=-9, offroadCount=0, offroadSec=0, rumbleT=0;
 let countT=0, lastBeep=-1;
 let lastV=0, finished=false, overtakes=0;   // lastV＝本幀實際車速（時速表用）
 let lastInputT=-9;                          // 最後一次有效轉向輸入的時刻（超車獎勵防 AFK 白領）
@@ -925,8 +967,34 @@ let stageIdx=0;                             // 目前路程段（0 暖身 / 1 �
 let finT=0;                                 // 完賽慢動作計時
 let dusk=0;                                 // 天色（0 午後 → 1 黃昏）
 const COMBO_WIN=2.5;                        // 連吃視窗（秒）
-const RIVAL_HUE=[210,52,118];               // 對手車色：藍／黃／綠（紅色機車做色相偏移）
+// 對手車色（紅色機車做色相偏移）：⚠️不能用「等距分色相」挑——實測把去背後的車殼像素平均起來，
+// 色相 70～180 這一段全部落在又暗又濁的墨綠區（L≈25%），等距挑會挑出三台看起來一樣的綠車。
+// 這六個角度是量測後挑的：藍／綠／桃紅／土黃／藍綠／紫，且排序讓「3 台」模式拿到最好認的前三個。
+// ⚠️minSat=52 一樣不能拿掉：不設彩度門檻，騎士的黑皮衣會被轉成橄欖綠。
+const RIVAL_HUE=[240,120,320,60,190,285];
 const RIVAL_FADE0=0.30, RIVAL_FADE1=1.40;   // 對手錯身淡出區間（odo）：貼太近就別畫，免得糊在玩家身上
+
+/* ---- v3.1 離心力／衝出跑道 ----
+   模型＝「位置控制＋離心偏移」：玩家傾斜決定的是想待的橫向位置（pxSteer），
+   彎道則疊上一個往彎外的偏移（driftPx），兩者相加＝實際位置 px。
+   ⚠️關鍵是 DRIFT_GRIP：往彎內傾能把離心力抵銷掉（最多 92%），所以
+     ・完全不動的人 → 偏移吃滿 → 中等以上的彎就會被推出跑道
+     ・有主動壓車的人 → 抵銷掉大半 → 守得住路線，且再大的彎都有解（不會變成不可能任務）
+   這正是我們要的處方行為：彎道＝必須主動做動作的地方。 */
+const DRIFT_GAIN=4.4;        // 彎度 → 漂移量（px 單位／單位彎度，基準車速時）
+const DRIFT_ASSIST=0.6;      // 輔助駕駛開＝離心力打 6 折（長者仍要動手，只是不會狂噴出去）
+const DRIFT_GRIP=0.92;       // 往彎內傾最多能抵銷的比例（留 8%：永遠有一點外推，才有「在跟路」的手感）
+const DRIFT_LAG=3.2;         // 漂移建立速率（1/s，約 0.3 秒到位；不瞬間跳走，長者才反應得過來）
+// 路肩警告帶起點（1.0＝路面邊緣）。0.86 是實測調的：0.90 的話從警告到出界只有 0.2 秒，
+// 長者根本來不及；再往下調又會變成「停在外側車道就一直嗡嗡叫」。
+const SHOULDER=0.86;
+const OFF_IN=1.02, OFF_OUT=0.95;   // 出界／回正門檻（遲滯，免得在邊緣抖動反覆觸發）
+const PX_MAX=1.45;           // 橫向位置上限（配合鏡頭橫移，車還留在畫面內）
+const OFF_SPD=0.5, OFF_RECOVER=0.5;// 草地上車速 ×0.5；回到路面後 0.5 秒線性回升，不瞬間跳回全速
+// 鏡頭橫移：|px| 超過 0.75 才開始跟（正常行駛完全不動，長者不會暈），之後跟 1.25 倍
+const CAM_DEAD=0.75, CAM_FOLLOW=1.25, CAM_LAG=4.0;
+// 對手起跑位置：頭尾兩端固定，中間依台數平均散開（3 台／6 台共用同一段賽道）
+const RIVAL_HEAD=6.2, RIVAL_TAIL=-6.4;
 
 // 臨床量測
 const M = {
@@ -960,16 +1028,32 @@ function newGame(){
   bonus=[]; iHead=0; nHead=0; sHead=0;
   odo=0; elapsed=0; nowT=0; score=0; crashes=0; coneHits=0; npcHits=0; feverCount=0;
   px=0; pxPrev=0; normPrev=0; coinStreak=0; lastV=0; finished=false; overtakes=0; lastInputT=-9;
-  feverUntil=0; crashUntil=0; invulnUntil=0; shake=0; flash=0; floats=[]; sparks=[];
+  feverUntil=0; crashUntil=0; invulnUntil=0; shake=0; flash=0; floats=[]; sparks=[]; dusts=[];
   leanVis=0; combo=0; comboT=-9; stageIdx=0; finT=0; dusk=0;
+  pxSteer=0; driftPx=0; camLat=0;
+  offroad=false; offExitT=-9; offroadCount=0; offroadSec=0; rumbleT=0;
+  if(AE) AE.grass(false);
   // 對手：起跑時前後散開。橡皮筋 AI 讓他們貼著「基準車速 ±8%」跑，
   // 所以玩家真正拉開差距的手段＝氮氣與不撞車，這正是我們要強化的行為。
+  // v3.1 改可調台數（0／3／6）：每台的節奏波動振幅、頻率、相位都拉開，
+  // 否則六台會一起加速一起減速，看起來像疊成一團的同一台車。
   const rr=mulberry32(seed^0x2545f491);
-  rivals = cfg.rivals ? [
-    { odo: 4.0, lane:-1, hue:0, spd:1.015, laneT:rr()*3 },
-    { odo: 0.5, lane: 1, hue:1, spd:1.000, laneT:rr()*3 },
-    { odo:-3.5, lane: 0, hue:2, spd:0.985, laneT:rr()*3 }
-  ] : [];
+  const nR=RIVAL_OPTS.includes(cfg.rivals)?cfg.rivals:0;
+  const startLane=[-1,1,0,1,-1,0];
+  rivals=[];
+  for(let i=0;i<nR;i++){
+    rivals.push({
+      odo: nR>1 ? RIVAL_HEAD-(RIVAL_HEAD-RIVAL_TAIL)*i/(nR-1) : 1.0,
+      lane: startLane[i%6], hue:i%RIVAL_HUE.length,
+      // 基礎配速跨 1.02～0.94：橡皮筋的平衡點＝「配速比玩家快的排前面、慢的排後面」，
+      // ⚠️這一段要跨過玩家的實際配速，否則整團都黏在玩家前面，怎麼認真跑都是最後一名（6 台時特別明顯）。
+      spd: nR>1 ? 1.02-0.08*i/(nR-1) : 1.0,
+      laneT: 1.2+rr()*3.2,
+      wa: 0.018+rr()*0.030,          // 波動振幅 ±1.8～4.8%
+      wf: 0.55+rr()*0.95,            // 波動頻率
+      wp: rr()*6.2832                // 相位
+    });
+  }
   myRank=1+rivals.filter(r=>r.odo>0).length; rankPrev=myRank;
   resetMetrics(); tiltFilter.reset();
 }
@@ -994,6 +1078,9 @@ function updatePlay(dt){
   let v=SPEED_V[cfg.speed];
   if(fever) v*=FEVER_MULT;    // v3：1.6 → 1.25（爽感改由引擎咆哮＋排氣爆聲＋速度線承擔）
   if(nowT<crashUntil) v*=0.42+0.58*(1-(crashUntil-nowT)/1.2);
+  // v3.1 草地上車速 ×0.5；回到路面後給 0.5 秒把速度拉回來（瞬間跳回全速會很假、也感覺不到懲罰）
+  v *= offroad ? OFF_SPD
+     : (nowT-offExitT<OFF_RECOVER ? OFF_SPD+(1-OFF_SPD)*((nowT-offExitT)/OFF_RECOVER) : 1);
   odo += v*dt; lastV=v;
   elapsed += dt;
 
@@ -1021,8 +1108,23 @@ function updatePlay(dt){
     if(Math.abs(norm)<0.09) target=0;
   }
   pxPrev=px;
-  px += (target-px)*Math.min(1,dt*9);
-  px = clamp(px,-0.98,0.98);
+  pxSteer += (target-pxSteer)*Math.min(1,dt*9);
+  pxSteer = clamp(pxSteer,-0.98,0.98);              // 玩家的「指令位置」仍在路面內
+
+  // --- v3.1 離心力：彎道把車推向彎外，往彎內主動傾才抵銷得掉 ---
+  const curvNow = route ? curveOf(route.k,odo) : 0;
+  // curv>0＝路往右彎 → 離心力往左推（所以是 -curvNow）
+  const leanIn = curvNow ? clamp01(norm*Math.sign(curvNow)) : 0;
+  // ⚠️車速權重要用「名目車速」不能用當下車速：用當下車速的話，出界減速 → 離心力跟著變小 → 自己被推回路面，
+  //   會變成 0.2 秒進出一次的抖動（實測 60 秒出界 13 次卻只滯留 3 秒）。出界的懲罰不該順便幫你解圍。
+  const spdF = SPEED_V[cfg.speed]*(fever?FEVER_MULT:1)/SPEED_V[3];
+  const dTarget = -curvNow*DRIFT_GAIN*(cfg.assist?DRIFT_ASSIST:1)*spdF*(1-DRIFT_GRIP*leanIn);
+  driftPx += (dTarget-driftPx)*Math.min(1,dt*DRIFT_LAG);
+  px = clamp(pxSteer+driftPx,-PX_MAX,PX_MAX);
+  // 鏡頭橫移：路面在近處幾乎佔滿畫面寬，不跟一下的話車衝出去就直接跑到畫面外
+  const camT = Math.sign(px)*Math.max(0,Math.abs(px)-CAM_DEAD)*CAM_FOLLOW;
+  camLat += (camT-camLat)*Math.min(1,dt*CAM_LAG);
+  stepOffroad(dt);
 
   // --- 轉向事件（峰值角，臨床用） ---
   const sg=tiltSigned(), an=Math.abs(sg);
@@ -1083,7 +1185,8 @@ function updatePlay(dt){
     const dz=n.pos-odo;
     if(!n.done && dz<=0.26 && dz>-1.6){
       n.done=true;
-      if(Math.abs(px-n.lane*LANE_OFF)<0.46) doCrash('npc');
+      // 在草地上錯身不算撞（車在路面、人在草地）；能追過去仍算超車
+      if(!offroad && Math.abs(px-n.lane*LANE_OFF)<0.46) doCrash('npc');
       else if(nowT-lastInputT<2.0){                        // 安全超車＝有感回饋；要有近期轉向輸入才算（防掛機白領）
         overtakes++; score+=20;
         floats.push({txt:'超車 +20',col:'#7fe3ff',t:0,x:CW/2+n.lane*CW*0.15,y:CH*0.50});
@@ -1111,6 +1214,39 @@ function stepFx(dt){
   for(let i=floats.length-1;i>=0;i--){ floats[i].t+=dt; if(floats[i].t>0.95) floats.splice(i,1); }
   for(let i=sparks.length-1;i>=0;i--){ const s=sparks[i]; s.t+=dt; s.x+=s.vx*dt; s.y+=s.vy*dt; s.vy+=520*dt;
     if(s.t>0.7) sparks.splice(i,1); }
+  // 揚塵：飄得慢、會膨脹、慢慢淡掉（跟火花的「噴出去」是兩種質感）
+  for(let i=dusts.length-1;i>=0;i--){ const d=dusts[i]; d.t+=dt;
+    d.x+=d.vx*dt; d.y+=d.vy*dt; d.vy+=70*dt; d.r+=d.gr*dt;
+    if(d.t>d.life) dusts.splice(i,1); }
+}
+
+/** 路肩警告 → 衝出跑道 → 回到路面 的狀態機（v3.1）
+    先警告再出去：長者才有時間反應。門檻用遲滯（1.02 出／0.95 回），免得在邊緣抖動反覆觸發。 */
+function stepOffroad(dt){
+  const a=Math.abs(px);
+  // --- 路肩警告帶：輕微震動＋路緣震動音 ---
+  if(!offroad && a>SHOULDER){
+    shake=Math.max(shake,0.30);
+    rumbleT-=dt;
+    if(rumbleT<=0){ rumbleT=0.11; if(AE&&cfg.sound) AE.rumble(); }
+  }else rumbleT=0;
+
+  if(!offroad && a>OFF_IN){                       // ---- 出界 ----
+    offroad=true; offroadCount++;
+    floats.push({txt:'衝出跑道！',col:'#ff9a3c',t:0,x:CW/2,y:CH*0.44,big:1.25});
+    if(AE&&cfg.sound){ AE.offroad(); AE.skid(); AE.grass(true); }
+    if(nowT<feverUntil){                          // 比照撞車：Fever 中衝出＝提前結束（不扣金幣）
+      feverUntil=0; $('feverTag').classList.add('hidden');
+      floats.push({txt:'加速中斷',col:'#ff7a59',t:0,x:CW/2,y:CH*0.56});
+    }
+  }else if(offroad && a<OFF_OUT){                 // ---- 回到路面 ----
+    offroad=false; offExitT=nowT;
+    if(AE&&cfg.sound){ AE.grass(false); AE.beep(720,0.10); }
+  }
+  if(offroad){
+    offroadSec+=dt;
+    shake=Math.max(shake,0.34);                   // 草地顛簸：持續小幅晃
+  }
 }
 
 /** 壓車視覺量：每幀補間，絕不跳變（換圖是淡入的，角度是連續的） */
@@ -1128,15 +1264,25 @@ function updateRivals(dt){
   for(const r of rivals){
     const gap=r.odo-odo;                                   // >0＝領先玩家
     const band=clamp(-gap*0.018,-0.08,0.08);               // 橡皮筋：領先減速、落後加速，上限 ±8%
-    r.odo=Math.min(route.totalOdo, r.odo+base*r.spd*(1+band)*dt);
+    const wob=1+r.wa*Math.sin(nowT*r.wf+r.wp);             // 各自的節奏波動（相位／振幅都不同 → 六台不會疊成一團）
+    r.odo=Math.min(route.totalOdo, r.odo+base*r.spd*wob*(1+band)*dt);
     r.laneT-=dt;
-    if(r.laneT<=0){ r.laneT=3.5+Math.random()*4; r.lane=[-1,0,1][(Math.random()*3)|0]; }
+    if(r.laneT<=0){
+      r.laneT=3.5+Math.random()*4;
+      // 換道時避開「同一段路已經有人佔的車道」：六台時常常前後貼很近，同 lane 同 dz 會疊圖
+      const used=rivals.filter(o=>o!==r&&Math.abs(o.odo-r.odo)<1.3).map(o=>o.lane);
+      const free=[-1,0,1].filter(l=>used.indexOf(l)<0);
+      const pool=free.length?free:[-1,0,1];
+      r.lane=pool[(Math.random()*pool.length)|0];
+    }
   }
   myRank=1+rivals.filter(r=>r.odo>odo).length;
   if(myRank!==rankPrev){
     const better=myRank<rankPrev;
+    // 6 台時名次會連跳，舊的名次飄字沒清掉會疊成看不懂的一團 → 同時只留最新一則
+    for(let i=floats.length-1;i>=0;i--) if(floats[i].rank) floats.splice(i,1);
     floats.push({ txt: better?`第 ${myRank} 名！`:`被超車 · 第 ${myRank} 名`,
-                  col: better?'#4cc38a':'#ff7a59', t:0, x:CW/2, y:CH*0.44 });
+                  col: better?'#4cc38a':'#ff7a59', t:0, x:CW/2, y:CH*0.44, rank:1 });
     if(AE&&cfg.sound){ if(better){ AE.whoosh(); AE.beep(1046,0.16); } else AE.beep(392,0.18); }
     const rb=$('rankBox'); rb.classList.add('pop'); setTimeout(()=>rb.classList.remove('pop'),200);
     rankPrev=myRank;
@@ -1176,10 +1322,15 @@ function sweepSilently(dt){
 
 function resolveItem(it){
   const carY=CH*0.55;          // 飄字要浮在車子上方，壓在車身上長者讀不到
-  const d=Math.abs(px-it.lane*LANE_OFF);
+  // 人在草地上就吃不到路面上的東西（也不算驚險閃避）：出界的代價是速度，不另外扣金幣
+  const d = offroad ? 9 : Math.abs(px-it.lane*LANE_OFF);
+  // 防掛機（v3.1）：金幣＝動作處方，要「近期有做動作」才算得到分。
+  // ⚠️這條在 v3.1 變成必要：離心力會把不動的人左右甩，剛好甩過兩側金幣＝零動作白吃（實測掛機 60 秒暴衝到 615 分）。
+  // 正常玩的人只要維持傾斜（|norm|>0.15）就一直是 active，不會被誤傷。
+  const active = nowT-lastInputT < 2.5;
   if(it.kind==='coin'){
     const mul = nowT<feverUntil ? 2 : 1;
-    if(d<0.38){
+    if(d<0.38 && active){
       score += 10*mul; it.taken=true;                // 吃到才消失；沒吃到讓它掃過去（視覺才連貫）
       combo = (nowT-comboT<=COMBO_WIN) ? combo+1 : 1;   // 2.5 秒內接得上才算連吃
       comboT=nowT; coinStreak=combo;
@@ -1196,7 +1347,7 @@ function resolveItem(it){
     if(d<0.44){ it.taken=true; startFever(); }
   }else if(it.kind==='cone'){
     if(d<0.30) doCrash('cone');
-    else if(d<0.52){                                 // 驚險閃避：貼身錯身但沒撞到
+    else if(d<0.52 && active){                       // 驚險閃避：貼身錯身但沒撞到（同樣要有近期動作才算）
       score+=5;
       floats.push({txt:'驚險！+5',col:'#7fe3ff',t:0,x:CW/2+it.lane*CW*0.12,y:carY-CH*0.05});
       if(AE&&cfg.sound){ AE.whoosh(); AE.beep(1180,0.09); }
@@ -1233,7 +1384,9 @@ function doCrash(src){
 /* ==================================================================
    十一、繪圖
    ================================================================== */
-const roadCenterPx=(t,W,cpx)=>W/2+cpx*(1-t)*(1-t);
+// camLat＝鏡頭橫移（px 單位，與 halfW 同尺度）：衝出跑道時鏡頭跟著移，
+// 車才不會直接跑到畫面外（近處路面幾乎佔滿整個畫面寬）。
+const roadCenterPx=(t,W,cpx)=>W/2+cpx*(1-t)*(1-t)-camLat*t*W*0.46;
 const halfWAt=(t,W)=>t*W*0.46;
 
 function render(){
@@ -1250,7 +1403,7 @@ function render(){
 
   // ---- 背景照片 ----
   ctx.clearRect(-20,-20,W+40,H+40);
-  const par=-cpx*0.25;
+  const par=-cpx*0.25-camLat*W*0.05;      // 鏡頭橫移時遠景反向微移，才有視差、不像整張圖被平移
   if(ASSET.bg) ctx.drawImage(ASSET.bg,0,0,ASSET.bg.width,ASSET.bg.height*0.80,-W*0.15+par,-14,W*1.3,HOR+22);
   else { ctx.fillStyle='#8ec6f0'; ctx.fillRect(-20,-20,W+40,HOR+22); }
 
@@ -1389,8 +1542,29 @@ function render(){
     ctx.restore();
   }
 
+  // ---- 揚塵（畫在車後面）----
+  for(const d of dusts){
+    ctx.globalAlpha=d.a*Math.max(0,1-d.t/d.life);
+    ctx.fillStyle=d.col;
+    ctx.beginPath(); ctx.arc(d.x,d.y,d.r,0,7); ctx.fill();
+  }
+  ctx.globalAlpha=1;
+
   // ---- 玩家重機（v3）----
   drawPlayerBike(W,H,cpx);
+
+  // ---- 路肩／出界的邊緣警示光（長者靠這個一眼看出「我偏了」）----
+  const pa=Math.abs(px);
+  if(pa>SHOULDER){
+    const k=clamp01((pa-SHOULDER)/0.30), side=px>0?1:-1;
+    const gw=W*0.22;
+    const eg = side>0 ? ctx.createLinearGradient(W-gw,0,W,0) : ctx.createLinearGradient(gw,0,0,0);
+    const col = offroad?'255,140,50':'255,196,70';
+    eg.addColorStop(0,`rgba(${col},0)`); eg.addColorStop(1,`rgba(${col},${(0.30*k).toFixed(3)})`);
+    ctx.fillStyle=eg;
+    // 多畫 20px 出去：這一段還在 shake 的 translate 裡，不留邊會被晃出一條縫
+    ctx.fillRect(side>0?W-gw:-20,-20,gw+20,H+40);
+  }
 
   // ---- 天色：午後 → 黃昏（隨路程進度加深）----
   // ⚠️用 multiply 不用半透明橘色蓋：蓋的話黑階會被抬起來，整張圖糊成褪色的棕；
@@ -1449,8 +1623,23 @@ function drawPlayerBike(W,H,cpx){
   const mr=clamp01((mag-0.44)/0.14), mixL=mr*mr*(3-2*mr);
   const wob=clamp((px-pxPrev)*2.2,-0.10,0.10);         // 變換車道的一點慣性搖擺
   const blink = nowT<invulnUntil && Math.floor(nowT*12)%2===0;
-  const baseY=H*0.978;
+  // 草地顛簸：車身小幅上下跳（兩個不同頻率疊起來才不像規律的正弦波）
+  const bump = offroad ? (Math.sin(nowT*27)*0.6+Math.sin(nowT*41.3)*0.4)*BIKE_W*0.030 : 0;
+  const baseY=H*0.978+bump;
   const U=ASSET.bikeU, L=ASSET.bikeL;
+
+  // 後輪揚塵：只在草地上噴，褐黃色、往兩側往上揚
+  // ⚠️初速要把塵往車身外側推：生在輪下正中的話整團會被車身擋住，畫了等於沒畫（第一版就是這樣）
+  if(offroad){
+    for(let i=0;i<3;i++){
+      const sd=Math.random()<0.5?-1:1;
+      dusts.push({ x:carX+sd*BIKE_W*(0.14+Math.random()*0.20), y:baseY-BIKE_W*0.02,
+        vx:sd*(70+Math.random()*150), vy:-70-Math.random()*150,
+        r:BIKE_W*(0.06+Math.random()*0.07), gr:BIKE_W*0.30,
+        t:0, life:0.45+Math.random()*0.35, a:0.40+Math.random()*0.22,
+        col:Math.random()<0.5?'#cbab63':'#a8894a' });
+    }
+  }
 
   ctx.save();
   ctx.translate(carX,baseY);
@@ -1675,9 +1864,10 @@ function updateHUD(){
   $('hScore').textContent=score;
   const sp=$('hSpd');
   sp.textContent=Math.round(lastV*4.4*3.6);            // odo/s → km/h（1 odo＝4.4 m）
-  sp.style.color = nowT<feverUntil ? 'var(--nitro)' : (nowT<crashUntil ? 'var(--warn)' : '');
+  sp.style.color = nowT<feverUntil ? 'var(--nitro)' : ((nowT<crashUntil||offroad) ? 'var(--warn)' : '');
   $('hCrash').textContent=crashes;
   $('hTime').textContent=Math.max(0,Math.ceil(cfg.dur-elapsed))+'s';
+  $('hudBtns').classList.toggle('dim',offroad);
   const rb=$('rankBox');
   rb.classList.toggle('hidden',!rivals.length);
   if(rivals.length) $('hRank').innerHTML=`第 ${myRank} <small>/${rivals.length+1}</small>`;
@@ -1815,16 +2005,18 @@ function endGame(){
   $('eComp').textContent=comp+'%';
   $('eRate').textContent=presT?Math.round(collT/presT*100)+'%':'–';
   $('eCrash').textContent=crashes;
+  $('eOff').textContent=offroadCount;
   // 最終名次：只有開了對手競速才顯示（關掉時整格藏起來，版面自動變 3 格）
   const rc=$('eRankCell');
   if(rivals.length){ rc.classList.remove('hidden'); $('eRank').textContent='第 '+myRank+' 名'; }
   else rc.classList.add('hidden');
   $('finBanner').classList.toggle('hidden',!finished);
-  $('endLead').textContent = finished
+  const offTxt = offroadCount ? `本局衝出跑道 ${offroadCount} 次（草地上共 ${offroadSec.toFixed(1)} 秒，速度只剩一半）。` : '';
+  $('endLead').textContent = (finished
     ? `跑完整條路線！用時 ${Math.round(elapsed)} 秒，提前 ${Math.max(0,Math.round(cfg.dur-elapsed))} 秒完賽。`
       + (rivals.length?`本局名次：第 ${myRank} 名／${rivals.length+1} 人。`:'')
     : `辛苦了！以下是本局成績（路線完成 ${comp}%，吃到氮氣衝刺可以跑得更遠）。`
-      + (rivals.length?`本局名次：第 ${myRank} 名／${rivals.length+1} 人。`:'');
+      + (rivals.length?`本局名次：第 ${myRank} 名／${rivals.length+1} 人。`:'')) + offTxt;
   // 破紀錄（依設定組合分開記）
   const sig=`${cfg.route}_${cfg.dur}_${cfg.sens}_${cfg.speed}_${cfg.dens}_${cfg.assist}`;
   let best={}; try{ best=JSON.parse(localStorage.getItem(LS_BEST)||'{}'); }catch(e){}
@@ -1877,8 +2069,10 @@ function buildSession(){
     dens:cfg.dens, assist:cfg.assist, scene:cfg.scene, mode:axisMode, demo:demoMode,
     score, dist:Math.round(odo*4.4), crashes, coneHits, npcHits, feverCount,
     finished, overtakes, playTime:Math.round(elapsed),
-    // v3 新欄位：舊紀錄沒有這兩欄，判讀端一律用 != null 守（向下相容）
+    // v3／v3.1 新欄位：舊紀錄沒有這些欄，判讀端一律用 != null 守（向下相容）
     rivalsOn:rivals.length?1:0, rank:rivals.length?myRank:null, fieldSize:rivals.length?rivals.length+1:null,
+    rivalCount:rivals.length,
+    offroadCount, offroadSec:+offroadSec.toFixed(1),
     completion:route?Math.min(100,Math.round(odo/route.totalOdo*100)):null,
     presented:M.presented.slice(), collected:M.collected.slice(),
     coinRate:pct(collT,presT), rateL, rateC:pct(M.collected[1],M.presented[1]), rateR,
@@ -1947,6 +2141,12 @@ function renderReport(){
        s.avgRT!=null?`最快 ${(s.bestRT/1000).toFixed(2)} s．物件出現→開始轉向`:`樣本不足（${s.nRT||0} 次，需 ≥5 次）`)+
     M2('撞擊次數', s.crashes+' 次'+(prev?dl(s.crashes,prev.crashes,'',false):''),
        `三角錐 ${s.coneHits}．前車 ${s.npcHits}`, s.crashes>6?'bad':'')+
+    M2('衝出跑道', (s.offroadCount!=null?s.offroadCount+' 次':'–')
+         +(prev&&prev.offroadCount!=null&&s.offroadCount!=null?dl(s.offroadCount,prev.offroadCount,'',true):''),
+       s.offroadCount!=null
+         ? `草地滯留 ${s.offroadSec??0} 秒．彎道跟隨能力（越少越好）`
+         : '此筆為舊版紀錄，無此欄位',
+       (s.offroadCount!=null&&s.offroadCount>5)?'bad':'')+
     M2('本局成績', s.score+' 金幣',
        `完成度 ${s.completion!=null?s.completion+'%':'–'}${s.finished?'（🏁 完賽）':''}．距離 ${s.dist} m．超車 ${s.overtakes||0}．氮氣 ${s.feverCount} 次`)+
     (s.rank!=null
@@ -1996,6 +2196,11 @@ function renderReport(){
   if(s.rank!=null) notes.push(s.rank===1
     ? `對手競速最終第 1 名／${s.fieldSize||4} 位：對手採橡皮筋配速貼著基準車速，能領先代表氮氣抓取確實、撞擊損失少。`
     : `對手競速最終第 ${s.rank} 名／${s.fieldSize||4} 位：名次落後多半來自撞擊減速（本局 ${s.crashes} 次）或漏掉氮氣（${s.feverCount} 次）；若名次造成挫折感，設定頁可關閉「對手競速」。`);
+  if(s.offroadCount!=null){
+    notes.push(s.offroadCount<=2
+      ? `<b>彎道跟隨能力</b>：衝出跑道 ${s.offroadCount} 次（草地滯留 ${s.offroadSec??0} 秒）。彎道有離心力把車往彎外推，出界少代表個案能在彎道<b>主動往彎內傾</b>並維持住，動作的時機與幅度都到位。`
+      : `⚠️<b>彎道跟隨能力</b>：衝出跑道 ${s.offroadCount} 次（草地滯留 ${s.offroadSec??0} 秒，期間車速只剩一半）。出界多半代表「該轉的時候沒轉，或轉了但幅度不夠」；可先降車速、開啟輔助駕駛（離心力打 6 折），或把轉向靈敏度調靈敏一點，讓個案先建立「彎道要出力」的成功經驗。`);
+  }
   notes.push(s.crashes<=3
     ? `撞擊 ${s.crashes} 次（三角錐 ${s.coneHits}、前車 ${s.npcHits}），路徑控制穩定，可考慮提高車速或密度。`
     : `撞擊 ${s.crashes} 次（三角錐 ${s.coneHits}、前車 ${s.npcHits}）偏多，可先降低車速或開啟輔助駕駛，讓個案先建立成功經驗。`);
@@ -2013,7 +2218,7 @@ function renderReport(){
         <span>車速 ${SPEED_TXT[s.speed]}</span>
         <span>密度 ${DENS_TXT[s.dens]}</span>
         <span>輔助駕駛 ${s.assist?'開':'關'}</span>
-        <span>對手競速 ${s.rivalsOn?'開':'關'}</span>
+        <span>對手競速 ${s.rivalsOn?((s.rivalCount||s.fieldSize-1||3)+' 台'):'關'}</span>
         <span>${(SCENES[s.scene]||SCENES.rice).name}</span>
       </div>
     </div>
