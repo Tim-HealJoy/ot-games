@@ -60,11 +60,37 @@
     top:max(64px,calc(env(safe-area-inset-top) + 64px));
     background:rgba(12,60,80,.82);border:1.5px solid var(--nitro);color:var(--nitro);
     border-radius:999px;padding:6px 18px;font-size:17px;font-weight:800;letter-spacing:1px;}
+  /* 名次牌：獨立於 HUD 那一列，才能放大字又不會把 HUD 擠破版 */
+  #rankBox{position:absolute;z-index:5;pointer-events:none;
+    left:max(14px,env(safe-area-inset-left));
+    top:max(62px,calc(env(safe-area-inset-top) + 62px));
+    background:rgba(20,25,31,.82);border:1px solid var(--line);border-radius:14px;
+    padding:5px 14px;text-align:center;transition:transform .18s;}
+  #rankBox .k{font-size:11px;color:var(--sub);letter-spacing:.5px;}
+  #rankBox .v{font-size:30px;font-weight:900;line-height:1.06;color:var(--accent);white-space:nowrap;}
+  #rankBox .v small{font-size:14px;color:var(--sub);font-weight:700;}
+  #rankBox.pop{transform:scale(1.16);}
   @media (max-width:820px),(max-height:520px){
     #hud{padding:7px 10px;padding-top:max(7px,env(safe-area-inset-top));gap:6px;flex-wrap:nowrap;align-items:center;}
     .stat{padding:4px 9px;min-width:0;border-radius:10px;}
     .stat .k{font-size:10px;letter-spacing:0;} .stat .v{font-size:18px;}
     .hud-btn{padding:8px 10px;font-size:13px;border-radius:10px;}
+  }
+  /* ---------- 直式（B 模式單手持機）：HUD 折兩列，各面板縮一號 ---------- */
+  @media (orientation:portrait){
+    #hud{flex-wrap:wrap;gap:5px;padding:6px 8px;padding-top:max(6px,env(safe-area-inset-top));}
+    #hud .spacer{display:none;}
+    .stat{padding:3px 9px;border-radius:9px;}
+    .stat .k{font-size:9.5px;} .stat .v{font-size:16px;}
+    #rankBox{top:max(78px,calc(env(safe-area-inset-top) + 78px));padding:4px 11px;border-radius:12px;}
+    #rankBox .k{font-size:10px;} #rankBox .v{font-size:24px;} #rankBox .v small{font-size:12px;}
+    #feverTag{top:max(146px,calc(env(safe-area-inset-top) + 146px));font-size:14px;padding:5px 14px;}
+    #hudBtns{gap:6px;}
+    .hud-btn{padding:8px 9px;font-size:12.5px;}
+    .card{padding:20px 18px;border-radius:18px;}
+    .card h1{font-size:23px;} .card .lead{font-size:14px;}
+    .seg button{min-width:56px;font-size:15px;padding:11px 6px;}
+    .end-grid{grid-template-columns:1fr 1fr;}
   }
 
   /* ---------- 覆蓋層與卡片 ---------- */
@@ -187,7 +213,7 @@
 
   @media print{
     body{background:#fff !important;overflow:visible !important;}
-    #cv,#hud,#hudBtns,#feverTag,#setup,#calib,#end,#reorient,#loading,#confetti{display:none !important;}
+    #cv,#hud,#hudBtns,#feverTag,#rankBox,#setup,#calib,#end,#reorient,#loading,#confetti{display:none !important;}
     #report.overlay{position:static !important;background:none !important;padding:0 !important;display:block !important;}
     #report .card{background:#fff !important;border:none !important;box-shadow:none !important;color:#111 !important;
       width:100% !important;max-width:100% !important;max-height:none !important;overflow:visible !important;padding:0 !important;}
@@ -219,12 +245,13 @@
       <button class="hud-btn" id="btnHome">⚙ 回設定</button>
     </div>
     <div id="feverTag" class="hidden">氮氣加速中！</div>
+    <div id="rankBox" class="hidden"><div class="k">名次</div><div class="v" id="hRank">第 1 <small>/4</small></div></div>
 
     <!-- ===== 設定頁 ===== -->
     <div id="setup" class="overlay">
       <div class="card">
         <h1>傾斜賽車 <span class="pill">治療師版</span><span class="pill demo hidden" id="demoTag">展示模式</span></h1>
-        <div class="lead" id="setupLead">用手機傾斜控制方向：吃金幣、閃障礙、搶氮氣，在時間內衝過終點線。金幣位置＝動作處方，四個旋鈕分開調難度。</div>
+        <div class="lead" id="setupLead">身體往哪邊傾，重機就往哪邊壓。吃金幣、閃障礙、搶氮氣，甩開對手在時間內衝過終點線。金幣位置＝動作處方，四個旋鈕分開調難度。</div>
 
         <div class="infobox" id="modeBox">偵測中…</div>
         <div class="warnbox hidden" id="sensorWarn"></div>
@@ -259,6 +286,12 @@
           <div class="seg" id="segAssist">
             <button data-assist="1" class="on">開（建議）</button>
             <button data-assist="0">關</button>
+          </div></div>
+
+        <div class="row"><div class="label">對手競速（3 台對手重機＋名次）</div>
+          <div class="seg" id="segRivals">
+            <button data-rivals="1" class="on">開（建議）</button>
+            <button data-rivals="0">關</button>
           </div></div>
 
         <div class="row"><div class="label">場景</div>
@@ -309,10 +342,14 @@
     <!-- ===== 方向改變 ===== -->
     <div id="reorient" class="overlay hidden">
       <div class="card">
-        <h1>螢幕方向改變了</h1>
-        <div class="lead">橫式與直式用的是不同的傾斜軸（橫式＝雙手握桿、直式＝前臂旋轉），必須重新校正才會準。</div>
-        <button class="start" id="btnReorientCalib">重新校正</button>
-        <div class="row-btns"><button class="hud-btn" id="btnReorientHome">⚙ 回設定</button></div>
+        <h1>螢幕轉向了</h1>
+        <div class="lead" id="reorientLead">換了握持方式，傾斜的軸也換了，重新對一下就好。</div>
+        <button class="start" id="btnReorientCalib">快速重新校正</button>
+        <div class="row-btns">
+          <button class="hud-btn" id="btnReorientSkip">直接繼續（用預設值）</button>
+          <button class="hud-btn" id="btnReorientHome">⚙ 回設定</button>
+        </div>
+        <div class="note">「快速重新校正」＝一鍵直接開始，三步驟走完就回到遊戲。</div>
       </div>
     </div>
 
@@ -328,6 +365,7 @@
           <div class="cell"><div class="k">完成度</div><div class="v" id="eComp">0%</div></div>
           <div class="cell"><div class="k">吃幣率</div><div class="v" id="eRate">–</div></div>
           <div class="cell"><div class="k">撞擊</div><div class="v" id="eCrash">0</div></div>
+          <div class="cell hidden" id="eRankCell"><div class="k">最終名次</div><div class="v" id="eRank">–</div></div>
         </div>
         <div class="note" id="eBest"></div>
         <button class="start go" id="btnReport">查看復能報表</button>
@@ -369,13 +407,15 @@ let demoMode = QS.get('demo') === '1';       // 免感測器：鍵盤 ← → �
 const SRC = {
   bg:'assets/bg_countryside.jpg', car:'assets/car_sedan.jpg', road:'assets/road_asphalt.jpg',
   tree:'assets/tree_betel.jpg', pole:'assets/pole_power.jpg', hay:'assets/haybale_straw.jpg',
-  coin:'assets/coin_gold.jpg', cone:'assets/cone_traffic.jpg'
+  coin:'assets/coin_gold.jpg', cone:'assets/cone_traffic.jpg',
+  bikeU:'assets/bike_upright.jpg', bikeL:'assets/bike_lean.jpg'    // v3 主角換重機（直立／右壓車）
 };
 // 綠幕去背門檻逐張調（檳榔樹葉本身是深綠，門檻要抓「高亮度純綠」才不會吃掉葉子）
 const KEY = {
   car:{grHi:70,grLo:26,gHi:120,gLo:80}, tree:{grHi:110,grLo:62,gHi:170,gLo:125},
   pole:{grHi:70,grLo:26,gHi:130,gLo:90}, hay:{grHi:70,grLo:26,gHi:130,gLo:90},
-  coin:{grHi:70,grLo:26,gHi:130,gLo:90}, cone:{grHi:70,grLo:26,gHi:130,gLo:90}
+  coin:{grHi:70,grLo:26,gHi:130,gLo:90}, cone:{grHi:70,grLo:26,gHi:130,gLo:90},
+  bikeU:{grHi:70,grLo:26,gHi:120,gLo:80}, bikeL:{grHi:70,grLo:26,gHi:120,gLo:80}
 };
 const clamp01 = v => v<0?0:v>1?1:v;
 const clamp = (v,a,b) => v<a?a:v>b?b:v;
@@ -413,8 +453,23 @@ function shrink(c,maxW){                     // 去背後降解析度：手機�
   const x=o.getContext('2d'); x.imageSmoothingQuality='high'; x.drawImage(c,0,0,maxW,h);
   return o;
 }
-/** 色相旋轉：NPC 車換色用（不靠 ctx.filter，Safari 支援度不穩） */
-function hueShift(src,deg){
+/** 底部著地點：取最底幾列不透明像素的水平重心（0~1）。
+    壓車圖的輪胎接地點不在畫面正中，旋轉樞紐要對準它，車身才不會繞著空氣轉。 */
+function bottomAnchor(c){
+  const x=c.getContext('2d',{willReadFrequently:true});
+  const p=x.getImageData(0,0,c.width,c.height).data;
+  const rows=Math.max(2,Math.round(c.height*0.05));
+  let sum=0,n=0;
+  for(let y=c.height-rows;y<c.height;y++) for(let xx=0;xx<c.width;xx++){
+    const a=p[(y*c.width+xx)*4+3];
+    if(a>60){ sum+=xx*a; n+=a; }
+  }
+  return n? clamp(sum/n/c.width,0.05,0.95) : 0.5;
+}
+/** 色相旋轉：NPC 車換色用（不靠 ctx.filter，Safari 支援度不穩）
+    minSat＞0＝只轉「有彩度」的像素：騎士的黑皮衣／輪胎／安全帽是中性色，轉了會變詭異的橄欖綠，
+    設 minSat 就能只換車殼顏色，人維持原樣。 */
+function hueShift(src,deg,minSat=0){
   const c=document.createElement('canvas'); c.width=src.width; c.height=src.height;
   const x=c.getContext('2d',{willReadFrequently:true}); x.drawImage(src,0,0);
   const d=x.getImageData(0,0,c.width,c.height), p=d.data;
@@ -425,6 +480,10 @@ function hueShift(src,deg){
   for(let i=0;i<p.length;i+=4){
     if(p[i+3]===0) continue;
     const r=p[i],g=p[i+1],b=p[i+2];
+    if(minSat>0){
+      const sat=Math.max(r,g,b)-Math.min(r,g,b);
+      if(sat<minSat) continue;                                   // 中性色原封不動
+    }
     p[i]  =clamp(m[0]*r+m[1]*g+m[2]*b,0,255);
     p[i+1]=clamp(m[3]*r+m[4]*g+m[5]*b,0,255);
     p[i+2]=clamp(m[6]*r+m[7]*g+m[8]*b,0,255);
@@ -500,28 +559,28 @@ function mulberry32(a){ return function(){ a|=0; a=a+0x6D2B79F5|0;
   return ((t^t>>>14)>>>0)/4294967296; }; }
 
 const SEG = 3.2;                       // 曲率控制點間距（odo 單位）
+// v3 路程三段：0–35% 直路暖身／35–75% 連續彎／75–100% 終盤（彎收斂、改用金幣雨當高潮）
+const SEG_A=0.35, SEG_B=0.75;
+const stageOf = p => p<SEG_A?0 : p<SEG_B?1 : 2;
+const CURVE_AMP=[0.32,1.00,0.62];
 function buildRoute(seed,totalOdo){
   const rnd=mulberry32(seed), n=Math.ceil(totalOdo/SEG)+6, k=[0,0];
   for(let i=2;i<n;i++){
     const prev=k[i-1];
     let v = rnd()<0.32 ? 0 : (rnd()*1.7-0.85);
     if(v!==0 && Math.sign(v)===Math.sign(prev) && Math.abs(prev)>0.42) v=-v;   // 避免同向連彎太久
+    v *= CURVE_AMP[stageOf(i*SEG/totalOdo)];                                   // 三段彎道密度
     k.push(clamp(v,-0.92,0.92));
   }
-  // 彎道預告牌：曲率由平轉急的那一段，提前 2.4 個 odo 立牌
-  const signs=[];
-  for(let i=2;i<n;i++){
-    if(Math.abs(k[i])>=0.46 && Math.abs(k[i-1])<0.30)
-      signs.push({ pos:Math.max(2,i*SEG-2.4), dir:Math.sign(k[i]) });
-  }
   // 導航窗路徑：每 ds 一點的俯視座標＋航向（局部導航窗用，不再畫整條路線縮圖）
+  // v3：路旁彎道警示牌與 HUD 大箭頭全數移除（老闆試玩回饋：多餘），轉彎預告只靠導航窗。
   const ds=0.5, pts=[[0,0]], heads=[0]; let hx=0,hy=0,head=0;
   for(let o=ds;o<=totalOdo+ds;o+=ds){
     head += curveOf(k,o)*ds*0.30;
     hx += Math.sin(head)*ds; hy += Math.cos(head)*ds;
     pts.push([hx,hy]); heads.push(head);
   }
-  return { k, signs, pts, heads, ds, totalOdo };
+  return { k, pts, heads, ds, totalOdo };
 }
 function curveOf(k,o){                 // smoothstep 內插曲率
   const f=o/SEG, i=Math.floor(f), u=f-i;
@@ -542,23 +601,28 @@ function buildItems(seed,totalOdo,cfg){
   const items=[], npcs=[];
   // 氮氣＝獎勵脈衝，必須稀有才有價值：約每 14～23 秒一次（90 秒局內 4～6 次）
   let pos=7, nitroAt=38+rnd()*22;
+  // 三段：暖身段拉疏、彎道段正常、終盤金幣雨 ×1.4（gap 除以 1.4 就是密度乘 1.4）
+  const STAGE_GAP=[1.22,1.00,1/1.4];
+  const STAGE_CONE=[0.11,0.18,0.14];                      // 三角錐機率
+  const STAGE_NPC =[0.09,0.12,0.09];                      // 慢車機率（疊在三角錐之上）
   while(pos<totalOdo){
-    const gap=gapBase*(0.82+rnd()*0.4);
+    const st=stageOf(pos/totalOdo);
+    const gap=gapBase*STAGE_GAP[st]*(0.82+rnd()*0.4);
     if(pos>=nitroAt){
       items.push({kind:'nitro',pos,lane:pickLane()});
       nitroAt=pos+70+rnd()*45; pos+=gap; continue;
     }
-    const roll=rnd();
-    if(roll<0.16){                                        // 三角錐
+    const roll=rnd(), pc=STAGE_CONE[st], pn=pc+STAGE_NPC[st];
+    if(roll<pc){                                          // 三角錐
       items.push({kind:'cone',pos,lane:pickLane()});
       pos+=gap*0.95;
-    }else if(roll<0.27){                                  // 慢速前車（同向 NPC）
+    }else if(roll<pn){                                    // 慢速前車（同向 NPC）
       const lane=pickLane();
       npcs.push({ lane, pos, startOdo:pos-12.5, col:Math.floor(rnd()*3), active:false, done:false, spent:false });
       pos+=gap*1.5;
     }else{                                                // 金幣串（ROM 引導）
       let lane=coinLane();
-      const nCoin=3+Math.floor(rnd()*4), stp=0.62, migrate=rnd()<0.34;
+      const nCoin=(st===2?4:3)+Math.floor(rnd()*4), stp=0.62, migrate=rnd()<(st===2?0.5:0.34);
       for(let i=0;i<nCoin;i++){
         let ln=lane;
         // 遷移一律「換到對側」：側→對側＝跨全幅大擺盪（ROM 處方更好），中→隨機側；絕不遷入中央（AFK 白吃）
@@ -602,9 +666,15 @@ function makeAudio(){
   const ac=new C();
   const music=ac.createGain(); music.gain.value=0.11; music.connect(ac.destination);   // 預設低音量：治療師要能講話
   const sfx=ac.createGain();   sfx.gain.value=0.30;   sfx.connect(ac.destination);
+  // 引擎層再低一階：它是「一直在響」的底噪，跟 UI 音效同音量會蓋掉治療師講話
+  const eng=ac.createGain();   eng.gain.value=0.16;   eng.connect(ac.destination);
+  const VOL={music:0.11,sfx:0.30,eng:0.16};
   // 白噪音緩衝（撞擊音效用）
   const nb=ac.createBuffer(1,ac.sampleRate*0.5,ac.sampleRate), nd=nb.getChannelData(0);
   for(let i=0;i<nd.length;i++) nd[i]=Math.random()*2-1;
+  // 引擎的循環噪音要夠長才不會聽出週期
+  const nb2=ac.createBuffer(1,ac.sampleRate*2,ac.sampleRate), nd2=nb2.getChannelData(0);
+  for(let i=0;i<nd2.length;i++) nd2[i]=Math.random()*2-1;
 
   function tone(dest,f,t,dur,vol,ty='triangle'){
     const o=ac.createOscillator(); o.type=ty; o.frequency.value=f;
@@ -637,22 +707,96 @@ function makeAudio(){
   function stopProc(){ if(sched){ clearInterval(sched); sched=null; } }
   function playBgm(list){ if(!bgm||!list.length){ startProc(); return; }
     bgm.src=list[0]; bgm.play().then(()=>{}).catch(()=>playBgm(list.slice(1))); }
+
+  /* ---------- 引擎聲（連續合成，RPM 隨車速）----------
+     結構：低頻鋸齒（基頻＝點火頻率）＋低八度方波（V 型雙缸的厚度）＋帶通噪音（進氣／排氣質感）
+     → 共同過一顆低通，截止頻率也隨轉速走，才有「催下去聲音變亮」的感覺。 */
+  let E=null, lastRpm=-1, lastAmp=-1;
+  function engineStart(){
+    if(E) return;
+    const g=ac.createGain(); g.gain.value=0.0001; g.connect(eng);
+    const lp=ac.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=700; lp.Q.value=0.9; lp.connect(g);
+    const o1=ac.createOscillator(); o1.type='sawtooth'; o1.frequency.value=70;
+    const g1=ac.createGain(); g1.gain.value=0.55; o1.connect(g1); g1.connect(lp);
+    const o2=ac.createOscillator(); o2.type='square'; o2.frequency.value=35; o2.detune.value=-6;
+    const g2=ac.createGain(); g2.gain.value=0.34; o2.connect(g2); g2.connect(lp);
+    const ns=ac.createBufferSource(); ns.buffer=nb2; ns.loop=true;
+    const nf=ac.createBiquadFilter(); nf.type='bandpass'; nf.frequency.value=380; nf.Q.value=1.1;
+    const ng=ac.createGain(); ng.gain.value=0.30; ns.connect(nf); nf.connect(ng); ng.connect(lp);
+    o1.start(); o2.start(); ns.start();
+    g.gain.setTargetAtTime(0.9,ac.currentTime,0.30);
+    E={g,lp,o1,o2,nf,ns}; lastRpm=-1; lastAmp=-1;
+  }
+  function engineStop(){
+    if(!E) return; const e=E; E=null; const t=ac.currentTime;
+    e.g.gain.cancelScheduledValues(t); e.g.gain.setTargetAtTime(0.0001,t,0.12);
+    setTimeout(()=>{ try{e.o1.stop();e.o2.stop();e.ns.stop();}catch(x){} },500);
+  }
+  /** rpm 0~1（車速映射）、amp 0~1（音量權重；Fever 拉滿、撞擊減速時壓低） */
+  function engineSet(rpm,amp){
+    if(!E) return;
+    if(Math.abs(rpm-lastRpm)<0.012 && Math.abs(amp-lastAmp)<0.05) return;   // 節流：不必每幀都排程參數
+    lastRpm=rpm; lastAmp=amp;
+    const t=ac.currentTime, f=58+rpm*168;
+    E.o1.frequency.setTargetAtTime(f,t,0.05);
+    E.o2.frequency.setTargetAtTime(f*0.5,t,0.05);
+    E.nf.frequency.setTargetAtTime(320+rpm*900,t,0.06);
+    E.lp.frequency.setTargetAtTime(460+rpm*2100,t,0.07);
+    E.g.gain.setTargetAtTime(0.55+0.45*amp,t,0.09);
+  }
+  /** 短促噪音爆點：排氣爆聲／胎聲／呼嘯共用 */
+  function burst(dest,f0,f1,Q,vol,dur,type='bandpass'){
+    const t=ac.currentTime;
+    const s=ac.createBufferSource(); s.buffer=nb;
+    const bp=ac.createBiquadFilter(); bp.type=type; bp.Q.value=Q;
+    bp.frequency.setValueAtTime(f0,t); bp.frequency.exponentialRampToValueAtTime(Math.max(40,f1),t+dur);
+    const g=ac.createGain();
+    g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(vol,t+Math.min(0.03,dur*0.2));
+    g.gain.exponentialRampToValueAtTime(0.0005,t+dur);
+    s.connect(bp); bp.connect(g); g.connect(dest); s.start(t); s.stop(t+dur+0.05);
+  }
   return { ac,
     start(){ if(ac.state==='suspended') ac.resume();
              if(bgm) playBgm(['music.mp3','music.ogg']); else startProc(); },
-    stop(){ if(bgm){try{bgm.pause();}catch(e){}} stopProc(); },
+    stop(){ if(bgm){try{bgm.pause();}catch(e){}} stopProc(); engineStop(); },
+    engineStart, engineStop, engineSet,
+    /** 起步催油門：轉速拉高再落回 */
+    rev(){ engineStart(); const t=ac.currentTime;
+      const o=ac.createOscillator(); o.type='sawtooth';
+      o.frequency.setValueAtTime(80,t);
+      o.frequency.exponentialRampToValueAtTime(300,t+0.28);
+      o.frequency.exponentialRampToValueAtTime(110,t+0.62);
+      const lp=ac.createBiquadFilter(); lp.type='lowpass'; lp.frequency.setValueAtTime(700,t);
+      lp.frequency.exponentialRampToValueAtTime(2600,t+0.28);
+      const g=ac.createGain(); g.gain.setValueAtTime(0.0001,t);
+      g.gain.exponentialRampToValueAtTime(0.55,t+0.06); g.gain.exponentialRampToValueAtTime(0.0005,t+0.7);
+      o.connect(lp); lp.connect(g); g.connect(eng); o.start(t); o.stop(t+0.72);
+      burst(eng,900,180,1.4,0.30,0.16); },
+    /** 排氣爆聲（Fever 點火／續航） */
+    pop(){ burst(eng,1600,140,1.1,0.45,0.20);
+      const t=ac.currentTime;
+      const o=ac.createOscillator(); o.type='sine';
+      o.frequency.setValueAtTime(120,t); o.frequency.exponentialRampToValueAtTime(44,t+0.16);
+      const g=ac.createGain(); g.gain.setValueAtTime(0.34,t); g.gain.exponentialRampToValueAtTime(0.0005,t+0.18);
+      o.connect(g); g.connect(eng); o.start(t); o.stop(t+0.2); },
+    /** 急煞胎聲：高頻窄帶下滑 */
+    skid(){ burst(sfx,2400,900,7.5,0.30,0.42); },
+    /** 錯身呼嘯 */
+    whoosh(){ burst(sfx,320,1500,1.0,0.22,0.16); burst(sfx,1500,260,1.0,0.20,0.26); },
     coin(n){ const t=ac.currentTime, f=880*Math.pow(1.0595,Math.min(8,n||0));
              tone(sfx,f,t,0.10,0.30,'sine'); tone(sfx,f*1.5,t+0.045,0.14,0.24,'sine'); },
+    // v3 撞擊加重：急煞胎聲 → 悶響 → 低頻餘震（扣 30 分要聽得出來「這下很痛」）
     crash(){ const t=ac.currentTime;
+      burst(sfx,2600,800,8,0.34,0.40);                                       // 急煞胎聲
       const s=ac.createBufferSource(); s.buffer=nb;
-      const g=ac.createGain(); g.gain.setValueAtTime(0.42,t); g.gain.exponentialRampToValueAtTime(0.0005,t+0.34);
-      const lp=ac.createBiquadFilter(); lp.type='lowpass'; lp.frequency.setValueAtTime(1400,t);
-      lp.frequency.exponentialRampToValueAtTime(180,t+0.3);
-      s.connect(lp); lp.connect(g); g.connect(sfx); s.start(t); s.stop(t+0.36);
+      const g=ac.createGain(); g.gain.setValueAtTime(0.62,t); g.gain.exponentialRampToValueAtTime(0.0005,t+0.46);
+      const lp=ac.createBiquadFilter(); lp.type='lowpass'; lp.frequency.setValueAtTime(1600,t);
+      lp.frequency.exponentialRampToValueAtTime(150,t+0.40);
+      s.connect(lp); lp.connect(g); g.connect(sfx); s.start(t); s.stop(t+0.48);
       const o=ac.createOscillator(); o.type='sawtooth';
-      o.frequency.setValueAtTime(210,t); o.frequency.exponentialRampToValueAtTime(60,t+0.3);
-      const g2=ac.createGain(); g2.gain.setValueAtTime(0.26,t); g2.gain.exponentialRampToValueAtTime(0.0005,t+0.3);
-      o.connect(g2); g2.connect(sfx); o.start(t); o.stop(t+0.32); },
+      o.frequency.setValueAtTime(230,t); o.frequency.exponentialRampToValueAtTime(48,t+0.40);
+      const g2=ac.createGain(); g2.gain.setValueAtTime(0.40,t); g2.gain.exponentialRampToValueAtTime(0.0005,t+0.42);
+      o.connect(g2); g2.connect(sfx); o.start(t); o.stop(t+0.44); },
     nitro(){ const t=ac.currentTime;
       const o=ac.createOscillator(); o.type='sawtooth';
       o.frequency.setValueAtTime(260,t); o.frequency.exponentialRampToValueAtTime(1900,t+0.45);
@@ -663,7 +807,8 @@ function makeAudio(){
     beep(f=680,d=0.13){ tone(sfx,f,ac.currentTime,d,0.30,'sine'); },
     fanfare(){ const t=ac.currentTime; [523.25,659.25,783.99,1046.5].forEach((f,i)=>
       tone(sfx,f,t+i*0.13,0.34,0.28,'triangle')); },
-    setMuted(m){ if(bgm)bgm.muted=m; music.gain.value=m?0:0.11; sfx.gain.value=m?0:0.30; }
+    setMuted(m){ if(bgm)bgm.muted=m;
+      music.gain.value=m?0:VOL.music; sfx.gain.value=m?0:VOL.sfx; eng.gain.value=m?0:VOL.eng; }
   };
 }
 let AE=null, muted=false;
@@ -672,7 +817,7 @@ let AE=null, muted=false;
    六、設定
    ================================================================== */
 const LS_CFG='tiltracer_cfg', LS_SESS='tiltracer_sessions', LS_BEST='tiltracer_best';
-const cfg = { route:1, dur:90, sens:3, speed:3, dens:3, assist:1, scene:'rice', sound:1, laneWeight:[1,1,1] };
+const cfg = { route:1, dur:90, sens:3, speed:3, dens:3, assist:1, scene:'rice', sound:1, rivals:1, laneWeight:[1,1,1] };
 try{ const s=JSON.parse(localStorage.getItem(LS_CFG)||'{}'); Object.assign(cfg,s); cfg.laneWeight=[1,1,1]; }catch(e){}
 const saveCfg=()=>{ try{ localStorage.setItem(LS_CFG,JSON.stringify(cfg)); }catch(e){} };
 
@@ -759,7 +904,7 @@ function onOrientationChange(){
 /* ==================================================================
    九、遊戲狀態
    ================================================================== */
-let phase='setup';                       // setup / calib / count / play / end / report / reorient
+let phase='setup';                       // setup / calib / count / play / finish / end / report / reorient
 let ASSET=null, PAL=null, rowPat=null, roadMips=null, ROAD_AVG='#55585e';
 let route=null, items=[], npcs=[], scen=[], bonus=[];
 let iHead=0, nHead=0, sHead=0;
@@ -772,6 +917,16 @@ let lastV=0, finished=false, overtakes=0;   // lastV＝本幀實際車速（時�
 let lastInputT=-9;                          // 最後一次有效轉向輸入的時刻（超車獎勵防 AFK 白領）
 let nowT=0;                              // 遊戲內累積時間（秒）
 let coinStreak=0;
+// --- v3 新增狀態 ---
+let leanVis=0;                              // 壓車視覺量（-1 左 ~ +1 右，平滑後）
+let combo=0, comboT=-9;                     // 連吃 combo 與最後一次吃到的時刻
+let rivals=[], myRank=1, rankPrev=1;        // 對手競速
+let stageIdx=0;                             // 目前路程段（0 暖身 / 1 連續彎 / 2 終盤）
+let finT=0;                                 // 完賽慢動作計時
+let dusk=0;                                 // 天色（0 午後 → 1 黃昏）
+const COMBO_WIN=2.5;                        // 連吃視窗（秒）
+const RIVAL_HUE=[210,52,118];               // 對手車色：藍／黃／綠（紅色機車做色相偏移）
+const RIVAL_FADE0=0.30, RIVAL_FADE1=1.40;   // 對手錯身淡出區間（odo）：貼太近就別畫，免得糊在玩家身上
 
 // 臨床量測
 const M = {
@@ -791,10 +946,14 @@ const Z0=0.70, DRAW_DZ=14, CUE_DZ=7.0;                  // t = Z0/(Z0+dz)；CUE_
 const tOf = dz => Z0/(Z0+Math.max(dz,-0.35));
 const LANE_OFF=0.62;                                    // 車道中心（halfW 單位）
 
+// 終點＝基準里程 ×1.02。v3 氮氣降到 ×1.25 後每次只賺 0.25×3＝0.75 個基準秒，
+// 90 秒局要多跑 1.8 個基準秒 → 約需吃到 2～3 次氮氣（撞一次約吃掉半次氮氣的量）。
+// ⚠️若日後再動 FEVER_MULT 或 FEVER_DUR，這個係數要一起重算，否則完賽會變成不可能任務。
+const FINISH_MULT=1.02, FEVER_MULT=1.25, FEVER_DUR=3.0;
 function newGame(){
   const seedBase=[0,20260729,880517,110711][cfg.route];
   const seed=seedBase ^ (cfg.dur*7919) ^ (cfg.dens*104729);
-  const totalOdo=SPEED_V[cfg.speed]*cfg.dur*1.05;       // 終點＝基準里程 ×1.05：要吃到 2～3 次氮氣才跑得完──氮氣是完賽的鑰匙
+  const totalOdo=SPEED_V[cfg.speed]*cfg.dur*FINISH_MULT;
   route=buildRoute(seed,totalOdo);
   const built=buildItems(seed,totalOdo,cfg);
   items=built.items; npcs=built.npcs; scen=buildScenery(seed,totalOdo);
@@ -802,6 +961,16 @@ function newGame(){
   odo=0; elapsed=0; nowT=0; score=0; crashes=0; coneHits=0; npcHits=0; feverCount=0;
   px=0; pxPrev=0; normPrev=0; coinStreak=0; lastV=0; finished=false; overtakes=0; lastInputT=-9;
   feverUntil=0; crashUntil=0; invulnUntil=0; shake=0; flash=0; floats=[]; sparks=[];
+  leanVis=0; combo=0; comboT=-9; stageIdx=0; finT=0; dusk=0;
+  // 對手：起跑時前後散開。橡皮筋 AI 讓他們貼著「基準車速 ±8%」跑，
+  // 所以玩家真正拉開差距的手段＝氮氣與不撞車，這正是我們要強化的行為。
+  const rr=mulberry32(seed^0x2545f491);
+  rivals = cfg.rivals ? [
+    { odo: 4.0, lane:-1, hue:0, spd:1.015, laneT:rr()*3 },
+    { odo: 0.5, lane: 1, hue:1, spd:1.000, laneT:rr()*3 },
+    { odo:-3.5, lane: 0, hue:2, spd:0.985, laneT:rr()*3 }
+  ] : [];
+  myRank=1+rivals.filter(r=>r.odo>0).length; rankPrev=myRank;
   resetMetrics(); tiltFilter.reset();
 }
 
@@ -823,10 +992,22 @@ function updatePlay(dt){
   const fever = nowT<feverUntil;
   // --- 速度 ---
   let v=SPEED_V[cfg.speed];
-  if(fever) v*=1.6;
+  if(fever) v*=FEVER_MULT;    // v3：1.6 → 1.25（爽感改由引擎咆哮＋排氣爆聲＋速度線承擔）
   if(nowT<crashUntil) v*=0.42+0.58*(1-(crashUntil-nowT)/1.2);
   odo += v*dt; lastV=v;
   elapsed += dt;
+
+  // --- 路程三段：進段時給提示音＋飄字（讓長者知道「節奏要變了」）---
+  if(route){
+    const st=stageOf(odo/route.totalOdo);
+    if(st!==stageIdx){
+      stageIdx=st;
+      const txt=['','進入彎道區','終盤金幣雨！'][st];
+      if(txt){ floats.push({txt,col:'#7fe3ff',t:0,x:CW/2,y:CH*0.40});
+               if(AE&&cfg.sound) AE.beep(st===2?880:600,0.22); }
+    }
+    dusk=clamp01((odo/route.totalOdo-0.30)/0.70);          // 午後 → 黃昏
+  }
 
   // --- 轉向 ---
   const norm=tiltNorm();
@@ -906,20 +1087,71 @@ function updatePlay(dt){
       else if(nowT-lastInputT<2.0){                        // 安全超車＝有感回饋；要有近期轉向輸入才算（防掛機白領）
         overtakes++; score+=20;
         floats.push({txt:'超車 +20',col:'#7fe3ff',t:0,x:CW/2+n.lane*CW*0.15,y:CH*0.50});
-        if(AE&&cfg.sound) AE.beep(940,0.12);
+        if(AE&&cfg.sound){ AE.beep(940,0.12); AE.whoosh(); }
       }
     }
   }
   while(sHead<scen.length && scen[sHead].pos-odo < -1.2) sHead++;
 
-  // --- 特效衰減 ---
+  updateRivals(dt);
+  stepFx(dt);
+  // 引擎轉速：以「很快」檔位打滿為基準，Fever 期間額外拉高＝高轉咆哮
+  if(AE&&cfg.sound){
+    const rpm=clamp(lastV/SPEED_V[5],0,1.25)/1.25;
+    AE.engineSet(clamp(rpm*(fever?1.25:1),0,1), fever?1:(nowT<crashUntil?0.35:0.75));
+  }
+
+  if(odo>=route.totalOdo){ startFinish(); }              // 衝過終點線＝提前完賽（先跑慢動作再結算）
+  else if(elapsed>=cfg.dur) endGame();
+}
+
+/** 特效衰減：play 與完賽慢動作共用，慢動作傳進來的是縮放後的 dt */
+function stepFx(dt){
   shake=Math.max(0,shake-dt*2.2); flash=Math.max(0,flash-dt*3.2);
   for(let i=floats.length-1;i>=0;i--){ floats[i].t+=dt; if(floats[i].t>0.95) floats.splice(i,1); }
   for(let i=sparks.length-1;i>=0;i--){ const s=sparks[i]; s.t+=dt; s.x+=s.vx*dt; s.y+=s.vy*dt; s.vy+=520*dt;
     if(s.t>0.7) sparks.splice(i,1); }
+}
 
-  if(odo>=route.totalOdo){ finished=true; endGame(); }   // 衝過終點線＝提前完賽
-  else if(elapsed>=cfg.dur) endGame();
+/** 壓車視覺量：每幀補間，絕不跳變（換圖是淡入的，角度是連續的） */
+function stepLean(dt){
+  const target = clamp(tiltNorm()*1.10,-1,1);
+  leanVis += (target-leanVis)*Math.min(1,dt*7.5);
+}
+
+/* ---- 對手競速：不是真的物理車，是「同一條路線上的進度值」 ----
+   配速貼著基準車速 ±8%（橡皮筋），落後就催、領先就收，永遠追得到也甩得掉。
+   不與玩家碰撞（重疊時半透明），名次＝比較 odo。 */
+function updateRivals(dt){
+  if(!rivals.length||!route) return;
+  const base=SPEED_V[cfg.speed];
+  for(const r of rivals){
+    const gap=r.odo-odo;                                   // >0＝領先玩家
+    const band=clamp(-gap*0.018,-0.08,0.08);               // 橡皮筋：領先減速、落後加速，上限 ±8%
+    r.odo=Math.min(route.totalOdo, r.odo+base*r.spd*(1+band)*dt);
+    r.laneT-=dt;
+    if(r.laneT<=0){ r.laneT=3.5+Math.random()*4; r.lane=[-1,0,1][(Math.random()*3)|0]; }
+  }
+  myRank=1+rivals.filter(r=>r.odo>odo).length;
+  if(myRank!==rankPrev){
+    const better=myRank<rankPrev;
+    floats.push({ txt: better?`第 ${myRank} 名！`:`被超車 · 第 ${myRank} 名`,
+                  col: better?'#4cc38a':'#ff7a59', t:0, x:CW/2, y:CH*0.44 });
+    if(AE&&cfg.sound){ if(better){ AE.whoosh(); AE.beep(1046,0.16); } else AE.beep(392,0.18); }
+    const rb=$('rankBox'); rb.classList.add('pop'); setTimeout(()=>rb.classList.remove('pop'),200);
+    rankPrev=myRank;
+  }
+}
+
+/** 完賽：先跑約 0.5 秒慢動作再進結算（衝線的爽感留在畫面上） */
+function startFinish(){
+  if(phase==='finish') return;
+  finished=true; phase='finish'; finT=0;
+  odo=route.totalOdo;
+  if(AE&&cfg.sound){ AE.pop(); AE.fanfare(); }
+  for(let i=0;i<26;i++) sparks.push({x:CW/2+(Math.random()-0.5)*CW*0.5,y:CH*0.55,
+    vx:(Math.random()-0.5)*720,vy:-320-Math.random()*340,t:0,col:i%2?'#ffd23e':'#4cc38a'});
+  floats.push({txt:'🏁 衝線！',col:'#ffd23e',t:0,x:CW/2,y:CH*0.40});
 }
 
 /** 倒數期間：同樣推進道具／前車指標，但不計分、不判撞、不記臨床資料 */
@@ -939,27 +1171,41 @@ function sweepSilently(dt){
     if(!n.done && n.pos-odo<=0.26) n.done=true;
   }
   while(sHead<scen.length && scen[sHead].pos-odo < -1.2) sHead++;
+  for(const r of rivals) r.odo += SPEED_V[cfg.speed]*r.spd*dt*0.6;   // 起跑前對手也在滑行熱車
 }
 
 function resolveItem(it){
   const carY=CH*0.55;          // 飄字要浮在車子上方，壓在車身上長者讀不到
+  const d=Math.abs(px-it.lane*LANE_OFF);
   if(it.kind==='coin'){
     const mul = nowT<feverUntil ? 2 : 1;
-    if(Math.abs(px-it.lane*LANE_OFF)<0.38){
-      score += 10*mul; coinStreak++; it.taken=true;   // 吃到才消失；沒吃到讓它掃過去（視覺才連貫）
+    if(d<0.38){
+      score += 10*mul; it.taken=true;                // 吃到才消失；沒吃到讓它掃過去（視覺才連貫）
+      combo = (nowT-comboT<=COMBO_WIN) ? combo+1 : 1;   // 2.5 秒內接得上才算連吃
+      comboT=nowT; coinStreak=combo;
       M.collected[it.lane+1]++;
-      if(AE&&cfg.sound) AE.coin(coinStreak);
+      if(AE&&cfg.sound) AE.coin(combo);              // 音調隨連吃數階梯上升
       floats.push({txt:'+'+(10*mul),col:'#ffd23e',t:0,x:CW/2+it.lane*CW*0.15,y:carY});
-    }else coinStreak=0;
+      if(combo%5===0){                               // 每 5 的倍數給 bonus
+        score+=10;
+        floats.push({txt:`連吃 ×${combo}  +10`,col:'#4cc38a',t:0,x:CW/2,y:carY-CH*0.09});
+        if(AE&&cfg.sound) AE.beep(660+Math.min(8,combo/5)*70,0.20);
+      }
+    }else{ combo=0; coinStreak=0; }                  // 斷檔歸零
   }else if(it.kind==='nitro'){
-    if(Math.abs(px-it.lane*LANE_OFF)<0.44){ it.taken=true; startFever(); }
+    if(d<0.44){ it.taken=true; startFever(); }
   }else if(it.kind==='cone'){
-    if(Math.abs(px-it.lane*LANE_OFF)<0.30) doCrash('cone');
+    if(d<0.30) doCrash('cone');
+    else if(d<0.52){                                 // 驚險閃避：貼身錯身但沒撞到
+      score+=5;
+      floats.push({txt:'驚險！+5',col:'#7fe3ff',t:0,x:CW/2+it.lane*CW*0.12,y:carY-CH*0.05});
+      if(AE&&cfg.sound){ AE.whoosh(); AE.beep(1180,0.09); }
+    }
   }
 }
 function startFever(){
-  feverUntil=nowT+3.0; feverCount++;
-  if(AE&&cfg.sound) AE.nitro();
+  feverUntil=nowT+FEVER_DUR; feverCount++;
+  if(AE&&cfg.sound){ AE.nitro(); AE.pop(); }         // 氮氣＝排氣爆聲＋高轉咆哮
   $('feverTag').classList.remove('hidden');
   // 氮氣期間沿路金幣變密：蛇行掃過三個車道，順便把 ROM 引導拉滿（中央顆數壓低，AFK 吃不到甜頭）
   const snake=[0,-1,-1,1,1,0,-1,1,1,-1,-1,1,0,-1,1,1];
@@ -971,17 +1217,17 @@ function doCrash(src){
   if(nowT<invulnUntil) return;                       // 撞後 1.5 秒無敵，防連撞
   invulnUntil=nowT+1.5; crashUntil=nowT+1.2;
   crashes++; if(src==='cone')coneHits++; else npcHits++;
-  shake=1; flash=1; coinStreak=0;
+  shake=1.55; flash=1; coinStreak=0; combo=0;        // v3 shake 加大：撞擊要有重量
   const wasFever = nowT<feverUntil;
   if(wasFever){                                       // Fever 中撞到＝提前結束 Fever，不額外扣分
     feverUntil=0; $('feverTag').classList.add('hidden');
-    floats.push({txt:'加速中斷',col:'#ff7a59',t:0,x:CW/2,y:CH*0.56});
+    floats.push({txt:'加速中斷',col:'#ff7a59',t:0,x:CW/2,y:CH*0.56,big:1});
   }else{
-    score=Math.max(0,score-10);                       // 扣 10 金幣，下限 0 不歸負
-    floats.push({txt:'−10',col:'#ff7a59',t:0,x:CW/2,y:CH*0.56});
+    score=Math.max(0,score-30);                       // v3：扣 30 金幣（10→30），下限 0 不歸負
+    floats.push({txt:'−30',col:'#ff4d3d',t:0,x:CW/2,y:CH*0.56,big:1.5});
   }
-  if(AE&&cfg.sound) AE.crash();
-  for(let i=0;i<14;i++) sparks.push({x:CW/2,y:CH*0.78,vx:(Math.random()-0.5)*700,vy:-260-Math.random()*300,t:0,col:'#ffb066'});
+  if(AE&&cfg.sound){ AE.skid(); AE.crash(); }
+  for(let i=0;i<22;i++) sparks.push({x:CW/2,y:CH*0.78,vx:(Math.random()-0.5)*820,vy:-300-Math.random()*340,t:0,col:'#ffb066'});
 }
 
 /* ==================================================================
@@ -1060,9 +1306,6 @@ function render(){
     const sc=scen[i], dz=sc.pos-odo; if(dz>DRAW_DZ) break; if(dz<-0.9) continue;
     drawList.push({type:'scen',dz,o:sc});
   }
-  if(route) for(const sg of route.signs){
-    const dz=sg.pos-odo; if(dz>0&&dz<DRAW_DZ) drawList.push({type:'sign',dz,o:sg});
-  }
   for(let i=iHead;i<items.length;i++){
     const it=items[i], dz=it.pos-odo; if(dz>DRAW_DZ) break; if(dz<-0.30||it.taken) continue;
     drawList.push({type:'item',dz,o:it});
@@ -1073,6 +1316,8 @@ function render(){
     if(dz>DRAW_DZ) break; if(dz<-0.30) continue;
     drawList.push({type:'npc',dz,o:n});
   }
+  for(const r of rivals){ const dz=r.odo-odo;
+    if(dz>RIVAL_FADE0&&dz<DRAW_DZ) drawList.push({type:'rival',dz,o:r}); }
   if(route){ const fdz=route.totalOdo-odo;
     if(fdz>-0.5&&fdz<DRAW_DZ) drawList.push({type:'finish',dz:fdz}); }
   drawList.sort((a,b)=>b.dz-a.dz);
@@ -1089,8 +1334,6 @@ function render(){
       if(sp){ const w=h*sp.width/sp.height;
         ctx.save(); ctx.translate(x,baseY); if(sc.flip) ctx.scale(-1,1);
         ctx.drawImage(sp,-w/2,-h,w,h); ctx.restore(); }
-    }else if(d.type==='sign'){
-      drawCurveSign(cx+1.20*halfW,baseY,0.95*t*DEPTH,d.o.dir);
     }else if(d.type==='finish'){
       drawFinish(cx,baseY,halfW,t,H);
     }else if(d.type==='item'){
@@ -1109,6 +1352,20 @@ function render(){
         ctx.save(); ctx.fillStyle='rgba(18,24,12,0.36)';
         ctx.beginPath(); ctx.ellipse(x+cw*0.06,baseY-ch*0.03,cw*0.46,ch*0.09,0,0,7); ctx.fill(); ctx.restore();
         ctx.drawImage(sp,x-cw/2,baseY-ch,cw,ch); }
+    }else if(d.type==='rival'){
+      // 對手重機：不碰撞。錯身時淡出（dz→0 時 t 會衝到 2 倍，硬畫會變成一台巨獸糊在玩家身上）
+      const r=d.o, sp=ASSET.rival[r.hue];
+      const a=clamp01((d.dz-RIVAL_FADE0)/(RIVAL_FADE1-RIVAL_FADE0));
+      if(sp&&a>0.01){
+        const tt=Math.min(t,1.0), by=HOR+tt*DEPTH, hw=halfWAt(tt,W);
+        const x=roadCenterPx(tt,W,cpx)+r.lane*LANE_OFF*hw;
+        const bw=BIKE_K*tt, bh=bw*sp.height/sp.width;
+        ctx.save(); ctx.globalAlpha=a;
+        ctx.fillStyle='rgba(18,24,12,0.34)';
+        ctx.beginPath(); ctx.ellipse(x+bw*0.08,by-bh*0.02,bw*0.40,bh*0.05,0,0,7); ctx.fill();
+        ctx.drawImage(sp,x-bw/2,by-bh,bw,bh);
+        ctx.restore();
+      }
     }
   }
 
@@ -1132,20 +1389,29 @@ function render(){
     ctx.restore();
   }
 
-  // ---- 玩家車 ----
-  const tCar=0.97, carX=roadCenterPx(tCar,W,cpx)+px*halfWAt(tCar,W);
-  const carW=Math.min(W*0.22,H*0.34);
-  const carImg=ASSET.car, carH=carImg?carW*(carImg.height/carImg.width):carW*0.52;
-  const blink = nowT<invulnUntil && Math.floor(nowT*12)%2===0;
-  ctx.save();
-  ctx.translate(carX,H*0.978);
-  ctx.rotate(clamp((px-pxPrev)*2.2+tiltNorm()*0.06,-0.16,0.16));
-  ctx.fillStyle='rgba(18,24,12,0.42)';
-  ctx.beginPath(); ctx.ellipse(carW*0.06,-6,carW*0.47,carW*0.062,0,0,7); ctx.fill();
-  if(blink) ctx.globalAlpha=0.45;
-  if(carImg) ctx.drawImage(carImg,-carW/2,-carH,carW,carH);
-  else { ctx.fillStyle='#c62828'; ctx.fillRect(-carW/2,-carW*0.5,carW,carW*0.5); }
-  ctx.restore();
+  // ---- 玩家重機（v3）----
+  drawPlayerBike(W,H,cpx);
+
+  // ---- 天色：午後 → 黃昏（隨路程進度加深）----
+  // ⚠️用 multiply 不用半透明橘色蓋：蓋的話黑階會被抬起來，整張圖糊成褪色的棕；
+  //   multiply 是把藍綠通道壓掉，對比留著 → 才像「日頭斜了」而不是「相片泛黃」。
+  if(dusk>0.01){
+    const w=c=>`rgb(${Math.round(255+(c[0]-255)*dusk)},${Math.round(255+(c[1]-255)*dusk)},${Math.round(255+(c[2]-255)*dusk)})`;
+    const dg=ctx.createLinearGradient(0,0,0,H);
+    dg.addColorStop(0,   w([255,156,96]));
+    dg.addColorStop(0.50,w([255,180,128]));
+    dg.addColorStop(1,   w([204,142,104]));
+    ctx.save(); ctx.globalCompositeOperation='multiply';
+    ctx.fillStyle=dg; ctx.fillRect(-20,-20,W+40,H+40); ctx.restore();
+    // 地平線一抹夕陽光暈
+    const y0=HOR-DEPTH*0.55, hh=DEPTH*0.70;
+    const gg=ctx.createLinearGradient(0,y0,0,y0+hh);
+    gg.addColorStop(0,'rgba(255,150,60,0)');
+    gg.addColorStop(0.80,`rgba(255,172,84,${(0.17*dusk).toFixed(3)})`);
+    gg.addColorStop(1,'rgba(255,190,110,0)');
+    ctx.save(); ctx.globalCompositeOperation='lighter';
+    ctx.fillStyle=gg; ctx.fillRect(-20,y0,W+40,hh); ctx.restore();
+  }
 
   // ---- 火花與飄字 ----
   for(const s of sparks){ ctx.globalAlpha=Math.max(0,1-s.t/0.7); ctx.fillStyle=s.col;
@@ -1153,10 +1419,10 @@ function render(){
   ctx.globalAlpha=1;
   ctx.textAlign='center';
   for(const f of floats){
-    const a=Math.max(0,1-f.t/0.95), fy=f.y-f.t*70;
+    const a=Math.max(0,1-f.t/0.95), fy=f.y-f.t*70, k=f.big||1;
     ctx.globalAlpha=a;
-    ctx.font=`900 ${Math.round(H*0.056)}px -apple-system,"PingFang TC",sans-serif`;
-    ctx.lineWidth=Math.max(3,H*0.007); ctx.strokeStyle='rgba(18,14,4,0.9)';   // 描邊：壓在車身或路面上都讀得到
+    ctx.font=`900 ${Math.round(H*0.056*k)}px -apple-system,"PingFang TC",sans-serif`;
+    ctx.lineWidth=Math.max(3,H*0.007*k); ctx.strokeStyle='rgba(18,14,4,0.9)';  // 描邊：壓在車身或路面上都讀得到
     ctx.strokeText(f.txt,f.x,fy);
     ctx.fillStyle=f.col; ctx.fillText(f.txt,f.x,fy);
   }
@@ -1166,11 +1432,64 @@ function render(){
   ctx.restore();
 
   drawNav(W,H);
-  drawTurnHUD(W,H);
   if(phase==='count') drawCountdown(W,H);
 }
 
+/** 玩家重機＋壓車：
+    ・視覺總傾角上限 ~30°；|lean|≥0.35 起淡入壓車圖，兩張圖的「有效傾角」對齊後交叉淡入 → 不會跳變
+    ・旋轉樞紐＝輪胎接地點（bottomAnchor 量出來的），不是圖片中心
+    ・陰影隨壓車變窄（車身立起來投影就短） */
+const LEAN_MAX=0.52;          // 視覺總傾角上限（rad，約 30°）
+const LEAN_SPRITE=0.46;       // 壓車素材本身已有的傾角（rad，約 26°）
+function drawPlayerBike(W,H,cpx){
+  const tCar=0.97, carX=roadCenterPx(tCar,W,cpx)+px*halfWAt(tCar,W);
+  const lv=clamp(leanVis,-1,1), mag=Math.abs(lv);
+  // 換圖區間刻意做窄（0.44→0.58）＋smoothstep：兩張圖是不同的 3D 姿態，長時間各半會疊成鬼影。
+  // 角度本身（rotate）全程連續，所以窄區間不會有跳變感，只是「快速倒進彎裡」。
+  const mr=clamp01((mag-0.44)/0.14), mixL=mr*mr*(3-2*mr);
+  const wob=clamp((px-pxPrev)*2.2,-0.10,0.10);         // 變換車道的一點慣性搖擺
+  const blink = nowT<invulnUntil && Math.floor(nowT*12)%2===0;
+  const baseY=H*0.978;
+  const U=ASSET.bikeU, L=ASSET.bikeL;
+
+  ctx.save();
+  ctx.translate(carX,baseY);
+  // 陰影：壓車時投影變窄變短（在旋轉之外畫，才不會跟著翻起來）
+  const sw=BIKE_W*(0.40-0.16*mag), sh=BIKE_W*(0.062-0.020*mag);
+  ctx.fillStyle=`rgba(18,24,12,${0.42-0.10*mag})`;
+  ctx.beginPath(); ctx.ellipse(BIKE_W*0.06+lv*BIKE_W*0.10,-4,Math.max(3,sw),Math.max(1.5,sh),0,0,7); ctx.fill();
+  if(blink) ctx.globalAlpha=0.45;
+
+  if(!U){                                              // 素材沒載到 → 退回原本的轎車／方塊
+    const cw=Math.min(W*0.22,H*0.34), img=ASSET.car;
+    ctx.rotate(clamp(wob+tiltNorm()*0.06,-0.16,0.16));
+    if(img) ctx.drawImage(img,-cw/2,-cw*(img.height/img.width),cw,cw*(img.height/img.width));
+    else { ctx.fillStyle='#c62828'; ctx.fillRect(-cw/2,-cw*0.5,cw,cw*0.5); }
+    ctx.restore(); return;
+  }
+  const draw=(sp,rot,alpha)=>{
+    if(!sp||alpha<=0.004) return;
+    const w=BIKE_W, h=w*sp.height/sp.width;
+    ctx.save();
+    ctx.globalAlpha*=alpha;
+    ctx.rotate(rot);
+    ctx.drawImage(sp,-w*sp.anchor,-h,w,h);             // anchor＝接地點在圖寬的比例
+    ctx.restore();
+  };
+  const total=lv*LEAN_MAX+wob;                         // 兩張圖共用同一個「總傾角」
+  draw(U, total, Math.pow(1-mixL,1.7));                // 退場的那張衰減快一點 → 交叉時主體清楚、鬼影淡
+  if(L&&mixL>0){
+    ctx.save();
+    if(lv<0) ctx.scale(-1,1);                          // 左傾＝壓車圖水平鏡像
+    draw(L, Math.abs(total)-LEAN_SPRITE, Math.pow(mixL,0.72));   // 扣掉素材自帶的傾角，合成後總傾角仍是 total
+    ctx.restore();
+  }
+  ctx.restore();
+}
+
 let CAR_K = 1;      // NPC 車寬係數＝玩家車寬 / t_car，隨 t 線性縮放（載入時算，resize 時更新）
+let BIKE_W = 60;    // 玩家重機在畫面上的寬（重機比轎車窄，不能沿用 car 的係數）
+let BIKE_K = 60;    // 對手重機寬係數（＝BIKE_W / t_car）
 
 function castShadow(x,y,len,wid,alpha){        // 光源左上 → 影子往右下的窄長橢圓
   len=Math.max(3,len); wid=Math.max(2,wid);
@@ -1219,27 +1538,6 @@ function drawNitro(x,y,s){
     ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText('N₂O',0,h*0.05); ctx.textBaseline='alphabetic'; }
   ctx.restore();
 }
-/** 台灣公路彎道警示牌：黃底黑箭頭（程式繪製，避開 AI 圖生文字的老問題） */
-function drawCurveSign(x,baseY,h,dir){
-  if(h<12) return;
-  const sw=h*0.60;
-  ctx.save();
-  castShadow(x,baseY,h*0.5,h*0.06,0.24);
-  ctx.fillStyle='#9a9a94'; ctx.fillRect(x-h*0.022,baseY-h,h*0.044,h);      // 柱
-  ctx.translate(x,baseY-h);
-  ctx.rotate(Math.PI/4);
-  ctx.fillStyle='#f2c31b'; ctx.strokeStyle='#20200f'; ctx.lineWidth=Math.max(1,sw*0.06);
-  ctx.fillRect(-sw/2,-sw/2,sw,sw); ctx.strokeRect(-sw/2,-sw/2,sw,sw);
-  ctx.rotate(-Math.PI/4);
-  ctx.fillStyle='#181808';                                                  // 箭頭
-  const a=sw*0.30;
-  ctx.beginPath();
-  ctx.moveTo(-a*dir,a*0.42); ctx.lineTo(-a*dir,-a*0.05);
-  ctx.lineTo(a*0.25*dir,-a*0.05); ctx.lineTo(a*0.25*dir,-a*0.42);
-  ctx.lineTo(a*1.05*dir,0.12*a); ctx.lineTo(a*0.25*dir,a*0.62);
-  ctx.lineTo(a*0.25*dir,a*0.42); ctx.closePath(); ctx.fill();
-  ctx.restore();
-}
 /** 終點線：路面方格帶＋方格拱門（要看得到終點，氮氣才有目標感） */
 function drawFinish(cx,baseY,halfW,t,H){
   const x1=cx-halfW*1.02, x2=cx+halfW*1.02, n=10, cw=(x2-x1)/n;
@@ -1270,9 +1568,11 @@ function drawFinish(cx,baseY,halfW,t,H){
 /** 導航窗（Google Maps 式）：只畫前方路段、車頭朝上、玩家固定窗底；下方附終點進度條 */
 const NAV_FWD=24, NAV_BACK=3, NAV_EXAG=2.4;   // 前瞻 odo／後顧 odo／彎度視覺誇大倍率
 function drawNav(W,H){
-  if(!route||(phase!=='play'&&phase!=='count')) return;
-  const mmW=Math.min(150,W*0.21), mmH=mmW*1.28;
-  const x0=W-mmW-14, y0=Math.max(14,H*0.03)+(W<560?44:54);
+  if(!route||(phase!=='play'&&phase!=='count'&&phase!=='finish')) return;
+  // 直式螢幕窄：導航窗改用寬度比例、並往下讓開折成兩列的 HUD
+  const port=H>W;
+  const mmW=port?Math.min(120,W*0.31):Math.min(150,W*0.21), mmH=mmW*1.28;
+  const x0=W-mmW-14, y0=Math.max(14,H*0.03)+(port?74:(W<560?44:54));
   const ds=route.ds, P=route.pts, HD=route.heads;
   const idx=clamp(odo/ds,0,P.length-1.001), i0=Math.floor(idx), u=idx-i0;
   const L=(a,b)=>a+(b-a)*u;
@@ -1328,38 +1628,6 @@ function drawFlagIcon(x,y,s){
   ctx.restore();
 }
 
-/** 彎道 HUD 大箭頭：比路旁警示牌更早、更大的預告（長者主要靠這個判斷何時轉彎） */
-function drawTurnHUD(W,H){
-  if(phase!=='play'||!route) return;
-  const lead=SPEED_V[cfg.speed]*2.6;                 // 提前約 2.6 秒出現
-  let act=null;
-  for(const sg of route.signs){
-    const d=(sg.pos+2.4)-odo;                        // sg.pos＝彎前 2.4 odo 的立牌點 → +2.4＝彎道起點
-    if(d>lead) break;
-    if(d>-1.2){ act=sg; break; }
-  }
-  if(!act) return;
-  if(!act.warned){ act.warned=true; if(AE&&cfg.sound) AE.beep(520,0.16); }
-  const cx=W/2, cy=H*0.26, s=Math.min(W,H)*0.052;
-  const pulse=0.74+0.26*Math.abs(Math.sin(nowT*4));
-  ctx.save(); ctx.globalAlpha=pulse;
-  const bw=s*6.6, bh=s*2.3;
-  ctx.fillStyle='rgba(10,14,18,0.62)';
-  ctx.beginPath();
-  if(ctx.roundRect) ctx.roundRect(cx-bw/2,cy-bh/2,bw,bh,bh/2); else ctx.rect(cx-bw/2,cy-bh/2,bw,bh);
-  ctx.fill();
-  ctx.save(); ctx.translate(cx-s*1.8,cy); ctx.scale(act.dir,1);   // dir=1 右彎 → 箭頭朝右
-  ctx.fillStyle='#ffd23e'; ctx.strokeStyle='rgba(20,14,2,0.9)'; ctx.lineWidth=Math.max(2,s*0.12);
-  ctx.beginPath();
-  ctx.moveTo(-s*0.9,-s*0.32); ctx.lineTo(0,-s*0.32); ctx.lineTo(0,-s*0.75);
-  ctx.lineTo(s*0.95,0); ctx.lineTo(0,s*0.75); ctx.lineTo(0,s*0.32); ctx.lineTo(-s*0.9,s*0.32);
-  ctx.closePath(); ctx.fill(); ctx.stroke(); ctx.restore();
-  ctx.fillStyle='#fff'; ctx.font=`900 ${Math.round(s*1.15)}px -apple-system,"PingFang TC",sans-serif`;
-  ctx.textAlign='left'; ctx.textBaseline='middle';
-  ctx.fillText(act.dir>0?'右彎':'左彎',cx-s*0.35,cy+s*0.05);
-  ctx.textBaseline='alphabetic';
-  ctx.restore();
-}
 function drawCountdown(W,H){
   const left=3.4-countT;
   let txt = left>2.4?'3' : left>1.4?'2' : left>0.4?'1' : '出發！';
@@ -1386,12 +1654,22 @@ function loop(ts){
   stepDemoTilt(dt);
   pumpTilt();
   if(phase==='calib') stepCalib(dt);
-  if(phase==='count'){ nowT+=dt; countT+=dt;
+  if(phase==='count'){ nowT+=dt; countT+=dt; stepLean(dt);
     lastV=SPEED_V[cfg.speed]*clamp(countT/3.4,0.18,1);
     odo+=lastV*dt;
     sweepSilently(dt);                     // 倒數期間路已在跑：把掃過的道具靜默消耗掉，開局才不會瞬間爆一堆事件
+    if(AE&&cfg.sound) AE.engineSet(0.16+0.20*clamp(countT/3.4,0,1),0.5);   // 待轉怠速
     render(); updateHUD(); if(countT>=3.4) startPlay(); return; }
-  if(phase==='play'){ updatePlay(dt); if(phase!=='play') return; render(); updateHUD(); return; }
+  if(phase==='play'){ stepLean(dt); updatePlay(dt); if(phase!=='play') return; render(); updateHUD(); return; }
+  // 完賽慢動作：約 0.5 秒真實時間，畫面以 0.3 倍速推進
+  if(phase==='finish'){
+    finT+=dt; const sdt=dt*0.30;
+    nowT+=sdt; stepLean(sdt); stepFx(sdt);
+    for(const r of rivals) r.odo+=SPEED_V[cfg.speed]*r.spd*sdt;
+    render(); updateHUD();
+    if(finT>=0.55) endGame();
+    return;
+  }
 }
 function updateHUD(){
   $('hScore').textContent=score;
@@ -1400,6 +1678,9 @@ function updateHUD(){
   sp.style.color = nowT<feverUntil ? 'var(--nitro)' : (nowT<crashUntil ? 'var(--warn)' : '');
   $('hCrash').textContent=crashes;
   $('hTime').textContent=Math.max(0,Math.ceil(cfg.dur-elapsed))+'s';
+  const rb=$('rankBox');
+  rb.classList.toggle('hidden',!rivals.length);
+  if(rivals.length) $('hRank').innerHTML=`第 ${myRank} <small>/${rivals.length+1}</small>`;
   if(nowT>=feverUntil) $('feverTag').classList.add('hidden');
 }
 
@@ -1412,6 +1693,7 @@ function show(name){
   const playing = (name===null);
   $('hud').classList.toggle('hidden',!playing);
   $('hudBtns').classList.toggle('hidden',!playing);
+  $('rankBox').classList.toggle('hidden',!playing||!rivals.length);
 }
 function goSetup(){
   phase='setup'; show('setup'); keepAwake(false);
@@ -1516,10 +1798,10 @@ function beginCountdown(){
   newGame();
   phase='count'; countT=0; lastBeep=-1;
   show(null); keepAwake(true);
-  if(AE&&cfg.sound){ AE.start(); AE.setMuted(muted); }
+  if(AE&&cfg.sound){ AE.start(); AE.engineStart(); AE.setMuted(muted); }
   updateHUD();
 }
-function startPlay(){ phase='play'; }
+function startPlay(){ phase='play'; if(AE&&cfg.sound) AE.rev(); }   // 「出發！」＝催油門
 
 function endGame(){
   phase='end';
@@ -1533,10 +1815,16 @@ function endGame(){
   $('eComp').textContent=comp+'%';
   $('eRate').textContent=presT?Math.round(collT/presT*100)+'%':'–';
   $('eCrash').textContent=crashes;
+  // 最終名次：只有開了對手競速才顯示（關掉時整格藏起來，版面自動變 3 格）
+  const rc=$('eRankCell');
+  if(rivals.length){ rc.classList.remove('hidden'); $('eRank').textContent='第 '+myRank+' 名'; }
+  else rc.classList.add('hidden');
   $('finBanner').classList.toggle('hidden',!finished);
   $('endLead').textContent = finished
     ? `跑完整條路線！用時 ${Math.round(elapsed)} 秒，提前 ${Math.max(0,Math.round(cfg.dur-elapsed))} 秒完賽。`
-    : `辛苦了！以下是本局成績（路線完成 ${comp}%，吃到氮氣衝刺可以跑得更遠）。`;
+      + (rivals.length?`本局名次：第 ${myRank} 名／${rivals.length+1} 人。`:'')
+    : `辛苦了！以下是本局成績（路線完成 ${comp}%，吃到氮氣衝刺可以跑得更遠）。`
+      + (rivals.length?`本局名次：第 ${myRank} 名／${rivals.length+1} 人。`:'');
   // 破紀錄（依設定組合分開記）
   const sig=`${cfg.route}_${cfg.dur}_${cfg.sens}_${cfg.speed}_${cfg.dens}_${cfg.assist}`;
   let best={}; try{ best=JSON.parse(localStorage.getItem(LS_BEST)||'{}'); }catch(e){}
@@ -1555,7 +1843,8 @@ function endGame(){
 function celebrate(){
   const box=$('confetti'); box.innerHTML=''; box.classList.remove('hidden');
   const cols=['#f4b942','#ffe08a','#4cc38a','#5aa9e6','#ff7a59'];
-  for(let i=0;i<34;i++){
+  const N = finished ? 72 : 34;                       // 完賽＝彩帶加量
+  for(let i=0;i<N;i++){
     const s=document.createElement('i');
     s.style.left=(Math.random()*100)+'%';
     s.style.background=cols[i%cols.length];
@@ -1588,6 +1877,8 @@ function buildSession(){
     dens:cfg.dens, assist:cfg.assist, scene:cfg.scene, mode:axisMode, demo:demoMode,
     score, dist:Math.round(odo*4.4), crashes, coneHits, npcHits, feverCount,
     finished, overtakes, playTime:Math.round(elapsed),
+    // v3 新欄位：舊紀錄沒有這兩欄，判讀端一律用 != null 守（向下相容）
+    rivalsOn:rivals.length?1:0, rank:rivals.length?myRank:null, fieldSize:rivals.length?rivals.length+1:null,
     completion:route?Math.min(100,Math.round(odo/route.totalOdo*100)):null,
     presented:M.presented.slice(), collected:M.collected.slice(),
     coinRate:pct(collT,presT), rateL, rateC:pct(M.collected[1],M.presented[1]), rateR,
@@ -1657,7 +1948,12 @@ function renderReport(){
     M2('撞擊次數', s.crashes+' 次'+(prev?dl(s.crashes,prev.crashes,'',false):''),
        `三角錐 ${s.coneHits}．前車 ${s.npcHits}`, s.crashes>6?'bad':'')+
     M2('本局成績', s.score+' 金幣',
-       `完成度 ${s.completion!=null?s.completion+'%':'–'}${s.finished?'（🏁 完賽）':''}．距離 ${s.dist} m．超車 ${s.overtakes||0}．氮氣 ${s.feverCount} 次`);
+       `完成度 ${s.completion!=null?s.completion+'%':'–'}${s.finished?'（🏁 完賽）':''}．距離 ${s.dist} m．超車 ${s.overtakes||0}．氮氣 ${s.feverCount} 次`)+
+    (s.rank!=null
+      ? M2('最終名次', `第 ${s.rank} 名`+(prev&&prev.rank!=null?dl(s.rank,prev.rank,'',true):''),
+           `共 ${s.fieldSize||4} 位．對手為橡皮筋配速，名次反映的是「衝刺與避撞的效率」而非絕對速度`,
+           s.rank===1?'sym':'')
+      : '');
 
   const angleChart=barsSVG([
     {label:'左傾平均峰值',v:s.peakL,color:'#5aa9e6'},
@@ -1697,6 +1993,9 @@ function renderReport(){
   if(s.avgRT!=null) notes.push(`平均反應時間 ${(s.avgRT/1000).toFixed(2)} s（含看到目標→啟動轉向）；CV ${s.cvRT!=null?s.cvRT+'%':'–'}，越低代表啟動越穩定。`);
   else if(s.nRT) notes.push(`反應時間樣本僅 ${s.nRT} 次（需 ≥5 次才計），本局不出數字；提高金幣／障礙密度或延長時長可累積樣本。`);
   if(s.finished) notes.push(`🏁 本局提前 ${Math.max(0,s.dur-s.playTime)} 秒跑完整條路線：氮氣抓取與路徑控制皆有效，可考慮提高車速或密度增加挑戰。`);
+  if(s.rank!=null) notes.push(s.rank===1
+    ? `對手競速最終第 1 名／${s.fieldSize||4} 位：對手採橡皮筋配速貼著基準車速，能領先代表氮氣抓取確實、撞擊損失少。`
+    : `對手競速最終第 ${s.rank} 名／${s.fieldSize||4} 位：名次落後多半來自撞擊減速（本局 ${s.crashes} 次）或漏掉氮氣（${s.feverCount} 次）；若名次造成挫折感，設定頁可關閉「對手競速」。`);
   notes.push(s.crashes<=3
     ? `撞擊 ${s.crashes} 次（三角錐 ${s.coneHits}、前車 ${s.npcHits}），路徑控制穩定，可考慮提高車速或密度。`
     : `撞擊 ${s.crashes} 次（三角錐 ${s.coneHits}、前車 ${s.npcHits}）偏多，可先降低車速或開啟輔助駕駛，讓個案先建立成功經驗。`);
@@ -1714,6 +2013,7 @@ function renderReport(){
         <span>車速 ${SPEED_TXT[s.speed]}</span>
         <span>密度 ${DENS_TXT[s.dens]}</span>
         <span>輔助駕駛 ${s.assist?'開':'關'}</span>
+        <span>對手競速 ${s.rivalsOn?'開':'關'}</span>
         <span>${(SCENES[s.scene]||SCENES.rice).name}</span>
       </div>
     </div>
@@ -1748,6 +2048,7 @@ segBind('segRoute','route',Number);
 segBind('segDur','dur',Number);
 segBind('segAssist','assist',Number);
 segBind('segSound','sound',Number);
+segBind('segRivals','rivals',Number);
 
 function sliderBind(rid,vid,key,txt){
   const r=$(rid), v=$(vid);
@@ -1846,7 +2147,13 @@ $('btnHome').onclick=goSetup;
 $('btnEndHome').onclick=goSetup;
 $('btnRepHome').onclick=goSetup;
 $('btnReorientHome').onclick=goSetup;
-$('btnReorientCalib').onclick=()=>{ axisMode=detectAxis(); updateModeBox(); enterCalib(); };
+// 一鍵快速重校：直接跳進第一步，不用再按一次「開始校正」
+$('btnReorientCalib').onclick=()=>{
+  axisMode=detectAxis(); updateModeBox(); enterCalib();
+  if(!AE){AE=makeAudio();}
+  setCalibState('neutral','① 手機擺好，放鬆','用新的握法把手機拿到最舒服的位置，保持不動 3 秒。');
+};
+$('btnReorientSkip').onclick=()=>{ enterCalib(); skipCalib(); };
 $('btnEnd').onclick=()=>{ if(phase==='play'||phase==='count') endGame(); };
 $('btnReport').onclick=()=>{ renderReport(); show('report'); };
 $('btnAgain').onclick=beginCountdown;
@@ -1867,6 +2174,13 @@ $('btnMute').onclick=()=>{ muted=!muted; if(AE)AE.setMuted(muted); $('btnMute').
     sp[k]= raw[k] ? shrink(keyOutGreen(raw[k],KEY[k]),560) : null;
   const car = raw.car ? shrink(keyOutGreen(raw.car,KEY.car),640) : null;
   const npc = car ? [hueShift(shrink(car,340),150), hueShift(shrink(car,340),-105), hueShift(shrink(car,340),58)] : [null,null,null];
+  // v3 玩家重機：去背後量出輪胎接地點（壓車圖的接地點不在正中，旋轉樞紐要對準它）
+  const mkBike=(k)=>{ if(!raw[k]) return null;
+    const c=shrink(keyOutGreen(raw[k],KEY[k]),520); c.anchor=bottomAnchor(c); return c; };
+  const bikeU=mkBike('bikeU'), bikeL=mkBike('bikeL');
+  // 對手＝同一張直立圖做色相偏移（藍／黃／綠）；騎士皮衣是深色，偏移後不會變成怪膚色
+  const rival = bikeU ? RIVAL_HUE.map(h=>{ const c=hueShift(shrink(bikeU,300),h,52); c.anchor=bikeU.anchor; return c; })
+                      : [null,null,null];
   roadMips = raw.road ? buildMips(makeTileable(raw.road,512),5) : null;
   ROAD_AVG = roadMips ? rgb(avgColor(roadMips[roadMips.length-1])) : '#55585e';
 
@@ -1877,8 +2191,13 @@ $('btnMute').onclick=()=>{ muted=!muted; if(AE)AE.setMuted(muted); $('btnMute').
           // 霧色要落在「照片地平線色」與「繪製遠景色」之間，否則地平線會出現一條比兩邊都暗的帶子
           haze: mix(base.haze, mix(base.far,S.ground.far,S.ground.blend), 0.45) };
   rowPat = makeRowPattern(ctx,S.rowColor);
-  ASSET = { bg:raw.bg, car, sp, npc };
-  const updCarK=()=>{ CAR_K=Math.min(cv.clientWidth*0.22,cv.clientHeight*0.34)/0.97; };
+  ASSET = { bg:raw.bg, car, sp, npc, bikeU, bikeL, rival };
+  const updCarK=()=>{
+    const w=cv.clientWidth, h=cv.clientHeight;
+    CAR_K=Math.min(w*0.22,h*0.34)/0.97;
+    BIKE_W=Math.min(w*0.155,h*0.30);         // 重機比轎車窄；用短邊夾住，直式才不會塞滿路面
+    BIKE_K=BIKE_W/0.97;
+  };
   updCarK(); addEventListener('resize',()=>setTimeout(updCarK,60));
 
   $('loading').classList.add('hidden');
