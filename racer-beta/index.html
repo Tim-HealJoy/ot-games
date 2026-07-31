@@ -568,17 +568,31 @@ const SEG = 3.2;                       // 曲率控制點間距（odo 單位）
 const SEG_A=0.35, SEG_B=0.75;
 const stageOf = p => p<SEG_A?0 : p<SEG_B?1 : 2;
 const CURVE_AMP=[0.32,1.00,0.62];
+// v3.2 彎道包絡：進彎鋪 3 個控制點（≈9.6 odo≈2 秒）漸強、出彎 3 個漸弱。
+// ⚠️舊版每個控制點各自擲骰，常常一個 SEG（3.2 odo≈0.6 秒）就從 0 衝到滿曲率 →
+//   老闆試玩「多次來不及轉彎」的主因之一就在這裡。
+const RAMP_IN=[0.16,0.46,0.78], RAMP_OUT=[0.72,0.38,0.14];
+const CURVE_PEAK_MAX=0.86;      // 峰值上限（v3.1 是 0.92；遠處放大後太滿會把地平線的路推出畫面）
 function buildRoute(seed,totalOdo){
-  const rnd=mulberry32(seed), n=Math.ceil(totalOdo/SEG)+6, k=[0,0];
-  for(let i=2;i<n;i++){
-    const prev=k[i-1];
-    let v = rnd()<0.32 ? 0 : (rnd()*1.7-0.85);
-    if(v!==0 && Math.sign(v)===Math.sign(prev) && Math.abs(prev)>0.42) v=-v;   // 避免同向連彎太久
-    v *= CURVE_AMP[stageOf(i*SEG/totalOdo)];                                   // 三段彎道密度
-    k.push(clamp(v,-0.92,0.92));
+  const rnd=mulberry32(seed), n=Math.ceil(totalOdo/SEG)+8, k=new Array(n).fill(0);
+  // 區塊式生成：直路 → 進彎 ramp → 滿曲率 hold → 出彎 ramp → 直路 …
+  let i=2, lastDir=0;
+  while(i<n-2){
+    const st=stageOf(i*SEG/totalOdo), amp=CURVE_AMP[st];
+    i += (st===1?1:2) + Math.floor(rnd()*(st===1?2:3));       // 直路長度（連續彎段短一點）
+    if(i>=n-2) break;
+    let dir = rnd()<0.5?-1:1;
+    if(dir===lastDir && rnd()<0.72) dir=-dir;                  // 避免同向連彎太久
+    lastDir=dir;
+    const peak = clamp((0.52+rnd()*0.46)*amp,0,CURVE_PEAK_MAX)*dir;
+    const hold = 1+Math.floor(rnd()*(st===1?3:2));
+    for(const g of RAMP_IN){ if(i<n) k[i++]=peak*g; }
+    for(let h=0;h<hold&&i<n;h++) k[i++]=peak;
+    for(const g of RAMP_OUT){ if(i<n) k[i++]=peak*g; }
   }
   // 導航窗路徑：每 ds 一點的俯視座標＋航向（局部導航窗用，不再畫整條路線縮圖）
-  // v3：路旁彎道警示牌與 HUD 大箭頭全數移除（老闆試玩回饋：多餘），轉彎預告只靠導航窗。
+  // v3：路旁「彎前單支預告牌」與 HUD 大箭頭已移除（老闆試玩回饋：多餘）。
+  // v3.2：轉彎預告改做在路上＝彎道外側的連續 chevron 板牆＋前瞻投影（長者不看導航窗，只看路況）。
   const ds=0.5, pts=[[0,0]], heads=[0]; let hx=0,hy=0,head=0;
   for(let o=ds;o<=totalOdo+ds;o+=ds){
     head += curveOf(k,o)*ds*0.30;
@@ -840,6 +854,10 @@ function makeAudio(){
       const bp=ac.createBiquadFilter(); bp.type='bandpass'; bp.Q.value=3; bp.frequency.value=900;
       o.connect(bp); bp.connect(g); g.connect(sfx); o.start(t); o.stop(t+0.58); },
     beep(f=680,d=0.13){ tone(sfx,f,ac.currentTime,d,0.30,'sine'); },
+    /** v3.2 入彎提示：兩顆輕短的音，右彎上行、左彎下行（音量刻意比一般 beep 低，不吵） */
+    curveCue(dir){ const t=ac.currentTime, up=dir>0;
+      tone(sfx,up?640:900,t,0.12,0.17,'sine');
+      tone(sfx,up?900:640,t+0.10,0.16,0.17,'sine'); },
     fanfare(){ const t=ac.currentTime; [523.25,659.25,783.99,1046.5].forEach((f,i)=>
       tone(sfx,f,t+i*0.13,0.34,0.28,'triangle')); },
     setMuted(m){ if(bgm)bgm.muted=m;
@@ -951,6 +969,7 @@ let iHead=0, nHead=0, sHead=0;
 let odo=0, elapsed=0, score=0, crashes=0, coneHits=0, npcHits=0, feverCount=0;
 let px=0, pxPrev=0, normPrev=0;
 let pxSteer=0, driftPx=0, camLat=0;         // 玩家指令位置／離心漂移量／鏡頭橫移（px＝兩者相加）
+let driftEnv=0, curveCued=false;            // v3.2 離心力時間包絡／入彎提示音的遲滯旗標
 let feverUntil=0, crashUntil=0, invulnUntil=0, shake=0, flash=0;
 let floats=[], sparks=[], dusts=[];
 let offroad=false, offExitT=-9, offroadCount=0, offroadSec=0, rumbleT=0;
@@ -993,6 +1012,8 @@ const PX_MAX=1.45;           // 橫向位置上限（配合鏡頭橫移，車還
 const OFF_SPD=0.5, OFF_RECOVER=0.5;// 草地上車速 ×0.5；回到路面後 0.5 秒線性回升，不瞬間跳回全速
 // 鏡頭橫移：|px| 超過 0.75 才開始跟（正常行駛完全不動，長者不會暈），之後跟 1.25 倍
 const CAM_DEAD=0.75, CAM_FOLLOW=1.25, CAM_LAG=4.0;
+// v3.2 離心力時間包絡：進彎 0.8 秒內 0→全力（老闆試玩「來不及轉彎」的第三個成因＝力道上得太急）
+const DRIFT_RAMP=0.8;
 // 對手起跑位置：頭尾兩端固定，中間依台數平均散開（3 台／6 台共用同一段賽道）
 const RIVAL_HEAD=6.2, RIVAL_TAIL=-6.4;
 
@@ -1030,7 +1051,7 @@ function newGame(){
   px=0; pxPrev=0; normPrev=0; coinStreak=0; lastV=0; finished=false; overtakes=0; lastInputT=-9;
   feverUntil=0; crashUntil=0; invulnUntil=0; shake=0; flash=0; floats=[]; sparks=[]; dusts=[];
   leanVis=0; combo=0; comboT=-9; stageIdx=0; finT=0; dusk=0;
-  pxSteer=0; driftPx=0; camLat=0;
+  pxSteer=0; driftPx=0; camLat=0; driftEnv=0; curveCued=false;
   offroad=false; offExitT=-9; offroadCount=0; offroadSec=0; rumbleT=0;
   if(AE) AE.grass(false);
   // 對手：起跑時前後散開。橡皮筋 AI 讓他們貼著「基準車速 ±8%」跑，
@@ -1113,12 +1134,23 @@ function updatePlay(dt){
 
   // --- v3.1 離心力：彎道把車推向彎外，往彎內主動傾才抵銷得掉 ---
   const curvNow = route ? curveOf(route.k,odo) : 0;
+  // v3.2 入彎提示音：用前方 4.5 odo（約 1 秒）的曲率當觸發 → 聲音比車先到彎，
+  //      左彎降、右彎升，同一個彎只響一次（遲滯 0.13 才復位）。
+  if(route){
+    const cAhead=curveOf(route.k,odo+4.5), aa=Math.abs(cAhead);
+    if(!curveCued && aa>0.30){ curveCued=true;
+      if(AE&&cfg.sound) AE.curveCue(Math.sign(cAhead)); }
+    else if(curveCued && aa<0.13) curveCued=false;
+  }
+  // v3.2 離心力包絡：進彎後 0.8 秒內 0→全力線性升、出彎同樣漸退（給長者反應時間）。
+  // 模型本身不動，只是乘上一個時間包絡。
+  driftEnv = clamp(driftEnv + (Math.abs(curvNow)>0.10?1:-1)*dt/DRIFT_RAMP, 0, 1);
   // curv>0＝路往右彎 → 離心力往左推（所以是 -curvNow）
   const leanIn = curvNow ? clamp01(norm*Math.sign(curvNow)) : 0;
   // ⚠️車速權重要用「名目車速」不能用當下車速：用當下車速的話，出界減速 → 離心力跟著變小 → 自己被推回路面，
   //   會變成 0.2 秒進出一次的抖動（實測 60 秒出界 13 次卻只滯留 3 秒）。出界的懲罰不該順便幫你解圍。
   const spdF = SPEED_V[cfg.speed]*(fever?FEVER_MULT:1)/SPEED_V[3];
-  const dTarget = -curvNow*DRIFT_GAIN*(cfg.assist?DRIFT_ASSIST:1)*spdF*(1-DRIFT_GRIP*leanIn);
+  const dTarget = -curvNow*DRIFT_GAIN*(cfg.assist?DRIFT_ASSIST:1)*spdF*(1-DRIFT_GRIP*leanIn)*driftEnv;
   driftPx += (dTarget-driftPx)*Math.min(1,dt*DRIFT_LAG);
   px = clamp(pxSteer+driftPx,-PX_MAX,PX_MAX);
   // 鏡頭橫移：路面在近處幾乎佔滿畫面寬，不跟一下的話車衝出去就直接跑到畫面外
@@ -1386,16 +1418,60 @@ function doCrash(src){
    ================================================================== */
 // camLat＝鏡頭橫移（px 單位，與 halfW 同尺度）：衝出跑道時鏡頭跟著移，
 // 車才不會直接跑到畫面外（近處路面幾乎佔滿整個畫面寬）。
-const roadCenterPx=(t,W,cpx)=>W/2+cpx*(1-t)*(1-t)-camLat*t*W*0.46;
 const halfWAt=(t,W)=>t*W*0.46;
+const dzOf = t => Z0*(1-t)/Math.max(t,1e-4);              // tOf 的反函數
+
+/* ---- v3.2 前瞻投影：讓「遠方的彎看得出來要拐」----
+   ⚠️v3.1 的路面整條只用「玩家當下的曲率」畫 → 前方有彎，畫面上完全看不出來，
+     彎是「開到了才出現」的（老闆：多次來不及轉彎）。
+   改法：對前方曲率做雙重積分 X(dz)=∫0^dz (dz−s)·c(odo+s) ds ＝ 路面中心在 dz 處的橫向位移；
+     再取等效曲率 cEff(dz)=2X/dz²（等曲率時剛好 ≡ c → 長彎的畫面與 v3.1 完全相同，
+     差別只在「彎的進出」會提早、漸進地顯示出來）。
+   ⚠️路面、路緣、chevron、金幣、障礙、對手、NPC、景物全部走同一個 roadCenterPx()，
+     不可以只改路面，否則物件會浮離路面。遊戲邏輯（px/離心力）完全不吃這一段。 */
+const LUT_N=44, LUT_STEP=DRAW_DZ/LUT_N;
+const curvLUT=new Float64Array(LUT_N+1);
+let curv0=0;
+function buildCurveLUT(){
+  if(!route){ curv0=0; curvLUT.fill(0); return; }
+  curv0=curveOf(route.k,odo);
+  let s0=0,s1=0,cp=curv0; curvLUT[0]=0;
+  for(let i=1;i<=LUT_N;i++){
+    const dz=i*LUT_STEP, cN=curveOf(route.k,odo+dz);
+    s0 += (cp+cN)*0.5*LUT_STEP;                          // ∫c ds
+    s1 += ((dz-LUT_STEP)*cp+dz*cN)*0.5*LUT_STEP;         // ∫s·c ds
+    curvLUT[i]=dz*s0-s1;                                 // X(dz)
+    cp=cN;
+  }
+}
+// 遠處放大：近處 1.0 完全不動（手感不變），dz≥8 放大到 FAR_MAG（遠方的彎才「拐得出來」）
+const FAR_MAG=1.70;
+function farMagAt(dz){ const u=clamp01((dz-1.2)/6.8); return 1+(FAR_MAG-1)*u*u*(3-2*u); }
+// 軟性限幅：只在最極端的彎才作用（線性到 0.6L，之後漸近），免得地平線的路被推出畫面外
+function softLim(x,L){ const a=Math.abs(x)/L;
+  return a<=0.6 ? x : Math.sign(x)*L*(0.6+0.4*Math.tanh((a-0.6)/0.4)); }
+function bendPx(t,W){
+  const dz=Math.min(dzOf(t),DRAW_DZ);                    // 超過 LUT 範圍就沿用最遠端的彎度（地平線不會又拐回中間）
+  let c;
+  if(dz<=0.30) c=curv0;
+  else { const f=dz/LUT_STEP, i=Math.min(LUT_N-1,f|0), u=f-i;
+         c=2*(curvLUT[i]+(curvLUT[i+1]-curvLUT[i])*u)/(dz*dz); }
+  return softLim(c*farMagAt(dz)*W*0.42*(1-t)*(1-t), W*0.50);
+}
+const roadCenterPx=(t,W)=>W/2+bendPx(t,W)-camLat*t*W*0.46;
+
+/* ---- v3.2 chevron 箭頭板牆 ---- */
+const CHEV_STEP=1.7;            // 板距（odo）：約每 0.34 秒過一塊，整個彎連成一道牆（再密就會糊成一條紅帶，看不出箭頭）
+const CHEV_MIN=0.20, CHEV_FULL=0.34;   // 曲率門檻（淡入區間，避免直路尾巴閃一下）
+const CHEV_OUT=1.06;            // 立在路面邊緣再往外一點點（路肩上，1.0＝路緣）
+const chevs=[];                 // 本幀畫過的板子（黃昏 multiply 後要補畫一次提亮）
 
 function render(){
   resize();
   const W=CW,H=CH,HOR=H*0.52,DEPTH=H-HOR;
   const S=SCENE_ACTIVE();
   const fever=nowT<feverUntil;
-  const curv=route?curveOf(route.k,odo):0;
-  const cpx=curv*W*0.42;
+  buildCurveLUT();                        // v3.2 前瞻投影：每幀先算前方曲率的積分表
 
   ctx.save();
   if(shake>0){ const m=shake*shake*11;
@@ -1403,7 +1479,8 @@ function render(){
 
   // ---- 背景照片 ----
   ctx.clearRect(-20,-20,W+40,H+40);
-  const par=-cpx*0.25-camLat*W*0.05;      // 鏡頭橫移時遠景反向微移，才有視差、不像整張圖被平移
+  // 遠景用「遠端的彎」反向微移：接近彎道時背景就開始橫移，是另一個提早看得到的線索
+  const par=-bendPx(0.10,W)*0.25-camLat*W*0.05;
   if(ASSET.bg) ctx.drawImage(ASSET.bg,0,0,ASSET.bg.width,ASSET.bg.height*0.80,-W*0.15+par,-14,W*1.3,HOR+22);
   else { ctx.fillStyle='#8ec6f0'; ctx.fillRect(-20,-20,W+40,HOR+22); }
 
@@ -1411,7 +1488,7 @@ function render(){
   for(let y=Math.ceil(HOR);y<H+20;y++){
     const t=(y-HOR)/DEPTH; if(t<=0.002) continue;
     const z=1/Math.max(t,0.02);
-    const cx=roadCenterPx(t,W,cpx), halfW=halfWAt(t,W);
+    const cx=roadCenterPx(t,W), halfW=halfWAt(t,W);
     const zphase=z*3+odo*2;
     const band=Math.floor(zphase)%2;                  // 路緣（高頻）
     const fband=Math.floor(zphase*0.36)%2;            // 地面（低頻，遠處不沸騰）
@@ -1473,11 +1550,28 @@ function render(){
     if(dz>RIVAL_FADE0&&dz<DRAW_DZ) drawList.push({type:'rival',dz,o:r}); }
   if(route){ const fdz=route.totalOdo-odo;
     if(fdz>-0.5&&fdz<DRAW_DZ) drawList.push({type:'finish',dz:fdz}); }
+  // ---- v3.2 彎道 chevron 板牆：沿彎道「外側路緣」連續立紅白 V 形箭頭板 ----
+  // 這是彎道本體的欄杆（整個彎都有、直直騎就會撞上），不是 v3 拆掉的那種彎前單支預告牌。
+  if(route){
+    for(let n=Math.ceil((odo-0.2)/CHEV_STEP);;n++){
+      const pos=n*CHEV_STEP, dz=pos-odo;
+      if(dz>DRAW_DZ) break;
+      const c=curveOf(route.k,pos), ac=Math.abs(c);
+      if(ac<CHEV_MIN) continue;
+      // side＝彎的外側（c>0 路往右彎 → 外側在左）；dir＝箭頭指向彎內
+      drawList.push({ type:'chev', dz,
+        o:{ side:-Math.sign(c), dir:Math.sign(c), a:clamp01((ac-CHEV_MIN)/(CHEV_FULL-CHEV_MIN)) } });
+    }
+  }
   drawList.sort((a,b)=>b.dz-a.dz);
+  chevs.length=0;                       // 黃昏 multiply 之後要補畫一次，這裡先記位置
 
   for(const d of drawList){
-    const t=tOf(d.dz), baseY=HOR+t*DEPTH, halfW=halfWAt(t,W), cx=roadCenterPx(t,W,cpx);
-    if(d.type==='scen'){
+    const t=tOf(d.dz), baseY=HOR+t*DEPTH, halfW=halfWAt(t,W), cx=roadCenterPx(t,W);
+    if(d.type==='chev'){
+      drawChevron(cx,baseY,halfW,t,d.o,1);
+      chevs.push({cx,baseY,halfW,t,o:d.o});
+    }else if(d.type==='scen'){
       const sc=d.o, cf=SCEN_CFG[sc.kind], h=cf.hf*t*DEPTH*sc.sc;
       if(h<3) continue;
       const x=cx+sc.side*sc.off*halfW;
@@ -1511,7 +1605,7 @@ function render(){
       const a=clamp01((d.dz-RIVAL_FADE0)/(RIVAL_FADE1-RIVAL_FADE0));
       if(sp&&a>0.01){
         const tt=Math.min(t,1.0), by=HOR+tt*DEPTH, hw=halfWAt(tt,W);
-        const x=roadCenterPx(tt,W,cpx)+r.lane*LANE_OFF*hw;
+        const x=roadCenterPx(tt,W)+r.lane*LANE_OFF*hw;
         const bw=BIKE_K*tt, bh=bw*sp.height/sp.width;
         ctx.save(); ctx.globalAlpha=a;
         ctx.fillStyle='rgba(18,24,12,0.34)';
@@ -1551,7 +1645,7 @@ function render(){
   ctx.globalAlpha=1;
 
   // ---- 玩家重機（v3）----
-  drawPlayerBike(W,H,cpx);
+  drawPlayerBike(W,H);
 
   // ---- 路肩／出界的邊緣警示光（長者靠這個一眼看出「我偏了」）----
   const pa=Math.abs(px);
@@ -1585,6 +1679,9 @@ function render(){
     gg.addColorStop(1,'rgba(255,190,110,0)');
     ctx.save(); ctx.globalCompositeOperation='lighter';
     ctx.fillStyle=gg; ctx.fillRect(-20,y0,W+40,hh); ctx.restore();
+    // chevron 提亮補畫：黃昏是 multiply，紅白板會被壓暗到跟路面同一階。
+    // 這裡把同一批板子以 dusk 比例再疊一次（等於把 multiply 的衰減補回來）＝「自發光」的板面。
+    for(const c of chevs) drawChevron(c.cx,c.baseY,c.halfW,c.t,c.o,dusk*0.62);
   }
 
   // ---- 火花與飄字 ----
@@ -1615,8 +1712,8 @@ function render(){
     ・陰影隨壓車變窄（車身立起來投影就短） */
 const LEAN_MAX=0.52;          // 視覺總傾角上限（rad，約 30°）
 const LEAN_SPRITE=0.46;       // 壓車素材本身已有的傾角（rad，約 26°）
-function drawPlayerBike(W,H,cpx){
-  const tCar=0.97, carX=roadCenterPx(tCar,W,cpx)+px*halfWAt(tCar,W);
+function drawPlayerBike(W,H){
+  const tCar=0.97, carX=roadCenterPx(tCar,W)+px*halfWAt(tCar,W);
   const lv=clamp(leanVis,-1,1), mag=Math.abs(lv);
   // 換圖區間刻意做窄（0.44→0.58）＋smoothstep：兩張圖是不同的 3D 姿態，長時間各半會疊成鬼影。
   // 角度本身（rotate）全程連續，所以窄區間不會有跳變感，只是「快速倒進彎裡」。
@@ -1690,6 +1787,42 @@ function contactShadow(x,y,w,alpha){
   w=Math.max(4,w);
   ctx.save(); ctx.fillStyle=`rgba(20,26,14,${alpha})`;
   ctx.beginPath(); ctx.ellipse(x+w*0.16,y+w*0.04,w*0.52,w*0.18,0,0,7); ctx.fill(); ctx.restore();
+}
+/** v3.2 彎道 chevron 板：紅底＋白色粗 V 形箭頭，箭頭指向彎內。
+    ・立在外側路緣外一點點（CHEV_OUT），透視縮放與路緣同一套 → 隨彎跟著彎、近大遠小
+    ・全程程式繪製（不用圖片）：解析度無關，黃昏色調下也能用同一組色補償
+    ・alphaK＝提亮補畫用的係數（主畫 1，黃昏補畫傳 dusk*0.55） */
+function drawChevron(cx,baseY,halfW,t,o,alphaK){
+  // 板寬跟著路寬縮放（直式窄畫面自動變小），但遠處放大 1.5 倍——
+  // ⚠️直式 390 寬實測：純透視的遠端板子只剩 4px，等於沒有預警作用。
+  // 底座仍畫在路緣的地面線上，所以放大不會讓板子「浮起來」。
+  const w=halfW*0.46*(1+0.5*clamp01((1-t-0.25)/0.62));
+  if(w<2.2) return;
+  const h=w*0.70, postH=h*0.52, lw=Math.max(1,w*0.055);
+  const x=cx+o.side*(halfW*CHEV_OUT+w*0.5); // 內緣貼著路肩，整塊板在路面外
+  if(x<-w*2||x>CW+w*2) return;
+  const yTop=baseY-postH-h;
+  ctx.save();
+  ctx.globalAlpha=o.a*alphaK;
+  // 立柱（兩根，深色）
+  ctx.fillStyle='#3a2b1e';
+  ctx.fillRect(x-w*0.30-lw*0.5,yTop+h,lw*1.6,postH);
+  ctx.fillRect(x+w*0.30-lw*0.5,yTop+h,lw*1.6,postH);
+  // 板面：紅底＋深色描邊（描邊是黃昏 multiply 下仍讀得到輪廓的關鍵）
+  ctx.fillStyle='#e01b24';
+  ctx.fillRect(x-w/2,yTop,w,h);
+  ctx.lineWidth=lw*1.4; ctx.strokeStyle='rgba(46,12,8,0.92)';
+  ctx.strokeRect(x-w/2,yTop,w,h);
+  // 白色粗 chevron（指向彎內）
+  const d=o.dir, cxx=x, cy=yTop+h*0.5;
+  ctx.lineWidth=Math.max(1.4,h*0.22); ctx.lineCap='round'; ctx.lineJoin='round';
+  ctx.strokeStyle='#fff8f2';
+  ctx.beginPath();
+  ctx.moveTo(cxx-d*w*0.20,cy-h*0.26);
+  ctx.lineTo(cxx+d*w*0.19,cy);
+  ctx.lineTo(cxx-d*w*0.20,cy+h*0.26);
+  ctx.stroke();
+  ctx.restore();
 }
 function drawCoin(x,groundY,r,phaseSeed){
   const raw0=Math.sin(nowT*3.6+phaseSeed*1.7);
