@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>生命故事卡牌｜48 張卡面總覽</title>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:"PingFang TC","Noto Sans TC",sans-serif; background:#F4EFE3; color:#2b2620; padding:28px 18px 50px; }
+  h1 { text-align:center; font-size:24px; margin-bottom:20px; }
+  h2 { font-size:19px; margin:26px 0 12px; padding-left:12px; border-left:6px solid var(--c); }
+  .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:14px; }
+  .cell { background:#fff; border-radius:12px; overflow:hidden; box-shadow:0 4px 12px rgba(43,38,32,.12);
+          border-top:5px solid var(--c); }
+  .cell img { width:100%; aspect-ratio:310/400; object-fit:cover; display:block; background:#eee; }
+  .cap { padding:8px 10px; font-size:12.5px; line-height:1.5; }
+  .cap b { color:var(--c); }
+  .missing { display:flex; align-items:center; justify-content:center; aspect-ratio:310/400; color:#b00; font-size:13px; background:#fff2f0; }
+</style>
+</head>
+<body>
+<h1>48 張卡面總覽（美術驗收用）</h1>
+<div id="root"></div>
+<script>
+const SUITS = {
+  "囡仔時":  { c:"#C77B3F", si:1 }, "灶腳味": { c:"#A6452F", si:2 }, "打拚時代": { c:"#3E5C76", si:3 },
+  "牽手情":  { c:"#B0526B", si:4 }, "時代風景": { c:"#4A6B4F", si:5 }, "心內話": { c:"#6B5B8E", si:6 },
+};
+const CARDS = [
+ ["囡仔時",1,"★","第一次自己上學那天，是誰帶你去的？"],["囡仔時",2,"","你小時候住的厝是什麼樣子？"],["囡仔時",3,"","小時候你都跟誰玩？"],["囡仔時",4,"","你的名字或綽號有什麼故事？"],["囡仔時",5,"","記憶中的爸爸媽媽"],["囡仔時",6,"","有被老師罰過或稱讚過嗎？"],["囡仔時",7,"","放學後幫家裡做什麼？"],["囡仔時",8,"🎲","童玩比給大家看"],
+ ["灶腳味",1,"★","第一次自己煮飯"],["灶腳味",2,"","灶腳是誰在煮飯？"],["灶腳味",3,"","圍爐一定有哪道菜？"],["灶腳味",4,"","跟誰去菜市場？"],["灶腳味",5,"","最懷念的古早味"],["灶腳味",6,"","拜拜準備什麼？"],["灶腳味",7,"","搓湯圓綁粽子"],["灶腳味",8,"🎲","燒肉粽叫賣聲"],
+ ["打拚時代",1,"★","第一份薪水怎麼用？"],["打拚時代",2,"","第一份工作"],["打拚時代",3,"","教教我們外行人"],["打拚時代",4,"","最自豪的絕活"],["打拚時代",5,"","以前上班怎麼去？"],["打拚時代",6,"","對你好的老闆師傅"],["打拚時代",7,"","消失的行業"],["打拚時代",8,"🎲","工作動作比手畫腳"],
+ ["牽手情",1,"★","第一次見到另一半"],["牽手情",2,"","第一次約會"],["牽手情",3,"","結婚那天"],["牽手情",4,"","孩子出生那天"],["牽手情",5,"","爸媽怎麼認識的？"],["牽手情",6,"","誰跟你最親？"],["牽手情",7,"","想對孩子說的話"],["牽手情",8,"🎲","牽手說感謝"],
+ ["時代風景",1,"★","家裡第一台電視"],["時代風景",2,"","最紅的歌星"],["時代風景",3,"","布袋戲和歌仔戲"],["時代風景",4,"","浴室櫃仔有什麼？"],["時代風景",5,"","第一台交通工具"],["時代風景",6,"","聯絡遠方多麻煩"],["時代風景",7,"","最熱鬧的廟會"],["時代風景",8,"🎲","唱一段老歌"],
+ ["心內話",1,"★","第一次出遠門"],["心內話",2,"","最驕傲的一件事"],["心內話",3,"","最想謝謝的人"],["心內話",4,"","每天最期待的小事"],["心內話",5,"","想再去的地方"],["心內話",6,"","笑到肚子痛的事"],["心內話",7,"","想傳給少年人的道理"],["心內話",8,"🎲","給每個人一句祝福"],
+];
+const root = document.getElementById('root');
+let cur = null, grid = null;
+CARDS.forEach(([s,n,t,q]) => {
+  if(s !== cur){
+    cur = s;
+    const h = document.createElement('h2'); h.textContent = s; h.style.setProperty('--c', SUITS[s].c); root.appendChild(h);
+    grid = document.createElement('div'); grid.className='grid'; root.appendChild(grid);
+  }
+  const cell = document.createElement('div'); cell.className='cell'; cell.style.setProperty('--c', SUITS[s].c);
+  const img = document.createElement('img'); img.loading='lazy';
+  img.src = `cards/s${SUITS[s].si}c${n}.jpg`;
+  img.onerror = () => { const d=document.createElement('div'); d.className='missing'; d.textContent='❌ 缺圖 '+img.src.split('/').pop(); img.replaceWith(d); };
+  cell.appendChild(img);
+  const cap = document.createElement('div'); cap.className='cap'; cap.innerHTML = `<b>${s} ${n}/8 ${t}</b><br>${q}`;
+  cell.appendChild(cap);
+  grid.appendChild(cell);
+});
+</script>
+</body>
+</html>

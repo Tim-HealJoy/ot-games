@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>生命故事卡牌｜線上試抽</title>
+<meta property="og:title" content="生命故事卡牌｜和長輩坐下來，抽一張，聊起來">
+<meta property="og:description" content="職能治療師設計的生命故事對話卡：48 張題目＋卡住救援引導，逢年過節和長輩開啟話匣子。">
+<meta property="og:image" content="https://games.otshih.com/story-cards/og.jpg">
+<meta property="og:type" content="website">
+<script src="/open-in-browser.js" defer></script>
+<style>
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html,body { height:100%; }
+  body { font-family:"PingFang TC","Noto Sans TC",sans-serif; color:#2b2620; overflow-x:hidden;
+         background:
+           radial-gradient(ellipse 120% 90% at 50% -10%, #FBF6EA 0%, #F4EFE3 45%, #E9DFC9 100%);
+         min-height:100vh; display:flex; flex-direction:column; align-items:center; padding:24px 12px 40px; }
+  h1 { font-size:clamp(21px,5vw,28px); letter-spacing:1px; }
+  .badge-beta { font-size:12px; background:#2b2620; color:#F4EFE3; border-radius:999px; padding:2px 10px; vertical-align:middle; }
+  .sub { color:#7a6f5d; font-size:14px; margin:6px 0 14px; text-align:center; line-height:1.7; }
+
+  .sndbtn { position:fixed; top:14px; right:14px; z-index:50; border:none; background:rgba(255,255,255,.85);
+            border-radius:999px; width:40px; height:40px; font-size:18px; cursor:pointer; box-shadow:0 2px 8px rgba(43,38,32,.15); }
+
+  /* 花色籤 */
+  .suitbar { display:flex; gap:7px; flex-wrap:wrap; justify-content:center; margin-bottom:6px; }
+  .suit-btn { border:2px solid transparent; border-radius:999px; padding:8px 14px; font-size:14.5px; font-weight:700; color:#fff;
+              cursor:pointer; opacity:.55; transition:.18s; }
+  .suit-btn.on { opacity:1; border-color:#2b2620; transform:translateY(-2px); box-shadow:0 4px 10px rgba(43,38,32,.18); }
+  .suit-btn:hover { opacity:.9; }
+
+  /* ── 牌桌與扇形牌堆 ── */
+  #fanArea { position:relative; width:min(96vw,760px); height:min(52vw,330px); margin:8px 0 26px; }
+  .fancard { position:absolute; left:50%; bottom:8px; width:var(--fw,112px); aspect-ratio:63/88;
+             margin-left:calc(var(--fw,112px) / -2); transform-origin:50% 118%;
+             transform:rotate(var(--a)) translateY(0);
+             border-radius:10px; cursor:pointer; transition:transform .22s ease, filter .22s;
+             background:url('suits/cardback.jpg') center/cover; border:3px solid #FBF6EA;
+             box-shadow:0 4px 14px rgba(43,38,32,.30); }
+  .fancard:hover, .fancard.hover { transform:rotate(var(--a)) translateY(-26px); filter:brightness(1.06); z-index:9; }
+  .fanhint { position:absolute; left:0; right:0; top:4px; text-align:center; color:#8a7f6b; font-size:15px;
+             letter-spacing:1px; pointer-events:none; text-shadow:0 1px 0 #fff; z-index:15; }
+
+  /* ── 抽出的卡 ── */
+  .stage { perspective:1400px; margin:6px auto 12px; }
+  .cardwrap { position:relative; width:min(78vw,330px); aspect-ratio:310/442; cursor:pointer;
+              transform-style:preserve-3d; transition:transform .65s cubic-bezier(.4,.1,.2,1); }
+  .cardwrap.showback { transform:rotateY(180deg); }
+  .face { position:absolute; inset:0; border-radius:18px; overflow:hidden; backface-visibility:hidden;
+          box-shadow:0 16px 38px rgba(43,38,32,.32); border:6px solid var(--c,#2b2620); background:#fff; }
+  .face.back { transform:rotateY(180deg); background:#FBF7EE; }
+  /* 翻牌瞬間：背面先蓋上花磚卡背，翻完才換回救援內容 */
+  .cardwrap.covered .face.back { background:url('suits/cardback.jpg') center/cover; }
+  .cardwrap.covered .face.back .btxt { display:none; }
+  .face.front img.art { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
+  .ftxt { position:absolute; top:0; left:0; right:0; padding:18px 16px 0; text-align:center; }
+  .chip { display:inline-block; background:var(--c); color:#fff; font-size:13px; letter-spacing:3px;
+          border-radius:999px; padding:4px 14px; margin-bottom:10px; font-weight:700; }
+  .q { font-size:clamp(18px,4.6vw,21px); font-weight:800; line-height:1.5; text-shadow:0 1px 6px rgba(255,255,255,.82); }
+  .f { font-size:13.5px; color:#4a4238; margin-top:8px; text-shadow:0 1px 4px rgba(255,255,255,.85); }
+  .star { position:absolute; top:12px; left:12px; font-size:20px; filter:drop-shadow(0 1px 2px rgba(0,0,0,.25)); }
+  .snd { position:absolute; top:12px; right:12px; font-size:17px; background:rgba(255,255,255,.85); border-radius:999px; padding:3px 8px; }
+  .num { position:absolute; bottom:10px; right:14px; font-size:12px; color:#fff; background:var(--c); border-radius:8px; padding:2px 10px; }
+  .fliphint { position:absolute; bottom:10px; left:14px; font-size:12px; color:#2b2620; background:rgba(255,255,255,.8); border-radius:8px; padding:2px 10px; }
+
+  /* 金卡光暈 */
+  .goldwrap { box-shadow:0 0 0 3px #d9a441, 0 0 34px 6px rgba(217,164,65,.55), 0 16px 38px rgba(43,38,32,.32) !important; }
+  .shine { position:absolute; inset:0; pointer-events:none; overflow:hidden; border-radius:12px; }
+  .shine::after { content:""; position:absolute; top:-30%; bottom:-30%; width:46%; left:-70%;
+                  background:linear-gradient(105deg, transparent 0%, rgba(255,240,190,.85) 50%, transparent 100%);
+                  transform:skewX(-18deg); animation:sweep 2.4s ease-in-out 2; }
+  @keyframes sweep { 0%{left:-70%} 55%{left:130%} 100%{left:130%} }
+  .spark { position:absolute; font-size:17px; pointer-events:none; animation:tw 1.5s ease-in-out infinite; }
+  @keyframes tw { 0%,100%{opacity:0; transform:scale(.5)} 50%{opacity:1; transform:scale(1.15)} }
+
+  /* 卡背（救援面） */
+  .btxt { position:absolute; inset:0; padding:22px 18px; display:flex; flex-direction:column; text-align:left; }
+  .btitle { text-align:center; font-size:15px; letter-spacing:2px; color:var(--c); font-weight:800; margin-bottom:12px; }
+  .sec { background:#fff; border:1.5px solid #eadfc8; border-radius:14px; padding:11px 14px; margin-bottom:10px; }
+  .sec h4 { font-size:13.5px; color:var(--c); margin-bottom:5px; letter-spacing:1px; }
+  .sec p { font-size:14.5px; line-height:1.62; }
+  .warn { background:#FFF3EC; border-color:#f0cdb5; }
+  .warn h4 { color:#A6452F; }
+  .ladder { margin-top:auto; text-align:center; font-size:12px; color:#8a7f6b; line-height:1.7; }
+
+  .actions { display:flex; gap:12px; justify-content:center; margin-top:4px; }
+  .mode { border:none; border-radius:999px; padding:12px 22px; font-size:16px; font-weight:700; cursor:pointer;
+          background:#fff; color:#2b2620; box-shadow:0 3px 10px rgba(43,38,32,.12); transition:.15s; }
+  .mode:hover { transform:translateY(-2px); }
+  .mode.primary { background:#2b2620; color:#F4EFE3; }
+  .counter { color:#7a6f5d; font-size:13.5px; margin-top:12px; text-align:center; }
+  .toast { position:fixed; top:60px; left:50%; transform:translateX(-50%); background:#2b2620; color:#F4EFE3;
+           border-radius:999px; padding:9px 20px; font-size:14.5px; z-index:60; opacity:0; transition:.3s; pointer-events:none; }
+  .toast.show { opacity:1; }
+  .footer { margin-top:24px; color:#9a8f7a; font-size:12.5px; text-align:center; line-height:1.8; }
+  .hidden { display:none !important; }
+  @media (max-width:560px){
+    .fancard { --fw:74px; }
+    #fanArea { height:74vw; }
+  }
+</style>
+</head>
+<body>
+<button class="sndbtn" id="sndToggle" onclick="toggleSnd()">🔊</button>
+<h1>生命故事卡牌 <span class="badge-beta">試玩版</span></h1>
+<div class="sub">和長輩坐下來，抽一張，聊起來。</div>
+
+<div class="suitbar" id="suitbar"></div>
+
+<!-- 牌桌 -->
+<div id="fanArea">
+  <div class="fanhint" id="fanhint">👆 從牌堆裡抽一張</div>
+</div>
+
+<!-- 抽出的卡 -->
+<div class="stage hidden" id="stage">
+  <div class="cardwrap" id="card" onclick="flipCard()">
+    <div class="face front" id="front">
+      <img class="art" id="img" src="" alt="">
+      <div class="shine hidden" id="shine"></div>
+      <span class="star" id="starIcon">🌟</span>
+      <span class="snd" id="sndIcon">🔊</span>
+      <div class="ftxt">
+        <span class="chip" id="chipF"></span>
+        <div class="q" id="qEl"></div>
+        <div class="f" id="fEl"></div>
+      </div>
+      <div class="fliphint">👆 點卡片看引導</div>
+      <div class="num" id="numF"></div>
+    </div>
+    <div class="face back">
+      <div class="btxt">
+        <div class="btitle">— 卡住了嗎？照這樣接 —</div>
+        <div class="sec"><h4>🪜 換個問法（降一階）</h4><p id="downEl"></p></div>
+        <div class="sec"><h4>💡 話引（丟個線索）</h4><p id="hintEl"></p></div>
+        <div class="sec warn hidden" id="warnSec"><h4>⚠️ 溫柔提醒</h4><p id="warnEl"></p></div>
+        <div class="ladder">還是沒有回應？換你先說自己的故事。<br>沉默不是失敗，數到十再開口。</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="actions hidden" id="actions">
+  <button class="mode primary" onclick="backToFan()">🎴 收回，再抽一張</button>
+</div>
+<div class="counter hidden" id="counter"></div>
+<div class="toast" id="toast"></div>
+
+<div class="footer">實體版 48 張大尺寸卡牌＋家人手冊＋照顧手冊（製作中）<br>施昱廷 職能治療師 設計｜🔊 標記的聲音卡，實體版將附 QR code 掃碼聽叫賣聲與老歌（規劃中）</div>
+
+<script>
+const SUITS = {
+  "囡仔時":  { c:"#C77B3F", si:1 },
+  "灶腳味":  { c:"#A6452F", si:2 },
+  "打拚時代":{ c:"#3E5C76", si:3 },
+  "牽手情":  { c:"#B0526B", si:4 },
+  "時代風景":{ c:"#4A6B4F", si:5 },
+  "心內話":  { c:"#6B5B8E", si:6 },
+};
+const cardImg = c => `cards/s${SUITS[c.s].si}c${c.n}.jpg`;   // 每張卡有自己的插畫
+const suitFallback = c => `suits/suit${SUITS[c.s].si}.jpg`;  // 缺圖時退回花色代表圖
+const CARDS = [
+ {s:"囡仔時",n:1,t:"star",q:"第一次自己上學那天，是誰帶你去的？",f:"學校離家多遠？走路還是坐車？",d:"以前上學是用走路的嗎？",h:"以前很多囡仔打赤腳走路上學，一走就是一小時。"},
+ {s:"囡仔時",n:2,t:"talk",q:"你小時候住的厝，是什麼樣子？",f:"三合院還是樓仔厝？厝邊有什麼？",d:"家裡人多嗎？幾個人睡一間房？",h:"以前一家七八口擠一間房很常見。"},
+ {s:"囡仔時",n:3,t:"talk",q:"小時候你都跟誰玩？玩些什麼？",f:"玩伴叫什麼名字？都在哪裡玩？",d:"（指卡面的圖）這種尪仔標你玩過嗎？",h:"尪仔標、丟沙包、跳格子、灌蟋蟀。"},
+ {s:"囡仔時",n:4,t:"talk",q:"你的名字或綽號，有什麼故事？",f:"誰幫你取的？大家都怎麼叫你？",d:"小時候大人都怎麼叫你？",h:"以前常見「罔市」「罔腰」，名字都有時代的故事。",w:"名字可能藏著重男輕女的年代背景，順著長輩的情緒接，不評論。"},
+ {s:"囡仔時",n:5,t:"talk",q:"記憶中的爸爸媽媽，是什麼樣的人？",f:"他教過你哪件事，到現在還記得？",d:"爸爸卡嚴還是媽媽卡嚴？",h:"你可以先分享自己爸媽的一件小事。",w:"若長輩早年喪親，改聊「小時候最疼你的長輩」。"},
+ {s:"囡仔時",n:6,t:"talk",q:"小學的時候，有被老師罰過或稱讚過嗎？",f:"那時的老師多兇？怎麼處罰？",d:"以前老師有拿藤條嗎？",h:"以前上課說方言，會被掛狗牌、罰一角。"},
+ {s:"囡仔時",n:7,t:"talk",q:"放學後，要幫家裡做什麼工作？",f:"餵雞？顧弟妹？落田？",d:"你有揹過弟弟妹妹嗎？",h:"以前囡仔放學要先做工，才能去玩。"},
+ {s:"囡仔時",n:8,t:"act",q:"尪仔標、丟沙包、跳格子——你最會哪一種？比給大家看！",f:"大家一起跟著做一次！",d:"你先做一次動作，請長輩跟著做。",h:"動作記憶比語言記憶保留更久，做了就想起來。"},
+ {s:"灶腳味",n:1,t:"star",q:"你第一次自己煮飯是幾歲？煮了什麼？",f:"有沒有煮失敗、被唸的經驗？",d:"你第一次煮飯有煮焦嗎？",h:"以前生火煮飯，光起火就要好幾分鐘。"},
+ {s:"灶腳味",n:2,t:"talk",q:"小時候家裡的灶腳，是誰在煮飯？",f:"用大灶還是電鍋？燒柴還是燒煤球？",d:"（指卡面的圖）這種大灶你家有嗎？",h:"大同電鍋民國 49 年上市，改變了全台灣的灶腳。"},
+ {s:"灶腳味",n:3,t:"talk",q:"過年圍爐，桌上一定會有哪道菜？",f:"誰煮的？現在還吃得到那個味道嗎？",d:"圍爐有吃長年菜嗎？",h:"長年菜、菜頭好彩頭、年年有餘——道道有吉祥話。"},
+ {s:"灶腳味",n:4,t:"talk",q:"小時候跟誰去菜市場？最熱鬧的是什麼？",f:"有偷買過零嘴嗎？",d:"菜市場有賣麵茶嗎？你有喝過嗎？",h:"以前的市場有叫賣聲、剁肉聲、冰店的鈴聲。"},
+ {s:"灶腳味",n:5,t:"talk",q:"你最懷念的古早味，是什麼？",f:"在哪裡吃到的？跟誰一起吃？",d:"枝仔冰和叭噗，你卡愛哪一個？",h:"枝仔冰一枝五角的年代。"},
+ {s:"灶腳味",n:6,t:"talk",q:"家裡拜拜的時候，都準備什麼？",f:"誰負責做粿？你有幫忙嗎？",d:"你會做發粿還是紅龜粿？",h:"謝籃、三牲、發粿——拜拜是全家總動員。"},
+ {s:"灶腳味",n:7,t:"talk",q:"冬至搓湯圓、端午綁粽——你會嗎？誰教的？",f:"你們家是南部粽還是北部粽？",d:"湯圓要搓紅的還是白的？",h:"南北粽之爭永遠聊不完，你可以故意選邊站。"},
+ {s:"灶腳味",n:8,t:"act",snd:1,q:"「燒肉粽——」這句叫賣聲怎麼喊？喊來聽聽！",f:"還記得哪些叫賣聲？（修理紗窗、紗門～）",d:"你先喊前半句，讓長輩接後半句。",h:"聲音記憶保留最久，中度失智的長輩也常能接上。"},
+ {s:"打拚時代",n:1,t:"star",q:"你的第一份薪水是多少？怎麼用掉的？",f:"領錢那天心情如何？有交給家裡嗎？",d:"第一份薪水有交給媽媽嗎？",h:"民國 64 年老師月薪約 4,000 元——先丟這個數字讓長輩接。"},
+ {s:"打拚時代",n:2,t:"talk",q:"你的第一份工作是什麼？怎麼找到的？",f:"幾歲開始做？誰介紹的？",d:"你是去做學徒嗎？",h:"以前說「查埔做醫生、查某做老師」。"},
+ {s:"打拚時代",n:3,t:"talk",q:"你以前的工作是在做什麼？教教我們外行人！",f:"一天的工作是怎麼過的？",d:"你的工作要很早起嗎？",h:"請長輩「教」是最尊重的問法——角色反轉，他最有話說。"},
+ {s:"打拚時代",n:4,t:"talk",q:"工作裡，你最自豪的絕活是什麼？",f:"這功夫要學多久？有傳給誰嗎？",d:"你的手路是跟誰學的？",h:"每個行業都有外行人不知道的眉角。"},
+ {s:"打拚時代",n:5,t:"talk",q:"以前上班怎麼去？路上是什麼風景？",f:"鐵馬？公車？走路？",d:"你有騎鐵馬載過人嗎？",h:"以前一台鐵馬，前後可以載三個人。"},
+ {s:"打拚時代",n:6,t:"talk",q:"有遇過對你很好的老闆或師傅嗎？",f:"他教了你什麼？後來還有聯絡嗎？",d:"師傅對你好嗎？",h:"學徒要「三年四個月」才能出師。",w:"也可能遇過苛刻的——順著聊，抱怨也是好對話。"},
+ {s:"打拚時代",n:7,t:"talk",q:"車掌小姐、三輪車伕——你記得哪些現在沒有的行業？",f:"你搭過他們的車嗎？",d:"剪票的喀嚓聲，你記得嗎？",h:"車掌小姐要喊站名、剪票，還要把人推上車。"},
+ {s:"打拚時代",n:8,t:"act",q:"比手畫腳：把你以前工作的動作比出來，讓大家猜！",f:"猜到後，請長輩講解那個動作在做什麼。",d:"你先比自己的工作，讓長輩猜。",h:"程序記憶（動作）最不容易忘。"},
+ {s:"牽手情",n:1,t:"star",q:"你第一次見到另一半，是在什麼場合？",f:"第一印象如何？誰介紹的？",d:"你們是相親認識的嗎？",h:"以前媒人帶去「看一眼」，就要決定終身。",w:"喪偶／離婚／未婚的長輩，改問「以前的人怎麼相親？」"},
+ {s:"牽手情",n:2,t:"talk",q:"第一次約會，去了哪裡？",f:"看電影？逛街？緊不緊張？",d:"有去看電影嗎？",h:"以前約會，後面常跟著「電燈泡」。",w:"喪偶／離婚／未婚的長輩，改問「你參加過最熱鬧的婚禮？」"},
+ {s:"牽手情",n:3,t:"talk",q:"結婚那天的情景，還記得嗎？",f:"辦幾桌？穿什麼？最記得哪個畫面？",d:"有坐禮車嗎？有放鞭炮嗎？",h:"新娘出門丟扇、入門過火爐的老規矩。"},
+ {s:"牽手情",n:4,t:"talk",q:"孩子出生那天，你在做什麼？",f:"名字誰取的？有什麼意義？",d:"囡仔的名是誰號的？",h:"以前多在家裡，由產婆接生。"},
+ {s:"牽手情",n:5,t:"talk",q:"你的爸爸媽媽，是怎麼認識的？",f:"他們相處是什麼樣子？",d:"阿公阿嬤是媒人做的嗎？",h:"上一代幾乎都相親，自由戀愛很稀奇。"},
+ {s:"牽手情",n:6,t:"talk",q:"家人裡面，誰跟你最親？",f:"為什麼？你們常一起做什麼？",d:"你卡疼大的還是小的？（笑）",h:"這題常有意外的答案，別替長輩預設。"},
+ {s:"牽手情",n:7,t:"talk",q:"你想對孩子或孫子說的一句話？",f:"有沒有一直想講、但沒講出口的？",d:"你希望囡仔們過得怎樣？",h:"講不出口，就請他「託」你轉達。",w:"催淚題：允許流淚，遞面紙，不打斷。"},
+ {s:"牽手情",n:8,t:"act",q:"牽起旁邊的人的手，說一件想謝謝他的事。",f:"被謝的人，回一句話。",d:"說不出口，握一下手就好。",h:"肢體接觸本身就是溝通，不必強求語言。"},
+ {s:"時代風景",n:1,t:"star",q:"家裡第一台電視，是什麼時候買的？",f:"厝邊會來一起看嗎？看什麼節目？",d:"以前看電視，要去別人家看嗎？",h:"民國 51 年台視開播，全村擠一台電視。"},
+ {s:"時代風景",n:2,t:"talk",q:"你年輕時最紅的歌星是誰？最愛哪首歌？",f:"在哪裡聽歌？收音機還是歌廳？",d:"鄧麗君和鳳飛飛，你卡愛哪一個？",h:"群星會、余天、崔苔菁——一個名字就能開話匣。"},
+ {s:"時代風景",n:3,t:"talk",q:"布袋戲和歌仔戲，你卡愛看哪一種？",f:"史艷文播出的時候，你在做什麼？",d:"雲州大儒俠你有看過嗎？",h:"史艷文播出時萬人空巷，農人放下鋤頭跑回家。"},
+ {s:"時代風景",n:4,t:"talk",q:"以前家裡的浴室櫃仔，有什麼？",f:"你還記得那個味道嗎？",d:"明星花露水，你用過嗎？",h:"明星花露水、面速力達母、黑人牙膏——氣味記憶最持久。"},
+ {s:"時代風景",n:5,t:"talk",q:"你的第一台交通工具，是什麼？",f:"多少錢買的？都騎去哪裡？",d:"你有騎過野狼 125 嗎？",h:"鐵馬→野狼 125→裕隆速利，時代三部曲。"},
+ {s:"時代風景",n:6,t:"talk",q:"以前要聯絡遠方的人，有多麻煩？",f:"寫信？電報？跟鄰居借電話？",d:"你有寫過情書嗎？（笑）",h:"以前全村共用一支電話，用喊的叫人來聽。"},
+ {s:"時代風景",n:7,t:"talk",q:"廟會、戲棚、露天電影——記憶中最熱鬧的一次？",f:"廟會有什麼好吃、好玩的？",d:"媽祖生的時候，有繞境嗎？",h:"廟埕＝以前的電影院＋夜市＋音樂廳。"},
+ {s:"時代風景",n:8,t:"act",snd:1,q:"唱一段你最會的老歌，大家一起跟！",f:"這首歌讓你想起什麼？",d:"你先起頭，唱〈望春風〉第一句。",h:"唱歌的腦區跟說話不同——不會講的，常常還會唱。"},
+ {s:"心內話",n:1,t:"star",q:"你人生第一次出遠門，是去哪裡？",f:"跟誰去？坐什麼車？",d:"你有去過日月潭嗎？",h:"以前畢業旅行、進香團，是多數人的第一次遠行。"},
+ {s:"心內話",n:2,t:"talk",q:"這輩子，你最驕傲的一件事？",f:"當時是什麼情況？誰在你身邊？",d:"你上驕傲的是囡仔，還是工作？",h:"從剛剛聊過的故事幫他挑：「你剛說的那件事就很厲害。」"},
+ {s:"心內話",n:3,t:"talk",q:"你最想謝謝的人是誰？想跟他說什麼？",f:"他為你做過什麼？",d:"這世人上照顧你的人是誰？",h:"可以接一句：「他聽到一定很歡喜。」",w:"對象可能已過世——允許思念，不急著轉移話題。"},
+ {s:"心內話",n:4,t:"talk",q:"現在每天最期待的小事，是什麼？",f:"早上起來，第一件想做的事？",d:"你卡愛呷早頓的什麼？",h:"把話題從過去拉回現在，收在當下的幸福感。"},
+ {s:"心內話",n:5,t:"talk",q:"如果可以再去一個地方，你想去哪裡？",f:"想跟誰去？去做什麼？",d:"想去看海，還是看山？",h:"答案常常可以真的安排——記下來，變成下次的家庭活動。"},
+ {s:"心內話",n:6,t:"talk",q:"這輩子讓你笑到肚子痛的一件事？",f:"講給大家笑一下！",d:"你有看過誰出糗嗎？",h:"笑的記憶跟情緒綁在一起，最容易提取。"},
+ {s:"心內話",n:7,t:"talk",q:"你有什麼功夫或道理，想傳給少年人？",f:"為什麼這件事重要？",d:"你覺得做人上重要的是什麼？",h:"這題的答案值得寫下來——它就是傳家寶。"},
+ {s:"心內話",n:8,t:"act",q:"給在座的每一個人，一句祝福的話！",f:"過年時，就是長輩發吉祥話的時刻。",d:"一人一句「新年快樂」也很好。",h:"讓長輩當「賜福的人」，把主角位置還給他。"},
+];
+const TYPE_NAME = { star:"★金卡", talk:"", act:"🎲互動卡" };
+const FAN_N = 13;
+let filter = "全部", drawn = 0;
+const drawnSet = new Set();
+
+/* ── 音效（WebAudio 合成，免音檔） ── */
+let sndOn = true, actx = null;
+function toggleSnd(){ sndOn = !sndOn; document.getElementById('sndToggle').textContent = sndOn ? '🔊' : '🔇'; }
+function ac(){ if(!actx) actx = new (window.AudioContext||window.webkitAudioContext)(); if(actx.state==='suspended') actx.resume(); return actx; }
+function tick(vol=0.12, dur=0.05, freq=2600){
+  if(!sndOn) return; const c = ac();
+  const buf = c.createBuffer(1, c.sampleRate*dur, c.sampleRate);
+  const d = buf.getChannelData(0);
+  for(let i=0;i<d.length;i++) d[i] = (Math.random()*2-1) * Math.pow(1-i/d.length, 2.2);
+  const src = c.createBufferSource(); src.buffer = buf;
+  const bp = c.createBiquadFilter(); bp.type='bandpass'; bp.frequency.value=freq; bp.Q.value=0.8;
+  const g = c.createGain(); g.gain.value = vol;
+  src.connect(bp).connect(g).connect(c.destination); src.start();
+}
+function sfxShuffle(){ for(let i=0;i<6;i++) setTimeout(()=>tick(0.09,0.04,2200+Math.random()*800), i*55); }
+function sfxFlip(){ tick(0.14,0.06,1800); }
+function sfxGold(){ if(!sndOn) return; const c=ac(); [880,1108,1318].forEach((f,i)=>{ const o=c.createOscillator(),g=c.createGain(); o.type='sine'; o.frequency.value=f; g.gain.setValueAtTime(0.0001,c.currentTime); g.gain.exponentialRampToValueAtTime(0.07,c.currentTime+0.02+i*0.09); g.gain.exponentialRampToValueAtTime(0.0001,c.currentTime+0.6+i*0.09); o.connect(g).connect(c.destination); o.start(c.currentTime+i*0.09); o.stop(c.currentTime+0.8+i*0.09); }); }
+
+/* ── 花色籤 ── */
+const bar = document.getElementById('suitbar');
+["全部", ...Object.keys(SUITS)].forEach(name => {
+  const b = document.createElement('button');
+  b.className = 'suit-btn' + (name===filter?' on':'');
+  b.style.background = name==="全部" ? "#2b2620" : SUITS[name].c;
+  b.textContent = name; b.dataset.name = name;
+  b.onclick = () => { filter = name;
+    document.querySelectorAll('.suit-btn').forEach(x=>x.classList.toggle('on', x.dataset.name===name));
+    backToFan(); };
+  bar.appendChild(b);
+});
+
+function poolNow(){
+  let p = filter==="全部" ? CARDS : CARDS.filter(c=>c.s===filter);
+  let avail = p.filter(c=>!drawnSet.has(CARDS.indexOf(c)));
+  if(!avail.length){ p.forEach(c=>drawnSet.delete(CARDS.indexOf(c))); toast('這一疊都聊過囉，幫你重新洗牌 🔄'); avail = p; }
+  return avail;
+}
+function toast(msg){ const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2200); }
+
+/* ── 扇形牌堆 ── */
+const fanArea = document.getElementById('fanArea');
+function buildFan(animate=true){
+  fanArea.querySelectorAll('.fancard').forEach(e=>e.remove());
+  const spread = Math.min(64, 10 + FAN_N*4.2);
+  for(let i=0;i<FAN_N;i++){
+    const a = -spread/2 + spread*(i/(FAN_N-1));
+    const el = document.createElement('div');
+    el.className='fancard'; el.style.setProperty('--a', a+'deg');
+    el.style.zIndex = FAN_N - Math.abs(i - (FAN_N-1)/2);   // 中間在最上層，經典扇形
+    el.onclick = () => pickCard(el);
+    fanArea.appendChild(el);
+    if(animate){
+      el.animate([
+        { transform:`rotate(0deg) translateY(60px)`, opacity:0 },
+        { transform:`rotate(${a}deg) translateY(0)`, opacity:1 }
+      ], { duration:420, delay:i*38, easing:'cubic-bezier(.2,.8,.3,1)', fill:'backwards' });
+    }
+  }
+  if(animate) sfxShuffle();
+}
+
+function pickCard(el){
+  const card = poolNow()[Math.floor(Math.random()*poolNow().length)];
+  drawnSet.add(CARDS.indexOf(card));
+  sfxFlip();
+  // 選中的卡飛起，其他滑走
+  fanArea.querySelectorAll('.fancard').forEach(e=>{
+    if(e===el){ e.style.transition='transform .4s ease, opacity .4s'; e.style.transform=`rotate(0deg) translateY(-90px) scale(1.25)`; e.style.zIndex=20; }
+    else { e.style.transition='transform .35s ease, opacity .35s'; e.style.opacity=0; e.style.transform+=' translateY(70px)'; }
+  });
+  document.getElementById('fanhint').style.opacity=0;
+  setTimeout(()=>{ fanArea.classList.add('hidden'); reveal(card); }, 380);
+}
+
+function reveal(card){
+  const suit = SUITS[card.s];
+  const wrap = document.getElementById('card');
+  wrap.classList.add('showback','covered'); wrap.style.transition='none';   // 先亮花磚卡背（無動畫歸位）
+  setTimeout(()=>wrap.classList.remove('covered'), 800);
+  document.querySelectorAll('.face').forEach(f=>f.style.setProperty('--c', suit.c));
+  const imgEl = document.getElementById('img');
+  imgEl.onerror = () => { imgEl.onerror = null; imgEl.src = suitFallback(card); };
+  imgEl.src = cardImg(card);
+  document.getElementById('chipF').textContent = card.s.split('').join(' ');
+  document.getElementById('qEl').textContent = card.q;
+  document.getElementById('fEl').textContent = card.f;
+  document.getElementById('numF').textContent = `${card.s}・${card.n} / 8 ${TYPE_NAME[card.t]}`;
+  const isStar = card.t==='star';
+  document.getElementById('starIcon').classList.toggle('hidden', !isStar);
+  document.getElementById('sndIcon').classList.toggle('hidden', !card.snd);
+  document.getElementById('downEl').textContent = card.d;
+  document.getElementById('hintEl').textContent = card.h;
+  document.getElementById('warnSec').classList.toggle('hidden', !card.w);
+  document.getElementById('warnEl').textContent = card.w || '';
+  // 金卡特效
+  const frontFace = document.getElementById('front');
+  frontFace.classList.toggle('goldwrap', isStar);
+  const shine = document.getElementById('shine');
+  shine.classList.toggle('hidden', !isStar);
+  frontFace.querySelectorAll('.spark').forEach(e=>e.remove());
+  if(isStar){
+    shine.replaceWith(shine.cloneNode(true)); // 重播 sweep 動畫
+    [[8,18],[85,10],[90,60],[6,70],[48,4]].forEach(([x,y],i)=>{
+      const sp=document.createElement('span'); sp.className='spark'; sp.textContent='✦';
+      sp.style.left=x+'%'; sp.style.top=y+'%'; sp.style.color='#e8b84b'; sp.style.animationDelay=(i*0.25)+'s';
+      frontFace.appendChild(sp);
+    });
+  }
+  document.getElementById('stage').classList.remove('hidden');
+  document.getElementById('actions').classList.remove('hidden');
+  // 翻牌（同步 flush 起始狀態後啟動 transition，避免 rAF 被節流）
+  void wrap.offsetHeight;
+  wrap.style.transition=''; wrap.classList.remove('showback');
+  sfxFlip(); if(isStar) setTimeout(sfxGold, 380);
+  drawn++;
+  const cnt = document.getElementById('counter');
+  cnt.classList.remove('hidden');
+  cnt.textContent = `今天已經聊了 ${drawn} 張——不用急著抽下一張，故事聊開了就跟著走`;
+}
+
+function flipCard(){ document.getElementById('card').classList.toggle('showback'); sfxFlip(); }
+
+function backToFan(){
+  document.getElementById('stage').classList.add('hidden');
+  document.getElementById('actions').classList.add('hidden');
+  fanArea.classList.remove('hidden');
+  document.getElementById('fanhint').style.opacity=1;
+  buildFan(true);
+}
+
+buildFan(false);
+</script>
+</body>
+</html>
