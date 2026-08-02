@@ -1,0 +1,3699 @@
+<!DOCTYPE html>
+<!--
+  騎鐵馬，送便當 · 治療師版
+  ─────────────────────────────────────────────────────────────
+  由《傾斜賽車》v3.2 分支而來的懷舊化版本（1960 年代花東縱谷）。
+  ⚠️重機版《傾斜賽車》是另一個獨立檔案，兩者互不影響（localStorage key 也分開＝bento_*）。
+
+  控制＝手機傾斜（DeviceOrientation）
+    A 模式（螢幕橫式）：手機夾自拍桿、雙手握持，整條上肢帶動左右傾 → 用 beta 軸
+    B 模式（螢幕直式）：單手持機，前臂旋前／旋後 → 用 gamma 軸
+    軸的正負由「校正流程」自動判定，不靠裝置慣例猜。
+  美術＝沿用已驗收的偽 3D 引擎
+    ・地面＝低頻雙色帶＋透視稻列＋地平線霧化（⚠️絕不可用照片紋理逐掃描線取樣，會 texture shimmering）
+    ・碎石土路＝柏油照片程式後製成土黃碎石＋6 階手動 mipmap
+    ・sprites＝綠純度軟鍵去背＋trimAlpha 貼地；影子統一右下（光源左上）
+    ・稻穗／竹簍／順風＝全程式繪製（解析度無關）；田頭大樹＋阿爸＝綠幕照片去背貼地
+  主角＝四款可選騎士（阿公／阿嬤／少年／少女）×直立／壓車，壓車傾角上限 21°（腳踏車不是重機）
+  ⚠️壓車素材自帶的傾角與方向由 spriteLean() 於載入時實測，不寫死（四張 AI 圖各自略有差異）
+  素材：assets/ 全 AI 生成，無版權疑慮。
+  ?demo=1 ＝ 免感測器展示模式（鍵盤 ← →）
+-->
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#171310">
+<title>騎鐵馬，送便當 · 治療師版</title>
+<!-- 內嵌 favicon：不放的話瀏覽器會去要 /favicon.ico，在 console 留一筆 404（驗收時很礙眼） -->
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ctext y='26' font-size='26'%3E%F0%9F%8D%B1%3C/text%3E%3C/svg%3E">
+<style>
+  :root{
+    /* 懷舊版配色：底色由冷灰藍改成暖褐（土角厝／稻埕的暖調） */
+    --bg:#171310; --panel:#241d17; --panel2:#2f261e;
+    --ink:#f6efe0; --sub:#bda98e; --line:#4a3c2e;
+    --accent:#f0b13a; --good:#7fb84e; --warn:#e8703c; --blue:#5aa9e6; --nitro:#8fe0d6;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html,body{height:100%;}
+  body{background:var(--bg);color:var(--ink);
+    font-family:-apple-system,"PingFang TC","Noto Sans TC",system-ui,sans-serif;overflow:hidden;
+    touch-action:none;overscroll-behavior:none;
+    -webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;}
+  #stage{position:fixed;inset:0;}
+  #game{position:relative;width:100vw;height:100vh;height:100dvh;}
+  canvas#cv{position:absolute;inset:0;width:100%;height:100%;display:block;background:#0a0d10;}
+
+  /* ---------- HUD ---------- */
+  #hud{position:absolute;top:0;left:0;right:0;z-index:5;pointer-events:none;
+    padding:12px 16px;
+    padding-top:max(12px,env(safe-area-inset-top));
+    padding-left:max(16px,env(safe-area-inset-left));
+    padding-right:max(16px,env(safe-area-inset-right));
+    display:flex;gap:8px;align-items:flex-start;flex-wrap:wrap;}
+  .stat{background:rgba(20,25,31,.80);border:1px solid var(--line);border-radius:13px;padding:7px 13px;min-width:80px;}
+  .stat .k{font-size:11.5px;color:var(--sub);letter-spacing:.5px;white-space:nowrap;}
+  .stat .v{font-size:24px;font-weight:800;line-height:1.12;}
+  .stat.time .v{color:var(--blue);} .stat.crash .v{color:var(--warn);}
+  #hud .spacer{flex:1;}
+  .hud-btn{pointer-events:auto;background:var(--panel2);color:var(--ink);
+    border:1px solid var(--line);border-radius:12px;padding:9px 13px;font-size:14.5px;font-weight:700;cursor:pointer;}
+  .hud-btn:hover{background:#2c3542;}
+  #hudBtns{position:absolute;z-index:6;right:max(14px,env(safe-area-inset-right));
+    bottom:max(14px,env(safe-area-inset-bottom));display:flex;gap:8px;transition:opacity .2s;}
+  /* 衝出右側跑道時車子正好被這兩顆按鈕擋住（直式尤其明顯）→ 淡掉但仍可按 */
+  #hudBtns.dim{opacity:.34;}
+  #feverTag{position:absolute;z-index:5;left:50%;transform:translateX(-50%);
+    top:max(64px,calc(env(safe-area-inset-top) + 64px));
+    background:rgba(12,60,80,.82);border:1.5px solid var(--nitro);color:var(--nitro);
+    border-radius:999px;padding:6px 18px;font-size:17px;font-weight:800;letter-spacing:1px;}
+  /* 名次牌：獨立於 HUD 那一列，才能放大字又不會把 HUD 擠破版 */
+  #rankBox{position:absolute;z-index:5;pointer-events:none;
+    left:max(14px,env(safe-area-inset-left));
+    top:max(62px,calc(env(safe-area-inset-top) + 62px));
+    background:rgba(20,25,31,.82);border:1px solid var(--line);border-radius:14px;
+    padding:5px 14px;text-align:center;transition:transform .18s;}
+  #rankBox .k{font-size:11px;color:var(--sub);letter-spacing:.5px;}
+  #rankBox .v{font-size:30px;font-weight:900;line-height:1.06;color:var(--accent);white-space:nowrap;}
+  #rankBox .v small{font-size:14px;color:var(--sub);font-weight:700;}
+  #rankBox.pop{transform:scale(1.16);}
+  /* 現在播的民謠曲名：放左下角空白處（右下是操作鈕、上方是 HUD），不擋主視線；淡入淡出不搶注意力 */
+  #bgmTag{position:absolute;z-index:5;pointer-events:none;
+    left:max(14px,env(safe-area-inset-left));
+    bottom:max(14px,env(safe-area-inset-bottom));
+    background:rgba(20,25,31,.82);border:1px solid var(--line);border-radius:999px;
+    padding:7px 17px;display:flex;align-items:center;gap:8px;white-space:nowrap;
+    font-size:19px;font-weight:800;letter-spacing:1.5px;color:var(--accent);
+    opacity:0;transform:translateY(8px);transition:opacity .55s ease,transform .55s ease;}
+  #bgmTag.show{opacity:1;transform:translateY(0);}
+  #bgmTag .mk{font-size:17px;color:var(--sub);font-weight:700;letter-spacing:0;}
+  @media (max-width:820px),(max-height:520px){
+    #hud{padding:7px 10px;padding-top:max(7px,env(safe-area-inset-top));gap:6px;flex-wrap:nowrap;align-items:center;}
+    .stat{padding:4px 9px;min-width:0;border-radius:10px;}
+    .stat .k{font-size:10px;letter-spacing:0;} .stat .v{font-size:18px;}
+    .hud-btn{padding:8px 10px;font-size:13px;border-radius:10px;}
+  }
+  /* ---------- 直式（B 模式單手持機）：HUD 折兩列，各面板縮一號 ---------- */
+  @media (orientation:portrait){
+    #hud{flex-wrap:wrap;gap:5px;padding:6px 8px;padding-top:max(6px,env(safe-area-inset-top));}
+    #hud .spacer{display:none;}
+    .stat{padding:3px 9px;border-radius:9px;}
+    .stat .k{font-size:9.5px;} .stat .v{font-size:16px;}
+    #rankBox{top:max(78px,calc(env(safe-area-inset-top) + 78px));padding:4px 11px;border-radius:12px;}
+    #rankBox .k{font-size:10px;} #rankBox .v{font-size:24px;} #rankBox .v small{font-size:12px;}
+    #feverTag{top:max(146px,calc(env(safe-area-inset-top) + 146px));font-size:14px;padding:5px 14px;}
+    /* 直式時三顆操作鈕橫跨整個底部 → 曲名要抬高一列，不然會疊在按鈕上 */
+    #bgmTag{font-size:16px;padding:6px 13px;letter-spacing:1px;
+      bottom:max(62px,calc(env(safe-area-inset-bottom) + 62px));}
+    #bgmTag .mk{font-size:14px;}
+    #hudBtns{gap:6px;}
+    .hud-btn{padding:8px 9px;font-size:12.5px;}
+    .card{padding:20px 18px;border-radius:18px;}
+    .card h1{font-size:23px;} .card .lead{font-size:14px;}
+    .seg button{min-width:56px;font-size:15px;padding:11px 6px;}
+    .end-grid{grid-template-columns:1fr 1fr;}
+  }
+
+  /* ---------- 覆蓋層與卡片 ---------- */
+  .overlay{position:absolute;inset:0;z-index:10;display:flex;align-items:center;justify-content:center;padding:22px;
+    background:radial-gradient(circle at 50% 30%,rgba(30,38,48,.72),rgba(10,13,16,.95));}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:22px;
+    padding:28px 30px;width:min(600px,94vw);max-height:92vh;overflow:auto;box-shadow:0 24px 60px rgba(0,0,0,.5);}
+  .card h1{font-size:28px;margin-bottom:4px;}
+  .card .lead{color:var(--sub);font-size:16px;margin-bottom:20px;line-height:1.7;}
+  .row{margin-bottom:17px;}
+  .row > .label{font-size:15px;color:var(--sub);margin-bottom:8px;font-weight:600;}
+  .row > .label b{color:var(--ink);}
+  .seg{display:flex;gap:8px;flex-wrap:wrap;}
+  .seg button{flex:1;min-width:70px;background:var(--panel2);color:var(--ink);
+    border:1.5px solid var(--line);border-radius:12px;padding:13px 8px;font-size:17px;font-weight:700;cursor:pointer;transition:.15s;}
+  .seg button.on{border-color:var(--accent);background:rgba(240,177,58,.16);color:var(--accent);}
+
+  /* ---------- 選騎士：四張大圖卡（長者要一眼看得出來選哪個） ---------- */
+  .riders{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;}
+  .riders button{background:var(--panel2);border:2.5px solid var(--line);border-radius:16px;
+    padding:8px 4px 9px;cursor:pointer;color:var(--ink);display:flex;flex-direction:column;
+    align-items:center;gap:4px;transition:.15s;}
+  .riders button canvas{width:100%;height:88px;object-fit:contain;display:block;}
+  .riders button span{font-size:17px;font-weight:800;letter-spacing:1px;}
+  .riders button small{font-size:11px;color:var(--sub);font-weight:600;line-height:1.3;}
+  .riders button.on{border-color:var(--accent);background:rgba(240,177,58,.17);}
+  .riders button.on span{color:var(--accent);}
+  @media (max-width:520px){ .riders{grid-template-columns:repeat(2,1fr);} }
+  @media (max-height:520px){ .riders button canvas{height:56px;} .riders button span{font-size:14px;}
+    .riders button small{display:none;} }
+  .slider{display:flex;align-items:center;gap:12px;}
+  .slider input{flex:1;accent-color:var(--accent);height:26px;}
+  .slider .val{font-size:14px;color:var(--ink);min-width:88px;text-align:right;font-weight:700;}
+  select{width:100%;background:var(--panel2);color:var(--ink);border:1.5px solid var(--line);
+    border-radius:12px;padding:13px 10px;font-size:16.5px;font-weight:700;}
+  select option:disabled{color:#6b7480;}
+  .start{width:100%;margin-top:6px;background:var(--accent);color:#1a1205;border:none;
+    border-radius:14px;padding:17px;font-size:20px;font-weight:800;cursor:pointer;}
+  .start:hover{filter:brightness(1.06);}
+  .start.go{background:var(--good);color:#04140c;}
+  .row-btns{display:flex;gap:9px;margin-top:10px;}
+  .row-btns .hud-btn{flex:1;text-align:center;padding:13px 10px;font-size:15px;}
+  .note{font-size:12.5px;color:var(--sub);margin-top:13px;line-height:1.7;}
+  .warnbox{background:rgba(255,122,89,.12);border:1px solid rgba(255,122,89,.42);border-radius:12px;
+    padding:12px 14px;font-size:14px;line-height:1.7;margin-bottom:14px;}
+  .infobox{background:rgba(90,169,230,.10);border:1px solid rgba(90,169,230,.32);border-radius:12px;
+    padding:12px 14px;font-size:13.5px;line-height:1.75;margin-bottom:14px;}
+  /* 開場情境卡：長者要先知道「我在做什麼事」才進得去遊戲 */
+  .storybox{background:linear-gradient(100deg,rgba(240,177,58,.20),rgba(127,184,78,.14));
+    border:1.5px solid rgba(240,177,58,.55);border-radius:14px;
+    padding:13px 16px;font-size:16.5px;line-height:1.7;margin:2px 0 14px;color:var(--ink);}
+  @media (max-height:520px){ .storybox{padding:9px 12px;font-size:13.5px;margin-bottom:9px;} }
+  .pill{display:inline-block;background:rgba(90,169,230,.16);color:var(--blue);
+    border-radius:999px;padding:2px 11px;font-size:12.5px;font-weight:700;margin-left:8px;vertical-align:middle;}
+  .pill.demo{background:rgba(244,185,66,.18);color:var(--accent);}
+  .hidden{display:none !important;}
+  #loading{position:absolute;inset:0;z-index:30;display:flex;align-items:center;justify-content:center;
+    flex-direction:column;gap:16px;background:rgba(10,13,16,.94);}
+  .spinner{width:44px;height:44px;border:4px solid var(--line);border-top-color:var(--accent);
+    border-radius:50%;animation:spin 1s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  /* ---------- 校正 ---------- */
+  .tiltwrap{margin:6px 0 18px;}
+  .tb-track{position:relative;height:26px;background:var(--panel2);border:1px solid var(--line);border-radius:13px;overflow:hidden;}
+  .tb-fill{position:absolute;top:0;bottom:0;background:linear-gradient(90deg,rgba(90,169,230,.85),rgba(127,227,255,.85));}
+  .tb-mid{position:absolute;left:50%;top:0;bottom:0;width:2px;background:var(--accent);opacity:.85;}
+  .tb-num{text-align:center;font-size:15px;font-weight:800;margin-top:7px;color:var(--sub);}
+  .tb-num b{color:var(--ink);font-size:21px;}
+  .calib-step{font-size:24px;font-weight:800;line-height:1.55;margin-bottom:10px;}
+  .calib-hint{font-size:16px;color:var(--sub);line-height:1.75;margin-bottom:14px;}
+  .prog{height:14px;background:var(--panel2);border:1px solid var(--line);border-radius:9px;overflow:hidden;margin-bottom:16px;}
+  .prog-fill{height:100%;width:0;background:var(--good);transition:width .08s linear;}
+  .big-count{font-size:52px;font-weight:900;text-align:center;color:var(--accent);line-height:1;margin:4px 0 14px;}
+  .rom-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:6px 0 16px;}
+  .rom-grid .cell{background:var(--panel2);border:1px solid var(--line);border-radius:13px;padding:12px 14px;text-align:center;}
+  .rom-grid .cell .k{font-size:12.5px;color:var(--sub);} .rom-grid .cell .v{font-size:25px;font-weight:800;}
+
+  /* ---------- 結算 ---------- */
+  /* 3 欄：v3.1 加了「衝出跑道」格之後，開對手＝6 格剛好兩列；關對手＝5 格 3+2，都不會落單 */
+  .end-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:11px;margin:18px 0;}
+  #finBanner{background:linear-gradient(100deg,#4cc38a,#9be8c3,#4cc38a);color:#03301b;border-radius:14px;
+    padding:12px 16px;text-align:center;font-size:19px;font-weight:900;letter-spacing:1px;margin-bottom:10px;
+    animation:shine 1.6s ease-in-out infinite;}
+  .end-grid .cell{background:var(--panel2);border-radius:14px;padding:14px 12px;text-align:center;}
+  .end-grid .cell .k{font-size:12.5px;color:var(--sub);} .end-grid .cell .v{font-size:26px;font-weight:800;}
+  #recBanner{background:linear-gradient(100deg,#f4b942,#ffe08a,#f4b942);color:#2a1c02;border-radius:14px;
+    padding:14px 16px;text-align:center;font-size:20px;font-weight:900;letter-spacing:1px;
+    animation:shine 1.6s ease-in-out infinite;}
+  @keyframes shine{0%,100%{filter:brightness(1)}50%{filter:brightness(1.22)}}
+  #confetti{position:absolute;inset:0;z-index:11;pointer-events:none;overflow:hidden;}
+  #confetti i{position:absolute;top:-24px;width:9px;height:14px;border-radius:2px;animation:fall linear forwards;}
+  @keyframes fall{to{transform:translateY(110vh) rotate(720deg);opacity:.15}}
+
+  /* ---------- 復能報表 ---------- */
+  .card.report{width:min(900px,96vw);}
+  .rep-head{display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap;}
+  .rep-head h1{font-size:25px;}
+  .rep-sub{color:var(--sub);font-size:13.5px;margin:4px 0 16px;line-height:1.6;}
+  .rep-chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;}
+  .rep-chips span{background:var(--panel2);border:1px solid var(--line);border-radius:999px;padding:3px 10px;font-size:12px;color:var(--sub);}
+  .metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:6px 0 18px;}
+  .metric{background:var(--panel2);border:1px solid var(--line);border-radius:14px;padding:12px 14px;}
+  .metric .k{font-size:12.5px;color:var(--sub);}
+  .metric .v{font-size:23px;font-weight:800;line-height:1.15;margin-top:2px;}
+  .metric .s{font-size:11.5px;color:var(--sub);margin-top:3px;line-height:1.5;}
+  .metric.sym .v{color:var(--accent);} .metric.bad .v{color:var(--warn);}
+  .dl{font-size:12px;font-weight:700;margin-left:6px;white-space:nowrap;}
+  .dl.up{color:var(--good);} .dl.down{color:var(--warn);} .dl.flat{color:var(--sub);}
+  .charts{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px;}
+  .chart{background:var(--panel2);border:1px solid var(--line);border-radius:14px;padding:12px 14px;}
+  .chart h3{font-size:14px;margin-bottom:2px;}
+  .chart .cnote{font-size:11.5px;color:var(--sub);margin-bottom:8px;line-height:1.5;}
+  .rep-note{background:rgba(90,169,230,.10);border:1px solid rgba(90,169,230,.30);border-radius:12px;
+    padding:12px 14px;font-size:13.5px;line-height:1.85;margin-bottom:14px;}
+  .rep-ref{font-size:11.5px;color:var(--sub);line-height:1.7;margin-bottom:16px;}
+  .report-actions{display:flex;gap:10px;flex-wrap:wrap;}
+  .report-actions .start{flex:2;margin-top:0;} .report-actions .hud-btn{flex:1;}
+  @media (max-width:660px){ .metrics{grid-template-columns:repeat(2,1fr);} .charts{grid-template-columns:1fr;} .end-grid{grid-template-columns:1fr 1fr;} }
+
+  /* 矮螢幕（手機橫拿）：卡片壓縮，主按鈕留在第一屏 */
+  @media (max-height:520px){
+    .overlay{padding:10px;}
+    .card{padding:16px 20px;width:min(820px,96vw);max-height:96vh;border-radius:16px;}
+    .card h1{font-size:20px;} .card .lead{font-size:13px;margin-bottom:10px;line-height:1.55;}
+    .row{margin-bottom:10px;} .row > .label{font-size:12.5px;margin-bottom:5px;}
+    .seg button{padding:9px 6px;font-size:14px;min-width:56px;}
+    select{padding:9px 8px;font-size:14px;}
+    .slider .val{font-size:12.5px;min-width:72px;}
+    .start{padding:12px;font-size:17px;border-radius:12px;margin-top:2px;}
+    .note{font-size:11px;line-height:1.6;} .infobox,.warnbox{padding:9px 11px;font-size:12px;margin-bottom:9px;}
+    .calib-step{font-size:19px;} .calib-hint{font-size:13.5px;margin-bottom:9px;}
+    .big-count{font-size:38px;} .rom-grid .cell .v{font-size:21px;}
+  }
+  @media (max-height:520px) and (min-width:680px){
+    #setup .card{display:grid;grid-template-columns:1fr 1fr;gap:0 20px;align-items:start;}
+    #setup .card > h1,#setup .card > .lead,#setup .card > .infobox,#setup .card > .warnbox,
+    #setup .card > .storybox,#setup .card > .rowRider,
+    #setup .card > .start,#setup .card > .row-btns,#setup .card > .note{grid-column:1/-1;}
+  }
+
+  @media print{
+    body{background:#fff !important;overflow:visible !important;}
+    #cv,#hud,#hudBtns,#feverTag,#bgmTag,#rankBox,#setup,#calib,#end,#reorient,#loading,#confetti{display:none !important;}
+    #report.overlay{position:static !important;background:none !important;padding:0 !important;display:block !important;}
+    #report .card{background:#fff !important;border:none !important;box-shadow:none !important;color:#111 !important;
+      width:100% !important;max-width:100% !important;max-height:none !important;overflow:visible !important;padding:0 !important;}
+    .rep-sub,.metric .k,.metric .s,.chart .cnote,.rep-chips span,.rep-ref{color:#555 !important;}
+    .rep-head h1,.metric .v,.chart h3{color:#111 !important;}
+    .metric,.chart,.rep-chips span{background:#f5f5f3 !important;border-color:#ddd !important;}
+    .rep-note{background:#eef4fb !important;border-color:#bcd !important;color:#111 !important;}
+    .report-actions{display:none !important;}
+    .chart,.metric{break-inside:avoid;}
+  }
+</style>
+<script src="/open-in-browser.js"></script>
+</head>
+<body>
+<div id="stage">
+  <div id="game">
+    <canvas id="cv"></canvas>
+
+    <!-- ===== HUD ===== -->
+    <div id="hud" class="hidden">
+      <div class="stat"><div class="k">稻穗</div><div class="v" id="hScore">0</div></div>
+      <div class="stat"><div class="k">腳程</div><div class="v" id="hSpd">–</div></div>
+      <div class="stat crash"><div class="k">撞到</div><div class="v" id="hCrash">0</div></div>
+      <div class="spacer"></div>
+      <div class="stat time"><div class="k">剩餘</div><div class="v" id="hTime">–</div></div>
+    </div>
+    <div id="hudBtns" class="hidden">
+      <button class="hud-btn" id="btnMute" title="音樂／音效">🔊</button>
+      <button class="hud-btn" id="btnEnd">結束本趟</button>
+      <button class="hud-btn" id="btnHome">⚙ 回設定</button>
+    </div>
+    <div id="feverTag" class="hidden">下坡順風！</div>
+    <!-- 現在播的民謠曲名：懷舊治療的引導鉤子（長輩聽到會有反應，治療師可以順勢聊起來） -->
+    <div id="bgmTag" aria-hidden="true"><span class="mk">♪</span><span id="bgmName"></span></div>
+    <div id="rankBox" class="hidden"><div class="k">名次</div><div class="v" id="hRank">第 1 <small>/7</small></div></div>
+
+    <!-- ===== 設定頁 ===== -->
+    <div id="setup" class="overlay">
+      <div class="card">
+        <h1>騎鐵馬，送便當 <span class="pill">治療師版</span><span class="pill demo hidden" id="demoTag">展示模式</span></h1>
+        <div class="storybox">🍱 <b>阿爸在田裡等吃飯，你騎鐵馬幫忙送便當，趕在天黑前到田頭！</b></div>
+        <div class="lead" id="setupLead">身體往哪邊傾，鐵馬就往哪邊倒。沿路撿稻穗、閃竹簍、搶下坡順風，追過庄裡的少年家，天黑前把便當送到田頭大樹下。<b>過彎要主動往彎內倒</b>，不然車會被甩出去、騎進田埂裡卡住。稻穗位置＝動作處方，四個旋鈕分開調難度。</div>
+
+        <div class="infobox" id="modeBox">偵測中…</div>
+        <div class="warnbox hidden" id="sensorWarn"></div>
+
+        <div class="row rowRider"><div class="label">選騎士（要用誰的鐵馬去送便當？）</div>
+          <div class="riders" id="segRider">
+            <button data-rider="grandpa" class="on"><canvas data-rc="grandpa" width="200" height="200"></canvas><span>阿公</span><small>斗笠·白汗衫</small></button>
+            <button data-rider="grandma"><canvas data-rc="grandma" width="200" height="200"></canvas><span>阿嬤</span><small>花布衫·菜籃車</small></button>
+            <button data-rider="boy"><canvas data-rc="boy" width="200" height="200"></canvas><span>少年</span><small>白襯衫·武車</small></button>
+            <button data-rider="girl"><canvas data-rc="girl" width="200" height="200"></canvas><span>少女</span><small>麻花辮·淑女車</small></button>
+          </div></div>
+
+        <div class="row"><div class="label">今天走哪條路（同一條路可重複比較）</div>
+          <div class="seg" id="segRoute">
+            <button data-route="1" class="on">田邊路</button>
+            <button data-route="2">溪邊路</button>
+            <button data-route="3">山腳路</button>
+          </div></div>
+
+        <div class="row"><div class="label">要騎多久</div>
+          <div class="seg" id="segDur">
+            <button data-dur="60">60 秒</button>
+            <button data-dur="90" class="on">90 秒</button>
+            <button data-dur="120">120 秒</button>
+          </div></div>
+
+        <div class="row"><div class="label">轉向靈敏度<b id="lbSens"></b></div>
+          <div class="slider"><input type="range" id="rSens" min="1" max="5" step="1" value="3">
+            <div class="val" id="vSens"></div></div></div>
+
+        <div class="row"><div class="label">騎多快</div>
+          <div class="slider"><input type="range" id="rSpeed" min="1" max="5" step="1" value="3">
+            <div class="val" id="vSpeed"></div></div></div>
+
+        <div class="row"><div class="label">稻穗／障礙密度</div>
+          <div class="slider"><input type="range" id="rDens" min="1" max="5" step="1" value="3">
+            <div class="val" id="vDens"></div></div></div>
+
+        <div class="row"><div class="label">新手輔助（沒出力時自動扶正＋順著路走）</div>
+          <div class="seg" id="segAssist">
+            <button data-assist="1" class="on">開（建議）</button>
+            <button data-assist="0">關</button>
+          </div></div>
+
+        <div class="row"><div class="label">庄裡少年家一起送飯（比名次，建議 <b>6 人</b>）</div>
+          <div class="seg" id="segRivals">
+            <button data-rivals="0">關</button>
+            <button data-rivals="3">3 人</button>
+            <button data-rivals="6" class="on">6 人</button>
+          </div></div>
+
+        <div class="row"><div class="label">田野風景</div>
+          <select id="selScene"></select></div>
+
+        <div class="row"><div class="label">音樂／音效</div>
+          <div class="seg" id="segSound">
+            <button data-sound="1" class="on">開</button>
+            <button data-sound="0">關</button>
+          </div></div>
+
+        <button class="start" id="btnStart">啟用感測器並開始</button>
+        <div class="row-btns"><button class="hud-btn" id="btnDemoMode">改用鍵盤展示模式（← →）</button></div>
+        <div class="note">安全提醒：坐姿進行，手機請牢固夾好；撞到不會結束，不必催促個案。所有設定會自動記住。</div>
+        <div class="note">配樂：《望春風》《雨夜花》《四季紅》（鄧雨賢作曲，旋律已進入公有領域）、《丟丟銅仔》（宜蘭傳統民謠）。四首在遊戲中隨機輪播，畫面左下角會顯示曲名，可用來引導長輩回憶。全部由程式即時合成之純器樂編曲，不含錄音取樣、歌詞與人聲。</div>
+      </div>
+    </div>
+
+    <!-- ===== 校正 ===== -->
+    <div id="calib" class="overlay hidden">
+      <div class="card">
+        <h1>動作校正 <span class="pill" id="calibModeTag">—</span></h1>
+        <div class="lead">校正會記錄「中立點」與「左右各自的最大舒適角度」，之後路上的左右兩邊就對應到個案自己的活動範圍。</div>
+
+        <div class="tiltwrap">
+          <div class="tb-track"><div class="tb-fill" id="tbFill"></div><div class="tb-mid"></div></div>
+          <div class="tb-num" id="tbNum">目前傾斜 <b>0°</b></div>
+        </div>
+
+        <div class="calib-step" id="calibStep">準備好了嗎？</div>
+        <div class="calib-hint" id="calibHint">坐正、手機拿穩。按下方按鈕開始，一共三個步驟，每步都有充足時間，不用趕。</div>
+        <div class="big-count hidden" id="calibCount">3</div>
+        <div class="prog"><div class="prog-fill" id="progFill"></div></div>
+
+        <div class="rom-grid hidden" id="romGrid">
+          <div class="cell"><div class="k">向左最大角</div><div class="v" id="romL">–</div></div>
+          <div class="cell"><div class="k">向右最大角</div><div class="v" id="romR">–</div></div>
+        </div>
+
+        <button class="start" id="btnCalibNext">開始校正</button>
+        <div class="row-btns">
+          <button class="hud-btn" id="btnCalibSkip">跳過（用預設值）</button>
+          <button class="hud-btn" id="btnCalibBack">← 回設定</button>
+        </div>
+        <div class="note" id="calibNote"></div>
+      </div>
+    </div>
+
+    <!-- ===== 方向改變 ===== -->
+    <div id="reorient" class="overlay hidden">
+      <div class="card">
+        <h1>螢幕轉向了</h1>
+        <div class="lead" id="reorientLead">換了握持方式，傾斜的軸也換了，重新對一下就好。鐵馬會在原地等你。</div>
+        <button class="start" id="btnReorientCalib">快速重新校正</button>
+        <div class="row-btns">
+          <button class="hud-btn" id="btnReorientSkip">直接繼續（用預設值）</button>
+          <button class="hud-btn" id="btnReorientHome">⚙ 回設定</button>
+        </div>
+        <div class="note">「快速重新校正」＝一鍵直接開始，三步驟走完就回到遊戲。</div>
+      </div>
+    </div>
+
+    <!-- ===== 結算 ===== -->
+    <div id="end" class="overlay hidden">
+      <div class="card">
+        <h1>這趟結束了</h1>
+        <div class="lead" id="endLead">辛苦了！以下是這趟的成績。</div>
+        <div id="finBanner" class="hidden">🍱 便當送到了！</div>
+        <div id="recBanner" class="hidden">🏆 破紀錄！這是目前最好的一次</div>
+        <div class="end-grid">
+          <div class="cell"><div class="k">稻穗</div><div class="v" id="eScore">0</div></div>
+          <div class="cell"><div class="k">走完路程</div><div class="v" id="eComp">0%</div></div>
+          <div class="cell"><div class="k">撿穗率</div><div class="v" id="eRate">–</div></div>
+          <div class="cell"><div class="k">撞到</div><div class="v" id="eCrash">0</div></div>
+          <div class="cell"><div class="k">騎進田埂</div><div class="v" id="eOff">0</div></div>
+          <div class="cell hidden" id="eRankCell"><div class="k">最後名次</div><div class="v" id="eRank">–</div></div>
+        </div>
+        <div class="note" id="eBest"></div>
+        <button class="start go" id="btnReport">查看復能報表</button>
+        <div class="row-btns">
+          <button class="hud-btn" id="btnAgain">再騎一趟</button>
+          <button class="hud-btn" id="btnEndHome">⚙ 回設定</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== 報表 ===== -->
+    <div id="report" class="overlay hidden">
+      <div class="card report">
+        <div id="reportBody"></div>
+        <div class="report-actions">
+          <button class="start go" id="btnAgain2">再騎一趟</button>
+          <button class="hud-btn" id="btnPrint">列印／存 PDF</button>
+          <button class="hud-btn" id="btnRepHome">⚙ 回設定</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="confetti" class="hidden"></div>
+
+    <div id="loading"><div class="spinner"></div><div>素材載入中…</div></div>
+  </div>
+</div>
+
+<!-- ===== 台灣民謠 BGM 模組（內嵌 tw_folk_bgm.js；單檔部署，不外部載入）===== -->
+<script>
+/*!
+ * tw_folk_bgm.js — 台灣民謠 WebAudio 合成器樂 BGM 模組
+ * 《騎鐵馬，送便當》專用；單檔、零外部相依、零音檔（音符全部由程式合成）。
+ *
+ * 版權說明
+ * --------
+ * 本模組「不含任何錄音取樣」，所有聲音皆由 WebAudio 振盪器與雜訊即時合成。
+ * 收錄旋律皆屬公有領域：
+ *   - 鄧雨賢（1906–1944）作曲：著作財產權存續期間已屆滿。
+ *   - 台灣傳統民謠：作者不可考、年代久遠。
+ * 本模組刻意「只用旋律、不用歌詞、不做人聲」——歌詞作者（如李臨秋 1979 年歿）
+ * 的權利期間尚未屆滿，只要不重製歌詞、不唱出來，即與詞的著作權無涉。
+ * 伴奏、和聲、音色、節奏皆為本模組自行編寫。
+ *
+ * API
+ * ---
+ *   const bgm = createBGM(audioCtx, destinationNode);
+ *   bgm.list()            -> [{id, title, composer, year, rights, bpm, meter, loopSeconds, voices}]
+ *   bgm.play('bangchunhong')
+ *   bgm.stop()
+ *   bgm.setVolume(0.14)   // 0~1，預設 0.14（治療師要能講話）
+ *   bgm.getVolume() / bgm.current() / bgm.isPlaying()
+ *
+ * ⚠️ iOS Safari：AudioContext 必須在使用者手勢後才能啟動。
+ *    本模組「不會」自己呼叫 audioCtx.resume()，請由呼叫端在點擊事件內處理。
+ *
+ * 離線渲染（自動偵測 OfflineAudioContext）：
+ *    傳入 OfflineAudioContext 時，play() 會一次把整段時間的音符排完（不用 setInterval），
+ *    方便自動化測試 / 匯出。
+ */
+(function (global) {
+  'use strict';
+
+  // =====================================================================
+  // 1. 簡譜格式
+  // ---------------------------------------------------------------------
+  // 每個 token：  音級(0=休止, 1~7) + 八度記號 + 可選 "/拍數"
+  //   八度記號： ","  低八度（可重複）   "'"  高八度（可重複）
+  //   拍數    ： 省略 = 1 拍； "/.5" = 半拍； "/1.5" = 附點四分
+  //   例： "5,/1.5 5,/.5 6, 1"  = 低 sol(1.5拍) 低 sol(0.5) 低 la(1) do(1)
+  // =====================================================================
+
+  var MAJOR_STEPS = [0, 2, 4, 5, 7, 9, 11]; // 1 2 3 4 5 6 7 相對主音的半音數
+
+  function parseBar(barText) {
+    var out = [];
+    var tokens = String(barText).trim().split(/\s+/);
+    for (var i = 0; i < tokens.length; i++) {
+      var tk = tokens[i];
+      if (!tk) continue;
+      var m = /^([0-7])([,']*)(?:\/(\d*\.?\d+))?$/.exec(tk);
+      if (!m) throw new Error('簡譜 token 格式錯誤：' + tk);
+      var degree = parseInt(m[1], 10);
+      var octave = 0;
+      for (var j = 0; j < m[2].length; j++) octave += (m[2][j] === "'" ? 1 : -1);
+      var beats = m[3] ? parseFloat(m[3]) : 1;
+      out.push({ degree: degree, octave: octave, beats: beats });
+    }
+    return out;
+  }
+
+  function degreeToMidi(tonicMidi, degree, octave) {
+    if (degree === 0) return null; // 休止符
+    return tonicMidi + MAJOR_STEPS[degree - 1] + octave * 12;
+  }
+
+  function midiToFreq(m) {
+    return 440 * Math.pow(2, (m - 69) / 12);
+  }
+
+  var NOTE_NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+  function midiToName(m) {
+    return NOTE_NAMES[((m % 12) + 12) % 12] + (Math.floor(m / 12) - 1);
+  }
+
+  // 和弦：級數 -> [根音半音, 三和弦音程]
+  var CHORDS = {
+    I:  { root: 0, kind: 'maj' },
+    ii: { root: 2, kind: 'min' },
+    IV: { root: 5, kind: 'maj' },
+    V:  { root: 7, kind: 'maj' },
+    vi: { root: 9, kind: 'min' }
+  };
+  function chordTones(tonicMidi, sym) {
+    var c = CHORDS[sym] || CHORDS.I;
+    var iv = (c.kind === 'maj') ? [0, 4, 7] : [0, 3, 7];
+    var base = tonicMidi + c.root;
+    return [base + iv[0], base + iv[1], base + iv[2]];
+  }
+
+  // =====================================================================
+  // 2. 曲庫
+  // ---------------------------------------------------------------------
+  // source 標註譜源可信度，方便日後校正：
+  //   'verified'      = 已對照公開簡譜逐音轉錄
+  //   'reconstructed' = 依流傳版本重建，尚未逐音核對
+  // =====================================================================
+  var SONGS = [
+    {
+      id: 'bangchunhong',
+      title: '望春風',
+      composer: '鄧雨賢',
+      year: 1933,
+      note: '台灣歌謠代表作，五聲音階宮調式，四句十六小節。',
+      rights: '鄧雨賢 1933 年作曲，著作財產權已消滅、旋律進入公有領域；本曲為程式合成之純器樂編曲，不含歌詞與人聲。',
+      source: 'verified',
+      bpm: 96,
+      beatsPerBar: 4,
+      tonicMidi: 72,           // 1 = C5
+      voices: { lead: 'dizi', chord: 'pluck', perc: 'soft' },
+      chords: ['I','I','V','V', 'I','V','vi','I', 'V','vi','I','I', 'I','V','vi','I'],
+      bars: [
+        "5,/1.5 5,/.5 6, 1",           // 獨 夜 無 伴
+        "2 1/.5 2/.5 3/2",             // 守 燈 下
+        "5/1.5 3/.5 3/.5 2/.5 1",      // 春 風 對 面
+        "2/4",                          // 吹
+        "3/1.5 5/.5 5 3/.5 5/.5",      // 十 七 八 歲
+        "1/1.5 2/.5 2/2",              // 未 出 嫁
+        "5,/1.5 3/.5 3 2",             // 想 著 少 年
+        "1/4",                          // 家
+        "2/1.5 2/.5 3 2/.5 1/.5",      // 果 然 標 緻
+        "6, 5,/.5 6,/.5 1/2",          // 面 肉 白
+        "6,/1.5 1/.5 2 3",             // 誰 家 人 子
+        "5/4",                          // 弟
+        "5/1.5 5/.5 6 5/.5 3/.5",      // 想 要 問 伊
+        "3 2/.5 1/.5 6,/2",            // 驚 歹 勢
+        "5,/1.5 3/.5 3 2",             // 心 內 彈 琵
+        "1/4"                           // 琶
+      ]
+    },
+    {
+      id: 'uyahue',
+      title: '雨夜花',
+      composer: '鄧雨賢',
+      year: 1934,
+      note: '三拍子抒情調，速度最慢，適合當「田頭休息／完賽」段落。',
+      rights: '鄧雨賢 1934 年作曲，著作財產權已消滅、旋律進入公有領域；本曲為程式合成之純器樂編曲，不含歌詞與人聲。',
+      source: 'verified',
+      bpm: 78,
+      beatsPerBar: 3,
+      tonicMidi: 72,           // 1 = C5
+      gainTrim: 1.8,           // 慢板音符稀疏，整體響度補一點回來
+      voices: { lead: 'pluck', chord: 'guitar', perc: 'soft' },
+      chords: ['I','vi','I','V', 'I','vi','I','I'],
+      bars: [
+        "5,/.5 6,/.5 5, 3",                     // 雨 夜 花
+        "3/.5 2/.5 1/.5 6,/.5 5,",              // 雨 夜 花
+        "1/.5 2/.5 3 5/.5 1/.25 2/.25",         // 受 風 雨
+        "3/.5 3/.5 2/2",                        // 吹 落 地
+        "5/.5 5/.5 5/.5 3/.25 5/.25 3",         // 無 人 看 見
+        "3/.5 2/.25 3/.25 2/.5 1/.5 6,",        // 每 日 怨 慼
+        "5,/.5 6,/.5 5, 3",                     // 花 謝 落 塗
+        "3/.5 2/.5 1/2"                         // 不 再 回
+      ]
+    },
+    {
+      id: 'diudiudang',
+      title: '丟丟銅仔',
+      composer: '宜蘭傳統民謠',
+      year: null,
+      note: '火車調，跳躍二拍子，速度最快、最有「騎車前進」的推進感。',
+      rights: '宜蘭一帶流傳之傳統民謠，作者不可考、屬公有領域；本曲為程式合成之純器樂編曲，未使用任何既有錄音或他人編曲。',
+      source: 'verified',
+      bpm: 116,
+      beatsPerBar: 2,
+      tonicMidi: 60,           // 1 = C4（旋律主要落在高八度記號）
+      voices: { lead: 'dizi', chord: 'guitar', perc: 'lively' },
+      chords: ['V','V','V','V', 'I','I', 'V','V','V','V', 'I','I', 'V','I'],
+      bars: [
+        "2' 3'",                       // 火 車
+        "2'/.75 3'/.25 2'/.5 1'/.5",   // 行 到 伊 都
+        "2'/.5 3'/.5 2'/.5 1'/.5",     // 阿 末 伊 都
+        "2' 2'/.5 1'/.5",              // 丟
+        "5 6/.5 1'/.5",                // 唉 唷 磅
+        "5/2",                         // 空 內
+        "6 2'",
+        "6/.5 1'/.5 1'/.5 6/.5",
+        "2' 2'/.5 2'/.5",
+        "1'/.5 2'/.5 1'/.5 6/.5",
+        "5/.5 5/.5 5/.5 5/.5",
+        "6/.5 1'/.5 6/.5 5/.5",
+        "2' 6",
+        "5/2"
+      ]
+    },
+    {
+      id: 'sikuihong',
+      title: '四季紅',
+      composer: '鄧雨賢',
+      year: 1938,
+      note: '⚠️ 旋律為依流傳印象重建，尚未與正式樂譜逐音核對，請以耳朵驗收。',
+      rights: '鄧雨賢 1938 年作曲，著作財產權已消滅、旋律進入公有領域；本曲為程式合成之純器樂編曲，不含歌詞與人聲。',
+      source: 'reconstructed',
+      bpm: 124,
+      beatsPerBar: 2,
+      tonicMidi: 72,           // 1 = C5
+      voices: { lead: 'dizi', chord: 'guitar', perc: 'lively' },
+      chords: ['I','I','I','V', 'I','vi','V','I', 'I','vi','V','V', 'I','I','V','I'],
+      bars: [
+        "5,/.5 6,/.5",
+        "1 1/.5 2/.5",
+        "3 5/.5 3/.5",
+        "2/2",
+        "3/.5 5/.5",
+        "6 6/.5 5/.5",
+        "3/.5 5/.5 3/.5 2/.5",
+        "1/2",
+        "5/.5 6/.5",
+        "1'/.5 6/.5 5/.5 3/.5",
+        "5/.5 3/.5 2/.5 1/.5",
+        "2/2",
+        "3/.5 2/.5",
+        "1/.5 2/.5 3/.5 5/.5",
+        "6/.5 5/.5 3/.5 2/.5",
+        "1/2"
+      ]
+    }
+  ];
+
+  // =====================================================================
+  // 3. 合成音色
+  // =====================================================================
+  function createBGM(ctx, destination) {
+    if (!ctx) throw new Error('createBGM 需要一個 AudioContext');
+    var dest = destination || ctx.destination;
+    var isOffline = (typeof ctx.startRendering === 'function' && typeof ctx.length === 'number');
+
+    // ---- 共用白噪音 buffer（氣音、撥弦雜訊、打擊）----
+    var noiseBuf = (function () {
+      var len = Math.floor(ctx.sampleRate * 1.2);
+      var b = ctx.createBuffer(1, len, ctx.sampleRate);
+      var d = b.getChannelData(0);
+      for (var i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+      return b;
+    })();
+
+    // 母音量（呼叫端可調）
+    var master = ctx.createGain();
+    master.gain.value = 0.14;
+    master.connect(dest);
+
+    // 每次 play 建立一顆，stop 時淡出丟棄 —— 避免殘響爆音、避免狀態殘留
+    var songBus = null;
+
+    function noiseSource() {
+      var s = ctx.createBufferSource();
+      s.buffer = noiseBuf;
+      s.loop = true;
+      s.playbackRate.value = 0.8 + Math.random() * 0.4;
+      return s;
+    }
+
+    // ---- 撥弦類（月琴／古箏）：快起音＋指數衰減＋雙弦微失諧 ----
+    function pluck(t, freq, dur, gain, opts) {
+      if (!songBus || !freq) return;
+      opts = opts || {};
+      var bright = opts.bright == null ? 1 : opts.bright;
+      var detune = opts.detune == null ? 9 : opts.detune;   // cents，模擬雙股弦
+      var decay = Math.max(0.18, Math.min(dur * 1.45 + 0.25, 2.2));
+
+      var amp = ctx.createGain();
+      amp.gain.setValueAtTime(0.0001, t);
+      amp.gain.exponentialRampToValueAtTime(Math.max(gain, 0.0002), t + 0.006);
+      amp.gain.exponentialRampToValueAtTime(0.0001, t + decay);
+
+      var lp = ctx.createBiquadFilter();
+      lp.type = 'lowpass';
+      lp.Q.value = 0.9;
+      lp.frequency.setValueAtTime(Math.min(freq * 8 * bright, 12000), t);
+      lp.frequency.exponentialRampToValueAtTime(Math.max(freq * 1.6, 200), t + decay * 0.8);
+      lp.connect(amp);
+      amp.connect(songBus);
+
+      var o1 = ctx.createOscillator();
+      o1.type = 'sawtooth';
+      o1.frequency.value = freq;
+      var g1 = ctx.createGain(); g1.gain.value = 0.5;
+      o1.connect(g1); g1.connect(lp);
+
+      var o2 = ctx.createOscillator();
+      o2.type = 'triangle';
+      o2.frequency.value = freq;
+      o2.detune.value = detune;
+      var g2 = ctx.createGain(); g2.gain.value = 0.65;
+      o2.connect(g2); g2.connect(lp);
+
+      o1.start(t); o2.start(t);
+      o1.stop(t + decay + 0.05); o2.stop(t + decay + 0.05);
+
+      // 撥片觸弦的短雜訊
+      var n = noiseSource();
+      var nf = ctx.createBiquadFilter();
+      nf.type = 'bandpass'; nf.frequency.value = Math.min(freq * 4, 4200); nf.Q.value = 1.2;
+      var ng = ctx.createGain();
+      ng.gain.setValueAtTime(gain * 0.5, t);
+      ng.gain.exponentialRampToValueAtTime(0.0001, t + 0.035);
+      n.connect(nf); nf.connect(ng); ng.connect(songBus);
+      n.start(t); n.stop(t + 0.06);
+    }
+
+    // ---- 木吉他／尼龍弦：比月琴柔、衰減慢一點、沒有失諧 ----
+    function guitar(t, freq, dur, gain) {
+      pluck(t, freq, dur, gain * 0.95, { bright: 0.6, detune: 3 });
+    }
+
+    // ---- 竹笛：正弦為主＋輕微顫音＋氣音噪音 ----
+    function dizi(t, freq, dur, gain) {
+      if (!songBus || !freq) return;
+      var atk = 0.045, rel = 0.09;
+      var len = Math.max(dur, 0.12);
+
+      var amp = ctx.createGain();
+      amp.gain.setValueAtTime(0.0001, t);
+      amp.gain.exponentialRampToValueAtTime(gain, t + atk);
+      amp.gain.setValueAtTime(gain, t + Math.max(len - rel, atk + 0.01));
+      amp.gain.exponentialRampToValueAtTime(0.0001, t + len + rel);
+      amp.connect(songBus);
+
+      var lp = ctx.createBiquadFilter();
+      lp.type = 'lowpass';
+      lp.frequency.value = Math.min(freq * 5.5, 9000);
+      lp.Q.value = 0.7;
+      lp.connect(amp);
+
+      var o = ctx.createOscillator();
+      o.type = 'sine';
+      o.frequency.setValueAtTime(freq * 0.988, t);          // 起音微微「滑」上去
+      o.frequency.linearRampToValueAtTime(freq, t + 0.055);
+      var og = ctx.createGain(); og.gain.value = 1;
+      o.connect(og); og.connect(lp);
+
+      // 第二泛音一點點，笛聲才不會太像測試音
+      var o2 = ctx.createOscillator();
+      o2.type = 'triangle';
+      o2.frequency.setValueAtTime(freq * 2 * 0.988, t);
+      o2.frequency.linearRampToValueAtTime(freq * 2, t + 0.055);
+      var o2g = ctx.createGain(); o2g.gain.value = 0.14;
+      o2.connect(o2g); o2g.connect(lp);
+
+      // 顫音（vibrato）：起音後才漸漸出現，比較像真人吹
+      var lfo = ctx.createOscillator();
+      lfo.type = 'sine';
+      lfo.frequency.value = 5.2 + Math.random() * 0.6;
+      var lfoG = ctx.createGain();
+      lfoG.gain.setValueAtTime(0.0001, t);
+      lfoG.gain.linearRampToValueAtTime(len > 0.5 ? 16 : 7, t + Math.min(len * 0.6, 0.35)); // cents
+      lfo.connect(lfoG);
+      lfoG.connect(o.detune);
+      lfoG.connect(o2.detune);
+
+      // 氣音
+      var n = noiseSource();
+      var hp = ctx.createBiquadFilter();
+      hp.type = 'bandpass'; hp.frequency.value = Math.min(freq * 2.2, 5000); hp.Q.value = 0.8;
+      var ng = ctx.createGain();
+      ng.gain.setValueAtTime(0.0001, t);
+      ng.gain.exponentialRampToValueAtTime(gain * 0.16, t + atk);
+      ng.gain.exponentialRampToValueAtTime(0.0001, t + len + rel);
+      n.connect(hp); hp.connect(ng); ng.connect(songBus);
+
+      var stopAt = t + len + rel + 0.05;
+      o.start(t); o2.start(t); lfo.start(t); n.start(t);
+      o.stop(stopAt); o2.stop(stopAt); lfo.stop(stopAt); n.stop(stopAt);
+    }
+
+    // ---- 打擊：竹板（高頻短促）＋ 悶鼓（低頻）----
+    function woodblock(t, gain, tone) {
+      if (!songBus) return;
+      var n = noiseSource();
+      var bp = ctx.createBiquadFilter();
+      bp.type = 'bandpass';
+      bp.frequency.value = tone || 2100;
+      bp.Q.value = 7;
+      var g = ctx.createGain();
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(Math.max(gain, 0.0002), t + 0.002);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.07);
+      n.connect(bp); bp.connect(g); g.connect(songBus);
+      n.start(t); n.stop(t + 0.09);
+    }
+
+    function lowdrum(t, gain) {
+      if (!songBus) return;
+      var o = ctx.createOscillator();
+      o.type = 'sine';
+      o.frequency.setValueAtTime(105, t);
+      o.frequency.exponentialRampToValueAtTime(52, t + 0.09);
+      var g = ctx.createGain();
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(Math.max(gain, 0.0002), t + 0.004);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.22);
+      o.connect(g); g.connect(songBus);
+      o.start(t); o.stop(t + 0.26);
+    }
+
+    var LEADS = { dizi: dizi, pluck: pluck, guitar: guitar };
+
+    // =====================================================================
+    // 4. 把一首歌展開成「事件表」（以拍為單位，與 BPM 無關）
+    // =====================================================================
+    function buildEvents(song) {
+      var events = [];
+      var tonic = song.tonicMidi;
+      var leadFn = LEADS[song.voices.lead] || dizi;
+      var chordFn = LEADS[song.voices.chord] || guitar;
+      var leadGain = (song.voices.lead === 'dizi') ? 0.5 : 0.42;
+
+      // --- 主旋律 ---
+      var beat = 0;
+      for (var b = 0; b < song.bars.length; b++) {
+        var notes = parseBar(song.bars[b]);
+        for (var i = 0; i < notes.length; i++) {
+          var n = notes[i];
+          var midi = degreeToMidi(tonic, n.degree, n.octave);
+          if (midi != null) {
+            (function (midi, len) {
+              events.push({
+                beat: beat,
+                play: function (t, spb) { leadFn(t, midiToFreq(midi), len * spb * 0.94, leadGain); }
+              });
+            })(midi, n.beats);
+          }
+          beat += n.beats;
+        }
+      }
+      var totalBeats = beat;
+
+      // --- 伴奏（分解和弦＋低音）＋ 打擊 ---
+      var bpb = song.beatsPerBar;
+      var chordBase = tonic - 12;
+      var bassBase = tonic - 24;
+      var perc = song.voices.perc;
+
+      for (var bar = 0; bar < song.bars.length; bar++) {
+        var sym = song.chords[bar % song.chords.length] || 'I';
+        var tones = chordTones(chordBase, sym);
+        var bassRoot = chordTones(bassBase, sym)[0];
+        var bassFifth = chordTones(bassBase, sym)[2];
+        var barStart = bar * bpb;
+        if (barStart >= totalBeats) break;
+
+        var pattern; // [beatOffset, midi, gain, kind]
+        if (bpb === 4) {
+          pattern = [
+            [0,   bassRoot,  0.26, 'bass'],
+            [1,   tones[1],  0.15, 'chord'],
+            [1.5, tones[2],  0.10, 'chord'],
+            [2,   bassFifth, 0.22, 'bass'],
+            [3,   tones[2],  0.15, 'chord'],
+            [3.5, tones[1] + 12, 0.09, 'chord']
+          ];
+        } else if (bpb === 3) {
+          pattern = [
+            [0, bassRoot, 0.26, 'bass'],
+            [1, tones[1], 0.15, 'chord'],
+            [2, tones[2], 0.13, 'chord']
+          ];
+        } else { // 2/4
+          pattern = [
+            [0,   bassRoot, 0.26, 'bass'],
+            [0.5, tones[1], 0.13, 'chord'],
+            [1,   tones[2], 0.15, 'chord'],
+            [1.5, tones[1] + 12, 0.09, 'chord']
+          ];
+        }
+
+        for (var p = 0; p < pattern.length; p++) {
+          var pb = barStart + pattern[p][0];
+          if (pb >= totalBeats) continue;
+          (function (midi, gain, kind) {
+            events.push({
+              beat: pb,
+              play: function (t, spb) {
+                if (kind === 'bass') pluck(t, midiToFreq(midi), spb * 1.2, gain, { bright: 0.4, detune: 4 });
+                else chordFn(t, midiToFreq(midi), spb * 0.9, gain);
+              }
+            });
+          })(pattern[p][1], pattern[p][2], pattern[p][3]);
+        }
+
+        // 打擊
+        var hits;
+        if (bpb === 4)      hits = [[0,'drum',0.16],[1,'block',0.075],[2,'drum',0.11],[3,'block',0.075]];
+        else if (bpb === 3) hits = [[0,'drum',0.15],[1,'block',0.065],[2,'block',0.055]];
+        else                hits = (perc === 'lively')
+                                 ? [[0,'drum',0.16],[0.5,'block',0.05],[1,'block',0.085],[1.5,'block',0.05]]
+                                 : [[0,'drum',0.15],[1,'block',0.07]];
+        for (var h = 0; h < hits.length; h++) {
+          var hb = barStart + hits[h][0];
+          if (hb >= totalBeats) continue;
+          (function (kind, gain) {
+            events.push({
+              beat: hb,
+              play: function (t) {
+                if (kind === 'drum') lowdrum(t, gain);
+                else woodblock(t, gain, 2000 + Math.random() * 400);
+              }
+            });
+          })(hits[h][1], hits[h][2] * (perc === 'soft' ? 0.8 : 1));
+        }
+      }
+
+      events.sort(function (a, b) { return a.beat - b.beat; });
+      return { events: events, totalBeats: totalBeats };
+    }
+
+    // 事件表快取（同一首曲子重播不用重算）
+    var cache = {};
+    function getPlan(song) {
+      if (!cache[song.id]) cache[song.id] = buildEvents(song);
+      return cache[song.id];
+    }
+
+    // =====================================================================
+    // 5. 排程器
+    // =====================================================================
+    var LOOKAHEAD = 0.28;   // 秒：往前排多久
+    var TICK_MS = 40;
+    var timer = null;
+    var currentSong = null;
+    var plan = null;
+    var spb = 0.5;          // seconds per beat
+    var loopStart = 0;
+    var idx = 0;
+
+    function tick() {
+      if (!plan || !songBus) return;
+      var now = ctx.currentTime;
+      var guard = 0;
+      while (guard++ < 4000) {
+        if (idx >= plan.events.length) {
+          loopStart += plan.totalBeats * spb;   // 無縫接回開頭
+          idx = 0;
+        }
+        var e = plan.events[idx];
+        var t = loopStart + e.beat * spb;
+        if (t > now + LOOKAHEAD) break;
+        if (t >= now - 0.05) e.play(t, spb);    // 落後太多的就跳過，不要擠在一起爆音
+        idx++;
+      }
+    }
+
+    function findSong(id) {
+      for (var i = 0; i < SONGS.length; i++) if (SONGS[i].id === id) return SONGS[i];
+      return null;
+    }
+
+    function killBus(fadeSec) {
+      if (!songBus) return;
+      var bus = songBus;
+      songBus = null;
+      var t = ctx.currentTime;
+      try {
+        bus.gain.cancelScheduledValues(t);
+        bus.gain.setValueAtTime(Math.max(bus.gain.value, 0.0001), t);
+        bus.gain.exponentialRampToValueAtTime(0.0001, t + (fadeSec || 0.18));
+      } catch (err) { /* 離線 context 可能已渲染結束 */ }
+      if (!isOffline) {
+        setTimeout(function () { try { bus.disconnect(); } catch (e) {} }, (fadeSec || 0.18) * 1000 + 300);
+      }
+    }
+
+    function stop() {
+      if (timer) { clearInterval(timer); timer = null; }
+      killBus(0.18);
+      currentSong = null;
+      plan = null;
+      idx = 0;
+    }
+
+    function play(songId, opts) {
+      var song = findSong(songId);
+      if (!song) throw new Error('找不到曲目：' + songId);
+      stop();
+      opts = opts || {};
+
+      songBus = ctx.createGain();
+      songBus.gain.value = song.gainTrim || 1;   // 各曲響度微調，四首聽起來才一致
+      songBus.connect(master);
+
+      currentSong = song;
+      plan = getPlan(song);
+      spb = 60 / (opts.bpm || song.bpm);
+
+      if (isOffline) {
+        // 離線：一次把整段時間排完
+        var total = ctx.length / ctx.sampleRate;
+        loopStart = 0;
+        idx = 0;
+        var guard = 0;
+        while (guard++ < 200000) {
+          if (idx >= plan.events.length) { loopStart += plan.totalBeats * spb; idx = 0; }
+          var e = plan.events[idx];
+          var t = loopStart + e.beat * spb;
+          if (t > total) break;
+          e.play(t, spb);
+          idx++;
+        }
+      } else {
+        loopStart = ctx.currentTime + 0.12;   // 留一點排程餘裕
+        idx = 0;
+        tick();
+        timer = setInterval(tick, TICK_MS);
+      }
+      return song.id;
+    }
+
+    function setVolume(v) {
+      v = Math.max(0, Math.min(1, Number(v) || 0));
+      var t = ctx.currentTime;
+      try {
+        master.gain.cancelScheduledValues(t);
+        master.gain.setValueAtTime(master.gain.value, t);
+        master.gain.linearRampToValueAtTime(v, t + 0.06);
+      } catch (e) {
+        master.gain.value = v;
+      }
+      return v;
+    }
+
+    function list() {
+      return SONGS.map(function (s) {
+        var pl = getPlan(s);
+        return {
+          id: s.id,
+          title: s.title,
+          composer: s.composer,
+          year: s.year,
+          note: s.note,
+          rights: s.rights,
+          source: s.source,
+          bpm: s.bpm,
+          meter: s.beatsPerBar + '/4',
+          bars: s.bars.length,
+          loopSeconds: Math.round(pl.totalBeats * (60 / s.bpm) * 10) / 10,
+          voices: s.voices
+        };
+      });
+    }
+
+    // 除錯／校譜用：印出某首曲子的音名
+    function dumpNotes(songId, barCount) {
+      var song = findSong(songId);
+      if (!song) return null;
+      var out = [];
+      var n = barCount || song.bars.length;
+      for (var b = 0; b < Math.min(n, song.bars.length); b++) {
+        var notes = parseBar(song.bars[b]);
+        out.push(notes.map(function (x) {
+          var m = degreeToMidi(song.tonicMidi, x.degree, x.octave);
+          return (m == null ? '休' : midiToName(m)) + '(' + x.beats + ')';
+        }).join(' '));
+      }
+      return out;
+    }
+
+    return {
+      play: play,
+      stop: stop,
+      setVolume: setVolume,
+      getVolume: function () { return master.gain.value; },
+      list: list,
+      current: function () { return currentSong ? currentSong.id : null; },
+      isPlaying: function () { return !!currentSong; },
+      dumpNotes: dumpNotes,
+      _master: master
+    };
+  }
+
+  global.createBGM = createBGM;
+  if (typeof module !== 'undefined' && module.exports) module.exports = { createBGM: createBGM, SONGS: SONGS };
+})(typeof window !== 'undefined' ? window : this);
+</script>
+
+<script>
+"use strict";
+const $ = id => document.getElementById(id);
+const QS = new URLSearchParams(location.search);
+let demoMode = QS.get('demo') === '1';       // 免感測器：鍵盤 ← → 模擬傾斜
+
+/* ==================================================================
+   一、素材載入與去背（沿用美術升級版已驗收做法）
+   ================================================================== */
+// 手機流量優化：全部用壓縮 JPEG（PNG 原檔 17MB 手機載不完；綠幕去背讀像素做，JPEG 一樣能去）
+// 四款騎士：阿公／阿嬤／少年／少女，各有直立與壓車兩張
+const RIDERS = [
+  {id:'grandpa', name:'阿公', sub:'斗笠·白汗衫'},
+  {id:'grandma', name:'阿嬤', sub:'花布衫·菜籃車'},
+  {id:'boy',     name:'少年', sub:'白襯衫·武車'},
+  {id:'girl',    name:'少女', sub:'麻花辮·淑女車'}
+];
+const SRC = {
+  bg:'assets/bg_valley.jpg', road:'assets/road_asphalt.jpg',
+  tree:'assets/tree_banana.jpg', pole:'assets/pole_wood.jpg', hay:'assets/haybale_straw.jpg',
+  egret:'assets/egret_white.jpg',
+  treeBig:'assets/tree_big.jpg', father:'assets/father_wave.jpg'
+};
+for(const r of RIDERS){
+  SRC['bk_'+r.id+'_U']='assets/bike_'+r.id+'_upright.jpg';
+  SRC['bk_'+r.id+'_L']='assets/bike_'+r.id+'_lean.jpg';
+}
+// 綠幕去背門檻逐張調。
+// ⚠️香蕉樹葉本身就是中～深綠（gr 約 30～55），門檻要抓「高亮度純綠」才不會把葉子一起吃掉，
+//   所以 tree 這一張的 grLo 拉到 75、gLo 拉到 150（檳榔樹當初就踩過這個坑，香蕉葉更肥更綠、要更嚴）。
+const KEY_STD  = {grHi:70,grLo:26,gHi:130,gLo:90};      // 一般物件（背景是純綠、主體無綠）
+const KEY_LEAF = {grHi:125,grLo:75,gHi:200,gLo:150};    // 有綠葉的主體
+const KEY = { tree:KEY_LEAF, pole:KEY_STD, hay:KEY_STD, egret:KEY_STD,
+              treeBig:KEY_LEAF, father:KEY_STD };
+for(const r of RIDERS){ KEY['bk_'+r.id+'_U']=KEY_STD; KEY['bk_'+r.id+'_L']=KEY_STD; }
+const clamp01 = v => v<0?0:v>1?1:v;
+const clamp = (v,a,b) => v<a?a:v>b?b:v;
+const loadImg = src => new Promise(r=>{const im=new Image();im.onload=()=>r(im);im.onerror=()=>r(null);im.src=src;});
+
+function keyOutGreen(img,o){
+  const c=document.createElement('canvas'); c.width=img.width; c.height=img.height;
+  const x=c.getContext('2d',{willReadFrequently:true}); x.drawImage(img,0,0);
+  const d=x.getImageData(0,0,c.width,c.height), p=d.data;
+  for(let i=0;i<p.length;i+=4){
+    const r=p[i],g=p[i+1],b=p[i+2];
+    const gr=g-Math.max(r,b);                                       // 綠的「純度」
+    const k=clamp01((gr-o.grLo)/(o.grHi-o.grLo))*clamp01((g-o.gLo)/(o.gHi-o.gLo));
+    if(k>0) p[i+3]=Math.round(p[i+3]*(1-k));
+    if(p[i+3]>0&&gr>12) p[i+1]=Math.min(g,Math.max(r,b)+12);         // 去綠溢色
+  }
+  x.putImageData(d,0,0); return trimAlpha(c);
+}
+function trimAlpha(c){
+  const x=c.getContext('2d',{willReadFrequently:true});
+  const p=x.getImageData(0,0,c.width,c.height).data;
+  let x0=c.width,y0=c.height,x1=-1,y1=-1;
+  for(let y=0;y<c.height;y++) for(let xx=0;xx<c.width;xx++){
+    if(p[(y*c.width+xx)*4+3]>24){ if(xx<x0)x0=xx; if(xx>x1)x1=xx; if(y<y0)y0=y; if(y>y1)y1=y; }
+  }
+  if(x1<0) return c;
+  const o=document.createElement('canvas'); o.width=x1-x0+1; o.height=y1-y0+1;
+  o.getContext('2d').drawImage(c,x0,y0,o.width,o.height,0,0,o.width,o.height);
+  return o;
+}
+function shrink(c,maxW){                     // 去背後降解析度：手機記憶體與 blit 成本都省
+  if(c.width<=maxW) return c;
+  const h=Math.round(c.height*maxW/c.width);
+  const o=document.createElement('canvas'); o.width=maxW; o.height=h;
+  const x=o.getContext('2d'); x.imageSmoothingQuality='high'; x.drawImage(c,0,0,maxW,h);
+  return o;
+}
+/** 底部著地點：取最底幾列不透明像素的水平重心（0~1）。
+    壓車圖的輪胎接地點不在畫面正中，旋轉樞紐要對準它，車身才不會繞著空氣轉。 */
+function bottomAnchor(c){
+  const x=c.getContext('2d',{willReadFrequently:true});
+  const p=x.getImageData(0,0,c.width,c.height).data;
+  const rows=Math.max(2,Math.round(c.height*0.05));
+  let sum=0,n=0;
+  for(let y=c.height-rows;y<c.height;y++) for(let xx=0;xx<c.width;xx++){
+    const a=p[(y*c.width+xx)*4+3];
+    if(a>60){ sum+=xx*a; n+=a; }
+  }
+  return n? clamp(sum/n/c.width,0.05,0.95) : 0.5;
+}
+/** 量測壓車素材「自帶」的傾角與方向（弧度，正＝往畫面右邊倒）。
+    ⚠️不可寫死：四款騎士是分開生成的 AI 圖，壓車角度各差好幾度，寫死會讓某幾款在滿舵時
+      多轉或少轉一截；而且這批圖實際是「往左倒」，寫死方向會整個反掉。
+    做法＝取上緣 18% 與下緣 12% 兩段的 alpha 水平重心，連線與鉛直線的夾角。 */
+function spriteLean(c){
+  const x=c.getContext('2d',{willReadFrequently:true});
+  const p=x.getImageData(0,0,c.width,c.height).data, W=c.width,H=c.height;
+  const band=(y0,y1)=>{ let s=0,n=0,yy=0;
+    for(let y=y0;y<y1;y++) for(let xx=0;xx<W;xx++){
+      const a=p[(y*W+xx)*4+3];
+      if(a>60){ s+=xx*a; n+=a; yy+=y*a; }
+    }
+    return n?[s/n,yy/n]:null; };
+  const top=band(0,Math.max(2,Math.round(H*0.18)));
+  const bot=band(Math.round(H*0.88),H);
+  if(!top||!bot) return 0;
+  const dy=bot[1]-top[1]; if(dy<H*0.3) return 0;
+  // canvas 的 rotate 正值＝順時針＝車往畫面右邊倒 → 頂點在底點右邊時要回傳正值
+  return Math.atan2(top[0]-bot[0],dy);
+}
+/** 換衣服顏色：只染「亮而不鮮豔」的像素（＝白汗衫／白襯衫／淺色布巾）。
+    ⚠️腳踏車車架、輪胎、皮鞋全是黑的，hueShift 對黑色完全無效（重機版靠車殼換色的做法在這裡失效），
+      所以對手要能分辨只能從「衣服顏色」下手；再配合四款騎士輪流用，六個人就都認得出來。
+    lumMin＝夠亮才染（皮膚偏暗且有彩度，不會被誤染）；satMax＝夠不鮮豔才染。 */
+function tintBright(src,col,strength=0.72,lumMin=118,satMax=76){
+  const c=document.createElement('canvas'); c.width=src.width; c.height=src.height;
+  const x=c.getContext('2d',{willReadFrequently:true}); x.drawImage(src,0,0);
+  const d=x.getImageData(0,0,c.width,c.height), p=d.data;
+  for(let i=0;i<p.length;i+=4){
+    if(p[i+3]===0) continue;
+    const r=p[i],g=p[i+1],b=p[i+2];
+    const mx=Math.max(r,g,b), mn=Math.min(r,g,b), lum=0.299*r+0.587*g+0.114*b;
+    if(lum<lumMin||mx-mn>satMax) continue;
+    // 用「亮度 × 目標色」上色：保留布料的皺褶明暗，只換色相
+    const k=strength*clamp01((lum-lumMin)/60), v=lum/255;
+    p[i]  =clamp(r*(1-k)+col[0]*v*k*1.06,0,255);
+    p[i+1]=clamp(g*(1-k)+col[1]*v*k*1.06,0,255);
+    p[i+2]=clamp(b*(1-k)+col[2]*v*k*1.06,0,255);
+  }
+  x.putImageData(d,0,0); return c;
+}
+/** 柏油照片 → 碎石土路：亮度重新對映到土黃色階，再撒一層碎石顆粒。
+    （直接找土路照片當然更好，但柏油這張的紋理頻率剛好適合當路面 mipmap，重畫色階最省事也最穩） */
+function makeDirtRoad(img){
+  const c=document.createElement('canvas'); c.width=img.width; c.height=img.height;
+  const x=c.getContext('2d',{willReadFrequently:true}); x.drawImage(img,0,0);
+  const d=x.getImageData(0,0,c.width,c.height), p=d.data;
+  const DARK=[92,72,50], LIGHT=[192,168,128];
+  for(let i=0;i<p.length;i+=4){
+    const lum=(0.299*p[i]+0.587*p[i+1]+0.114*p[i+2])/255;
+    const t=clamp01((lum-0.16)/0.62);                     // 柏油偏暗，先把動態範圍拉開
+    p[i]  =DARK[0]+(LIGHT[0]-DARK[0])*t;
+    p[i+1]=DARK[1]+(LIGHT[1]-DARK[1])*t;
+    p[i+2]=DARK[2]+(LIGHT[2]-DARK[2])*t;
+  }
+  x.putImageData(d,0,0);
+  // 碎石：亮暗兩色小點各撒一批（密度以面積算，換素材尺寸也不會爆量）
+  const n=Math.round(c.width*c.height/900);
+  for(let i=0;i<n;i++){
+    const px=Math.random()*c.width, py=Math.random()*c.height, r=0.7+Math.random()*1.9;
+    x.fillStyle = Math.random()<0.5 ? `rgba(232,214,180,${0.14+Math.random()*0.22})`
+                                    : `rgba(74,56,36,${0.14+Math.random()*0.24})`;
+    x.beginPath(); x.ellipse(px,py,r,r*0.78,Math.random()*3,0,7); x.fill();
+  }
+  return c;
+}
+/* ---- 程式繪製的三張 sprite（稻穗／竹簍／白鷺鷥）----
+   這三樣沒有現成素材，而且都要在畫面上縮到 8～40px，用程式畫反而比照片可靠：
+   邊緣乾淨、不用去背、放大縮小都不糊，也不必再多下載三個檔案。
+   一律「載入時畫一次」存成 canvas，之後每幀只是 drawImage。 */
+function makeRiceSprite(){                   // 金黃稻穗束（取代重機版的金幣）
+  const S=180, c=document.createElement('canvas'); c.width=S; c.height=S;
+  const x=c.getContext('2d');
+  // 三根稻稈由束帶處往外呈扇形垂落
+  const bx=S*0.50, by=S*0.94;
+  // [終點x, 終點y, 控制點x, 控制點y]（比例）。控制點刻意放得比終點高 → 稻稈先直立再彎過去「垂下來」，
+  // 這是稻穗與雜草最大的差別；第一版控制點放低，三根往上叉開，看起來像仙人掌。
+  const arms=[[-0.62,-0.62,-0.25,-0.95],[0.10,-0.90,0.02,-1.05],[0.66,-0.58,0.28,-0.92]];
+  /* ⚠️兩趟畫：第一趟畫「放大 1.5 倍的深色版」當描邊底。
+     稻穗是金黃色、地面也是金黃稻田色，同色系疊在一起遠看會整個糊掉（第一版實測就是這樣，
+     縮到 30px 後幾乎看不見）。有一圈深褐輪廓就能在任何背景上跳出來，而且是烘進 sprite 的、
+     不用每幀開 shadowBlur。 */
+  for(const pass of [0,1]){
+    const K = pass===0 ? 1.55 : 1.0;
+    for(const [ex,ey,cx1,cy1] of arms){
+      const x0=bx, y0=by, x1=bx+ex*S*0.42, y1=by+ey*S*0.80;
+      const qx=bx+cx1*S*0.30, qy=by+cy1*S*0.86;
+      x.strokeStyle = pass===0 ? '#4a3208' : '#96762a';
+      x.lineWidth=S*0.026*K; x.lineCap='round';
+      x.beginPath(); x.moveTo(x0,y0); x.quadraticCurveTo(qx,qy,x1,y1); x.stroke();
+      const N=8;
+      for(let i=0;i<N;i++){
+        const t=0.22+0.78*i/(N-1), mt=1-t;
+        const px=mt*mt*x0+2*mt*t*qx+t*t*x1, py=mt*mt*y0+2*mt*t*qy+t*t*y1;
+        const dx=2*mt*(qx-x0)+2*t*(x1-qx), dy=2*mt*(qy-y0)+2*t*(y1-qy);
+        const ang=Math.atan2(dy,dx), r=S*0.050*(1.05-0.30*t);
+        for(const sd of [-1,1]){
+          const gx=px+Math.cos(ang+Math.PI/2)*sd*r*0.74, gy=py+Math.sin(ang+Math.PI/2)*sd*r*0.74;
+          x.save(); x.translate(gx,gy); x.rotate(ang);
+          if(pass===0) x.fillStyle='#4a3208';
+          else { const g=x.createLinearGradient(-r,-r,r,r);
+                 g.addColorStop(0,'#fff8cf'); g.addColorStop(0.50,'#f4cb44'); g.addColorStop(1,'#c08c12');
+                 x.fillStyle=g; }
+          x.beginPath(); x.ellipse(0,0,r*1.55*K,r*0.70*K,0,0,7); x.fill();
+          x.restore();
+        }
+      }
+    }
+    // 束帶（草繩）
+    x.fillStyle = pass===0 ? '#4a3208' : '#a07c30';
+    x.beginPath(); x.ellipse(bx,by-S*0.045,S*0.082*K,S*0.048*K,0,0,7); x.fill();
+  }
+  return trimAlpha(c);
+}
+function makeBasketSprite(){                 // 竹簍（取代重機版的三角錐）
+  const W=190,H=170, c=document.createElement('canvas'); c.width=W; c.height=H;
+  const x=c.getContext('2d');
+  const topY=H*0.26, botY=H*0.97, tR=W*0.40, bR=W*0.255;
+  // 桶身
+  const g=x.createLinearGradient(W/2-tR,0,W/2+tR,0);
+  g.addColorStop(0,'#8e6122'); g.addColorStop(0.34,'#d09b48'); g.addColorStop(0.72,'#b07c30'); g.addColorStop(1,'#7a5119');
+  x.beginPath(); x.moveTo(W/2-tR,topY); x.lineTo(W/2+tR,topY);
+  x.lineTo(W/2+bR,botY); x.lineTo(W/2-bR,botY); x.closePath();
+  x.fillStyle=g; x.fill();
+  x.strokeStyle='rgba(58,36,10,0.85)'; x.lineWidth=W*0.017; x.stroke();
+  // 竹編橫紋
+  x.save(); x.beginPath(); x.moveTo(W/2-tR,topY); x.lineTo(W/2+tR,topY);
+  x.lineTo(W/2+bR,botY); x.lineTo(W/2-bR,botY); x.closePath(); x.clip();
+  for(let i=1;i<7;i++){
+    const t=i/7, y=topY+(botY-topY)*t, r=tR+(bR-tR)*t;
+    x.strokeStyle=`rgba(58,36,10,${0.30+0.10*(i%2)})`; x.lineWidth=W*0.022;
+    x.beginPath(); x.ellipse(W/2,y,r,r*0.20,0,0,Math.PI); x.stroke();
+  }
+  for(let i=-3;i<=3;i++){                     // 直向竹篾
+    x.strokeStyle='rgba(58,36,10,0.20)'; x.lineWidth=W*0.014;
+    x.beginPath(); x.moveTo(W/2+i*tR*0.30,topY); x.lineTo(W/2+i*bR*0.30,botY); x.stroke();
+  }
+  x.restore();
+  // 簍口（看得到裡面＝一眼認得出是簍子不是桶子）
+  x.beginPath(); x.ellipse(W/2,topY,tR,tR*0.30,0,0,7);
+  x.fillStyle='#3c2a12'; x.fill();
+  x.strokeStyle='#e0b463'; x.lineWidth=W*0.030; x.stroke();
+  return trimAlpha(c);
+}
+function makeEgretSprite(){                  // 白鷺鷥（若 assets/egret_white.jpg 有到就用照片，沒有才用這張）
+  const W=150,H=190, c=document.createElement('canvas'); c.width=W; c.height=H;
+  const x=c.getContext('2d');
+  x.strokeStyle='#4a4038'; x.lineWidth=W*0.026; x.lineCap='round';
+  x.beginPath(); x.moveTo(W*0.46,H*0.74); x.lineTo(W*0.44,H*0.99);      // 腳
+  x.moveTo(W*0.56,H*0.74); x.lineTo(W*0.60,H*0.99); x.stroke();
+  const body=x.createLinearGradient(0,H*0.44,0,H*0.80);
+  body.addColorStop(0,'#ffffff'); body.addColorStop(1,'#d3d8dc');
+  x.fillStyle=body; x.beginPath(); x.ellipse(W*0.50,H*0.62,W*0.30,H*0.16,-0.12,0,7); x.fill();
+  x.strokeStyle='rgba(90,96,104,0.5)'; x.lineWidth=W*0.012; x.stroke();
+  x.strokeStyle='#f4f7f9'; x.lineWidth=W*0.115; x.lineCap='round';       // S 形長頸
+  x.beginPath(); x.moveTo(W*0.53,H*0.58);
+  x.bezierCurveTo(W*0.34,H*0.48,W*0.40,H*0.26,W*0.55,H*0.20); x.stroke();
+  x.fillStyle='#ffffff'; x.beginPath(); x.ellipse(W*0.57,H*0.18,W*0.105,H*0.055,-0.20,0,7); x.fill();
+  x.fillStyle='#e8b21e'; x.beginPath();                                  // 黃喙
+  x.moveTo(W*0.66,H*0.165); x.lineTo(W*0.94,H*0.215); x.lineTo(W*0.66,H*0.215); x.closePath(); x.fill();
+  x.fillStyle='#2c2a26'; x.beginPath(); x.arc(W*0.60,H*0.168,W*0.020,0,7); x.fill();
+  return trimAlpha(c);
+}
+/** 把稻草堆疊到鐵馬的後貨架上（做出「載貨的鐵馬」剪影，見 init 裡 npc 的註解）。
+    畫布往兩側各加寬 22%，稻草才不會被裁掉；anchor 由呼叫端沿用原圖（草是往兩側長的，接地點沒變）。 */
+function loadHay(bike,hay){
+  if(!hay) return bike;
+  const padX=Math.round(bike.width*0.22);
+  const c=document.createElement('canvas');
+  c.width=bike.width+padX*2; c.height=bike.height;
+  const x=c.getContext('2d');
+  x.drawImage(bike,padX,0);
+  const hw=bike.width*1.02, hh=hw*hay.height/hay.width;
+  x.drawImage(hay, padX+bike.width/2-hw/2, bike.height*0.82-hh, hw, hh);
+  if(bike.anchor!=null) c.anchor=(padX+bike.anchor*bike.width)/c.width;   // 加寬後接地點的比例要重算
+  return c;
+}
+function makeTileable(img,w){                // 路面紋理：縮圖＋上下鏡射堆疊 → 垂直捲動無接縫
+  const h=Math.round(img.height*w/img.width);
+  const c=document.createElement('canvas'); c.width=w; c.height=h*2;
+  const x=c.getContext('2d');
+  x.drawImage(img,0,0,w,h);
+  x.save(); x.translate(0,h*2); x.scale(1,-1); x.drawImage(img,0,0,w,h); x.restore();
+  return c;
+}
+function buildMips(base,levels){             // 手動 mipmap：遠處掃描線取粗階＝不沸騰
+  const mips=[base];
+  for(let i=1;i<=levels;i++){
+    const p=mips[i-1], w=Math.max(4,p.width>>1), h=Math.max(4,p.height>>1);
+    const c=document.createElement('canvas'); c.width=w; c.height=h;
+    const x=c.getContext('2d'); x.imageSmoothingEnabled=true; x.imageSmoothingQuality='high';
+    x.drawImage(p,0,0,w,h); mips.push(c);
+  }
+  return mips;
+}
+function avgColor(src){
+  const c=document.createElement('canvas'); c.width=c.height=1;
+  const x=c.getContext('2d',{willReadFrequently:true}); x.drawImage(src,0,0,1,1);
+  const d=x.getImageData(0,0,1,1).data; return [d[0],d[1],d[2]];
+}
+function samplePalette(bg){                  // 從背景照片取樣配色 → 繪製地面與照片同一套色
+  const c=document.createElement('canvas'); c.width=8; c.height=64;
+  const x=c.getContext('2d',{willReadFrequently:true}); x.drawImage(bg,0,0,8,64);
+  const d=x.getImageData(0,0,8,64).data;
+  const row=ry=>{const y=Math.round(ry*63); let r=0,g=0,b=0;
+    for(let i=0;i<8;i++){const o=(y*8+i)*4; r+=d[o]; g+=d[o+1]; b+=d[o+2];}
+    return [r/8,g/8,b/8];};
+  return { far:row(0.795), near:row(0.985), haze:row(0.78) };
+}
+const ROW_TEX_W=32;
+function makeRowPattern(ctx,col){            // 稻列：柔邊細線，之後用 transform 縮成隨透視變化的間距
+  const c=document.createElement('canvas'); c.width=ROW_TEX_W; c.height=1;
+  const x=c.getContext('2d');
+  const g=x.createLinearGradient(0,0,ROW_TEX_W,0), cs=`${col[0]},${col[1]},${col[2]}`;
+  g.addColorStop(0,`rgba(${cs},0)`); g.addColorStop(0.34,`rgba(${cs},0)`);
+  g.addColorStop(0.50,`rgba(${cs},1)`);
+  g.addColorStop(0.66,`rgba(${cs},0)`); g.addColorStop(1,`rgba(${cs},0)`);
+  x.fillStyle=g; x.fillRect(0,0,ROW_TEX_W,1);
+  return ctx.createPattern(c,'repeat');
+}
+const mix=(a,b,t)=>[a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t,a[2]+(b[2]-a[2])*t];
+const rgb=(c,m=1)=>`rgb(${Math.min(255,c[0]*m)|0},${Math.min(255,c[1]*m)|0},${Math.min(255,c[2]*m)|0})`;
+
+/* ==================================================================
+   二、場景參數化（v1 只有金黃稻田；其餘預留）
+   ================================================================== */
+const SCENES = {
+  // ground.far/near＝金黃參考色，與背景照片取樣色照 blend 混合。
+  // 參考值對著 bg_valley 的稻田實測（照片稻田約 rgb(218,176,29)）：
+  // 混完 far≈(215,176,50)、near≈(180,147,40)，繪製地面才不會比照片偏綠。
+  // props＝路旁景物的抽樣池，出現機率＝在池子裡的份數。
+  // 白鷺鷥刻意只放 1 份（12 分之 1）：牠是「偶爾看到一隻」的驚喜，排排站就不稀奇了。
+  rice: { name:'花東縱谷 · 金黃稻田', enabled:true,
+          ground:{ far:[214,176,58], near:[190,156,48], blend:0.72 },   // 老闆拍板：地面整體金黃調
+          rowColor:[124,98,36],
+          props:['tree','pole','tree','hay','tree','tree','pole','hay','tree','hay','tree','egret'] },
+  coast:{ name:'海口風沙路（規劃中）', enabled:false },
+  tea:  { name:'山腳茶園（規劃中）', enabled:false }
+};
+
+/* ==================================================================
+   三、確定性亂數與賽道生成（seed 決定固定路線，處方可重現）
+   ================================================================== */
+function mulberry32(a){ return function(){ a|=0; a=a+0x6D2B79F5|0;
+  let t=Math.imul(a^a>>>15,1|a); t=t+Math.imul(t^t>>>7,61|t)^t;
+  return ((t^t>>>14)>>>0)/4294967296; }; }
+
+const SEG = 3.2;                       // 曲率控制點間距（odo 單位）
+// 路程三段：0–35% 直路暖身／35–75% 連續彎／75–100% 終盤（彎收斂、改用滿田稻穗當高潮）
+const SEG_A=0.35, SEG_B=0.75;
+const stageOf = p => p<SEG_A?0 : p<SEG_B?1 : 2;
+const CURVE_AMP=[0.32,1.00,0.62];
+// v3.2 彎道包絡：進彎鋪 3 個控制點（≈9.6 odo≈2 秒）漸強、出彎 3 個漸弱。
+// ⚠️舊版每個控制點各自擲骰，常常一個 SEG（3.2 odo≈0.6 秒）就從 0 衝到滿曲率 →
+//   老闆試玩「多次來不及轉彎」的主因之一就在這裡。
+const RAMP_IN=[0.16,0.46,0.78], RAMP_OUT=[0.72,0.38,0.14];
+const CURVE_PEAK_MAX=0.86;      // 峰值上限（v3.1 是 0.92；遠處放大後太滿會把地平線的路推出畫面）
+function buildRoute(seed,totalOdo){
+  const rnd=mulberry32(seed), n=Math.ceil(totalOdo/SEG)+8, k=new Array(n).fill(0);
+  // 區塊式生成：直路 → 進彎 ramp → 滿曲率 hold → 出彎 ramp → 直路 …
+  let i=2, lastDir=0;
+  while(i<n-2){
+    const st=stageOf(i*SEG/totalOdo), amp=CURVE_AMP[st];
+    i += (st===1?1:2) + Math.floor(rnd()*(st===1?2:3));       // 直路長度（連續彎段短一點）
+    if(i>=n-2) break;
+    let dir = rnd()<0.5?-1:1;
+    if(dir===lastDir && rnd()<0.72) dir=-dir;                  // 避免同向連彎太久
+    lastDir=dir;
+    const peak = clamp((0.52+rnd()*0.46)*amp,0,CURVE_PEAK_MAX)*dir;
+    const hold = 1+Math.floor(rnd()*(st===1?3:2));
+    for(const g of RAMP_IN){ if(i<n) k[i++]=peak*g; }
+    for(let h=0;h<hold&&i<n;h++) k[i++]=peak;
+    for(const g of RAMP_OUT){ if(i<n) k[i++]=peak*g; }
+  }
+  // 導航窗路徑：每 ds 一點的俯視座標＋航向（局部導航窗用，不再畫整條路線縮圖）
+  // v3：路旁「彎前單支預告牌」與 HUD 大箭頭已移除（老闆試玩回饋：多餘）。
+  // v3.2：轉彎預告改做在路上＝彎道外側的連續 chevron 板牆＋前瞻投影（長者不看導航窗，只看路況）。
+  const ds=0.5, pts=[[0,0]], heads=[0]; let hx=0,hy=0,head=0;
+  for(let o=ds;o<=totalOdo+ds;o+=ds){
+    head += curveOf(k,o)*ds*0.30;
+    hx += Math.sin(head)*ds; hy += Math.cos(head)*ds;
+    pts.push([hx,hy]); heads.push(head);
+  }
+  return { k, pts, heads, ds, totalOdo };
+}
+function curveOf(k,o){                 // smoothstep 內插曲率
+  const f=o/SEG, i=Math.floor(f), u=f-i;
+  const a=k[clamp(i,0,k.length-1)], b=k[clamp(i+1,0,k.length-1)];
+  return a+(b-a)*(u*u*(3-2*u));
+}
+
+/* ---- 道具與障礙：由 seed 生成，車道分佈可加權（處方保留參數） ---- */
+function buildItems(seed,totalOdo,cfg){
+  const rnd=mulberry32(seed^0x9e3779b9);
+  const gapBase=[0,4.4,3.6,2.9,2.3,1.8][cfg.dens];        // 密度 1(疏)→5(密)
+  const W=cfg.laneWeight||[1,1,1];                        // 左／中／右 車道權重（處方加權用）
+  const pick=w=>{ const s=w[0]+w[1]+w[2]; let r=rnd()*s;
+    if((r-=w[0])<0) return -1; if((r-=w[1])<0) return 0; return 1; };
+  const pickLane=()=>pick(W);
+  // 稻穗少排中央：新手輔助置中就撿得到＝零動作獎勵，會稀釋分數的臨床意義（實測 AFK 曾拿 960 分）
+  const coinLane=()=>pick([W[0],W[1]*0.3,W[2]]);
+  const items=[], npcs=[];
+  // 氮氣＝獎勵脈衝，必須稀有才有價值：約每 14～23 秒一次（90 秒局內 4～6 次）
+  let pos=7, nitroAt=38+rnd()*22;
+  // 三段：暖身段拉疏、彎道段正常、終盤稻穗雨 ×1.4（gap 除以 1.4 就是密度乘 1.4）
+  const STAGE_GAP=[1.22,1.00,1/1.4];
+  const STAGE_CONE=[0.11,0.18,0.14];                      // 三角錐機率
+  const STAGE_NPC =[0.09,0.12,0.09];                      // 慢車機率（疊在三角錐之上）
+  while(pos<totalOdo){
+    const st=stageOf(pos/totalOdo);
+    const gap=gapBase*STAGE_GAP[st]*(0.82+rnd()*0.4);
+    if(pos>=nitroAt){
+      items.push({kind:'nitro',pos,lane:pickLane()});
+      nitroAt=pos+70+rnd()*45; pos+=gap; continue;
+    }
+    const roll=rnd(), pc=STAGE_CONE[st], pn=pc+STAGE_NPC[st];
+    if(roll<pc){                                          // 三角錐
+      items.push({kind:'cone',pos,lane:pickLane()});          // cone＝竹簍（沿用舊 kind 名，存檔相容）
+      pos+=gap*0.95;
+    }else if(roll<pn){                                    // 慢速前車（同向 NPC）
+      const lane=pickLane();
+      npcs.push({ lane, pos, startOdo:pos-12.5, col:Math.floor(rnd()*3), active:false, done:false, spent:false });
+      pos+=gap*1.5;
+    }else{                                                // 金幣串（ROM 引導）
+      let lane=coinLane();
+      const nCoin=(st===2?4:3)+Math.floor(rnd()*4), stp=0.62, migrate=rnd()<(st===2?0.5:0.34);
+      for(let i=0;i<nCoin;i++){
+        let ln=lane;
+        // 遷移一律「換到對側」：側→對側＝跨全幅大擺盪（ROM 處方更好），中→隨機側；絕不遷入中央（AFK 白吃）
+        if(migrate && i>=Math.ceil(nCoin/2)) ln = lane===0 ? (rnd()<0.5?-1:1) : -lane;
+        items.push({kind:'coin',pos:pos+i*stp,lane:ln,head:i===0});
+      }
+      pos+=nCoin*stp+gap*0.85;
+    }
+  }
+  items.sort((a,b)=>a.pos-b.pos);
+  npcs.sort((a,b)=>a.pos-b.pos);
+  return {items,npcs};
+}
+function buildScenery(seed,totalOdo){
+  const rnd=mulberry32(seed^0x5bf03635), list=[], kinds=SCENES.rice.props;
+  // 間距拉開＋50% 鏡像：同一張 sprite 排排站的重複感就散掉了
+  for(let pos=3;pos<totalOdo+16;pos+=1.05+rnd()*1.0){
+    const kind=kinds[Math.floor(rnd()*kinds.length)];
+    // 白鷺鷥站在稻田裡（離路更遠），不會像電線桿一樣貼著路邊排排站
+    const off = kind==='egret' ? 2.35+rnd()*1.9 : 1.25+rnd()*1.15;
+    list.push({ pos, kind, side:rnd()<0.5?-1:1, off, sc:0.82+rnd()*0.5, flip:rnd()<0.5 });
+  }
+  return list;
+}
+
+/* ==================================================================
+   四、One-Euro 濾波（平滑傾斜角，單位＝度）
+   ================================================================== */
+function oneEuro(min=1.4,beta=0.035,dcut=1.0){
+  let xP=null,dxP=0,tP=null; const a=(c,dt)=>{const t=1/(2*Math.PI*c);return 1/(1+t/dt);};
+  return { reset(){xP=null;dxP=0;tP=null;},
+    f(x,t){ if(xP===null){xP=x;tP=t;return x;} const dt=Math.max((t-tP)/1000,1e-3);tP=t;
+      const dx=(x-xP)/dt, ad=a(dcut,dt), dh=ad*dx+(1-ad)*dxP; dxP=dh;
+      const c=min+beta*Math.abs(dh), al=a(c,dt), xh=al*x+(1-al)*xP; xP=xh; return xh; } };
+}
+const tiltFilter = oneEuro();
+
+/* ==================================================================
+   五、音訊：WebAudio 合成懷舊音景（鏈條＋風聲＋鈴鐺）
+   ⚠️這一節是懷舊版與重機版差最多的地方：引擎層整個拆掉。
+     ・底噪＝鏈條規律 tick（速度越快越密）＋風聲（速度越快越大、越亮）
+     ・喇叭＝腳踏車鈴鐺（三個非諧和泛音，金屬清脆感）
+     ・撞到＝雞叫＋竹簍翻倒的木頭悶響
+     ・騎進田埂＝稻葉刷聲（高頻噪音＋不規則抖動）
+   音樂：四首台灣民謠（望春風／雨夜花／丟丟銅仔／四季紅）隨機輪播，
+        由本頁最上方內嵌的 tw_folk_bgm.js 即時合成——旋律屬公有領域、不含錄音取樣與歌詞。
+        ⚠️這裡刻意不掛任何 music.mp3／music.ogg 路徑：檔案不存在會在 console 噴 404。
+   ================================================================== */
+function makeAudio(){
+  const C=window.AudioContext||window.webkitAudioContext; if(!C) return null;
+  const ac=new C();
+  // 0.14＝民謠模組原本調校好的音量（治療師要能在旁邊講話）
+  const music=ac.createGain(); music.gain.value=0.14; music.connect(ac.destination);
+  const sfx=ac.createGain();   sfx.gain.value=0.30;   sfx.connect(ac.destination);
+  // 騎乘底噪層再低一階：它是「一直在響」的底噪，跟 UI 音效同音量會蓋掉治療師講話
+  const eng=ac.createGain();   eng.gain.value=0.15;   eng.connect(ac.destination);
+  const VOL={music:0.14,sfx:0.30,eng:0.15};
+  // 白噪音緩衝（撞擊音效用）
+  const nb=ac.createBuffer(1,ac.sampleRate*0.5,ac.sampleRate), nd=nb.getChannelData(0);
+  for(let i=0;i<nd.length;i++) nd[i]=Math.random()*2-1;
+  // 引擎的循環噪音要夠長才不會聽出週期
+  const nb2=ac.createBuffer(1,ac.sampleRate*2,ac.sampleRate), nd2=nb2.getChannelData(0);
+  for(let i=0;i<nd2.length;i++) nd2[i]=Math.random()*2-1;
+
+  function tone(dest,f,t,dur,vol,ty='triangle'){
+    const o=ac.createOscillator(); o.type=ty; o.frequency.value=f;
+    const g=ac.createGain();
+    g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(vol,t+0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+    o.connect(g); g.connect(dest); o.start(t); o.stop(t+dur+0.05);
+  }
+  /* ---- BGM：四首台灣民謠輪播（望春風／雨夜花／丟丟銅仔／四季紅）----
+     音符由內嵌的 tw_folk_bgm.js 即時合成（無音檔、無 404 風險），旋律皆為公有領域。
+     ⚠️用「兩個 deck」而不是一個：模組一個實例同時只放一首，直接 play() 下一首會硬切
+       （前一首的殘響被 0.18 秒砍掉、接縫聽得出來）。兩個 deck 才能真的 cross-fade。 */
+  const XFADE=0.6;                 // 秒：前一首淡出＝下一首淡入的時間
+  const FOLK_LEVEL=1.0;            // deck 母音量固定 1，實際音量由 music 這層 gain 管（沿用既有音量／靜音控制）
+  let decks=null, dk=0, order=[], oi=0, rotT=null, switchAt=0, onSong=null;
+  function folkReady(){
+    if(decks) return true;
+    if(typeof createBGM!=='function') return false;              // 模組沒載到就安靜跳過，不讓整個音訊掛掉
+    decks=[createBGM(ac,music),createBGM(ac,music)];
+    for(const d of decks) d._master.gain.value=0;
+    return true;
+  }
+  function deckGain(d,to,sec){
+    const g=d._master.gain, t=ac.currentTime;
+    try{ g.cancelScheduledValues(t); g.setValueAtTime(g.value,t); g.linearRampToValueAtTime(to,t+sec); }
+    catch(e){ g.value=to; }
+  }
+  const songMeta = id => (decks?decks[0].list():[]).find(s=>s.id===id) || null;
+  function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=(Math.random()*(i+1))|0; const x=a[i]; a[i]=a[j]; a[j]=x; } return a; }
+  /** 切到指定曲目：新 deck 淡入、舊 deck 同步淡出後熄火（不會有爆音，也不會有空白） */
+  function folkGo(id,fade){
+    const prev=decks[dk], nx=(dk+1)%2;
+    decks[nx].play(id);
+    deckGain(decks[nx],FOLK_LEVEL,fade);
+    if(prev!==decks[nx] && prev.isPlaying()){
+      deckGain(prev,0,fade);
+      setTimeout(()=>{ if(decks[dk]===prev) return; try{ prev.stop(); }catch(e){} }, fade*1000+260);
+    }
+    dk=nx;
+    const m=songMeta(id);
+    switchAt = ac.currentTime + 0.12 + (m?m.loopSeconds:40);      // 0.12＝模組排程的起跑餘裕
+    if(onSong){ try{ onSong(m?m.title:'',id); }catch(e){} }
+  }
+  function startProc(){
+    if(rotT||!folkReady()) return;
+    order=shuffle(decks[0].list().map(s=>s.id));                  // 每局重洗牌：不會每次都從望春風開始
+    oi=0;
+    folkGo(order[0],0.9);                                         // 開局淡入長一點，音樂不要突然砸出來
+    rotT=setInterval(()=>{ if(ac.currentTime>=switchAt){ oi=(oi+1)%order.length; folkGo(order[oi],XFADE); } },200);
+  }
+  function stopProc(){
+    if(rotT){ clearInterval(rotT); rotT=null; }
+    if(decks) for(const d of decks){
+      deckGain(d,0,0.25);
+      setTimeout(()=>{ if(rotT) return; try{ d.stop(); }catch(e){} },320);   // 若這 0.32 秒內又開局就別停
+    }
+    if(onSong){ try{ onSong(null,null); }catch(e){} }
+  }
+
+  /* ---------- 騎乘底噪：鏈條 tick ＋ 風聲（取代重機版的引擎層）----------
+     ・風聲＝連續噪音過低通，截止頻率與音量都隨腳程走 → 「騎快了風就大聲、也更亮」
+     ・鏈條＝離散的短 tick，用前瞻排程（跟 BGM 同一套做法），tick 頻率隨腳程線性升
+       ⚠️不能用 setInterval 直接發聲：JS 計時器抖動 30ms 以上，聽起來會像壞掉的節拍器；
+         一定要「提前 0.18 秒把 tick 排進 WebAudio 時間軸」才會穩。 */
+  let R=null, lastSpd=-1, lastAmp=-1;
+  let chainNext=0, chainPhase=0, chainRate=6, chainVol=0.55;
+  function ridePump(){
+    if(!R) return;
+    const now=ac.currentTime;
+    if(chainNext<now) chainNext=now+0.02;
+    while(chainNext<now+0.18){
+      const t0=chainNext;
+      const s=ac.createBufferSource(); s.buffer=nb;
+      const bp=ac.createBiquadFilter(); bp.type='bandpass'; bp.Q.value=7;
+      // 兩個交替的中心頻率＝鏈條「喀、喀」的一鬆一緊；再加一點隨機才不像電子節拍
+      bp.frequency.value=(chainPhase%2?2320:1780)+Math.random()*200;
+      const g=ac.createGain();
+      g.gain.setValueAtTime(0.0001,t0);
+      g.gain.exponentialRampToValueAtTime(Math.max(0.004,0.42*chainVol),t0+0.004);
+      g.gain.exponentialRampToValueAtTime(0.0004,t0+0.048);
+      s.connect(bp); bp.connect(g); g.connect(eng); s.start(t0); s.stop(t0+0.07);
+      chainPhase++;
+      chainNext += 1/Math.max(1.5,chainRate);
+    }
+  }
+  function rideStart(){
+    if(R) return;
+    const ns=ac.createBufferSource(); ns.buffer=nb2; ns.loop=true;
+    const lp=ac.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=520; lp.Q.value=0.7;
+    const hp=ac.createBiquadFilter(); hp.type='highpass'; hp.frequency.value=140;
+    const g=ac.createGain(); g.gain.value=0.0001;
+    ns.connect(lp); lp.connect(hp); hp.connect(g); g.connect(eng); ns.start();
+    g.gain.setTargetAtTime(0.30,ac.currentTime,0.35);
+    const tm=setInterval(ridePump,60);
+    R={ns,lp,g,tm}; lastSpd=-1; lastAmp=-1;
+    chainNext=ac.currentTime+0.05; ridePump();
+  }
+  function rideStop(){
+    if(!R) return; const e=R; R=null; const t=ac.currentTime;
+    clearInterval(e.tm);
+    e.g.gain.cancelScheduledValues(t); e.g.gain.setTargetAtTime(0.0001,t,0.12);
+    setTimeout(()=>{ try{e.ns.stop();}catch(x){} },500);
+  }
+  /** spd 0~1（腳程映射）、amp 0~1（音量權重；順風拉滿、撞到減速時壓低） */
+  function rideSet(spd,amp){
+    if(!R) return;
+    if(Math.abs(spd-lastSpd)<0.012 && Math.abs(amp-lastAmp)<0.05) return;   // 節流：不必每幀都排程參數
+    lastSpd=spd; lastAmp=amp;
+    const t=ac.currentTime;
+    R.lp.frequency.setTargetAtTime(380+spd*2600,t,0.10);                    // 越快風聲越亮
+    R.g.gain.setTargetAtTime((0.16+0.72*spd)*(0.55+0.45*amp),t,0.12);
+    chainRate = 3.2+spd*13.5;                                               // 踏頻：慢騎約 3 下/秒、衝刺約 17 下/秒
+    chainVol  = 0.34+0.52*spd*amp;
+  }
+  /* ---- 騎進田埂：稻葉刷過車身的聲音（取代重機版的草地摩擦）----
+     走 eng 層（＝已經比 UI 音效低一階），治療師講話不會被蓋掉。
+     ⚠️稻葉不是連續的「嘶——」，是一叢一叢刷過去 → 用一顆慢速 LFO 調變音量才像。 */
+  let G=null;
+  function rustleOn(){
+    if(G) return;
+    const s=ac.createBufferSource(); s.buffer=nb2; s.loop=true;
+    const bp=ac.createBiquadFilter(); bp.type='bandpass'; bp.frequency.value=3100; bp.Q.value=0.5;
+    const hp=ac.createBiquadFilter(); hp.type='highpass'; hp.frequency.value=1200;
+    const g=ac.createGain(); g.gain.value=0.0001;
+    const lfo=ac.createOscillator(); lfo.type='sine'; lfo.frequency.value=7.4;
+    const lg=ac.createGain(); lg.gain.value=0.24; lfo.connect(lg); lg.connect(g.gain);
+    s.connect(bp); bp.connect(hp); hp.connect(g); g.connect(eng); s.start(); lfo.start();
+    g.gain.setTargetAtTime(0.46,ac.currentTime,0.05);
+    G={s,g,lfo};
+  }
+  function rustleOff(){
+    if(!G) return; const e=G; G=null;
+    e.g.gain.cancelScheduledValues(ac.currentTime);
+    e.g.gain.setTargetAtTime(0.0001,ac.currentTime,0.09);
+    setTimeout(()=>{ try{e.s.stop();e.lfo.stop();}catch(x){} },420);
+  }
+  /* ---- 腳踏車鈴鐺：三個「非諧和」泛音（1 : 1.51 : 2.06）＋高頻擊點 ----
+     ⚠️用整數倍泛音會聽成風琴不是金屬；金屬的關鍵就在泛音不成整數比。 */
+  function bellAt(t0,vol,f0){
+    for(const [m,a,d] of [[1,0.92,0.78],[1.51,0.44,0.46],[2.06,0.24,0.30],[2.71,0.12,0.20]]){
+      const o=ac.createOscillator(); o.type='sine'; o.frequency.value=f0*m;
+      const g=ac.createGain();
+      g.gain.setValueAtTime(0.0001,t0); g.gain.exponentialRampToValueAtTime(Math.max(0.002,vol*a),t0+0.005);
+      g.gain.exponentialRampToValueAtTime(0.0004,t0+d);
+      o.connect(g); g.connect(sfx); o.start(t0); o.stop(t0+d+0.05);
+    }
+    burst(sfx,5400,2600,2.4,vol*0.22,0.03);
+  }
+  /** 短促噪音爆點：碎石聲／打滑／呼嘯共用 */
+  function burst(dest,f0,f1,Q,vol,dur,type='bandpass'){
+    const t=ac.currentTime;
+    const s=ac.createBufferSource(); s.buffer=nb;
+    const bp=ac.createBiquadFilter(); bp.type=type; bp.Q.value=Q;
+    bp.frequency.setValueAtTime(f0,t); bp.frequency.exponentialRampToValueAtTime(Math.max(40,f1),t+dur);
+    const g=ac.createGain();
+    g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(vol,t+Math.min(0.03,dur*0.2));
+    g.gain.exponentialRampToValueAtTime(0.0005,t+dur);
+    s.connect(bp); bp.connect(g); g.connect(dest); s.start(t); s.stop(t+dur+0.05);
+  }
+  /** 竹頭木器的悶響（竹簍翻倒） */
+  function thud(t0,f,vol){
+    const o=ac.createOscillator(); o.type='triangle';
+    o.frequency.setValueAtTime(f,t0); o.frequency.exponentialRampToValueAtTime(f*0.58,t0+0.11);
+    const g=ac.createGain(); g.gain.setValueAtTime(vol,t0); g.gain.exponentialRampToValueAtTime(0.0005,t0+0.17);
+    o.connect(g); g.connect(sfx); o.start(t0); o.stop(t0+0.19);
+  }
+  return { ac,
+    // ⚠️iOS Safari：AudioContext 只能在使用者手勢裡 resume（民謠模組本身不自己 resume，一律由這裡處理）
+    start(){ if(ac.state==='suspended') ac.resume(); startProc(); },
+    stop(){ stopProc(); rideStop(); rustleOff(); },
+    /** 曲目切換回呼 (title,id)；停播時會收到 (null,null) → 用來顯示／收掉畫面上的曲名 */
+    setOnSong(fn){ onSong=fn; },
+    /** 現在播哪一首（驗收／除錯用） */
+    currentSong(){ return decks?decks[dk].current():null; },
+    /** 立刻切下一首（驗收／除錯用；正常播放不用呼叫） */
+    nextSong(){ if(rotT&&order.length){ oi=(oi+1)%order.length; folkGo(order[oi],XFADE); } },
+    rideStart, rideStop, rideSet,
+    /** 稻葉刷聲：騎進田埂期間持續響 */
+    rustle(on){ if(on) rustleOn(); else rustleOff(); },
+    /** 路肩碎石：壓到路邊時每 0.11 秒一下的「唰」 */
+    rumble(){ burst(sfx,900,420,1.6,0.17,0.07); },
+    /** 騎進田埂瞬間：泥土噴濺＋車身悶撞 */
+    offroad(){ burst(sfx,1400,260,0.9,0.30,0.34);
+      thud(ac.currentTime,150,0.24); },
+    /** 起步：鈴鐺一聲＋兩下用力踩踏 */
+    pedal(){ rideStart(); const t=ac.currentTime;
+      bellAt(t,0.26,2050);
+      for(let k=0;k<2;k++) burst(eng,1500,700,5,0.26,0.10);
+      thud(t+0.16,120,0.13); thud(t+0.40,132,0.11); },
+    /** 鈴鐺：叮！（一般提示、追過人時用） */
+    bell(v=0.30){ bellAt(ac.currentTime,v,2050); },
+    /** 鈴鐺急響：順風時「叮叮叮叮」（取代重機版的排氣爆聲） */
+    bellRush(){ const t=ac.currentTime;
+      for(let k=0;k<4;k++) bellAt(t+k*0.13,0.24-k*0.03,2050+k*60); },
+    /** 輪胎在碎石上打滑 */
+    skid(){ burst(sfx,3000,1100,6.5,0.26,0.40); },
+    /** 錯身呼嘯 */
+    whoosh(){ burst(sfx,320,1500,1.0,0.22,0.16); burst(sfx,1500,260,1.0,0.20,0.26); },
+    /** 撿到稻穗：木質清脆的「叩」＋泛音，音高隨連撿數階梯上升 */
+    coin(n){ const t=ac.currentTime, f=760*Math.pow(1.0595,Math.min(8,n||0));
+             tone(sfx,f,t,0.09,0.28,'triangle'); tone(sfx,f*2.02,t+0.035,0.12,0.16,'sine'); },
+    // 撞到＝雞群驚飛的叫聲 ＋ 竹簍翻倒的木頭悶響（扣 30 穗要聽得出來「這下很痛」）
+    crash(){ const t=ac.currentTime;
+      for(let k=0;k<3;k++){                                    // 雞叫：三聲短促下滑的沙啞音
+        const t0=t+k*0.115, f0=1020-k*150;
+        const o=ac.createOscillator(); o.type='sawtooth';
+        o.frequency.setValueAtTime(f0,t0); o.frequency.exponentialRampToValueAtTime(f0*0.52,t0+0.095);
+        const bp=ac.createBiquadFilter(); bp.type='bandpass'; bp.frequency.value=1750; bp.Q.value=3.4;
+        const g=ac.createGain();
+        g.gain.setValueAtTime(0.0001,t0); g.gain.exponentialRampToValueAtTime(0.30,t0+0.012);
+        g.gain.exponentialRampToValueAtTime(0.0005,t0+0.105);
+        o.connect(bp); bp.connect(g); g.connect(sfx); o.start(t0); o.stop(t0+0.13);
+      }
+      burst(sfx,1800,500,2.2,0.26,0.26);                       // 竹片散開
+      thud(t+0.02,176,0.40); thud(t+0.17,138,0.28); thud(t+0.31,112,0.18); },
+    /** 下坡順風：風聲上揚（取代重機版的氮氣噴射） */
+    nitro(){ const t=ac.currentTime;
+      const s=ac.createBufferSource(); s.buffer=nb2;
+      const bp=ac.createBiquadFilter(); bp.type='bandpass'; bp.Q.value=1.4;
+      bp.frequency.setValueAtTime(420,t); bp.frequency.exponentialRampToValueAtTime(2600,t+0.55);
+      const g=ac.createGain(); g.gain.setValueAtTime(0.0001,t);
+      g.gain.exponentialRampToValueAtTime(0.34,t+0.12); g.gain.exponentialRampToValueAtTime(0.0005,t+0.72);
+      s.connect(bp); bp.connect(g); g.connect(sfx); s.start(t); s.stop(t+0.75); },
+    beep(f=680,d=0.13){ tone(sfx,f,ac.currentTime,d,0.28,'triangle'); },
+    /** 入彎提示：兩顆輕短的音，右彎上行、左彎下行（音量刻意比一般 beep 低，不吵） */
+    curveCue(dir){ const t=ac.currentTime, up=dir>0;
+      tone(sfx,up?640:900,t,0.12,0.17,'sine');
+      tone(sfx,up?900:640,t+0.10,0.16,0.17,'sine'); },
+    /** 到田頭：四音上行（用三角波，接近口琴／月琴的軟音色） */
+    fanfare(){ const t=ac.currentTime; [523.25,587.33,783.99,1046.5].forEach((f,i)=>
+      tone(sfx,f,t+i*0.14,0.36,0.26,'triangle')); },
+    setMuted(m){ music.gain.value=m?0:VOL.music; sfx.gain.value=m?0:VOL.sfx; eng.gain.value=m?0:VOL.eng; }
+  };
+}
+let AE=null, muted=false;
+
+/* ---- 曲名提示：換歌時淡入 4.5 秒再淡出 ----
+   給治療師的鉤子：長輩聽到《望春風》常常會跟著哼，看到曲名就能順勢問「這首你以前在哪裡聽的？」 */
+let bgmTagT=null;
+function showBgmTitle(title){
+  const el=$('bgmTag'); if(!el) return;
+  if(bgmTagT){ clearTimeout(bgmTagT); bgmTagT=null; }
+  if(!title||muted||!cfg.sound){ el.classList.remove('show'); return; }   // 靜音時不報曲名（沒聲音還跳字很怪）
+  $('bgmName').textContent=title;
+  el.classList.add('show');
+  bgmTagT=setTimeout(()=>{ el.classList.remove('show'); bgmTagT=null; },4500);
+}
+/** 音訊只建一次；建好順便把曲名回呼掛上（三個入口都走這裡，不會漏掛） */
+function ensureAudio(){
+  if(!AE){ AE=makeAudio(); if(AE) AE.setOnSong(showBgmTitle); }
+  return AE;
+}
+
+/* ==================================================================
+   六、設定
+   ================================================================== */
+// ⚠️key 一律加 bento_ 前綴：重機版《傾斜賽車》用 tiltracer_*，兩款遊戲的設定與紀錄絕不可互相污染
+//   （同一台平板上治療師會兩款交替用，混在一起的話報表趨勢圖會把兩款的資料畫成同一條線）。
+const LS_CFG='bento_cfg', LS_SESS='bento_sessions', LS_BEST='bento_best';
+const cfg = { route:1, dur:90, sens:3, speed:3, dens:3, assist:1, scene:'rice', sound:1, rivals:6,
+              rider:'grandpa', laneWeight:[1,1,1] };
+try{ const s=JSON.parse(localStorage.getItem(LS_CFG)||'{}'); Object.assign(cfg,s); cfg.laneWeight=[1,1,1]; }catch(e){}
+const RIVAL_OPTS=[0,3,6];
+if(!RIVAL_OPTS.includes(Number(cfg.rivals))) cfg.rivals=6; else cfg.rivals=Number(cfg.rivals);
+if(!RIDERS.some(r=>r.id===cfg.rider)) cfg.rider='grandpa';
+const saveCfg=()=>{ try{ localStorage.setItem(LS_CFG,JSON.stringify(cfg)); }catch(e){} };
+
+// odo → 公尺。⚠️重機版是 1 odo＝4.4 m，那是配重機的：換算下來「正常」檔位＝時速 79 公里，
+//   報表寫「騎了 353 公尺」聽起來像飆車。腳踏車改成 1 odo＝1.25 m → 正常檔位約時速 22 公里，
+//   90 秒的路程約 570 公尺，剛好是「騎去田頭送個飯」的距離。只影響報表數字，不動任何手感。
+const M_PER_ODO=1.25;
+const SENS_REQ=[0,0.35,0.50,0.66,0.83,1.00];    // 靈敏度→需要用掉多少比例的 ROM 才打滿
+const SENS_TXT=['','很靈敏 35%','靈敏 50%','中等 66%','鈍 83%','很鈍 100%'];
+const SPEED_V =[0,3.4,4.2,5.0,5.9,6.9];         // odo/s
+const SPEED_TXT=['','慢慢騎','小快','正常','快','很快'];
+const DENS_TXT=['','很疏','疏','中','密','很密'];
+const RIDER_NAME=id=>{ const r=RIDERS.find(x=>x.id===id); return r?r.name:'阿公'; };
+
+/* ==================================================================
+   七、傾斜輸入
+   ================================================================== */
+let rawAngle=0, haveSensor=false, lastSensorT=0;
+let axisMode='land';                                     // 'land'=A 橫式(beta) / 'port'=B 直式(gamma)
+function detectAxis(){
+  const a=(screen.orientation&&screen.orientation.angle)!=null?screen.orientation.angle:(window.orientation||0);
+  const land = Math.abs(a)===90 || window.innerWidth>window.innerHeight;
+  return land?'land':'port';
+}
+function onOrient(ev){
+  if(demoMode) return;
+  const b=ev.beta, g=ev.gamma;
+  if(b==null&&g==null) return;
+  haveSensor=true; lastSensorT=performance.now();
+  rawAngle = axisMode==='land' ? (b||0) : (g||0);        // 正負由校正自動判定，不猜裝置慣例
+}
+// 展示模式：鍵盤 ← → 直接模擬傾斜角（下游流程與真感測器完全一致）
+let keyL=false, keyR=false, demoRaw=0;
+addEventListener('keydown',e=>{
+  if(e.key==='ArrowLeft'){keyL=true;e.preventDefault();}
+  if(e.key==='ArrowRight'){keyR=true;e.preventDefault();}
+});
+addEventListener('keyup',e=>{
+  if(e.key==='ArrowLeft')keyL=false;
+  if(e.key==='ArrowRight')keyR=false;
+});
+function stepDemoTilt(dt){
+  if(!demoMode) return;
+  const rate=95;
+  if(keyL&&!keyR) demoRaw-=rate*dt; else if(keyR&&!keyL) demoRaw+=rate*dt;
+  else demoRaw += (0-demoRaw)*Math.min(1,dt*5);
+  demoRaw=clamp(demoRaw,-30,30); rawAngle=demoRaw;
+}
+
+// 校正結果
+const calib = { zero:0, romL:20, romR:20, axisSign:1, done:false };
+// ⚠️One-Euro 每幀只能餵一次：多次呼叫會讓 dt→0，濾波器行為失真。
+// 每幀在主迴圈更新 tiltF，其餘全部讀這個值。
+let tiltF=0;
+function pumpTilt(){ tiltF=tiltFilter.f(rawAngle,performance.now()); }
+function tiltSigned(){ return (tiltF-calib.zero)*calib.axisSign; }        // 左負右正
+function tiltNorm(){
+  const s=tiltSigned(), req=SENS_REQ[cfg.sens];
+  const rom = s<0 ? calib.romL : calib.romR;
+  return clamp(s/Math.max(3,rom*req),-1,1);
+}
+
+/* ==================================================================
+   八、畫布
+   ================================================================== */
+const cv=$('cv'); const ctx=cv.getContext('2d');
+let CW=0,CH=0,DPR=1,_sizeDirty=true;
+function resize(){
+  if(!_sizeDirty) return; _sizeDirty=false;
+  DPR=Math.min(window.devicePixelRatio||1,2);
+  CW=cv.clientWidth; CH=cv.clientHeight;
+  cv.width=Math.round(CW*DPR); cv.height=Math.round(CH*DPR);
+  ctx.setTransform(DPR,0,0,DPR,0,0);
+}
+addEventListener('resize',()=>{_sizeDirty=true;});
+const so=screen.orientation;
+if(so&&so.addEventListener) so.addEventListener('change',onOrientationChange);
+else addEventListener('orientationchange',onOrientationChange);
+function onOrientationChange(){
+  _sizeDirty=true;
+  const m=detectAxis();
+  if(m!==axisMode){
+    axisMode=m; updateModeBox();
+    if(phase==='play'||phase==='count'){ pauseForReorient(); }
+    else if(phase==='calib'){ resetCalib(); }
+  }
+}
+
+/* ==================================================================
+   九、遊戲狀態
+   ================================================================== */
+let phase='setup';                       // setup / calib / count / play / finish / end / report / reorient
+let ASSET=null, PAL=null, rowPat=null, roadMips=null, ROAD_AVG='#55585e';
+let route=null, items=[], npcs=[], scen=[], bonus=[];
+let iHead=0, nHead=0, sHead=0;
+let odo=0, elapsed=0, score=0, crashes=0, coneHits=0, npcHits=0, feverCount=0;
+let px=0, pxPrev=0, normPrev=0;
+let pxSteer=0, driftPx=0, camLat=0;         // 玩家指令位置／離心漂移量／鏡頭橫移（px＝兩者相加）
+let driftEnv=0, curveCued=false;            // v3.2 離心力時間包絡／入彎提示音的遲滯旗標
+let feverUntil=0, crashUntil=0, invulnUntil=0, shake=0, flash=0;
+let floats=[], sparks=[], dusts=[];
+let offroad=false, offExitT=-9, offroadCount=0, offroadSec=0, rumbleT=0;
+let countT=0, lastBeep=-1;
+let lastV=0, finished=false, overtakes=0;   // lastV＝本幀實際車速（時速表用）
+let lastInputT=-9;                          // 最後一次有效轉向輸入的時刻（超車獎勵防 AFK 白領）
+let nowT=0;                              // 遊戲內累積時間（秒）
+let coinStreak=0;
+// --- v3 新增狀態 ---
+let leanVis=0;                              // 壓車視覺量（-1 左 ~ +1 右，平滑後）
+let combo=0, comboT=-9;                     // 連吃 combo 與最後一次吃到的時刻
+let rivals=[], myRank=1, rankPrev=1;        // 對手競速
+let stageIdx=0;                             // 目前路程段（0 暖身 / 1 連續彎 / 2 終盤）
+let finT=0;                                 // 完賽慢動作計時
+let dusk=0;                                 // 天色（0 午後 → 1 黃昏）
+const COMBO_WIN=2.5;                        // 連吃視窗（秒）
+/* 庄裡少年家（對手）怎麼分辨？
+   ⚠️重機版是把「紅色車殼」做 hueShift；腳踏車的車架、輪胎、皮鞋全是黑的，
+     hueShift 對黑色與白色都完全無效（黑白沒有色相可轉）→ 這條路在這裡走不通。
+   改成兩層一起用：①輪流換騎士款式（四種剪影：斗笠／花布衫／白襯衫／麻花辮＋裙）
+                    ②把衣服（亮而不鮮豔的像素）染成六種高辨識度的布色
+   兩層疊起來，六個人在同一畫面上都認得出誰是誰。 */
+const RIVAL_WEAR=[
+  [ 96,140,210],   // 藍布衫
+  [214, 92, 78],   // 紅花布
+  [126,170, 84],   // 草綠
+  [232,178, 62],   // 土黃
+  [176,120,196],   // 紫花
+  [ 96,192,186]    // 湖水綠
+];
+const RIVAL_FADE0=0.30, RIVAL_FADE1=1.40;   // 對手錯身淡出區間（odo）：貼太近就別畫，免得糊在玩家身上
+
+/* ---- v3.1 離心力／衝出跑道 ----
+   模型＝「位置控制＋離心偏移」：玩家傾斜決定的是想待的橫向位置（pxSteer），
+   彎道則疊上一個往彎外的偏移（driftPx），兩者相加＝實際位置 px。
+   ⚠️關鍵是 DRIFT_GRIP：往彎內傾能把離心力抵銷掉（最多 92%），所以
+     ・完全不動的人 → 偏移吃滿 → 中等以上的彎就會被推出跑道
+     ・有主動壓車的人 → 抵銷掉大半 → 守得住路線，且再大的彎都有解（不會變成不可能任務）
+   這正是我們要的處方行為：彎道＝必須主動做動作的地方。 */
+const DRIFT_GAIN=4.4;        // 彎度 → 漂移量（px 單位／單位彎度，基準車速時）
+const DRIFT_ASSIST=0.6;      // 輔助駕駛開＝離心力打 6 折（長者仍要動手，只是不會狂噴出去）
+const DRIFT_GRIP=0.92;       // 往彎內傾最多能抵銷的比例（留 8%：永遠有一點外推，才有「在跟路」的手感）
+const DRIFT_LAG=3.2;         // 漂移建立速率（1/s，約 0.3 秒到位；不瞬間跳走，長者才反應得過來）
+// 路肩警告帶起點（1.0＝路面邊緣）。0.86 是實測調的：0.90 的話從警告到出界只有 0.2 秒，
+// 長者根本來不及；再往下調又會變成「停在外側車道就一直嗡嗡叫」。
+const SHOULDER=0.86;
+const OFF_IN=1.02, OFF_OUT=0.95;   // 出界／回正門檻（遲滯，免得在邊緣抖動反覆觸發）
+const PX_MAX=1.45;           // 橫向位置上限（配合鏡頭橫移，車還留在畫面內）
+const OFF_SPD=0.5, OFF_RECOVER=0.5;// 草地上車速 ×0.5；回到路面後 0.5 秒線性回升，不瞬間跳回全速
+// 鏡頭橫移：|px| 超過 0.75 才開始跟（正常行駛完全不動，長者不會暈），之後跟 1.25 倍
+const CAM_DEAD=0.75, CAM_FOLLOW=1.25, CAM_LAG=4.0;
+// v3.2 離心力時間包絡：進彎 0.8 秒內 0→全力（老闆試玩「來不及轉彎」的第三個成因＝力道上得太急）
+const DRIFT_RAMP=0.8;
+// 對手起跑位置：頭尾兩端固定，中間依台數平均散開（3 台／6 台共用同一段賽道）
+const RIVAL_HEAD=6.2, RIVAL_TAIL=-6.4;
+
+// 臨床量測
+const M = {
+  presented:[0,0,0], collected:[0,0,0],       // 依車道（左/中/右）
+  leftPeaks:[], rightPeaks:[],                // 每次左／右轉的峰值傾斜角（度）
+  rts:[], series:[],                          // 反應時間（ms）
+  turnState:0, turnPeak:0,                    // 轉向事件偵測
+  cue:null                                    // 待回應提示
+};
+function resetMetrics(){
+  M.presented=[0,0,0]; M.collected=[0,0,0]; M.leftPeaks=[]; M.rightPeaks=[];
+  M.rts=[]; M.series=[]; M.turnState=0; M.turnPeak=0; M.cue=null;
+}
+
+const SCENE_ACTIVE = () => SCENES[cfg.scene] || SCENES.rice;
+const Z0=0.70, DRAW_DZ=14, CUE_DZ=7.0;                  // t = Z0/(Z0+dz)；CUE_DZ＝反應時間計時起點
+const tOf = dz => Z0/(Z0+Math.max(dz,-0.35));
+const LANE_OFF=0.62;                                    // 車道中心（halfW 單位）
+
+// 終點＝基準里程 ×1.02。v3 氮氣降到 ×1.25 後每次只賺 0.25×3＝0.75 個基準秒，
+// 90 秒局要多跑 1.8 個基準秒 → 約需吃到 2～3 次氮氣（撞一次約吃掉半次氮氣的量）。
+// ⚠️若日後再動 FEVER_MULT 或 FEVER_DUR，這個係數要一起重算，否則完賽會變成不可能任務。
+const FINISH_MULT=1.02, FEVER_MULT=1.25, FEVER_DUR=3.0;
+function newGame(){
+  const seedBase=[0,20260729,880517,110711][cfg.route];
+  const seed=seedBase ^ (cfg.dur*7919) ^ (cfg.dens*104729);
+  const totalOdo=SPEED_V[cfg.speed]*cfg.dur*FINISH_MULT;
+  route=buildRoute(seed,totalOdo);
+  const built=buildItems(seed,totalOdo,cfg);
+  items=built.items; npcs=built.npcs; scen=buildScenery(seed,totalOdo);
+  bonus=[]; iHead=0; nHead=0; sHead=0;
+  odo=0; elapsed=0; nowT=0; score=0; crashes=0; coneHits=0; npcHits=0; feverCount=0;
+  px=0; pxPrev=0; normPrev=0; coinStreak=0; lastV=0; finished=false; overtakes=0; lastInputT=-9;
+  feverUntil=0; crashUntil=0; invulnUntil=0; shake=0; flash=0; floats=[]; sparks=[]; dusts=[];
+  leanVis=0; combo=0; comboT=-9; stageIdx=0; finT=0; dusk=0;
+  pxSteer=0; driftPx=0; camLat=0; driftEnv=0; curveCued=false;
+  offroad=false; offExitT=-9; offroadCount=0; offroadSec=0; rumbleT=0;
+  if(AE) AE.rustle(false);
+  // 對手：起跑時前後散開。橡皮筋 AI 讓他們貼著「基準車速 ±8%」跑，
+  // 所以玩家真正拉開差距的手段＝氮氣與不撞車，這正是我們要強化的行為。
+  // v3.1 改可調台數（0／3／6）：每台的節奏波動振幅、頻率、相位都拉開，
+  // 否則六台會一起加速一起減速，看起來像疊成一團的同一台車。
+  const rr=mulberry32(seed^0x2545f491);
+  const nR=RIVAL_OPTS.includes(cfg.rivals)?cfg.rivals:0;
+  const startLane=[-1,1,0,1,-1,0];
+  rivals=[];
+  for(let i=0;i<nR;i++){
+    rivals.push({
+      odo: nR>1 ? RIVAL_HEAD-(RIVAL_HEAD-RIVAL_TAIL)*i/(nR-1) : 1.0,
+      lane: startLane[i%6], look:i%RIVAL_WEAR.length,
+      // 基礎配速跨 1.02～0.94：橡皮筋的平衡點＝「配速比玩家快的排前面、慢的排後面」，
+      // ⚠️這一段要跨過玩家的實際配速，否則整團都黏在玩家前面，怎麼認真跑都是最後一名（6 台時特別明顯）。
+      spd: nR>1 ? 1.02-0.08*i/(nR-1) : 1.0,
+      laneT: 1.2+rr()*3.2,
+      wa: 0.018+rr()*0.030,          // 波動振幅 ±1.8～4.8%
+      wf: 0.55+rr()*0.95,            // 波動頻率
+      wp: rr()*6.2832                // 相位
+    });
+  }
+  myRank=1+rivals.filter(r=>r.odo>0).length; rankPrev=myRank;
+  resetMetrics(); tiltFilter.reset();
+}
+
+/* ---- 螢幕喚醒 ---- */
+let _wakeLock=null;
+async function keepAwake(on){
+  try{
+    if(on){ if(!_wakeLock&&'wakeLock'in navigator) _wakeLock=await navigator.wakeLock.request('screen'); }
+    else if(_wakeLock){ const w=_wakeLock; _wakeLock=null; await w.release(); }
+  }catch(e){}
+}
+document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible'&&phase==='play')keepAwake(true); });
+
+/* ==================================================================
+   十、遊戲邏輯
+   ================================================================== */
+function updatePlay(dt){
+  nowT += dt;                 // 遊戲時鐘由這裡推進：fever／無敵／減速全靠它，別放到外層迴圈（換呼叫端就會停擺）
+  const fever = nowT<feverUntil;
+  // --- 速度 ---
+  let v=SPEED_V[cfg.speed];
+  if(fever) v*=FEVER_MULT;    // v3：1.6 → 1.25（爽感改由引擎咆哮＋排氣爆聲＋速度線承擔）
+  if(nowT<crashUntil) v*=0.42+0.58*(1-(crashUntil-nowT)/1.2);
+  // v3.1 草地上車速 ×0.5；回到路面後給 0.5 秒把速度拉回來（瞬間跳回全速會很假、也感覺不到懲罰）
+  v *= offroad ? OFF_SPD
+     : (nowT-offExitT<OFF_RECOVER ? OFF_SPD+(1-OFF_SPD)*((nowT-offExitT)/OFF_RECOVER) : 1);
+  odo += v*dt; lastV=v;
+  elapsed += dt;
+
+  // --- 路程三段：進段時給提示音＋飄字（讓長者知道「節奏要變了」）---
+  if(route){
+    const st=stageOf(odo/route.totalOdo);
+    if(st!==stageIdx){
+      stageIdx=st;
+      const txt=['','彎路來了，小心','滿田都是稻穗！'][st];
+      if(txt){ floats.push({txt,col:'#7fe3ff',t:0,x:CW/2,y:CH*0.40});
+               if(AE&&cfg.sound) AE.beep(st===2?880:600,0.22); }
+    }
+    dusk=clamp01((odo/route.totalOdo-0.30)/0.70);          // 午後 → 黃昏
+  }
+
+  // --- 轉向 ---
+  const norm=tiltNorm();
+  if(Math.abs(norm)>0.15) lastInputT=nowT;
+  let target=norm;
+  if(cfg.assist){                                  // 輔助駕駛：車道吸附＋無輸入自動回正
+    const lanes=[-LANE_OFF,0,LANE_OFF];
+    let best=lanes[0];
+    for(const l of lanes) if(Math.abs(norm-l)<Math.abs(norm-best)) best=l;
+    if(Math.abs(norm-best)<0.24) target=best+(norm-best)*0.32;
+    if(Math.abs(norm)<0.09) target=0;
+  }
+  pxPrev=px;
+  pxSteer += (target-pxSteer)*Math.min(1,dt*9);
+  pxSteer = clamp(pxSteer,-0.98,0.98);              // 玩家的「指令位置」仍在路面內
+
+  // --- v3.1 離心力：彎道把車推向彎外，往彎內主動傾才抵銷得掉 ---
+  const curvNow = route ? curveOf(route.k,odo) : 0;
+  // v3.2 入彎提示音：用前方 4.5 odo（約 1 秒）的曲率當觸發 → 聲音比車先到彎，
+  //      左彎降、右彎升，同一個彎只響一次（遲滯 0.13 才復位）。
+  if(route){
+    const cAhead=curveOf(route.k,odo+4.5), aa=Math.abs(cAhead);
+    if(!curveCued && aa>0.30){ curveCued=true;
+      if(AE&&cfg.sound) AE.curveCue(Math.sign(cAhead)); }
+    else if(curveCued && aa<0.13) curveCued=false;
+  }
+  // v3.2 離心力包絡：進彎後 0.8 秒內 0→全力線性升、出彎同樣漸退（給長者反應時間）。
+  // 模型本身不動，只是乘上一個時間包絡。
+  driftEnv = clamp(driftEnv + (Math.abs(curvNow)>0.10?1:-1)*dt/DRIFT_RAMP, 0, 1);
+  // curv>0＝路往右彎 → 離心力往左推（所以是 -curvNow）
+  const leanIn = curvNow ? clamp01(norm*Math.sign(curvNow)) : 0;
+  // ⚠️車速權重要用「名目車速」不能用當下車速：用當下車速的話，出界減速 → 離心力跟著變小 → 自己被推回路面，
+  //   會變成 0.2 秒進出一次的抖動（實測 60 秒出界 13 次卻只滯留 3 秒）。出界的懲罰不該順便幫你解圍。
+  const spdF = SPEED_V[cfg.speed]*(fever?FEVER_MULT:1)/SPEED_V[3];
+  const dTarget = -curvNow*DRIFT_GAIN*(cfg.assist?DRIFT_ASSIST:1)*spdF*(1-DRIFT_GRIP*leanIn)*driftEnv;
+  driftPx += (dTarget-driftPx)*Math.min(1,dt*DRIFT_LAG);
+  px = clamp(pxSteer+driftPx,-PX_MAX,PX_MAX);
+  // 鏡頭橫移：路面在近處幾乎佔滿畫面寬，不跟一下的話車衝出去就直接跑到畫面外
+  const camT = Math.sign(px)*Math.max(0,Math.abs(px)-CAM_DEAD)*CAM_FOLLOW;
+  camLat += (camT-camLat)*Math.min(1,dt*CAM_LAG);
+  stepOffroad(dt);
+
+  // --- 轉向事件（峰值角，臨床用） ---
+  const sg=tiltSigned(), an=Math.abs(sg);
+  if(M.turnState===0){
+    if(norm<-0.18){M.turnState=-1;M.turnPeak=an;}
+    else if(norm>0.18){M.turnState=1;M.turnPeak=an;}
+  }else{
+    M.turnPeak=Math.max(M.turnPeak,an);
+    if(Math.abs(norm)<0.10||Math.sign(norm)===-M.turnState){
+      (M.turnState<0?M.leftPeaks:M.rightPeaks).push(M.turnPeak);
+      M.turnState=0; M.turnPeak=0;
+    }
+  }
+  // --- 反應時間：提示出現 → 開始朝該方向轉 ---
+  if(M.cue){
+    if(nowT-M.cue.t>2.5) M.cue=null;
+    else if((norm-M.cue.n0)*M.cue.dir>0.09 && nowT-M.cue.t>0.06){
+      const rt=(nowT-M.cue.t)*1000;
+      M.rts.push(rt); M.series.push([M.cue.t*1000,rt]); M.cue=null;
+    }
+  }
+  normPrev=norm;
+
+  // --- 道具視窗 ---
+  while(iHead<items.length && items[iHead].pos-odo < -1.2) iHead++;
+  const myLane=clamp(Math.round(px/LANE_OFF),-1,1);
+  for(let i=iHead;i<items.length;i++){
+    const it=items[i], dz=it.pos-odo;
+    if(dz>DRAW_DZ) break;
+    if(!it.seen && dz<12){ it.seen=true; if(it.kind==='coin') M.presented[it.lane+1]++; }
+    // 反應時間的「出現」＝脫離地平線霧化、看得清楚的那一刻（dz≈7），不是剛冒出天際線
+    if(!it.cued && dz<CUE_DZ){
+      it.cued=true;
+      if(!M.cue){
+        if(it.kind==='coin' && it.head && it.lane!==myLane)
+          M.cue={t:nowT,dir:Math.sign(it.lane-myLane),n0:tiltNorm()};
+        else if(it.kind==='cone' && it.lane===myLane)
+          M.cue={t:nowT,dir:(it.lane===0?(px<=0?1:-1):-Math.sign(it.lane)),n0:tiltNorm()};
+      }
+    }
+    if(!it.done && dz<=0.10){ it.done=true; resolveItem(it); }
+  }
+  // 氮氣期間額外撒的金幣
+  for(let i=bonus.length-1;i>=0;i--){
+    const b=bonus[i], dz=b.pos-odo;
+    if(!b.seen&&dz<12){ b.seen=true; M.presented[b.lane+1]++; }
+    if(!b.done&&dz<=0.10){ b.done=true; resolveItem(b); }
+    if(dz<-1.2) bonus.splice(i,1);
+  }
+  // --- 慢速前車 ---
+  while(nHead<npcs.length && npcs[nHead].pos-odo < -2.5) nHead++;
+  for(let i=nHead;i<npcs.length;i++){
+    const n=npcs[i];
+    if(!n.active){
+      if(odo>=n.startOdo) n.active=true; else if(n.startOdo-odo>2) break;
+    }
+    if(n.active) n.pos += v*0.55*dt;                       // 直線行駛不變道、速度＝玩家 0.55 倍
+    const dz=n.pos-odo;
+    if(!n.done && dz<=0.26 && dz>-1.6){
+      n.done=true;
+      // 在草地上錯身不算撞（車在路面、人在草地）；能追過去仍算超車
+      if(!offroad && Math.abs(px-n.lane*LANE_OFF)<0.46) doCrash('npc');
+      else if(nowT-lastInputT<2.0){                        // 安全超車＝有感回饋；要有近期轉向輸入才算（防掛機白領）
+        overtakes++; score+=20;
+        floats.push({txt:'追過 +20',col:'#8fe0d6',t:0,x:CW/2+n.lane*CW*0.15,y:CH*0.50});
+        if(AE&&cfg.sound){ AE.bell(0.26); AE.whoosh(); }
+      }
+    }
+  }
+  while(sHead<scen.length && scen[sHead].pos-odo < -1.2) sHead++;
+
+  updateRivals(dt);
+  stepFx(dt);
+  // 踏頻與風聲：以「很快」檔位打滿為基準，順風期間額外拉高＝風呼呼作響
+  if(AE&&cfg.sound){
+    const sp=clamp(lastV/SPEED_V[5],0,1.25)/1.25;
+    AE.rideSet(clamp(sp*(fever?1.25:1),0,1), fever?1:(nowT<crashUntil?0.35:0.75));
+  }
+
+  if(odo>=route.totalOdo){ startFinish(); }              // 騎到田頭＝提前送達（先跑慢動作再結算）
+  else if(elapsed>=cfg.dur) endGame();
+}
+
+/** 特效衰減：play 與完賽慢動作共用，慢動作傳進來的是縮放後的 dt */
+function stepFx(dt){
+  shake=Math.max(0,shake-dt*2.2); flash=Math.max(0,flash-dt*3.2);
+  for(let i=floats.length-1;i>=0;i--){ floats[i].t+=dt; if(floats[i].t>0.95) floats.splice(i,1); }
+  for(let i=sparks.length-1;i>=0;i--){ const s=sparks[i]; s.t+=dt; s.x+=s.vx*dt; s.y+=s.vy*dt; s.vy+=520*dt;
+    if(s.t>0.7) sparks.splice(i,1); }
+  // 揚塵：飄得慢、會膨脹、慢慢淡掉（跟火花的「噴出去」是兩種質感）
+  for(let i=dusts.length-1;i>=0;i--){ const d=dusts[i]; d.t+=dt;
+    d.x+=d.vx*dt; d.y+=d.vy*dt; d.vy+=70*dt; d.r+=d.gr*dt;
+    if(d.t>d.life) dusts.splice(i,1); }
+}
+
+/** 路肩警告 → 衝出跑道 → 回到路面 的狀態機（v3.1）
+    先警告再出去：長者才有時間反應。門檻用遲滯（1.02 出／0.95 回），免得在邊緣抖動反覆觸發。 */
+function stepOffroad(dt){
+  const a=Math.abs(px);
+  // --- 路肩警告帶：輕微震動＋路緣震動音 ---
+  if(!offroad && a>SHOULDER){
+    shake=Math.max(shake,0.30);
+    rumbleT-=dt;
+    if(rumbleT<=0){ rumbleT=0.11; if(AE&&cfg.sound) AE.rumble(); }
+  }else rumbleT=0;
+
+  if(!offroad && a>OFF_IN){                       // ---- 出界 ----
+    offroad=true; offroadCount++;
+    floats.push({txt:'騎進田埂了！',col:'#ff9a3c',t:0,x:CW/2,y:CH*0.44,big:1.25});
+    if(AE&&cfg.sound){ AE.offroad(); AE.skid(); AE.rustle(true); }
+    if(nowT<feverUntil){                          // 比照撞車：Fever 中衝出＝提前結束（不扣金幣）
+      feverUntil=0; $('feverTag').classList.add('hidden');
+      floats.push({txt:'順風斷了',col:'#e8703c',t:0,x:CW/2,y:CH*0.56});
+    }
+  }else if(offroad && a<OFF_OUT){                 // ---- 回到路面 ----
+    offroad=false; offExitT=nowT;
+    if(AE&&cfg.sound){ AE.rustle(false); AE.beep(720,0.10); }
+  }
+  if(offroad){
+    offroadSec+=dt;
+    shake=Math.max(shake,0.34);                   // 草地顛簸：持續小幅晃
+  }
+}
+
+/** 壓車視覺量：每幀補間，絕不跳變（換圖是淡入的，角度是連續的） */
+function stepLean(dt){
+  const target = clamp(tiltNorm()*1.10,-1,1);
+  leanVis += (target-leanVis)*Math.min(1,dt*7.5);
+}
+
+/* ---- 對手競速：不是真的物理車，是「同一條路線上的進度值」 ----
+   配速貼著基準車速 ±8%（橡皮筋），落後就催、領先就收，永遠追得到也甩得掉。
+   不與玩家碰撞（重疊時半透明），名次＝比較 odo。 */
+function updateRivals(dt){
+  if(!rivals.length||!route) return;
+  const base=SPEED_V[cfg.speed];
+  for(const r of rivals){
+    const gap=r.odo-odo;                                   // >0＝領先玩家
+    const band=clamp(-gap*0.018,-0.08,0.08);               // 橡皮筋：領先減速、落後加速，上限 ±8%
+    const wob=1+r.wa*Math.sin(nowT*r.wf+r.wp);             // 各自的節奏波動（相位／振幅都不同 → 六台不會疊成一團）
+    r.odo=Math.min(route.totalOdo, r.odo+base*r.spd*wob*(1+band)*dt);
+    r.laneT-=dt;
+    if(r.laneT<=0){
+      r.laneT=3.5+Math.random()*4;
+      // 換道時避開「同一段路已經有人佔的車道」：六台時常常前後貼很近，同 lane 同 dz 會疊圖
+      const used=rivals.filter(o=>o!==r&&Math.abs(o.odo-r.odo)<1.3).map(o=>o.lane);
+      const free=[-1,0,1].filter(l=>used.indexOf(l)<0);
+      const pool=free.length?free:[-1,0,1];
+      r.lane=pool[(Math.random()*pool.length)|0];
+    }
+  }
+  myRank=1+rivals.filter(r=>r.odo>odo).length;
+  if(myRank!==rankPrev){
+    const better=myRank<rankPrev;
+    // 6 台時名次會連跳，舊的名次飄字沒清掉會疊成看不懂的一團 → 同時只留最新一則
+    for(let i=floats.length-1;i>=0;i--) if(floats[i].rank) floats.splice(i,1);
+    floats.push({ txt: better?`第 ${myRank} 名！`:`被超車 · 第 ${myRank} 名`,
+                  col: better?'#4cc38a':'#ff7a59', t:0, x:CW/2, y:CH*0.44, rank:1 });
+    if(AE&&cfg.sound){ if(better){ AE.whoosh(); AE.beep(1046,0.16); } else AE.beep(392,0.18); }
+    const rb=$('rankBox'); rb.classList.add('pop'); setTimeout(()=>rb.classList.remove('pop'),200);
+    rankPrev=myRank;
+  }
+}
+
+/** 完賽：先跑約 0.5 秒慢動作再進結算（衝線的爽感留在畫面上） */
+function startFinish(){
+  if(phase==='finish') return;
+  finished=true; phase='finish'; finT=0;
+  odo=route.totalOdo;
+  if(AE&&cfg.sound){ AE.bellRush(); AE.fanfare(); }
+  for(let i=0;i<26;i++) sparks.push({x:CW/2+(Math.random()-0.5)*CW*0.5,y:CH*0.55,
+    vx:(Math.random()-0.5)*720,vy:-320-Math.random()*340,t:0,col:i%2?'#ffd23e':'#4cc38a'});
+  floats.push({txt:'🍱 便當送到了！',col:'#ffd23e',t:0,x:CW/2,y:CH*0.40});
+}
+
+/** 倒數期間：同樣推進道具／前車指標，但不計分、不判撞、不記臨床資料 */
+function sweepSilently(dt){
+  const v=SPEED_V[cfg.speed];
+  while(iHead<items.length && items[iHead].pos-odo < -1.2) iHead++;
+  for(let i=iHead;i<items.length;i++){
+    const it=items[i], dz=it.pos-odo;
+    if(dz>DRAW_DZ) break;
+    if(!it.done && dz<=0.10){ it.done=true; it.taken=true; }
+  }
+  while(nHead<npcs.length && npcs[nHead].pos-odo < -2.5) nHead++;
+  for(let i=nHead;i<npcs.length;i++){
+    const n=npcs[i];
+    if(!n.active){ if(odo>=n.startOdo) n.active=true; else if(n.startOdo-odo>2) break; }
+    if(n.active) n.pos += v*0.55*dt;
+    if(!n.done && n.pos-odo<=0.26) n.done=true;
+  }
+  while(sHead<scen.length && scen[sHead].pos-odo < -1.2) sHead++;
+  for(const r of rivals) r.odo += SPEED_V[cfg.speed]*r.spd*dt*0.6;   // 起跑前對手也在滑行熱車
+}
+
+function resolveItem(it){
+  const carY=CH*0.55;          // 飄字要浮在車子上方，壓在車身上長者讀不到
+  // 人在草地上就吃不到路面上的東西（也不算驚險閃避）：出界的代價是速度，不另外扣金幣
+  const d = offroad ? 9 : Math.abs(px-it.lane*LANE_OFF);
+  // 防掛機（v3.1）：金幣＝動作處方，要「近期有做動作」才算得到分。
+  // ⚠️這條在 v3.1 變成必要：離心力會把不動的人左右甩，剛好甩過兩側金幣＝零動作白吃（實測掛機 60 秒暴衝到 615 分）。
+  // 正常玩的人只要維持傾斜（|norm|>0.15）就一直是 active，不會被誤傷。
+  const active = nowT-lastInputT < 2.5;
+  if(it.kind==='coin'){
+    const mul = nowT<feverUntil ? 2 : 1;
+    if(d<0.38 && active){
+      score += 10*mul; it.taken=true;                // 吃到才消失；沒吃到讓它掃過去（視覺才連貫）
+      combo = (nowT-comboT<=COMBO_WIN) ? combo+1 : 1;   // 2.5 秒內接得上才算連吃
+      comboT=nowT; coinStreak=combo;
+      M.collected[it.lane+1]++;
+      if(AE&&cfg.sound) AE.coin(combo);              // 音調隨連吃數階梯上升
+      floats.push({txt:'+'+(10*mul),col:'#ffd23e',t:0,x:CW/2+it.lane*CW*0.15,y:carY});
+      if(combo%5===0){                               // 每 5 的倍數給 bonus
+        score+=10;
+        floats.push({txt:`連撿 ×${combo}  +10`,col:'#7fb84e',t:0,x:CW/2,y:carY-CH*0.09});
+        if(AE&&cfg.sound) AE.beep(660+Math.min(8,combo/5)*70,0.20);
+      }
+    }else{ combo=0; coinStreak=0; }                  // 斷檔歸零
+  }else if(it.kind==='nitro'){
+    if(d<0.44){ it.taken=true; startFever(); }
+  }else if(it.kind==='cone'){
+    if(d<0.30) doCrash('cone');
+    else if(d<0.52 && active){                       // 驚險閃避：貼身錯身但沒撞到（同樣要有近期動作才算）
+      score+=5;
+      floats.push({txt:'閃過了！+5',col:'#8fe0d6',t:0,x:CW/2+it.lane*CW*0.12,y:carY-CH*0.05});
+      if(AE&&cfg.sound){ AE.whoosh(); AE.beep(1180,0.09); }
+    }
+  }
+}
+function startFever(){
+  feverUntil=nowT+FEVER_DUR; feverCount++;
+  if(AE&&cfg.sound){ AE.nitro(); AE.bellRush(); }    // 順風＝風聲上揚＋鈴鐺急響
+  $('feverTag').classList.remove('hidden');
+  // 氮氣期間沿路金幣變密：蛇行掃過三個車道，順便把 ROM 引導拉滿（中央顆數壓低，AFK 吃不到甜頭）
+  const snake=[0,-1,-1,1,1,0,-1,1,1,-1,-1,1,0,-1,1,1];
+  for(let i=0;i<snake.length;i++)
+    bonus.push({kind:'coin',pos:odo+4.5+i*0.62,lane:snake[i],bonus:true});
+  for(let i=0;i<12;i++) sparks.push({x:CW/2,y:CH*0.62,vx:(Math.random()-0.5)*640,vy:-180-Math.random()*280,t:0,col:'#7fe3ff'});
+}
+function doCrash(src){
+  if(nowT<invulnUntil) return;                       // 撞後 1.5 秒無敵，防連撞
+  invulnUntil=nowT+1.5; crashUntil=nowT+1.2;
+  crashes++; if(src==='cone')coneHits++; else npcHits++;
+  shake=1.55; flash=1; coinStreak=0; combo=0;        // v3 shake 加大：撞擊要有重量
+  const wasFever = nowT<feverUntil;
+  if(wasFever){                                       // Fever 中撞到＝提前結束 Fever，不額外扣分
+    feverUntil=0; $('feverTag').classList.add('hidden');
+    floats.push({txt:'順風斷了',col:'#e8703c',t:0,x:CW/2,y:CH*0.56,big:1});
+  }else{
+    score=Math.max(0,score-30);                       // v3：扣 30 金幣（10→30），下限 0 不歸負
+    floats.push({txt:'−30',col:'#ff4d3d',t:0,x:CW/2,y:CH*0.56,big:1.5});
+  }
+  if(AE&&cfg.sound){ AE.skid(); AE.crash(); }
+  for(let i=0;i<22;i++) sparks.push({x:CW/2,y:CH*0.78,vx:(Math.random()-0.5)*820,vy:-300-Math.random()*340,t:0,col:'#ffb066'});
+}
+
+/* ==================================================================
+   十一、繪圖
+   ================================================================== */
+// camLat＝鏡頭橫移（px 單位，與 halfW 同尺度）：衝出跑道時鏡頭跟著移，
+// 車才不會直接跑到畫面外（近處路面幾乎佔滿整個畫面寬）。
+const halfWAt=(t,W)=>t*W*0.46;
+const dzOf = t => Z0*(1-t)/Math.max(t,1e-4);              // tOf 的反函數
+
+/* ---- v3.2 前瞻投影：讓「遠方的彎看得出來要拐」----
+   ⚠️v3.1 的路面整條只用「玩家當下的曲率」畫 → 前方有彎，畫面上完全看不出來，
+     彎是「開到了才出現」的（老闆：多次來不及轉彎）。
+   改法：對前方曲率做雙重積分 X(dz)=∫0^dz (dz−s)·c(odo+s) ds ＝ 路面中心在 dz 處的橫向位移；
+     再取等效曲率 cEff(dz)=2X/dz²（等曲率時剛好 ≡ c → 長彎的畫面與 v3.1 完全相同，
+     差別只在「彎的進出」會提早、漸進地顯示出來）。
+   ⚠️路面、路緣、chevron、金幣、障礙、對手、NPC、景物全部走同一個 roadCenterPx()，
+     不可以只改路面，否則物件會浮離路面。遊戲邏輯（px/離心力）完全不吃這一段。 */
+const LUT_N=44, LUT_STEP=DRAW_DZ/LUT_N;
+const curvLUT=new Float64Array(LUT_N+1);
+let curv0=0;
+function buildCurveLUT(){
+  if(!route){ curv0=0; curvLUT.fill(0); return; }
+  curv0=curveOf(route.k,odo);
+  let s0=0,s1=0,cp=curv0; curvLUT[0]=0;
+  for(let i=1;i<=LUT_N;i++){
+    const dz=i*LUT_STEP, cN=curveOf(route.k,odo+dz);
+    s0 += (cp+cN)*0.5*LUT_STEP;                          // ∫c ds
+    s1 += ((dz-LUT_STEP)*cp+dz*cN)*0.5*LUT_STEP;         // ∫s·c ds
+    curvLUT[i]=dz*s0-s1;                                 // X(dz)
+    cp=cN;
+  }
+}
+// 遠處放大：近處 1.0 完全不動（手感不變），dz≥8 放大到 FAR_MAG（遠方的彎才「拐得出來」）
+const FAR_MAG=1.70;
+function farMagAt(dz){ const u=clamp01((dz-1.2)/6.8); return 1+(FAR_MAG-1)*u*u*(3-2*u); }
+// 軟性限幅：只在最極端的彎才作用（線性到 0.6L，之後漸近），免得地平線的路被推出畫面外
+function softLim(x,L){ const a=Math.abs(x)/L;
+  return a<=0.6 ? x : Math.sign(x)*L*(0.6+0.4*Math.tanh((a-0.6)/0.4)); }
+function bendPx(t,W){
+  const dz=Math.min(dzOf(t),DRAW_DZ);                    // 超過 LUT 範圍就沿用最遠端的彎度（地平線不會又拐回中間）
+  let c;
+  if(dz<=0.30) c=curv0;
+  else { const f=dz/LUT_STEP, i=Math.min(LUT_N-1,f|0), u=f-i;
+         c=2*(curvLUT[i]+(curvLUT[i+1]-curvLUT[i])*u)/(dz*dz); }
+  return softLim(c*farMagAt(dz)*W*0.42*(1-t)*(1-t), W*0.50);
+}
+const roadCenterPx=(t,W)=>W/2+bendPx(t,W)-camLat*t*W*0.46;
+
+/* ---- v3.2 chevron 箭頭板牆 ---- */
+const CHEV_STEP=1.7;            // 板距（odo）：約每 0.34 秒過一塊，整個彎連成一道牆（再密就會糊成一條紅帶，看不出箭頭）
+const CHEV_MIN=0.20, CHEV_FULL=0.34;   // 曲率門檻（淡入區間，避免直路尾巴閃一下）
+const CHEV_OUT=1.06;            // 立在路面邊緣再往外一點點（路肩上，1.0＝路緣）
+const chevs=[];                 // 本幀畫過的板子（黃昏 multiply 後要補畫一次提亮）
+
+function render(){
+  resize();
+  const W=CW,H=CH,HOR=H*0.52,DEPTH=H-HOR;
+  const S=SCENE_ACTIVE();
+  const fever=nowT<feverUntil;
+  buildCurveLUT();                        // v3.2 前瞻投影：每幀先算前方曲率的積分表
+
+  ctx.save();
+  if(shake>0){ const m=shake*shake*11;
+    ctx.translate((Math.random()-0.5)*m,(Math.random()-0.5)*m); }
+
+  // ---- 背景照片 ----
+  ctx.clearRect(-20,-20,W+40,H+40);
+  // 遠景用「遠端的彎」反向微移：接近彎道時背景就開始橫移，是另一個提早看得到的線索
+  const par=-bendPx(0.10,W)*0.25-camLat*W*0.05;
+  if(ASSET.bg) ctx.drawImage(ASSET.bg,0,0,ASSET.bg.width,ASSET.bg.height*0.80,-W*0.15+par,-14,W*1.3,HOR+22);
+  else { ctx.fillStyle='#8ec6f0'; ctx.fillRect(-20,-20,W+40,HOR+22); }
+
+  // ---- 地面：金黃稻田（低頻雙色帶＋透視稻列）＋柏油 mipmap ----
+  for(let y=Math.ceil(HOR);y<H+20;y++){
+    const t=(y-HOR)/DEPTH; if(t<=0.002) continue;
+    const z=1/Math.max(t,0.02);
+    const cx=roadCenterPx(t,W), halfW=halfWAt(t,W);
+    const zphase=z*3+odo*2;
+    const band=Math.floor(zphase)%2;                  // 路緣（高頻）
+    const fband=Math.floor(zphase*0.36)%2;            // 地面（低頻，遠處不沸騰）
+    const gcol=mix(PAL.far,PAL.near,Math.pow(t,1.2));
+    ctx.fillStyle=rgb(gcol,fband?1.045:0.965);
+    ctx.fillRect(-20,y,W+40,1);
+
+    const period=halfW*0.42;
+    const rowA=clamp01((t-0.10)/0.18)*0.38;
+    if(rowPat&&rowA>0.01&&period>6){
+      const k=period/ROW_TEX_W;
+      ctx.save(); ctx.globalAlpha=rowA; ctx.translate(cx,y); ctx.scale(k,1);
+      ctx.fillStyle=rowPat; ctx.fillRect(-(cx+20)/k,0,(W+40)/k,1); ctx.restore();
+    }
+    const sh=halfW*0.13+2;
+    ctx.fillStyle=rgb(mix(gcol,[126,110,84],0.62));
+    ctx.fillRect(cx-halfW-sh,y,(halfW+sh)*2,1);
+
+    if(roadMips){
+      const vv=z*9+odo*26;
+      const minif=Math.max(9/(t*t*DEPTH),512/Math.max(4,halfW*2));
+      const L=clamp(Math.floor(Math.log2(Math.max(1,minif))),0,roadMips.length-1);
+      const m=roadMips[L], sc=1<<L;
+      const sy=(((vv/sc)%m.height)+m.height)%m.height;
+      ctx.drawImage(m,0,sy|0,m.width,1,cx-halfW,y,halfW*2,1);
+      const flat=clamp01((0.32-t)/0.32);
+      if(flat>0.01){ ctx.globalAlpha=flat*0.9; ctx.fillStyle=ROAD_AVG;
+        ctx.fillRect(cx-halfW,y,halfW*2,1); ctx.globalAlpha=1; }
+    }else{ ctx.fillStyle=band?'#5a5d63':'#54575d'; ctx.fillRect(cx-halfW,y,halfW*2,1); }
+
+    // 路邊：紅白路緣磚 → 土路兩側的野草土邊（高頻 band 交替＝一叢一叢的草，不是一條直線）
+    const edge=Math.max(2,halfW*0.06);
+    ctx.fillStyle=band?'rgba(108,122,52,0.86)':'rgba(146,132,66,0.80)';
+    ctx.fillRect(cx-halfW,y,edge,1); ctx.fillRect(cx+halfW-edge,y,edge,1);
+    // 車道線：白色虛線 → 兩道被車輪輾出來的車轍（連續、微暗）
+    // ⚠️保留在原本的 ±halfW/3，長者仍看得出「路分三條」，只是不再是柏油路的白線
+    const lw=Math.max(1,halfW*0.055);
+    ctx.fillStyle='rgba(74,56,32,0.20)';
+    ctx.fillRect(cx-halfW/3-lw/2,y,lw,1); ctx.fillRect(cx+halfW/3-lw/2,y,lw,1);
+    if(band===0){
+      // 車轍旁被壓亮的碎石稜。⚠️alpha 不能拉高：高頻 band 交替會讓它變成一條「白色虛線」，
+      // 看起來就是柏油路的車道線，懷舊感整個破功（直式 390 寬特別明顯）。
+      const hl=Math.max(1,halfW*0.013);
+      ctx.fillStyle='rgba(226,204,158,0.14)';
+      ctx.fillRect(cx-halfW/3+lw/2,y,hl,1); ctx.fillRect(cx+halfW/3+lw/2,y,hl,1);
+    }
+  }
+
+  // ---- 路旁景物（遠→近）----
+  // hf＝高度係數（相對於畫面深度），sl/sw＝影子長寬比。白鷺鷥矮小、影子也小。
+  // ⚠️tree 的 hf 從重機版的 2.60 砍到 1.25：那個數字是配檳榔樹（高瘦，比電線桿還高）調的，
+  //   香蕉樹只有 3～4 公尺、比電線桿矮一大截，沿用 2.60 會在路邊長出比電線桿還高的巨大香蕉。
+  const SCEN_CFG={ tree:{hf:1.25,sl:0.62,sw:0.22}, pole:{hf:2.15,sl:0.60,sw:0.05},
+                   hay:{hf:0.44,sl:0.85,sw:0.55}, egret:{hf:0.40,sl:0.42,sw:0.16} };
+  const drawList=[];
+  for(let i=sHead;i<scen.length;i++){
+    const sc=scen[i], dz=sc.pos-odo; if(dz>DRAW_DZ) break; if(dz<-0.9) continue;
+    drawList.push({type:'scen',dz,o:sc});
+  }
+  for(let i=iHead;i<items.length;i++){
+    const it=items[i], dz=it.pos-odo; if(dz>DRAW_DZ) break; if(dz<-0.30||it.taken) continue;
+    drawList.push({type:'item',dz,o:it});
+  }
+  for(const b of bonus){ const dz=b.pos-odo; if(dz>-0.30&&dz<DRAW_DZ&&!b.taken) drawList.push({type:'item',dz,o:b}); }
+  for(let i=nHead;i<npcs.length;i++){
+    const n=npcs[i]; if(!n.active) continue; const dz=n.pos-odo;
+    if(dz>DRAW_DZ) break; if(dz<-0.30) continue;
+    drawList.push({type:'npc',dz,o:n});
+  }
+  for(const r of rivals){ const dz=r.odo-odo;
+    if(dz>RIVAL_FADE0&&dz<DRAW_DZ) drawList.push({type:'rival',dz,o:r}); }
+  if(route){ const fdz=route.totalOdo-odo;
+    if(fdz>-0.5&&fdz<DRAW_DZ) drawList.push({type:'finish',dz:fdz}); }
+  // ---- v3.2 彎道 chevron 板牆：沿彎道「外側路緣」連續立紅白 V 形箭頭板 ----
+  // 這是彎道本體的欄杆（整個彎都有、直直騎就會撞上），不是 v3 拆掉的那種彎前單支預告牌。
+  if(route){
+    for(let n=Math.ceil((odo-0.2)/CHEV_STEP);;n++){
+      const pos=n*CHEV_STEP, dz=pos-odo;
+      if(dz>DRAW_DZ) break;
+      const c=curveOf(route.k,pos), ac=Math.abs(c);
+      if(ac<CHEV_MIN) continue;
+      // side＝彎的外側（c>0 路往右彎 → 外側在左）；dir＝箭頭指向彎內
+      drawList.push({ type:'chev', dz,
+        o:{ side:-Math.sign(c), dir:Math.sign(c), a:clamp01((ac-CHEV_MIN)/(CHEV_FULL-CHEV_MIN)) } });
+    }
+  }
+  drawList.sort((a,b)=>b.dz-a.dz);
+  chevs.length=0;                       // 黃昏 multiply 之後要補畫一次，這裡先記位置
+
+  for(const d of drawList){
+    const t=tOf(d.dz), baseY=HOR+t*DEPTH, halfW=halfWAt(t,W), cx=roadCenterPx(t,W);
+    if(d.type==='chev'){
+      drawChevron(cx,baseY,halfW,t,d.o,1);
+      chevs.push({cx,baseY,halfW,t,o:d.o});
+    }else if(d.type==='scen'){
+      const sc=d.o, cf=SCEN_CFG[sc.kind], h=cf.hf*t*DEPTH*sc.sc;
+      if(h<3) continue;
+      const x=cx+sc.side*sc.off*halfW;
+      if(x<-W*0.6||x>W*1.6) continue;
+      castShadow(x,baseY,h*cf.sl,h*cf.sw,0.25);
+      const sp=ASSET.sp[sc.kind];
+      if(sp){ const w=h*sp.width/sp.height;
+        ctx.save(); ctx.translate(x,baseY); if(sc.flip) ctx.scale(-1,1);
+        ctx.drawImage(sp,-w/2,-h,w,h); ctx.restore(); }
+    }else if(d.type==='finish'){
+      drawFinish(cx,baseY,halfW,t,H);
+    }else if(d.type==='item'){
+      const it=d.o, x=cx+it.lane*LANE_OFF*halfW, s=3+t*H*0.078;
+      if(it.kind==='coin') drawRice(x,baseY,s*0.62,it.pos);
+      else if(it.kind==='nitro'){ contactShadow(x,baseY,s*1.0,0.30); drawWind(x,baseY-s*0.80,s*0.86); }
+      else if(it.kind==='cone') drawBasket(x,baseY,s*1.85);   // 竹簍是障礙物，要比稻穗更醒目
+    }else if(d.type==='npc'){
+      // 路上慢慢騎的鐵馬（阿公款）：會擋路、撞到要扣分
+      const n=d.o, x=cx+n.lane*LANE_OFF*halfW;
+      const ch=BIKE_HK*t*0.94, sp=ASSET.npc[n.col];
+      if(sp){ const cw=ch*sp.width/sp.height;
+        ctx.save(); ctx.fillStyle='rgba(18,24,12,0.36)';
+        ctx.beginPath(); ctx.ellipse(x+cw*0.06,baseY-ch*0.02,cw*0.40,ch*0.05,0,0,7); ctx.fill(); ctx.restore();
+        ctx.drawImage(sp,x-cw/2,baseY-ch,cw,ch); }
+    }else if(d.type==='rival'){
+      // 庄裡少年家：不碰撞。錯身時淡出（dz→0 時 t 會衝到 2 倍，硬畫會變成一台巨獸糊在玩家身上）
+      const r=d.o, sp=ASSET.rival[r.look];
+      const a=clamp01((d.dz-RIVAL_FADE0)/(RIVAL_FADE1-RIVAL_FADE0));
+      if(sp&&a>0.01){
+        const tt=Math.min(t,1.0), by=HOR+tt*DEPTH, hw=halfWAt(tt,W);
+        const x=roadCenterPx(tt,W)+r.lane*LANE_OFF*hw;
+        const bh=BIKE_HK*tt, bw=bh*sp.width/sp.height;
+        ctx.save(); ctx.globalAlpha=a;
+        ctx.fillStyle='rgba(18,24,12,0.34)';
+        ctx.beginPath(); ctx.ellipse(x+bw*0.08,by-bh*0.02,bw*0.40,bh*0.05,0,0,7); ctx.fill();
+        ctx.drawImage(sp,x-bw/2,by-bh,bw,bh);
+        ctx.restore();
+      }
+    }
+  }
+
+  // ---- 地平線霧化：藏掉繪製路面與照片背景的接縫 ----
+  const fogH=DEPTH*0.20, hz=PAL.haze.map(v=>v|0).join(',');
+  const fg=ctx.createLinearGradient(0,HOR-8,0,HOR+fogH);
+  fg.addColorStop(0,`rgba(${hz},0.97)`); fg.addColorStop(0.22,`rgba(${hz},0.62)`);
+  fg.addColorStop(0.55,`rgba(${hz},0.22)`); fg.addColorStop(1,`rgba(${hz},0)`);
+  ctx.fillStyle=fg; ctx.fillRect(-20,HOR-8,W+40,fogH+8);
+
+  // ---- 氮氣速度線 ----
+  if(fever){
+    ctx.save(); ctx.strokeStyle='rgba(255,255,255,0.42)'; ctx.lineWidth=2;
+    for(let i=0;i<16;i++){
+      const a=(i/16)*Math.PI*2+nowT*3, r1=W*0.16+W*0.05*Math.sin(nowT*20+i);
+      ctx.beginPath();
+      ctx.moveTo(W/2+Math.cos(a)*r1,HOR+Math.sin(a)*r1*0.5);
+      ctx.lineTo(W/2+Math.cos(a)*(r1+W*0.13),HOR+Math.sin(a)*(r1+W*0.13)*0.5);
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  // ---- 揚塵（畫在車後面）----
+  for(const d of dusts){
+    ctx.globalAlpha=d.a*Math.max(0,1-d.t/d.life);
+    ctx.fillStyle=d.col;
+    ctx.beginPath(); ctx.arc(d.x,d.y,d.r,0,7); ctx.fill();
+  }
+  ctx.globalAlpha=1;
+
+  // ---- 玩家重機（v3）----
+  drawPlayerBike(W,H);
+
+  // ---- 路肩／出界的邊緣警示光（長者靠這個一眼看出「我偏了」）----
+  const pa=Math.abs(px);
+  if(pa>SHOULDER){
+    const k=clamp01((pa-SHOULDER)/0.30), side=px>0?1:-1;
+    const gw=W*0.22;
+    const eg = side>0 ? ctx.createLinearGradient(W-gw,0,W,0) : ctx.createLinearGradient(gw,0,0,0);
+    const col = offroad?'255,140,50':'255,196,70';
+    eg.addColorStop(0,`rgba(${col},0)`); eg.addColorStop(1,`rgba(${col},${(0.30*k).toFixed(3)})`);
+    ctx.fillStyle=eg;
+    // 多畫 20px 出去：這一段還在 shake 的 translate 裡，不留邊會被晃出一條縫
+    ctx.fillRect(side>0?W-gw:-20,-20,gw+20,H+40);
+  }
+
+  // ---- 天色：午後 → 黃昏（隨路程進度加深）----
+  // ⚠️用 multiply 不用半透明橘色蓋：蓋的話黑階會被抬起來，整張圖糊成褪色的棕；
+  //   multiply 是把藍綠通道壓掉，對比留著 → 才像「日頭斜了」而不是「相片泛黃」。
+  if(dusk>0.01){
+    const w=c=>`rgb(${Math.round(255+(c[0]-255)*dusk)},${Math.round(255+(c[1]-255)*dusk)},${Math.round(255+(c[2]-255)*dusk)})`;
+    const dg=ctx.createLinearGradient(0,0,0,H);
+    dg.addColorStop(0,   w([255,156,96]));
+    dg.addColorStop(0.50,w([255,180,128]));
+    dg.addColorStop(1,   w([204,142,104]));
+    ctx.save(); ctx.globalCompositeOperation='multiply';
+    ctx.fillStyle=dg; ctx.fillRect(-20,-20,W+40,H+40); ctx.restore();
+    // 地平線一抹夕陽光暈
+    const y0=HOR-DEPTH*0.55, hh=DEPTH*0.70;
+    const gg=ctx.createLinearGradient(0,y0,0,y0+hh);
+    gg.addColorStop(0,'rgba(255,150,60,0)');
+    gg.addColorStop(0.80,`rgba(255,172,84,${(0.17*dusk).toFixed(3)})`);
+    gg.addColorStop(1,'rgba(255,190,110,0)');
+    ctx.save(); ctx.globalCompositeOperation='lighter';
+    ctx.fillStyle=gg; ctx.fillRect(-20,y0,W+40,hh); ctx.restore();
+    // chevron 提亮補畫：黃昏是 multiply，紅白板會被壓暗到跟路面同一階。
+    // 這裡把同一批板子以 dusk 比例再疊一次（等於把 multiply 的衰減補回來）＝「自發光」的板面。
+    for(const c of chevs) drawChevron(c.cx,c.baseY,c.halfW,c.t,c.o,dusk*0.62);
+  }
+
+  // ---- 火花與飄字 ----
+  for(const s of sparks){ ctx.globalAlpha=Math.max(0,1-s.t/0.7); ctx.fillStyle=s.col;
+    ctx.fillRect(s.x-2,s.y-2,4,4); }
+  ctx.globalAlpha=1;
+  ctx.textAlign='center';
+  for(const f of floats){
+    const a=Math.max(0,1-f.t/0.95), fy=f.y-f.t*70, k=f.big||1;
+    ctx.globalAlpha=a;
+    ctx.font=`900 ${Math.round(H*0.056*k)}px -apple-system,"PingFang TC",sans-serif`;
+    ctx.lineWidth=Math.max(3,H*0.007*k); ctx.strokeStyle='rgba(18,14,4,0.9)';  // 描邊：壓在車身或路面上都讀得到
+    ctx.strokeText(f.txt,f.x,fy);
+    ctx.fillStyle=f.col; ctx.fillText(f.txt,f.x,fy);
+  }
+  ctx.globalAlpha=1;
+
+  if(flash>0){ ctx.fillStyle=`rgba(255,90,60,${flash*0.22})`; ctx.fillRect(-20,-20,W+40,H+40); }
+  ctx.restore();
+
+  drawNav(W,H);
+  if(phase==='count') drawCountdown(W,H);
+}
+
+/** 玩家鐵馬＋壓車：
+    ・視覺總傾角上限 21°；|lean|≥0.44 起淡入壓車圖，兩張圖的「有效傾角」對齊後交叉淡入 → 不會跳變
+    ・旋轉樞紐＝輪胎接地點（bottomAnchor 量出來的），不是圖片中心
+    ・陰影隨壓車變窄（車身立起來投影就短）
+    ⚠️重機版是 30°：那是重機過彎的真實體感，但腳踏車壓到 30° 早就摔了，
+      看起來會像特技表演而不是阿公去送飯 → 懷舊版收到 21°（實體常識）。 */
+const LEAN_MAX=0.37;          // 視覺總傾角上限（rad，約 21°）
+function drawPlayerBike(W,H){
+  const tCar=0.97, carX=roadCenterPx(tCar,W)+px*halfWAt(tCar,W);
+  const lv=clamp(leanVis,-1,1), mag=Math.abs(lv);
+  // 換圖區間刻意做窄（0.44→0.58）＋smoothstep：兩張圖是不同的 3D 姿態，長時間各半會疊成鬼影。
+  // 角度本身（rotate）全程連續，所以窄區間不會有跳變感，只是「快速倒進彎裡」。
+  const mr=clamp01((mag-0.44)/0.14), mixL=mr*mr*(3-2*mr);
+  const wob=clamp((px-pxPrev)*2.2,-0.10,0.10);         // 變換車道的一點慣性搖擺
+  const blink = nowT<invulnUntil && Math.floor(nowT*12)%2===0;
+  // 草地顛簸：車身小幅上下跳（兩個不同頻率疊起來才不像規律的正弦波）
+  const U=ASSET.bikeU, L=ASSET.bikeL;
+  BIKE_W = U ? BIKE_H*U.width/U.height : BIKE_H*0.32;   // 每幀依「當下選的騎士」換算寬度
+  const bump = offroad ? (Math.sin(nowT*27)*0.6+Math.sin(nowT*41.3)*0.4)*BIKE_W*0.030 : 0;
+  const baseY=H*0.978+bump;
+
+  // 後輪揚塵：只在草地上噴，褐黃色、往兩側往上揚
+  // ⚠️初速要把塵往車身外側推：生在輪下正中的話整團會被車身擋住，畫了等於沒畫（第一版就是這樣）
+  if(offroad){
+    for(let i=0;i<3;i++){
+      const sd=Math.random()<0.5?-1:1;
+      dusts.push({ x:carX+sd*BIKE_W*(0.14+Math.random()*0.20), y:baseY-BIKE_W*0.02,
+        vx:sd*(70+Math.random()*150), vy:-70-Math.random()*150,
+        r:BIKE_W*(0.06+Math.random()*0.07), gr:BIKE_W*0.30,
+        t:0, life:0.45+Math.random()*0.35, a:0.40+Math.random()*0.22,
+        col:Math.random()<0.5?'#cbab63':'#a8894a' });
+    }
+  }
+
+  ctx.save();
+  ctx.translate(carX,baseY);
+  // 陰影：壓車時投影變窄變短（在旋轉之外畫，才不會跟著翻起來）
+  const sw=BIKE_W*(0.40-0.16*mag), sh=BIKE_W*(0.062-0.020*mag);
+  ctx.fillStyle=`rgba(18,24,12,${0.42-0.10*mag})`;
+  ctx.beginPath(); ctx.ellipse(BIKE_W*0.06+lv*BIKE_W*0.10,-4,Math.max(3,sw),Math.max(1.5,sh),0,0,7); ctx.fill();
+  if(blink) ctx.globalAlpha=0.45;
+
+  if(!U){                                              // 素材沒載到 → 退回一個看得出是車的方塊
+    const cw=Math.min(W*0.18,H*0.28);
+    ctx.rotate(clamp(wob+tiltNorm()*0.06,-0.16,0.16));
+    ctx.fillStyle='#3a3128'; ctx.fillRect(-cw/2,-cw*0.62,cw,cw*0.62);
+    ctx.restore(); return;
+  }
+  const draw=(sp,rot,alpha)=>{
+    if(!sp||alpha<=0.004) return;
+    const h=BIKE_H, w=h*sp.width/sp.height;
+    ctx.save();
+    ctx.globalAlpha*=alpha;
+    ctx.rotate(rot);
+    ctx.drawImage(sp,-w*sp.anchor,-h,w,h);             // anchor＝接地點在圖寬的比例
+    ctx.restore();
+  };
+  const total=lv*LEAN_MAX+wob;                         // 兩張圖共用同一個「總傾角」
+  draw(U, total, Math.pow(1-mixL,1.7));                // 退場的那張衰減快一點 → 交叉時主體清楚、鬼影淡
+  if(L&&mixL>0){
+    /* L.lean＝載入時實測到的「素材自帶傾角」（有正負，正＝往畫面右邊倒）。
+       ⚠️這批 AI 圖實際上是往左倒，而且四款角度不一樣，所以不能像重機版那樣寫死常數與鏡像方向。
+       推導：畫的時候是先 scale(-1,1) 再 rotate(rot)，鏡像會把旋轉方向也翻過來，因此
+         沒鏡像：畫面上看到的傾角 = rot + lean
+         有鏡像：畫面上看到的傾角 = -rot - lean
+       要讓它等於 total，rot 就分別是 (total - lean) 與 (-total - lean)。 */
+    const mirror = (lv<0) !== (L.lean<0);              // 素材倒的方向與玩家要倒的方向不同 → 鏡像
+    ctx.save();
+    if(mirror) ctx.scale(-1,1);
+    draw(L, (mirror?-total:total)-L.lean, Math.pow(mixL,0.72));
+    ctx.restore();
+  }
+  ctx.restore();
+}
+
+/* ⚠️尺寸一律用「高度」定，不能沿用重機版的「寬度」：
+   重機素材是寬扁的（寬高比約 0.55），腳踏車＋直立騎士是細長的（約 0.30），
+   同一個寬度套過來，人車會高到佔滿 90% 螢幕（實測 900×520 下高達 464px）。 */
+let BIKE_H = 200;   // 玩家鐵馬在畫面上的高
+let BIKE_HK = 200;  // 對手／NPC 鐵馬高度係數（＝BIKE_H / t_car，隨 t 線性縮放）
+let BIKE_W = 60;    // 由當下騎士素材的寬高比換算出來的寬（陰影、揚塵的尺度基準）
+
+function castShadow(x,y,len,wid,alpha){        // 光源左上 → 影子往右下的窄長橢圓
+  len=Math.max(3,len); wid=Math.max(2,wid);
+  ctx.save(); ctx.translate(x,y); ctx.rotate(0.20);
+  ctx.fillStyle=`rgba(22,30,16,${alpha})`;
+  ctx.beginPath(); ctx.ellipse(len*0.42,0,len*0.52,wid*0.5,0,0,7); ctx.fill(); ctx.restore();
+}
+function contactShadow(x,y,w,alpha){
+  w=Math.max(4,w);
+  ctx.save(); ctx.fillStyle=`rgba(20,26,14,${alpha})`;
+  ctx.beginPath(); ctx.ellipse(x+w*0.16,y+w*0.04,w*0.52,w*0.18,0,0,7); ctx.fill(); ctx.restore();
+}
+/** 彎道警示板（懷舊版）：黃底黑箭頭的舊式木板牌，箭頭指向彎內。
+    ・重機版是紅底白箭頭的塑膠反光板 → 這裡改成「黃黑」的舊式警示牌＋木頭框＋竹立柱。
+    ・⚠️老闆最在意的是「看得出要轉彎」：黃黑是所有配色裡對比最高的一組（比紅白還高），
+      懷舊化完全沒有犧牲可讀性；箭頭粗細、板寬、遠處放大倍率全部沿用 v3.2 的數字不動。
+    ・立在外側路緣外一點點（CHEV_OUT），透視縮放與路緣同一套 → 隨彎跟著彎、近大遠小
+    ・全程程式繪製（不用圖片）：解析度無關，黃昏色調下也能用同一組色補償
+    ・alphaK＝提亮補畫用的係數（主畫 1，黃昏補畫傳 dusk*0.62） */
+function drawChevron(cx,baseY,halfW,t,o,alphaK){
+  // 板寬跟著路寬縮放（直式窄畫面自動變小），但遠處放大 1.5 倍——
+  // ⚠️直式 390 寬實測：純透視的遠端板子只剩 4px，等於沒有預警作用。
+  // 底座仍畫在路緣的地面線上，所以放大不會讓板子「浮起來」。
+  const w=halfW*0.46*(1+0.5*clamp01((1-t-0.25)/0.62));
+  if(w<2.2) return;
+  const h=w*0.70, postH=h*0.52, lw=Math.max(1,w*0.055);
+  const x=cx+o.side*(halfW*CHEV_OUT+w*0.5); // 內緣貼著路肩，整塊板在路面外
+  if(x<-w*2||x>CW+w*2) return;
+  const yTop=baseY-postH-h;
+  ctx.save();
+  // ⚠️不透明度給 0.40 的地板：o.a 是曲率淡入係數，進彎口那幾塊板的曲率還很小，
+  //   純用 o.a 會畫出「看得到後面稻田」的半透明板子（實測很像破圖），而那正是最先看到的幾塊。
+  ctx.globalAlpha=(0.40+0.60*o.a)*alphaK;
+  // 竹立柱（兩根）
+  ctx.fillStyle='#6b4f2a';
+  ctx.fillRect(x-w*0.30-lw*0.5,yTop+h,lw*1.6,postH);
+  ctx.fillRect(x+w*0.30-lw*0.5,yTop+h,lw*1.6,postH);
+  // 板面：黃底
+  ctx.fillStyle='#f5c22a';
+  ctx.fillRect(x-w/2,yTop,w,h);
+  // 上下緣的黑黃斜條紋（懷舊警示牌的招牌樣式；只佔上下各 16%，不侵犯中間的箭頭區）
+  if(w>9){
+    ctx.save();
+    ctx.beginPath(); ctx.rect(x-w/2,yTop,w,h); ctx.clip();
+    ctx.strokeStyle='#1c1408'; ctx.lineWidth=w*0.085;
+    for(let k=-2;k<8;k++){
+      const sx0=x-w/2+k*w*0.24;
+      ctx.beginPath(); ctx.moveTo(sx0,yTop); ctx.lineTo(sx0+h*0.16,yTop+h*0.16); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(sx0,yTop+h); ctx.lineTo(sx0+h*0.16,yTop+h*0.84); ctx.stroke();
+    }
+    ctx.restore();
+  }
+  // 木頭外框（深褐；描邊是黃昏 multiply 下仍讀得到輪廓的關鍵）
+  ctx.lineWidth=lw*1.6; ctx.strokeStyle='#4a3316';
+  ctx.strokeRect(x-w/2,yTop,w,h);
+  // 黑色粗箭頭（指向彎內）
+  const d=o.dir, cxx=x, cy=yTop+h*0.5;
+  ctx.lineWidth=Math.max(1.4,h*0.22); ctx.lineCap='round'; ctx.lineJoin='round';
+  ctx.strokeStyle='#171008';
+  ctx.beginPath();
+  ctx.moveTo(cxx-d*w*0.20,cy-h*0.26);
+  ctx.lineTo(cxx+d*w*0.19,cy);
+  ctx.lineTo(cxx-d*w*0.20,cy+h*0.26);
+  ctx.stroke();
+  ctx.restore();
+}
+/** 稻穗（取代金幣）：不轉圈，改成隨風輕擺＋上下浮動。
+    ⚠️金幣靠「旋轉最扁鉗 35%」保證永遠看得出是金幣；稻穗是不對稱的形狀，
+      翻面會讓它有半個週期看起來像一根棍子 → 改用小幅擺盪，任何時刻都是完整的一束。 */
+function drawRice(x,groundY,r,phaseSeed){
+  const ph=nowT*2.2+phaseSeed*1.7;
+  const rot=Math.sin(ph)*0.20, bob=Math.sin(ph*1.35+1.1)*r*0.10;
+  const sp=ASSET.sp.rice;
+  contactShadow(x,groundY,r*1.9,0.34);
+  if(sp){
+    const h=r*3.6, w=h*sp.width/sp.height;
+    ctx.save(); ctx.translate(x,groundY-r*0.06); ctx.rotate(rot);
+    ctx.drawImage(sp,-w/2,-h+bob,w,h);
+    ctx.restore();
+  }else{
+    ctx.save(); ctx.translate(x,groundY-r); ctx.rotate(rot);
+    ctx.fillStyle='#f0c63f'; ctx.beginPath(); ctx.ellipse(0,0,r*0.55,r*1.2,0,0,7); ctx.fill(); ctx.restore();
+  }
+}
+/** 竹簍（取代三角錐） */
+function drawBasket(x,baseY,hgt){
+  const sp=ASSET.sp.basket;
+  castShadow(x,baseY,hgt*0.55,hgt*0.30,0.30);
+  if(sp){ const w=hgt*sp.width/sp.height; ctx.drawImage(sp,x-w/2,baseY-hgt,w,hgt); }
+  else { ctx.fillStyle='#b07c30'; ctx.fillRect(x-hgt*0.35,baseY-hgt,hgt*0.7,hgt); }
+}
+/** 下坡順風（取代氮氣瓶）：一團半透明的風、三道白色風痕＋一枚往前的箭頭。
+    ⚠️第一版只畫白色細線 → 在金黃稻田＋土路這種高亮度背景上幾乎看不見（實測縮到 30px 就消失）。
+      現在先鋪一塊深青色的圓底把背景壓暗，白色風痕才有東西可以襯。 */
+function drawWind(x,y,s){
+  const t=nowT*4.2, R=s*1.55;
+  ctx.save(); ctx.translate(x,y);
+  ctx.lineCap='round'; ctx.lineJoin='round';
+  // 深底＋亮邊：遠遠就看得到有東西可以搶
+  const bg=ctx.createRadialGradient(0,-R*0.15,0,0,0,R);
+  bg.addColorStop(0,'rgba(24,86,96,0.80)'); bg.addColorStop(0.72,'rgba(20,74,84,0.62)');
+  bg.addColorStop(1,'rgba(20,74,84,0)');
+  ctx.fillStyle=bg; ctx.beginPath(); ctx.arc(0,0,R,0,7); ctx.fill();
+  ctx.strokeStyle='rgba(160,240,232,0.85)'; ctx.lineWidth=Math.max(1,s*0.09);
+  ctx.beginPath(); ctx.arc(0,0,R*0.86,0,7); ctx.stroke();
+  for(let i=0;i<3;i++){
+    const yy=(i-1)*s*0.46, len=s*(1.10-Math.abs(i-1)*0.26);
+    const wob=Math.sin(t+i*1.3)*s*0.09;
+    ctx.strokeStyle=i===1?'#ffffff':'rgba(226,252,248,0.92)';
+    ctx.lineWidth=Math.max(1.6,s*0.19);
+    ctx.beginPath();
+    ctx.moveTo(-len*0.62,yy+wob);
+    ctx.quadraticCurveTo(0,yy-s*0.15+wob,len*0.34,yy+wob);
+    ctx.stroke();
+    if(i===1){                                        // 中間那道帶箭頭＝「往前衝」
+      ctx.beginPath();
+      ctx.moveTo(len*0.02,yy-s*0.30+wob); ctx.lineTo(len*0.44,yy+wob); ctx.lineTo(len*0.02,yy+s*0.30+wob);
+      ctx.stroke();
+    }
+  }
+  ctx.restore();
+}
+/** 田頭大樹：阿爸在樹下揮手等便當（取代方格終點拱門）。
+    設計重點＝「遠遠就要看得到」，所以保留一條橫幅（改成紅布條）＋一棵深色大樹當量體。 */
+function drawFinish(cx,baseY,halfW,t,H){
+  const x1=cx-halfW*1.02, x2=cx+halfW*1.02;
+  const rowH=Math.max(2,t*H*0.022);
+  ctx.fillStyle='#8a6a3c';                              // 路面上一道曬穀場似的土色橫帶
+  ctx.fillRect(x1,baseY-rowH*2,x2-x1,rowH*2);
+  ctx.fillStyle='rgba(60,42,18,0.45)';
+  ctx.fillRect(x1,baseY-rowH*2,x2-x1,rowH*0.5);
+  const ph=t*H*0.52;
+  if(ph<16) return;
+  // ---- 田頭大樹（畫在路的右側，樹冠伸過路面上方；老榕樹綠幕照片，載入時已 keyOutGreen+trimAlpha 去背）----
+  const tx=x2+halfW*0.34;
+  const treeSp=ASSET.sp.treeBig;
+  let treeW=ph*1.05;                                              // 沒素材時仍給個寬度，father 的站位算式才不會爆掉
+  if(treeSp){
+    const treeH=ph*1.18; treeW=treeH*treeSp.width/treeSp.height;
+    ctx.fillStyle='rgba(48,36,14,0.30)';                          // 樹的落影（不然樹會像貼紙浮著）
+    ctx.beginPath(); ctx.ellipse(tx+treeW*0.08,baseY,treeW*0.40,treeW*0.075,0,0,7); ctx.fill();
+    ctx.drawImage(treeSp,tx-treeW/2,baseY-treeH,treeW,treeH);
+  }
+  // ---- 兩根竹竿＋紅布條（跨過路面，就是「終點」的視覺錨）----
+  const pw=Math.max(2,ph*0.040), bh=ph*0.19, by=baseY-ph, sq=bh;
+  ctx.fillStyle='#a8843e';
+  ctx.fillRect(x1-pw/2,by,pw,ph); ctx.fillRect(x2-pw/2,by,pw,ph);
+  const bg2=ctx.createLinearGradient(x1,by,x1,by+sq);
+  bg2.addColorStop(0,'#d6402e'); bg2.addColorStop(1,'#a82a1c');
+  ctx.fillStyle=bg2; ctx.fillRect(x1,by,x2-x1,sq);
+  ctx.fillStyle='rgba(255,236,180,0.85)';
+  ctx.fillRect(x1,by,x2-x1,Math.max(1,sq*0.10));
+  ctx.fillRect(x1,by+sq-Math.max(1,sq*0.10),x2-x1,Math.max(1,sq*0.10));
+  // ---- 阿爸：站在樹下、路邊，朝你揮手（斗笠白汗衫綠幕照片；整張圖輕微擺動模擬揮手感，不做骨架動畫）----
+  const fh=ph*0.46;
+  const fatherSp=ASSET.sp.father;
+  if(fatherSp&&fh>12){
+    const fx=tx-treeW*0.46, fy=baseY;
+    ctx.save(); ctx.translate(fx,fy);
+    ctx.fillStyle='rgba(48,36,14,0.30)';                           // 落影（固定不隨擺動旋轉，才不會像浮在地上）
+    ctx.beginPath(); ctx.ellipse(fh*0.06,0,fh*0.22,fh*0.045,0,0,7); ctx.fill();
+    ctx.rotate(Math.sin(nowT*3.1)*0.05);                           // 揮手感＝以腳底為支點的輕微擺動
+    const fw=fh*fatherSp.width/fatherSp.height;
+    ctx.drawImage(fatherSp,-fw/2,-fh,fw,fh);
+    ctx.restore();
+  }
+  if(ph>46){
+    ctx.save(); ctx.textAlign='center';
+    ctx.font=`900 ${Math.round(bh*0.86)}px -apple-system,"PingFang TC",sans-serif`;
+    ctx.lineWidth=Math.max(2,bh*0.13); ctx.strokeStyle='rgba(20,14,2,0.9)';
+    ctx.strokeText('田頭到了',cx,by+sq*0.78);
+    ctx.fillStyle='#ffe6a2'; ctx.fillText('田頭到了',cx,by+sq*0.78);
+    ctx.restore();
+  }
+}
+
+/** 導航窗（Google Maps 式）：只畫前方路段、車頭朝上、玩家固定窗底；下方附終點進度條 */
+const NAV_FWD=24, NAV_BACK=3, NAV_EXAG=2.4;   // 前瞻 odo／後顧 odo／彎度視覺誇大倍率
+function drawNav(W,H){
+  if(!route||(phase!=='play'&&phase!=='count'&&phase!=='finish')) return;
+  // 直式螢幕窄：導航窗改用寬度比例、並往下讓開折成兩列的 HUD
+  const port=H>W;
+  const mmW=port?Math.min(120,W*0.31):Math.min(150,W*0.21), mmH=mmW*1.28;
+  const x0=W-mmW-14, y0=Math.max(14,H*0.03)+(port?74:(W<560?44:54));
+  const ds=route.ds, P=route.pts, HD=route.heads;
+  const idx=clamp(odo/ds,0,P.length-1.001), i0=Math.floor(idx), u=idx-i0;
+  const L=(a,b)=>a+(b-a)*u;
+  const pwx=L(P[i0][0],P[i0+1][0]), pwy=L(P[i0][1],P[i0+1][1]);
+  const hd=L(HD[i0],HD[i0+1]), ch=Math.cos(hd), sh=Math.sin(hd);
+  const scl=(mmH-26)/(NAV_FWD+NAV_BACK);
+  const bx=x0+mmW/2, by=y0+mmH-12-NAV_BACK*scl;
+  const proj=i=>{ const dx=P[i][0]-pwx, dy=P[i][1]-pwy;
+    const lx=dx*ch-dy*sh, ly=dx*sh+dy*ch;                      // 旋轉到車頭朝上的局部座標
+    return [bx+clamp(lx*scl*NAV_EXAG,-(mmW/2-9),mmW/2-9), by-ly*scl]; };
+  ctx.save();
+  ctx.beginPath();
+  if(ctx.roundRect) ctx.roundRect(x0,y0,mmW,mmH,12); else ctx.rect(x0,y0,mmW,mmH);
+  ctx.fillStyle='rgba(14,18,24,0.66)'; ctx.fill();
+  ctx.strokeStyle='rgba(120,132,148,0.5)'; ctx.lineWidth=1; ctx.stroke();
+  ctx.clip();
+  const iA=Math.max(0,i0-Math.round(NAV_BACK/ds)), iB=Math.min(P.length-1,i0+Math.round(NAV_FWD/ds));
+  ctx.beginPath();
+  for(let i=iA;i<=iB;i++){ const [X,Y]=proj(i); if(i===iA) ctx.moveTo(X,Y); else ctx.lineTo(X,Y); }
+  ctx.lineJoin='round'; ctx.lineCap='round';
+  ctx.strokeStyle='rgba(238,234,222,0.92)'; ctx.lineWidth=Math.max(9,mmW*0.11); ctx.stroke();   // 路緣
+  ctx.strokeStyle='rgba(88,94,102,0.96)'; ctx.lineWidth=Math.max(6,mmW*0.11-4); ctx.stroke();   // 路面
+  ctx.setLineDash([4,5]); ctx.strokeStyle='rgba(244,235,210,0.85)'; ctx.lineWidth=1.4;
+  ctx.stroke(); ctx.setLineDash([]);                                                             // 中央虛線
+  if(route.totalOdo-odo<NAV_FWD){ const [fx,fy]=proj(P.length-1); drawTreeIcon(fx,fy,mmW*0.085); }
+  // 玩家箭頭：固定窗底、永遠朝上（Google Maps 導航慣例）
+  ctx.fillStyle='#ff5a3c'; ctx.strokeStyle='#fff'; ctx.lineWidth=1.8;
+  ctx.beginPath(); ctx.moveTo(bx,by-8); ctx.lineTo(bx-6.4,by+6); ctx.lineTo(bx,by+2.6); ctx.lineTo(bx+6.4,by+6);
+  ctx.closePath(); ctx.fill(); ctx.stroke();
+  ctx.restore();
+  // ---- 終點進度條 ----
+  const pbY=y0+mmH+7, pbH=9, prog=clamp(odo/route.totalOdo,0,1);
+  ctx.save();
+  ctx.beginPath();
+  if(ctx.roundRect) ctx.roundRect(x0,pbY,mmW,pbH,5); else ctx.rect(x0,pbY,mmW,pbH);
+  ctx.fillStyle='rgba(14,18,24,0.66)'; ctx.fill();
+  ctx.beginPath();
+  if(ctx.roundRect) ctx.roundRect(x0,pbY,Math.max(6,mmW*prog),pbH,5); else ctx.rect(x0,pbY,Math.max(6,mmW*prog),pbH);
+  ctx.fillStyle='#f4b942'; ctx.fill();
+  ctx.font='11px -apple-system,sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillText('🍱',x0+mmW-7,pbY+pbH/2);
+  ctx.textBaseline='alphabetic'; ctx.restore();
+}
+/** 導航窗裡的終點記號：田頭那棵大樹 */
+function drawTreeIcon(x,y,s){
+  ctx.save(); ctx.translate(x,y);
+  ctx.strokeStyle='#8a6a3c'; ctx.lineWidth=Math.max(1.6,s*0.5);
+  ctx.beginPath(); ctx.moveTo(0,3); ctx.lineTo(0,-s*1.5); ctx.stroke();
+  ctx.fillStyle='#3c6f2c';
+  ctx.beginPath(); ctx.arc(0,-s*2.0,s*1.15,0,7); ctx.fill();
+  ctx.beginPath(); ctx.arc(-s*0.85,-s*1.6,s*0.72,0,7); ctx.fill();
+  ctx.beginPath(); ctx.arc(s*0.85,-s*1.6,s*0.72,0,7); ctx.fill();
+  ctx.restore();
+}
+
+function drawCountdown(W,H){
+  const left=3.4-countT;
+  let txt = left>2.4?'3' : left>1.4?'2' : left>0.4?'1' : '出發！';
+  const n = left>2.4?3 : left>1.4?2 : left>0.4?1 : 0;
+  if(n!==lastBeep){ lastBeep=n; if(AE&&cfg.sound) AE.beep(n===0?990:680,n===0?0.3:0.13); }
+  ctx.save();
+  ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillStyle='rgba(8,11,15,0.52)'; ctx.fillRect(0,H*0.30,W,H*0.26);   // 底板固定不透明：長者要看得清楚
+  const pop=0.86+0.14*clamp01((left%1)*3);                                // 只讓數字本身有節拍感
+  ctx.font=`900 ${Math.round(Math.min(W*0.22,H*0.20)*pop)}px -apple-system,"PingFang TC",sans-serif`;
+  ctx.lineWidth=Math.max(3,H*0.008); ctx.strokeStyle='rgba(20,14,2,0.85)';
+  ctx.strokeText(txt,W/2,H*0.43);
+  ctx.fillStyle='#ffd772'; ctx.fillText(txt,W/2,H*0.43);
+  ctx.restore(); ctx.textBaseline='alphabetic';
+}
+
+/* ==================================================================
+   十二、主迴圈
+   ================================================================== */
+let lastRaf=0;
+function loop(ts){
+  requestAnimationFrame(loop);
+  const dt=Math.min(0.05,(ts-lastRaf)/1000||0.016); lastRaf=ts;
+  stepDemoTilt(dt);
+  pumpTilt();
+  if(phase==='calib') stepCalib(dt);
+  if(phase==='count'){ nowT+=dt; countT+=dt; stepLean(dt);
+    lastV=SPEED_V[cfg.speed]*clamp(countT/3.4,0.18,1);
+    odo+=lastV*dt;
+    sweepSilently(dt);                     // 倒數期間路已在跑：把掃過的道具靜默消耗掉，開局才不會瞬間爆一堆事件
+    if(AE&&cfg.sound) AE.rideSet(0.16+0.20*clamp(countT/3.4,0,1),0.5);   // 牽車滑行、慢慢踩起來
+    render(); updateHUD(); if(countT>=3.4) startPlay(); return; }
+  if(phase==='play'){ stepLean(dt); updatePlay(dt); if(phase!=='play') return; render(); updateHUD(); return; }
+  // 完賽慢動作：約 0.5 秒真實時間，畫面以 0.3 倍速推進
+  if(phase==='finish'){
+    finT+=dt; const sdt=dt*0.30;
+    nowT+=sdt; stepLean(sdt); stepFx(sdt);
+    for(const r of rivals) r.odo+=SPEED_V[cfg.speed]*r.spd*sdt;
+    render(); updateHUD();
+    if(finT>=0.55) endGame();
+    return;
+  }
+}
+// 腳程分級：刻意不用 km/h。時速表是機車語言，而且「23 km/h」對長者也沒有畫面感；
+// 換成四個看得懂的詞，順風／撞到／進田埂的速度變化一樣讀得出來。
+const PACE_TXT=['牽著走','慢慢騎','順順騎','衝啊'];
+function paceWord(v){
+  const k=v/SPEED_V[3];                                // 以「正常」檔位為 1.0
+  return PACE_TXT[k<0.45?0 : k<0.85?1 : k<1.16?2 : 3];
+}
+function updateHUD(){
+  $('hScore').textContent=score;
+  const sp=$('hSpd');
+  sp.textContent=paceWord(lastV);
+  sp.style.color = nowT<feverUntil ? 'var(--nitro)' : ((nowT<crashUntil||offroad) ? 'var(--warn)' : '');
+  $('hCrash').textContent=crashes;
+  $('hTime').textContent=Math.max(0,Math.ceil(cfg.dur-elapsed))+'s';
+  $('hudBtns').classList.toggle('dim',offroad);
+  const rb=$('rankBox');
+  rb.classList.toggle('hidden',!rivals.length);
+  if(rivals.length) $('hRank').innerHTML=`第 ${myRank} <small>/${rivals.length+1}</small>`;
+  if(nowT>=feverUntil) $('feverTag').classList.add('hidden');
+}
+
+/* ==================================================================
+   十三、畫面切換
+   ================================================================== */
+const scr={ setup:$('setup'), calib:$('calib'), end:$('end'), report:$('report'), reorient:$('reorient') };
+function show(name){
+  for(const k in scr) scr[k].classList.toggle('hidden',k!==name);
+  const playing = (name===null);
+  $('hud').classList.toggle('hidden',!playing);
+  $('hudBtns').classList.toggle('hidden',!playing);
+  $('rankBox').classList.toggle('hidden',!playing||!rivals.length);
+}
+function goSetup(){
+  phase='setup'; show('setup'); keepAwake(false);
+  $('feverTag').classList.add('hidden'); $('confetti').classList.add('hidden');
+  if(AE) AE.stop();
+}
+function pauseForReorient(){ phase='reorient'; show('reorient'); if(AE)AE.stop(); }
+
+/* ---- 校正流程 ---- */
+const CAL={ state:'idle', t:0, samples:[], ext:0, extL:0, extR:0 };
+const CAL_DUR={ neutral:3.0, left:4.0, right:4.0 };
+function enterCalib(){
+  phase='calib'; show('calib'); resetCalib();
+  $('calibModeTag').textContent = axisMode==='land' ? 'A 橫式・雙手握桿' : 'B 直式・單手旋轉前臂';
+  $('calibNote').textContent = demoMode
+    ? '展示模式：用鍵盤 ← → 模擬傾斜，或直接按「跳過」。'
+    : '若個案左右活動度不同，系統會各自記錄，路上左右兩邊都到得了；不對稱的程度會寫進報表。';
+}
+function resetCalib(){
+  CAL.state='idle'; CAL.t=0; CAL.samples=[]; CAL.extL=0; CAL.extR=0;
+  tiltFilter.reset();
+  $('calibStep').textContent='準備好了嗎？';
+  $('calibHint').textContent='坐正、手機拿穩。按下方按鈕開始，一共三個步驟，每步都有充足時間，不用趕。';
+  $('calibCount').classList.add('hidden');
+  $('romGrid').classList.add('hidden');
+  $('progFill').style.width='0%';
+  $('btnCalibNext').textContent='開始校正';
+  $('btnCalibNext').classList.remove('go');
+}
+function stepCalib(dt){
+  const raw=tiltF;
+  // 傾斜指示條（校正中一律以「目前中立點」為 0）
+  const rel = CAL.state==='idle' ? clamp(raw/40,-1,1) : clamp((raw-calib.zero)/40,-1,1);
+  const f=$('tbFill');
+  if(rel>=0){ f.style.left='50%'; f.style.width=(rel*50)+'%'; }
+  else { f.style.left=(50+rel*50)+'%'; f.style.width=(-rel*50)+'%'; }
+  $('tbNum').innerHTML='目前傾斜 <b>'+Math.round(CAL.state==='idle'?raw:(raw-calib.zero))+'°</b>';
+
+  if(CAL.state==='idle'||CAL.state==='done') return;
+  CAL.t+=dt;
+  const total=CAL_DUR[CAL.state];
+  $('progFill').style.width=Math.min(100,CAL.t/total*100)+'%';
+  $('calibCount').textContent=Math.max(0,Math.ceil(total-CAL.t));
+
+  if(CAL.state==='neutral') CAL.samples.push(raw);
+  else{
+    const d=raw-calib.zero;
+    if(CAL.state==='left'){ if(Math.abs(d)>Math.abs(CAL.extL)) CAL.extL=d; }
+    else { if(Math.abs(d)>Math.abs(CAL.extR)) CAL.extR=d; }
+  }
+  if(CAL.t>=total) nextCalibState();
+}
+function nextCalibState(){
+  if(CAL.state==='neutral'){
+    calib.zero = CAL.samples.length ? CAL.samples.reduce((a,b)=>a+b,0)/CAL.samples.length : 0;
+    setCalibState('left','② 向左倒到最大','像騎車轉龍頭一樣，慢慢向左倒到你覺得舒服的最大角度，並保持住。不要勉強。');
+  }else if(CAL.state==='left'){
+    setCalibState('right','③ 向右倒到最大','換邊。慢慢向右倒到舒服的最大角度，並保持住。');
+  }else if(CAL.state==='right'){
+    finishCalib();
+  }
+}
+function setCalibState(st,title,hint){
+  CAL.state=st; CAL.t=0;
+  $('calibStep').textContent=title;
+  $('calibHint').textContent=hint;
+  $('calibCount').classList.remove('hidden');
+  $('progFill').style.width='0%';
+  if(AE&&cfg.sound) AE.beep(760,0.12);
+}
+function finishCalib(){
+  CAL.state='done';
+  // 軸的正負由校正決定：向左那次若讀到負值 → 原始值需 ×1 才會左負右正
+  calib.axisSign = CAL.extL<0 ? 1 : -1;
+  calib.romL = Math.max(4,Math.abs(CAL.extL));
+  calib.romR = Math.max(4,Math.abs(CAL.extR));
+  calib.done = true;
+  $('calibStep').textContent='校正完成 ✓';
+  $('calibHint').textContent='左右各自的最大角度已記錄。若覺得太吃力，可以回設定把「轉向靈敏度」調靈敏一點。';
+  $('calibCount').classList.add('hidden');
+  $('progFill').style.width='100%';
+  $('romL').textContent=Math.round(calib.romL)+'°';
+  $('romR').textContent=Math.round(calib.romR)+'°';
+  $('romGrid').classList.remove('hidden');
+  $('btnCalibNext').textContent='開始遊戲';
+  $('btnCalibNext').classList.add('go');
+  if(AE&&cfg.sound) AE.beep(980,0.2);
+}
+function skipCalib(){
+  calib.zero=0; calib.axisSign=1; calib.romL=20; calib.romR=20; calib.done=true;
+  CAL.state='done';
+  $('calibStep').textContent='已跳過（使用預設值）';
+  $('calibHint').textContent='中立點 0°、左右各 20°。適合展示與快速試玩；正式訓練建議完整校正。';
+  $('calibCount').classList.add('hidden'); $('progFill').style.width='100%';
+  $('romL').textContent='20°'; $('romR').textContent='20°';
+  $('romGrid').classList.remove('hidden');
+  $('btnCalibNext').textContent='開始遊戲'; $('btnCalibNext').classList.add('go');
+}
+
+/* ---- 開局 ---- */
+function beginCountdown(){
+  newGame();
+  phase='count'; countT=0; lastBeep=-1;
+  show(null); keepAwake(true);
+  if(AE&&cfg.sound){ AE.start(); AE.rideStart(); AE.setMuted(muted); }
+  updateHUD();
+}
+function startPlay(){ phase='play'; if(AE&&cfg.sound) AE.pedal(); }   // 「出發！」＝鈴鐺一響、用力踩下去
+
+function endGame(){
+  phase='end';
+  keepAwake(false); if(AE) AE.stop();
+  $('feverTag').classList.add('hidden');
+  const dist=Math.round(odo*M_PER_ODO);
+  const comp=route?Math.min(100,Math.round(odo/route.totalOdo*100)):0;
+  const presT=M.presented[0]+M.presented[1]+M.presented[2];
+  const collT=M.collected[0]+M.collected[1]+M.collected[2];
+  $('eScore').textContent=score;
+  $('eComp').textContent=comp+'%';
+  $('eRate').textContent=presT?Math.round(collT/presT*100)+'%':'–';
+  $('eCrash').textContent=crashes;
+  $('eOff').textContent=offroadCount;
+  // 最終名次：只有開了對手競速才顯示（關掉時整格藏起來，版面自動變 3 格）
+  const rc=$('eRankCell');
+  if(rivals.length){ rc.classList.remove('hidden'); $('eRank').textContent='第 '+myRank+' 名'; }
+  else rc.classList.add('hidden');
+  $('finBanner').classList.toggle('hidden',!finished);
+  const offTxt = offroadCount ? `這趟騎進田埂 ${offroadCount} 次（在田裡卡了共 ${offroadSec.toFixed(1)} 秒，速度只剩一半）。` : '';
+  $('endLead').textContent = (finished
+    ? `便當準時送到田頭！騎了 ${Math.round(elapsed)} 秒，提前 ${Math.max(0,Math.round(cfg.dur-elapsed))} 秒到。`
+      + (rivals.length?`這趟名次：第 ${myRank} 名／${rivals.length+1} 人。`:'')
+    : `辛苦了！以下是這趟的成績（路走了 ${comp}%，多搶到幾次下坡順風就騎得更遠）。`
+      + (rivals.length?`這趟名次：第 ${myRank} 名／${rivals.length+1} 人。`:'')) + offTxt;
+  // 破紀錄（依設定組合分開記；騎士不列入 sig＝換人騎仍可比同一組設定的成績）
+  const sig=`${cfg.route}_${cfg.dur}_${cfg.sens}_${cfg.speed}_${cfg.dens}_${cfg.assist}`;
+  let best={}; try{ best=JSON.parse(localStorage.getItem(LS_BEST)||'{}'); }catch(e){}
+  const prev=best[sig];
+  const isRec = !prev || score>prev.score;
+  if(isRec){ best[sig]={score,dist,date:new Date().toISOString()};
+    try{ localStorage.setItem(LS_BEST,JSON.stringify(best)); }catch(e){} }
+  $('recBanner').classList.toggle('hidden',!isRec);
+  $('eBest').textContent = prev
+    ? (isRec ? `上次同設定最佳：${prev.score} 穗 → 這次 ${score} 穗。`
+             : `同設定最佳紀錄：${prev.score} 穗（騎了 ${prev.dist} 公尺）。`)
+    : '這是這組設定的第一筆紀錄。';
+  if(isRec||finished){ celebrate(); if(AE&&cfg.sound){ AE.setMuted(muted); AE.fanfare(); } }
+  show('end');
+}
+function celebrate(){
+  const box=$('confetti'); box.innerHTML=''; box.classList.remove('hidden');
+  const cols=['#f4b942','#ffe08a','#4cc38a','#5aa9e6','#ff7a59'];
+  const N = finished ? 72 : 34;                       // 完賽＝彩帶加量
+  for(let i=0;i<N;i++){
+    const s=document.createElement('i');
+    s.style.left=(Math.random()*100)+'%';
+    s.style.background=cols[i%cols.length];
+    s.style.animationDuration=(1.6+Math.random()*1.5)+'s';
+    s.style.animationDelay=(Math.random()*0.6)+'s';
+    box.appendChild(s);
+  }
+  setTimeout(()=>box.classList.add('hidden'),3600);
+}
+
+/* ==================================================================
+   十四、復能報表
+   ================================================================== */
+const _mean=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:0;
+const _std=(a,m)=>{ if(a.length<2)return 0; return Math.sqrt(a.reduce((s,x)=>s+(x-m)*(x-m),0)/a.length); };
+function loadSessions(){ try{return JSON.parse(localStorage.getItem(LS_SESS)||'[]');}catch(e){return[];} }
+
+function buildSession(){
+  const presT=M.presented[0]+M.presented[1]+M.presented[2];
+  const collT=M.collected[0]+M.collected[1]+M.collected[2];
+  const pct=(c,p)=>p?Math.round(c/p*100):null;
+  const mL=_mean(M.leftPeaks), mR=_mean(M.rightPeaks);
+  const symAngle = (mL>0&&mR>0) ? Math.round(Math.min(mL,mR)/Math.max(mL,mR)*100) : null;
+  const rateL=pct(M.collected[0],M.presented[0]), rateR=pct(M.collected[2],M.presented[2]);
+  const symRate = (rateL!=null&&rateR!=null&&Math.max(rateL,rateR)>0)
+    ? Math.round(Math.min(rateL,rateR)/Math.max(rateL,rateR)*100) : null;
+  const m=_mean(M.rts);
+  return {
+    date:new Date().toISOString(), route:cfg.route, dur:cfg.dur, sens:cfg.sens, speed:cfg.speed,
+    dens:cfg.dens, assist:cfg.assist, scene:cfg.scene, mode:axisMode, demo:demoMode, rider:cfg.rider,
+    score, dist:Math.round(odo*M_PER_ODO), crashes, coneHits, npcHits, feverCount,
+    finished, overtakes, playTime:Math.round(elapsed),
+    // v3／v3.1 新欄位：舊紀錄沒有這些欄，判讀端一律用 != null 守（向下相容）
+    rivalsOn:rivals.length?1:0, rank:rivals.length?myRank:null, fieldSize:rivals.length?rivals.length+1:null,
+    rivalCount:rivals.length,
+    offroadCount, offroadSec:+offroadSec.toFixed(1),
+    completion:route?Math.min(100,Math.round(odo/route.totalOdo*100)):null,
+    presented:M.presented.slice(), collected:M.collected.slice(),
+    coinRate:pct(collT,presT), rateL, rateC:pct(M.collected[1],M.presented[1]), rateR,
+    peakL:mL?+mL.toFixed(1):null, peakR:mR?+mR.toFixed(1):null,
+    turnsL:M.leftPeaks.length, turnsR:M.rightPeaks.length,
+    romL:Math.round(calib.romL), romR:Math.round(calib.romR),
+    symAngle, symRate,
+    nRT:M.rts.length,                                   // 樣本 <5 不出數字：n=1 的 0.07s 假資料曾誤導判讀
+    avgRT:M.rts.length>=5?Math.round(m):null,
+    bestRT:M.rts.length>=5?Math.round(Math.min(...M.rts)):null,
+    cvRT:(M.rts.length>=5&&m)?Math.round(_std(M.rts,m)/m*100):null,
+    series:M.series.slice()
+  };
+}
+function barsSVG(rows,maxV,unit){
+  const W=380,H=170,padL=54,padR=14,padT=12,padB=26;
+  const bw=(W-padL-padR)/rows.length;
+  let g=`<line x1="${padL}" y1="${H-padB}" x2="${W-padR}" y2="${H-padB}" stroke="#333d48"/>`;
+  rows.forEach((r,i)=>{
+    const h=((r.v||0)/Math.max(1e-6,maxV))*(H-padB-padT);
+    const x=padL+i*bw+bw*0.20, w=bw*0.60, y=H-padB-h;
+    g+=`<rect x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${w.toFixed(1)}" height="${Math.max(1,h).toFixed(1)}" rx="4" fill="${r.color}"/>`;
+    g+=`<text x="${(x+w/2).toFixed(1)}" y="${(y-5).toFixed(1)}" text-anchor="middle" font-size="12" font-weight="700" fill="#f4efe3">${r.v==null?'–':r.v}${unit}</text>`;
+    g+=`<text x="${(x+w/2).toFixed(1)}" y="${H-padB+16}" text-anchor="middle" font-size="11" fill="#8a94a0">${r.label}</text>`;
+  });
+  return `<svg viewBox="0 0 ${W} ${H}" width="100%" style="max-width:${W}px">${g}</svg>`;
+}
+function trendSVG(sess,series,maxY){
+  const W=380,H=170,padL=30,padR=10,padT=12,padB=22,n=sess.length;
+  const xw=(W-padL-padR)/Math.max(1,n-1), yTop=padT, yBot=H-padB;
+  const yFor=v=>yBot-((v||0)/maxY)*(yBot-yTop);
+  let g=`<line x1="${padL}" y1="${yBot}" x2="${W-padR}" y2="${yBot}" stroke="#333d48"/>`;
+  [0,maxY/2,maxY].forEach(v=>{ g+=`<line x1="${padL}" y1="${yFor(v).toFixed(1)}" x2="${W-padR}" y2="${yFor(v).toFixed(1)}" stroke="rgba(140,148,160,.18)"/><text x="${padL-4}" y="${(yFor(v)+3).toFixed(1)}" text-anchor="end" font-size="9" fill="#8a94a0">${Math.round(v)}</text>`; });
+  for(const se of series){
+    const pts=sess.map((s,i)=>`${(padL+i*xw).toFixed(1)},${yFor(s[se.k]).toFixed(1)}`).join(' ');
+    g+=`<polyline points="${pts}" fill="none" stroke="${se.color}" stroke-width="2.5"/>`;
+    sess.forEach((s,i)=>{ g+=`<circle cx="${(padL+i*xw).toFixed(1)}" cy="${yFor(s[se.k]).toFixed(1)}" r="3" fill="${se.color}"/>`; });
+  }
+  return `<svg viewBox="0 0 ${W} ${H}" width="100%" style="max-width:${W}px">${g}</svg>`;
+}
+function legend(series){ return '<div class="rep-chips">'+series.map(s=>`<span style="color:${s.color}">● ${s.label}</span>`).join('')+'</div>'; }
+
+function renderReport(){
+  const s=buildSession();
+  const all=loadSessions(); all.push(s);
+  const saved=all.slice(-300);
+  try{ localStorage.setItem(LS_SESS,JSON.stringify(saved)); }catch(e){}
+  const prev=saved.length>=2?saved[saved.length-2]:null;
+
+  const d=new Date(s.date), p2=x=>String(x).padStart(2,'0');
+  const dateStr=`${d.getFullYear()}/${p2(d.getMonth()+1)}/${p2(d.getDate())} ${p2(d.getHours())}:${p2(d.getMinutes())}`;
+  const dl=(cur,pre,unit,inv)=>{ if(pre==null||cur==null)return '';
+    const dd=+(cur-pre).toFixed(1); if(!dd)return ' <span class="dl flat">→持平</span>';
+    const good=inv?dd<0:dd>0; return ` <span class="dl ${good?'up':'down'}">${dd>0?'▲+':'▼'}${Math.abs(dd)}${unit}</span>`; };
+  const M2=(k,v,sub,cls)=>`<div class="metric ${cls||''}"><div class="k">${k}</div><div class="v">${v}</div><div class="s">${sub||''}</div></div>`;
+  const rtS=s.avgRT!=null?(s.avgRT/1000).toFixed(2):null;
+
+  const metrics=
+    M2('撿穗率', (s.coinRate!=null?s.coinRate+'%':'–')+(prev?dl(s.coinRate,prev.coinRate,'%',false):''),
+       `${s.collected.reduce((a,b)=>a+b,0)}/${s.presented.reduce((a,b)=>a+b,0)} 束`)+
+    M2('左右轉向對稱性', (s.symAngle!=null?s.symAngle+'%':'–')+(prev?dl(s.symAngle,prev.symAngle,'%',false):''),
+       '傾斜角使用量 小/大．100%＝完全對稱','sym')+
+    M2('左／右撿穗率', `${s.rateL!=null?s.rateL:'–'}% / ${s.rateR!=null?s.rateR:'–'}%`,
+       `路左側 ${s.collected[0]}/${s.presented[0]}．路右側 ${s.collected[2]}/${s.presented[2]}`)+
+    M2('平均反應時間', (rtS!=null?rtS+' s':'–')+(rtS!=null&&prev&&prev.avgRT!=null?dl(+rtS,+(prev.avgRT/1000).toFixed(2),'s',true):''),
+       s.avgRT!=null?`最快 ${(s.bestRT/1000).toFixed(2)} s．目標出現→開始轉向`:`樣本不足（${s.nRT||0} 次，需 ≥5 次）`)+
+    M2('撞到次數', s.crashes+' 次'+(prev?dl(s.crashes,prev.crashes,'',false):''),
+       `竹簍 ${s.coneHits}．路上的鐵馬 ${s.npcHits}`, s.crashes>6?'bad':'')+
+    M2('騎進田埂', (s.offroadCount!=null?s.offroadCount+' 次':'–')
+         +(prev&&prev.offroadCount!=null&&s.offroadCount!=null?dl(s.offroadCount,prev.offroadCount,'',true):''),
+       s.offroadCount!=null
+         ? `在田裡卡了 ${s.offroadSec??0} 秒．彎道跟隨能力（越少越好）`
+         : '此筆為舊版紀錄，無此欄位',
+       (s.offroadCount!=null&&s.offroadCount>5)?'bad':'')+
+    M2('這趟成績', s.score+' 穗',
+       `路走了 ${s.completion!=null?s.completion+'%':'–'}${s.finished?'（🍱 送到）':''}．騎了 ${s.dist} 公尺．追過 ${s.overtakes||0} 人．順風 ${s.feverCount} 次`)+
+    (s.rank!=null
+      ? M2('最後名次', `第 ${s.rank} 名`+(prev&&prev.rank!=null?dl(s.rank,prev.rank,'',true):''),
+           `共 ${s.fieldSize||4} 人．少年家採橡皮筋配速，名次反映的是「衝刺與避撞的效率」而非絕對速度`,
+           s.rank===1?'sym':'')
+      : '');
+
+  const angleChart=barsSVG([
+    {label:'左倒平均峰值',v:s.peakL,color:'#5aa9e6'},
+    {label:'左側校正 ROM',v:s.romL,color:'rgba(90,169,230,.38)'},
+    {label:'右倒平均峰值',v:s.peakR,color:'#f0b13a'},
+    {label:'右側校正 ROM',v:s.romR,color:'rgba(240,177,58,.38)'}
+  ], Math.max(10,s.romL,s.romR,s.peakL||0,s.peakR||0)*1.18, '°');
+
+  const laneChart=barsSVG([
+    {label:'路左側',v:s.rateL,color:'#5aa9e6'},
+    {label:'路中間',v:s.rateC,color:'#7fb84e'},
+    {label:'路右側',v:s.rateR,color:'#f0b13a'}
+  ], 100, '%');
+
+  let trend='';
+  if(saved.length>=2){
+    const recent=saved.slice(-8);
+    trend=`<div class="charts">
+      <div class="chart"><h3>跨次趨勢：撿穗率 / 對稱性</h3><div class="cnote">最近 ${recent.length} 趟（%，越高越好）</div>
+        ${legend([{label:'撿穗率',color:'#7fb84e'},{label:'對稱性',color:'#f0b13a'}])}
+        ${trendSVG(recent,[{k:'coinRate',color:'#7fb84e'},{k:'symAngle',color:'#f0b13a'}],100)}</div>
+      <div class="chart"><h3>跨次趨勢：平均反應時間</h3><div class="cnote">最近 ${recent.length} 趟（毫秒，越低越好）</div>
+        ${trendSVG(recent,[{k:'avgRT',color:'#5aa9e6'}],Math.max(600,...recent.map(x=>x.avgRT||0))*1.1)}</div>
+    </div>`;
+  }
+
+  const notes=[];
+  notes.push(`這趟在<b>${s.mode==='land'?'A 橫式（雙手握桿、整條上肢帶動）':'B 直式（單手前臂旋前／旋後）'}</b>下進行，時長 ${s.dur} 秒。`);
+  if(s.coinRate!=null) notes.push(`撿穗率 ${s.coinRate}%（稻穗位置即動作處方，撿穗率反映「引導到位的動作有沒有做出來」）。`);
+  if(s.symAngle!=null){
+    notes.push(s.symAngle>=85
+      ? `左右轉向對稱性 ${s.symAngle}%：兩側傾斜角使用量接近（左 ${s.peakL}° / 右 ${s.peakR}°），雙側整合表現良好。`
+      : `⚠️左右轉向對稱性 ${s.symAngle}%：左 ${s.peakL}° vs 右 ${s.peakR}°，${s.peakL<s.peakR?'向左':'向右'}的動作幅度明顯較小，建議把稻穗加權往該側配置，或先降低轉向靈敏度以誘發較大的動作。`);
+  }else notes.push('左右轉向對稱性資料不足（轉向次數太少），建議提高稻穗密度或延長時長。');
+  if(s.rateL!=null&&s.rateR!=null&&s.symRate!=null)
+    notes.push(`路左側達成率 ${s.rateL}%、路右側 ${s.rateR}%（達成率對稱性 ${s.symRate}%）；與角度對稱性合看，可分辨是「動作做不到」還是「反應來不及」。`);
+  if(s.avgRT!=null) notes.push(`平均反應時間 ${(s.avgRT/1000).toFixed(2)} s（含看到目標→啟動轉向）；CV ${s.cvRT!=null?s.cvRT+'%':'–'}，越低代表啟動越穩定。`);
+  else if(s.nRT) notes.push(`反應時間樣本僅 ${s.nRT} 次（需 ≥5 次才計），這趟不出數字；提高稻穗／障礙密度或延長時長可累積樣本。`);
+  if(s.finished) notes.push(`🍱 這趟提前 ${Math.max(0,s.dur-s.playTime)} 秒把便當送到田頭：順風抓取與路徑控制皆有效，可考慮提高腳程或密度增加挑戰。`);
+  if(s.rank!=null) notes.push(s.rank===1
+    ? `庄裡少年家之中拿到第 1 名／${s.fieldSize||4} 人：對手採橡皮筋配速貼著基準腳程，能領先代表順風抓取確實、撞到的損失少。`
+    : `庄裡少年家之中排第 ${s.rank} 名／${s.fieldSize||4} 人：名次落後多半來自撞到後減速（這趟 ${s.crashes} 次）或漏掉下坡順風（${s.feverCount} 次）；若名次造成挫折感，設定頁可關掉「庄裡少年家一起送飯」。`);
+  if(s.offroadCount!=null){
+    notes.push(s.offroadCount<=2
+      ? `<b>彎道跟隨能力</b>：騎進田埂 ${s.offroadCount} 次（在田裡卡了 ${s.offroadSec??0} 秒）。彎道有離心力把車往彎外甩，出界少代表個案能在彎道<b>主動往彎內倒</b>並維持住，動作的時機與幅度都到位。`
+      : `⚠️<b>彎道跟隨能力</b>：騎進田埂 ${s.offroadCount} 次（在田裡卡了 ${s.offroadSec??0} 秒，期間腳程只剩一半）。出界多半代表「該轉的時候沒轉，或轉了但幅度不夠」；可先降腳程、開啟新手輔助（離心力打 6 折），或把轉向靈敏度調靈敏一點，讓個案先建立「彎道要出力」的成功經驗。`);
+  }
+  notes.push(s.crashes<=3
+    ? `撞到 ${s.crashes} 次（竹簍 ${s.coneHits}、路上的鐵馬 ${s.npcHits}），路徑控制穩定，可考慮提高腳程或密度。`
+    : `撞到 ${s.crashes} 次（竹簍 ${s.coneHits}、路上的鐵馬 ${s.npcHits}）偏多，可先降低腳程或開啟新手輔助，讓個案先建立成功經驗。`);
+  notes.push(`校正 ROM：左 ${s.romL}°／右 ${s.romR}°；這趟實際平均只用到左 ${s.peakL??'–'}°／右 ${s.peakR??'–'}°，若明顯低於 ROM，可把轉向靈敏度調鈍（要求 ${Math.round(SENS_REQ[cfg.sens]*100)}% → 更高）以逼出更大的動作。`);
+  if(s.demo) notes.push('⚠️這趟為鍵盤展示模式，角度資料為模擬值，不可作為臨床紀錄。');
+
+  $('reportBody').innerHTML=`
+    <div class="rep-head"><h1>復能訓練報表 <span class="pill">治療師版・騎鐵馬送便當</span></h1></div>
+    <div class="rep-sub">${dateStr}
+      <div class="rep-chips">
+        <span>${s.mode==='land'?'A 橫式雙手':'B 直式單手'}</span>
+        <span>騎士 ${RIDER_NAME(s.rider||'grandpa')}</span>
+        <span>路線 ${['','田邊路','溪邊路','山腳路'][s.route]||'–'}</span>
+        <span>時長 ${s.dur}s</span>
+        <span>靈敏度 ${SENS_TXT[s.sens]}</span>
+        <span>腳程 ${SPEED_TXT[s.speed]}</span>
+        <span>密度 ${DENS_TXT[s.dens]}</span>
+        <span>新手輔助 ${s.assist?'開':'關'}</span>
+        <span>少年家 ${s.rivalsOn?((s.rivalCount||s.fieldSize-1||3)+' 人'):'關'}</span>
+        <span>${(SCENES[s.scene]||SCENES.rice).name}</span>
+      </div>
+    </div>
+    <div class="metrics">${metrics}</div>
+    <div class="charts">
+      <div class="chart"><h3>左右傾斜角使用量（核心臨床指標）</h3>
+        <div class="cnote">實線＝這趟每次轉向的平均峰值角；淡色＝校正時測到的最大 ROM。兩側落差大＝動作不對稱</div>
+        ${angleChart}</div>
+      <div class="chart"><h3>路面左中右的撿穗率</h3>
+        <div class="cnote">稻穗分佈＝動作處方；哪一側漏得多，代表往該方向的動作較弱</div>
+        ${laneChart}</div>
+    </div>
+    ${trend}
+    <div class="rep-note"><b>臨床判讀</b><br>${notes.join('<br>')}</div>
+    <div class="rep-ref">臨床說帖參考：Choi, Y.-H., &amp; Paik, N.-J. (2018). Mobile game-based virtual reality program for upper extremity stroke rehabilitation. <i>Journal of Visualized Experiments</i>, (133), e56241. ／ Amorim, P., Santos, B. S., Dias, P., Silva, S., &amp; Martins, H. (2020). Serious games for stroke telerehabilitation of upper limb — A review for future research. <i>International Journal of Telerehabilitation</i>, 12(2), 65–76.</div>`;
+}
+
+/* ==================================================================
+   十五、UI 綁定
+   ================================================================== */
+function segBind(id,key,cast){
+  $(id).onclick=e=>{
+    const b=e.target.closest('button'); if(!b) return;
+    const v=b.dataset[key]; if(v===undefined) return;
+    [...e.currentTarget.children].forEach(x=>x.classList.remove('on'));
+    b.classList.add('on'); cfg[key]=cast?cast(v):v; saveCfg();
+  };
+  const cur=String(cfg[key]);
+  [...$(id).children].forEach(b=>b.classList.toggle('on',b.dataset[key]===cur));
+}
+segBind('segRider','rider');            // 騎士＝字串，不轉型
+segBind('segRoute','route',Number);
+segBind('segDur','dur',Number);
+segBind('segAssist','assist',Number);
+segBind('segSound','sound',Number);
+segBind('segRivals','rivals',Number);
+
+function sliderBind(rid,vid,key,txt){
+  const r=$(rid), v=$(vid);
+  r.value=cfg[key];
+  const u=()=>{ cfg[key]=+r.value; v.textContent=txt(+r.value); saveCfg(); };
+  r.oninput=u; u();
+}
+sliderBind('rSens','vSens','sens',x=>SENS_TXT[x]);
+sliderBind('rSpeed','vSpeed','speed',x=>SPEED_TXT[x]);
+sliderBind('rDens','vDens','dens',x=>DENS_TXT[x]);
+$('lbSens').textContent='（數字越大＝要用掉越多活動範圍才轉得動，逼大動作）';
+
+(function initScene(){
+  const sel=$('selScene');
+  for(const k in SCENES){
+    const o=document.createElement('option');
+    o.value=k; o.textContent=SCENES[k].name; o.disabled=!SCENES[k].enabled;
+    sel.appendChild(o);
+  }
+  if(!SCENES[cfg.scene]||!SCENES[cfg.scene].enabled) cfg.scene='rice';
+  sel.value=cfg.scene;
+  sel.onchange=()=>{ cfg.scene=sel.value; saveCfg(); };
+})();
+
+function updateModeBox(){
+  const land=axisMode==='land';
+  $('modeBox').innerHTML = demoMode
+    ? '🎮 <b>展示模式</b>：用鍵盤 <b>←</b> <b>→</b> 控制方向，不需要感測器。適合投影展示與開發驗證。'
+    : (land
+      ? '📱 目前偵測到<b>橫式螢幕 → A 模式（雙手握桿）</b>：手機夾在自拍桿上、雙手互握，用整條上肢帶動左右傾。訓練雙側整合與肩前屈耐力。'
+      : '📱 目前偵測到<b>直式螢幕 → B 模式（單手持機）</b>：單手握手機，用前臂旋前／旋後轉動。訓練遠端動作控制。');
+  $('demoTag').classList.toggle('hidden',!demoMode);
+  $('btnStart').textContent = demoMode ? '開始（鍵盤展示模式）' : '啟用感測器並開始';
+  $('btnDemoMode').classList.toggle('hidden',demoMode);
+}
+
+/* ---- 感測器啟用（iOS 需使用者手勢） ---- */
+async function enableSensor(){
+  if(demoMode) return true;
+  if(!window.isSecureContext){
+    showSensorWarn('這個網址不是 HTTPS（或 localhost），瀏覽器不會提供動作感測器。請改用 https:// 或 localhost 開啟；也可以先用鍵盤展示模式試玩。');
+    return false;
+  }
+  if(typeof DeviceOrientationEvent==='undefined'){
+    showSensorWarn('這台裝置／瀏覽器沒有動作感測器（桌機通常沒有）。可以改用鍵盤展示模式，或換用手機開啟。');
+    return false;
+  }
+  try{
+    if(typeof DeviceOrientationEvent.requestPermission==='function'){
+      const res=await DeviceOrientationEvent.requestPermission();     // iOS：必須由使用者手勢觸發
+      if(res!=='granted'){
+        showSensorWarn('iOS 沒有授權動作感測器。請到 Safari 設定 →「動作與方向存取權」開啟後重新整理，或先用鍵盤展示模式。');
+        return false;
+      }
+    }
+  }catch(e){
+    showSensorWarn('要求感測器權限失敗：'+e.message+'。請確認是用 HTTPS 開啟，或先用鍵盤展示模式。');
+    return false;
+  }
+  window.addEventListener('deviceorientation',onOrient,true);
+  const t0=performance.now();
+  await new Promise(r=>setTimeout(r,1300));                            // 等第一筆資料
+  if(!haveSensor||performance.now()-lastSensorT>1500){
+    showSensorWarn('已取得權限，但 1.3 秒內收不到任何傾斜資料（桌機或模擬器常見）。可以先用鍵盤展示模式試玩。');
+    return false;
+  }
+  $('sensorWarn').classList.add('hidden');
+  return true;
+}
+function showSensorWarn(msg){
+  const w=$('sensorWarn');
+  w.innerHTML='⚠️ '+msg;
+  w.classList.remove('hidden');
+}
+
+$('btnStart').onclick=async()=>{
+  ensureAudio();
+  if(AE&&AE.ac.state==='suspended') AE.ac.resume();   // iOS：一定要在這個點擊事件裡 resume
+  $('btnStart').disabled=true; const old=$('btnStart').textContent; $('btnStart').textContent='啟用中…';
+  const ok=await enableSensor();
+  $('btnStart').disabled=false; $('btnStart').textContent=old;
+  if(!ok&&!demoMode) return;
+  axisMode=detectAxis(); updateModeBox();
+  enterCalib();
+};
+$('btnDemoMode').onclick=()=>{ demoMode=true; updateModeBox(); $('sensorWarn').classList.add('hidden'); };
+$('btnCalibNext').onclick=()=>{
+  if(CAL.state==='idle'){
+    ensureAudio(); if(AE&&AE.ac.state==='suspended') AE.ac.resume();
+    setCalibState('neutral','① 手機擺好，放鬆','把手機拿到你平常最舒服的位置，保持不動 3 秒，系統會記下中立點。');
+  }else if(CAL.state==='done'){ beginCountdown(); }
+};
+$('btnCalibSkip').onclick=skipCalib;
+$('btnCalibBack').onclick=goSetup;
+$('btnHome').onclick=goSetup;
+$('btnEndHome').onclick=goSetup;
+$('btnRepHome').onclick=goSetup;
+$('btnReorientHome').onclick=goSetup;
+// 一鍵快速重校：直接跳進第一步，不用再按一次「開始校正」
+$('btnReorientCalib').onclick=()=>{
+  axisMode=detectAxis(); updateModeBox(); enterCalib();
+  ensureAudio(); if(AE&&AE.ac.state==='suspended') AE.ac.resume();
+  setCalibState('neutral','① 手機擺好，放鬆','用新的握法把手機拿到最舒服的位置，保持不動 3 秒。');
+};
+$('btnReorientSkip').onclick=()=>{ enterCalib(); skipCalib(); };
+$('btnEnd').onclick=()=>{ if(phase==='play'||phase==='count') endGame(); };
+$('btnReport').onclick=()=>{ renderReport(); show('report'); };
+$('btnAgain').onclick=beginCountdown;
+$('btnAgain2').onclick=beginCountdown;
+$('btnPrint').onclick=()=>window.print();
+$('btnMute').onclick=()=>{ muted=!muted; if(AE)AE.setMuted(muted); $('btnMute').textContent=muted?'🔇':'🔊';
+  if(muted) showBgmTitle(null); };
+
+/* ==================================================================
+   十六、啟動
+   ================================================================== */
+(async function init(){
+  axisMode=detectAxis(); updateModeBox();
+  resize();
+  const raw={};
+  await Promise.all(Object.keys(SRC).map(async k=>{ raw[k]=await loadImg(SRC[k]); }));
+  const sp={};
+  for(const k of ['tree','pole','hay'])
+    sp[k]= raw[k] ? shrink(keyOutGreen(raw[k],KEY[k]),560) : null;
+  // 田頭終點的老榕樹＋阿爸：比路邊景物大很多（終點是「量體感」的視覺焦點），去背後給更高解析度。
+  sp.treeBig = raw.treeBig ? shrink(keyOutGreen(raw.treeBig,KEY.treeBig),900) : null;
+  sp.father  = raw.father  ? shrink(keyOutGreen(raw.father,KEY.father),480)   : null;
+  // 白鷺鷥：有照片就用照片，沒有就用程式畫的那張（AI 生圖若沒趕上，遊戲照樣完整）
+  sp.egret = raw.egret ? shrink(keyOutGreen(raw.egret,KEY.egret),420) : makeEgretSprite();
+  sp.rice   = makeRiceSprite();
+  sp.basket = makeBasketSprite();
+
+  /* ---- 四款騎士 × 直立／壓車 ----
+     去背後量兩件事：①輪胎接地點 anchor（旋轉樞紐要對準它，不然車會繞著空氣轉）
+                      ②壓車圖自帶的傾角 lean（四款 AI 圖各差好幾度，不能寫死） */
+  const mkBike=(k)=>{ if(!raw[k]) return null;
+    const c=shrink(keyOutGreen(raw[k],KEY[k]),520);
+    c.anchor=bottomAnchor(c); c.lean=spriteLean(c); return c; };
+  const BIKES={};
+  for(const r of RIDERS){
+    const U=mkBike('bk_'+r.id+'_U');
+    let L=mkBike('bk_'+r.id+'_L');
+    // 壓車圖缺席時退回直立圖：drawPlayerBike 仍會整張旋轉，只是少了「重心倒進去」的姿態
+    if(!L&&U){ L=U; }
+    BIKES[r.id]={U,L};
+  }
+  const pick=()=>BIKES[cfg.rider]||BIKES.grandpa;
+
+  /* ---- 庄裡少年家（對手）與路上慢騎的鐵馬 ----
+     ⚠️腳踏車車架是黑的，hueShift 換不了色（見 RIVAL_WEAR 註解）→ 改「換款式＋染衣服」。
+     六個人各自綁定一個騎士款式與一種布色，同一畫面上才分得出誰是誰。 */
+  const rivalBase=RIDERS.map(r=>BIKES[r.id].U).filter(Boolean);
+  /* ⚠️款式配對不能寫成 i % 4：那會讓阿嬤出現兩次，而阿嬤的深藍花布衫亮度太低，
+     tintBright 染不上去（染了會變成一坨看不出顏色的深色）→ 兩位阿嬤長得一模一樣。
+     改成 [阿公,阿嬤,少年,少女,阿公,少年]：重複到的都是白汗衫／白襯衫，染色吃得很好，六個人就都不一樣。 */
+  const RIVAL_BASE_IDX=[0,1,2,3,0,2];
+  const rival = rivalBase.length ? RIVAL_WEAR.map((col,i)=>{
+      const src=rivalBase[RIVAL_BASE_IDX[i]%rivalBase.length];
+      const c=tintBright(shrink(src,300),col,0.80); c.anchor=src.anchor; return c;
+    }) : [null,null,null,null,null,null];
+  /* 路上慢騎、會擋路撞得到的鐵馬。
+     ⚠️這一款不能只是「換個顏色的阿公」：玩家自己也可以選阿公，六個對手裡也有阿公，
+       三者長得一樣的話，個案根本分不出「哪一台撞得到」。
+     解法＝把稻草堆的素材疊到後貨架上，做成「載一大捆稻草的鐵馬」——
+       剪影一眼就比別人胖一圈，而且完全符合 1960 年代田間的畫面。 */
+  const npcBase=BIKES.grandpa.U||rivalBase[0]||null;
+  const npc = npcBase ? [[214,202,176],[164,150,120],[128,120,104]].map(col=>{
+      const t=tintBright(shrink(npcBase,300),col,0.55);
+      t.anchor=npcBase.anchor; return loadHay(t,sp.hay);
+    }) : [null,null,null];
+
+  // 柏油照片 → 碎石土路（見 makeDirtRoad）
+  roadMips = raw.road ? buildMips(makeTileable(makeDirtRoad(raw.road),512),5) : null;
+  ROAD_AVG = roadMips ? rgb(avgColor(roadMips[roadMips.length-1])) : '#9a7d52';
+
+  const S=SCENE_ACTIVE();
+  const base = raw.bg ? samplePalette(raw.bg) : {far:[190,170,80],near:[120,140,60],haze:[200,190,120]};
+  PAL = { far: mix(base.far,S.ground.far,S.ground.blend),      // 老闆拍板：整體金黃調對齊照片稻田色
+          near: mix(base.near,S.ground.near,S.ground.blend),
+          // 霧色要落在「照片地平線色」與「繪製遠景色」之間，否則地平線會出現一條比兩邊都暗的帶子
+          haze: mix(base.haze, mix(base.far,S.ground.far,S.ground.blend), 0.45) };
+  rowPat = makeRowPattern(ctx,S.rowColor);
+  ASSET = { bg:raw.bg, sp, npc, rival, bikes:BIKES,
+            get bikeU(){ return pick().U; }, get bikeL(){ return pick().L; } };
+  const updBikeK=()=>{
+    const w=cv.clientWidth, h=cv.clientHeight;
+    BIKE_H=Math.min(h*0.46,w*0.62);          // 用短邊夾住，橫式不會頂到天、直式也不會變螞蟻
+    BIKE_HK=BIKE_H/0.97;
+  };
+  updBikeK(); addEventListener('resize',()=>setTimeout(updBikeK,60));
+
+  paintRiderCards(BIKES);
+  $('loading').classList.add('hidden');
+  requestAnimationFrame(loop);
+})();
+
+/** 把去背後的直立圖畫進設定頁的四張騎士卡（大圖大字，長者一眼可選） */
+function paintRiderCards(BIKES){
+  for(const cvs of document.querySelectorAll('#segRider canvas')){
+    const sprite=(BIKES[cvs.dataset.rc]||{}).U;
+    const g=cvs.getContext('2d');
+    g.clearRect(0,0,cvs.width,cvs.height);
+    if(!sprite){ continue; }
+    const k=Math.min(cvs.width/sprite.width,cvs.height/sprite.height)*0.96;
+    const w=sprite.width*k, h=sprite.height*k;
+    g.drawImage(sprite,(cvs.width-w)/2,cvs.height-h,w,h);
+  }
+}
+</script>
+</body>
+</html>
