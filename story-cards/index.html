@@ -279,6 +279,7 @@ function buildFan(animate=true){
 function pickCard(el){
   const card = poolNow()[Math.floor(Math.random()*poolNow().length)];
   drawnSet.add(CARDS.indexOf(card));
+  const pre = new Image(); pre.src = cardImg(card);   // 點擊瞬間就開始載圖，蓋掉飛出動畫的時間
   sfxFlip();
   // 選中的卡飛起，其他滑走
   fanArea.querySelectorAll('.fancard').forEach(e=>{
@@ -326,9 +327,15 @@ function reveal(card){
   document.getElementById('stage').classList.remove('hidden');
   document.getElementById('actions').classList.remove('hidden');
   // 翻牌（同步 flush 起始狀態後啟動 transition，避免 rAF 被節流）
-  void wrap.offsetHeight;
-  wrap.style.transition=''; wrap.classList.remove('showback');
-  sfxFlip(); if(isStar) setTimeout(sfxGold, 380);
+  // 等圖片載好才翻（上限 450ms），杜絕翻開瞬間圖片才浮現的延遲感
+  const startFlip = () => {
+    if (startFlip.done) return; startFlip.done = true;
+    void wrap.offsetHeight;
+    wrap.style.transition=''; wrap.classList.remove('showback');
+    sfxFlip(); if(isStar) setTimeout(sfxGold, 380);
+  };
+  if (imgEl.complete && imgEl.naturalWidth > 0) startFlip();
+  else { imgEl.addEventListener('load', startFlip, { once:true }); setTimeout(startFlip, 450); }
   drawn++;
   const cnt = document.getElementById('counter');
   cnt.classList.remove('hidden');
@@ -346,6 +353,14 @@ function backToFan(){
 }
 
 buildFan(false);
+
+// 開頁後趁閒置預載全部卡圖（整包約 3.7MB），之後抽卡零等待
+window.addEventListener('load', () => {
+  setTimeout(() => {
+    CARDS.forEach(c => { const i = new Image(); i.src = cardImg(c); });
+    Object.keys(SUITS).forEach(s => { const i = new Image(); i.src = `suits/suit${SUITS[s].si}.jpg`; });
+  }, 800);
+});
 </script>
 </body>
 </html>
