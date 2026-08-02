@@ -320,11 +320,12 @@
       <div class="card">
         <h1>騎鐵馬，送便當</h1>
         <img class="story-pic" src="assets/bg_valley.jpg" alt="花東縱谷的稻田">
+        <!-- ⚠️故事在「選騎士」之前出現，送便當的對象依騎士而不同（阿公↔阿嬤、少年少女→阿爸），這裡不能寫死是誰 -->
         <div class="story-text">
           🌾 民國五十年，花東縱谷。<br>
-          日頭赤炎炎，<b>阿爸</b>透早就落田做穡。<br>
-          中晝到了，阿母把燒燒的便當綁上鐵馬後座：<br>
-          「<b>緊騎去田頭給恁阿爸，趁飯還燒的！</b>」<br>
+          日頭赤炎炎，<b>厝裡的人</b>透早就落田做穡。<br>
+          中晝到了，燒燒的便當款好、綁上鐵馬後座——<br>
+          「<b>緊騎去田頭，趁飯還燒的！</b>」<br>
           沿路撿稻穗、閃竹簍，天黑前送到田頭大樹下！
         </div>
         <button class="start" id="btnStoryGo">🍱 出發，去送便當！</button>
@@ -455,8 +456,8 @@
     <div id="ending" class="overlay hidden">
       <div class="card">
         <h1>🍱 便當送到了！</h1>
-        <img class="ending-pic" src="assets/ending_handover.jpg" alt="阿爸在田頭大樹下接過便當">
-        <div class="ending-text">阿爸放下鋤頭，笑呵呵接過還燒燒的便當：<br>「<b>辛苦啦！緊來樹腳歇睏，做伙呷飯！</b>」</div>
+        <img class="ending-pic" id="endingPic" src="assets/ending_boy.jpg" alt="在田頭大樹下把便當交到家人手上">
+        <div class="ending-text" id="endingText">阿公放下鋤頭，笑呵呵接過還燒燒的便當：<br>「<b>辛苦啦！緊來樹腳歇睏，做伙呷飯！</b>」</div>
         <button class="start go" id="btnEndingNext">看這趟的成績 →</button>
       </div>
     </div>
@@ -3269,8 +3270,23 @@ function skipCalib(){
 }
 
 /* ---- 開局 ---- */
+/* ---- 四款騎士各自的結局（老闆指定：阿公送的對象是阿嬤）----
+   阿公↔阿嬤＝老夫妻互送、少年/少女＝送給阿爸。
+   圖在倒數開始就掛上 src：90 秒騎完時圖早就進快取，結局頁不會白一塊再慢慢浮出來。 */
+const ENDINGS={
+  grandpa:{ img:'assets/ending_grandpa.jpg',
+    txt:'佇田裡做穡的阿嬤，笑著雙手接過還燒燒的便當：<br>「<b>老伴仔，辛苦啦！緊來樹腳，做伙呷飯！</b>」' },
+  grandma:{ img:'assets/ending_grandma.jpg',
+    txt:'樹腳歇睏的阿公，笑呵呵接過還燒燒的便當：<br>「<b>老伴仔，恁款的飯上好呷！緊來歇睏！</b>」' },
+  boy:{ img:'assets/ending_boy.jpg',
+    txt:'阿公放下鋤頭，笑呵呵接過還燒燒的便當：<br>「<b>阿孫仔，辛苦啦！緊來樹腳歇睏，做伙呷飯！</b>」' },
+  girl:{ img:'assets/ending_girl.jpg',
+    txt:'阿公放下鋤頭，慈愛地笑著接過便當：<br>「<b>阿妹仔上乖！緊來樹腳歇睏，做伙呷飯！</b>」' }
+};
 function beginCountdown(){
   newGame();
+  const ed=ENDINGS[cfg.rider]||ENDINGS.boy;
+  $('endingPic').src=ed.img; $('endingText').innerHTML=ed.txt;
   phase='count'; countT=0; lastBeep=-1;
   show(null); keepAwake(true);
   if(AE&&cfg.sound){ AE.start(); AE.rideStart(); AE.setMuted(muted); }
