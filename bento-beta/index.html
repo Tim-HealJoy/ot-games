@@ -174,6 +174,13 @@
   .story-text b{color:var(--accent);}
   @media (max-height:520px){ .story-pic{max-height:24vh;margin:8px 0 10px;}
     .story-text{font-size:14.5px;line-height:1.8;} }
+  /* 結局頁：便當交到阿爸手上（只有真的騎到終點才看得到，給一個「事情做完了」的圓滿感） */
+  .ending-pic{width:100%;max-height:46vh;object-fit:cover;border-radius:14px;display:block;
+    margin:2px 0 14px;border:1px solid var(--line);}
+  .ending-text{font-size:18.5px;line-height:1.95;margin-bottom:12px;text-align:center;}
+  .ending-text b{color:var(--accent);}
+  @media (max-height:520px){ .ending-pic{max-height:30vh;margin-bottom:9px;}
+    .ending-text{font-size:14.5px;line-height:1.75;} }
   /* 「調整難度」摺疊鈕：預設收起，介紹頁只剩選騎士＋出發 */
   .advtoggle{width:100%;background:var(--panel2);color:var(--sub);border:1.5px dashed var(--line);
     border-radius:12px;padding:12px;font-size:15.5px;font-weight:700;cursor:pointer;margin-bottom:15px;}
@@ -271,7 +278,7 @@
 
   @media print{
     body{background:#fff !important;overflow:visible !important;}
-    #cv,#hud,#hudBtns,#feverTag,#bgmTag,#rankBox,#setup,#calib,#end,#reorient,#loading,#confetti{display:none !important;}
+    #cv,#hud,#hudBtns,#feverTag,#bgmTag,#rankBox,#story,#setup,#calib,#ending,#end,#reorient,#loading,#confetti{display:none !important;}
     #report.overlay{position:static !important;background:none !important;padding:0 !important;display:block !important;}
     #report .card{background:#fff !important;border:none !important;box-shadow:none !important;color:#111 !important;
       width:100% !important;max-width:100% !important;max-height:none !important;overflow:visible !important;padding:0 !important;}
@@ -441,6 +448,16 @@
           <button class="hud-btn" id="btnReorientHome">⚙ 回設定</button>
         </div>
         <div class="note">「快速重新校正」＝一鍵直接開始，三步驟走完就回到遊戲。</div>
+      </div>
+    </div>
+
+    <!-- ===== 結局：便當交到阿爸手上（完賽限定；沒騎完直接進結算） ===== -->
+    <div id="ending" class="overlay hidden">
+      <div class="card">
+        <h1>🍱 便當送到了！</h1>
+        <img class="ending-pic" src="assets/ending_handover.jpg" alt="阿爸在田頭大樹下接過便當">
+        <div class="ending-text">阿爸放下鋤頭，笑呵呵接過還燒燒的便當：<br>「<b>辛苦啦！緊來樹腳歇睏，做伙呷飯！</b>」</div>
+        <button class="start go" id="btnEndingNext">看這趟的成績 →</button>
       </div>
     </div>
 
@@ -2461,7 +2478,7 @@ function doCrash(src){
    ================================================================== */
 // camLat＝鏡頭橫移（px 單位，與 halfW 同尺度）：衝出跑道時鏡頭跟著移，
 // 車才不會直接跑到畫面外（近處路面幾乎佔滿整個畫面寬）。
-const halfWAt=(t,W)=>t*W*0.50;   // 0.46→0.50（老闆：路要寬一點長者才好操控）：路面在車位處約佔畫面 97% 寬
+const halfWAt=(t,W)=>t*W*0.54;   // 0.46→0.50→0.54（老闆兩次追加「再寬一點」）：路面在車位處已比畫面略寬，車道間距同步放大
 const dzOf = t => Z0*(1-t)/Math.max(t,1e-4);              // tOf 的反函數
 
 /* ---- v3.2 前瞻投影：讓「遠方的彎看得出來要拐」----
@@ -3145,7 +3162,7 @@ function updateHUD(){
 /* ==================================================================
    十三、畫面切換
    ================================================================== */
-const scr={ story:$('story'), setup:$('setup'), calib:$('calib'), end:$('end'), report:$('report'), reorient:$('reorient') };
+const scr={ story:$('story'), setup:$('setup'), calib:$('calib'), ending:$('ending'), end:$('end'), report:$('report'), reorient:$('reorient') };
 function show(name){
   for(const k in scr) scr[k].classList.toggle('hidden',k!==name);
   const playing = (name===null);
@@ -3298,7 +3315,8 @@ function endGame(){
              : `同設定最佳紀錄：${prev.score} 穗（騎了 ${prev.dist} 公尺）。`)
     : '這是這組設定的第一筆紀錄。';
   if(isRec||finished){ celebrate(); if(AE&&cfg.sound){ AE.setMuted(muted); AE.fanfare(); } }
-  show('end');
+  // 完賽先看「便當交到阿爸手上」的結局頁（老闆：要有 ending 的感覺），按一下才進成績；沒騎完直接進結算
+  show(finished?'ending':'end');
 }
 function celebrate(){
   const box=$('confetti'); box.innerHTML=''; box.classList.remove('hidden');
@@ -3520,6 +3538,7 @@ function segBind(id,key,cast){
 }
 // 故事開場頁：看完故事才進設定頁（每次打開網頁都會再看一次，據點帶懷舊剛好當開場白）
 $('btnStoryGo').onclick=()=>{ show('setup'); };
+$('btnEndingNext').onclick=()=>{ show('end'); };
 // 「調整難度」摺疊鈕：治療師的旋鈕全收在裡面，介紹頁平常只剩選騎士＋出發
 $('btnAdv').onclick=()=>{
   const open=$('advBox').classList.toggle('hidden')===false;
