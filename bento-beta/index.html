@@ -181,6 +181,17 @@
   .ending-text b{color:var(--accent);}
   @media (max-height:520px){ .ending-pic{max-height:30vh;margin-bottom:9px;}
     .ending-text{font-size:14.5px;line-height:1.75;} }
+  /* 難度三選一：民眾語言的入口（簡單／普通／困難），一鍵套用下面那組治療師旋鈕 */
+  .diffseg{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;}
+  .diffseg button{background:var(--panel2);color:var(--ink);border:2.5px solid var(--line);
+    border-radius:16px;padding:12px 6px 11px;cursor:pointer;transition:.15s;
+    display:flex;flex-direction:column;align-items:center;gap:3px;}
+  .diffseg button em{font-style:normal;font-size:21px;font-weight:800;letter-spacing:1px;}
+  .diffseg button small{font-size:11.5px;color:var(--sub);font-weight:600;line-height:1.35;}
+  .diffseg button.on{border-color:var(--accent);background:rgba(240,177,58,.17);}
+  .diffseg button.on em{color:var(--accent);}
+  @media (max-height:520px){ .diffseg button{padding:9px 5px;} .diffseg button em{font-size:17px;}
+    .diffseg button small{display:none;} }
   /* 「調整難度」摺疊鈕：預設收起，介紹頁只剩選騎士＋出發 */
   .advtoggle{width:100%;background:var(--panel2);color:var(--sub);border:1.5px dashed var(--line);
     border-radius:12px;padding:12px;font-size:15.5px;font-weight:700;cursor:pointer;margin-bottom:15px;}
@@ -349,7 +360,14 @@
             <button data-rider="girl"><canvas data-rc="girl" width="200" height="200"></canvas><span>少女</span><small>麻花辮·淑女車</small></button>
           </div></div>
 
-        <button class="advtoggle" id="btnAdv">🔧 調整難度（治療師設定）▼</button>
+        <div class="row"><div class="label">今天要騎多難的路？</div>
+          <div class="diffseg" id="segDiff">
+            <button data-diff="1"><em>簡單</em><small>騎很慢·路上空曠<br>60 秒</small></button>
+            <button data-diff="2" class="on"><em>普通</em><small>騎順順的<br>90 秒</small></button>
+            <button data-diff="3"><em>困難</em><small>騎很快·稻穗障礙多<br>90 秒</small></button>
+          </div></div>
+
+        <button class="advtoggle" id="btnAdv">🔧 進階微調（治療師設定）▼</button>
         <div id="advBox" class="hidden">
         <div class="row"><div class="label">今天走哪條路（同一條路可重複比較）</div>
           <div class="seg" id="segRoute">
@@ -398,7 +416,7 @@
             <button data-sound="1" class="on">開</button>
             <button data-sound="0">關</button>
           </div></div>
-        <div class="note" style="margin:0 0 13px;">稻穗位置＝動作處方，四個旋鈕分開調難度。每次打開遊戲，對手固定回到 6 人、音效固定開。</div>
+        <div class="note" style="margin:0 0 13px;">稻穗位置＝動作處方，這幾個旋鈕可在難度之上再個別微調（一動上面的難度就會標成「自訂」）。每次打開遊戲，難度固定回到「普通」、音效固定開。</div>
         </div><!-- /advBox -->
 
         <button class="start" id="btnStart">啟用感測器並開始</button>
@@ -1913,13 +1931,13 @@ function ensureAudio(){
 //   （同一台平板上治療師會兩款交替用，混在一起的話報表趨勢圖會把兩款的資料畫成同一條線）。
 const LS_CFG='bento_cfg', LS_SESS='bento_sessions', LS_BEST='bento_best';
 const cfg = { route:1, dur:90, sens:3, speed:3, dens:3, assist:1, scene:'rice', sound:1, rivals:6,
-              rider:'grandpa', laneWeight:[1,1,1] };
+              rider:'grandpa', diff:2, laneWeight:[1,1,1] };
 try{ const s=JSON.parse(localStorage.getItem(LS_CFG)||'{}'); Object.assign(cfg,s); cfg.laneWeight=[1,1,1]; }catch(e){}
 const RIVAL_OPTS=[0,3,6];
 if(!RIVAL_OPTS.includes(Number(cfg.rivals))) cfg.rivals=6; else cfg.rivals=Number(cfg.rivals);
-// 老闆定的統一預設：對手 6 人＋音效開，「每次打開遊戲」都回到這兩個值（當次改動仍有效，只是不跨場記住）。
-// 場地上換一批長輩就是重開一次網頁，上一批的設定不該留下來。
-cfg.rivals=6; cfg.sound=1;
+// 老闆定的統一預設：對手 6 人＋音效開＋難度「普通」，「每次打開遊戲」都回到這幾個值
+// （當次改動仍有效，只是不跨場記住）。場地上換一批長輩就是重開一次網頁，上一批的設定不該留下來。
+cfg.rivals=6; cfg.sound=1; cfg.diff=2;
 if(!RIDERS.some(r=>r.id===cfg.rider)) cfg.rider='grandpa';
 const saveCfg=()=>{ try{ localStorage.setItem(LS_CFG,JSON.stringify(cfg)); }catch(e){} };
 
@@ -1932,6 +1950,27 @@ const SENS_TXT=['','很靈敏 35%','靈敏 50%','中等 66%','鈍 83%','很鈍 1
 const SPEED_V =[0,3.4,4.2,5.0,5.9,6.9];         // odo/s
 const SPEED_TXT=['','慢慢騎','小快','正常','快','很快'];
 const DENS_TXT=['','很疏','疏','中','密','很密'];
+
+/* ---- 難度三選一（老闆 2026-08-04 指示）----
+   民眾只要看得懂「簡單／普通／困難」；底下那組治療師旋鈕仍在，選完難度還能個別微調。
+   ⚠️「困難」＝老闆 08-02 試玩的那組（速度 3／密度 3／靈敏 3／對手 6／90 秒）原封不動，
+     所以困難不會比他玩過的更難；普通與簡單是往下降出來的，給病人用。
+   ⚠️對手人數只在「簡單」降到 3 人（一個人騎太孤單、6 人又一直被超車），
+     普通與困難維持老闆定的 6 人預設。 */
+const DIFFS={
+  1:{ label:'簡單', speed:1, dens:2, sens:2, assist:1, rivals:3, dur:60  },
+  2:{ label:'普通', speed:2, dens:2, sens:3, assist:1, rivals:6, dur:90  },
+  3:{ label:'困難', speed:3, dens:3, sens:3, assist:1, rivals:6, dur:90  }
+};
+
+/* ---- 起步加速（老闆 2026-08-04 指示：不要一開始就跑太快）----
+   前 RAMP_T 秒從 RAMP_V0 倍速平滑爬到滿速（easeOut：一開始慢慢牽、後面才順起來）。
+   ⚠️完賽門檻要跟著補償：起步少跑的里程＝(1-RAMP_V0)*RAMP_T/3 秒的等值距離，
+     不扣掉的話「騎到田頭」會變成不可能任務（FINISH_MULT 只有 1.02 的餘裕）。 */
+const RAMP_T=8.0, RAMP_V0=0.40;
+const RAMP_LOSS=(1-RAMP_V0)*RAMP_T/3;              // ≈1.6 秒的等值里程
+const rampAt=t=>{ if(t>=RAMP_T) return 1; const u=t/RAMP_T; return RAMP_V0+(1-RAMP_V0)*(1-(1-u)*(1-u)); };
+let speedRamp=1;                                   // 當幀的起步加速倍率（對手與離心力共用同一個值）
 const RIDER_NAME=id=>{ const r=RIDERS.find(x=>x.id===id); return r?r.name:'阿公'; };
 
 /* ==================================================================
@@ -2103,7 +2142,8 @@ const FINISH_MULT=1.02, FEVER_MULT=1.25, FEVER_DUR=3.0;
 function newGame(){
   const seedBase=[0,20260729,880517,110711][cfg.route];
   const seed=seedBase ^ (cfg.dur*7919) ^ (cfg.dens*104729);
-  const totalOdo=SPEED_V[cfg.speed]*cfg.dur*FINISH_MULT;
+  // 扣掉起步加速少跑的那段（RAMP_LOSS），完賽難度才跟沒有加速曲線之前一樣
+  const totalOdo=SPEED_V[cfg.speed]*Math.max(8,cfg.dur-RAMP_LOSS)*FINISH_MULT;
   route=buildRoute(seed,totalOdo);
   const built=buildItems(seed,totalOdo,cfg);
   items=built.items; npcs=built.npcs; scen=buildScenery(seed,totalOdo);
@@ -2111,7 +2151,7 @@ function newGame(){
   odo=0; elapsed=0; nowT=0; score=0; crashes=0; coneHits=0; npcHits=0; feverCount=0;
   px=0; pxPrev=0; normPrev=0; coinStreak=0; lastV=0; finished=false; overtakes=0; lastInputT=-9;
   feverUntil=0; crashUntil=0; invulnUntil=0; shake=0; flash=0; floats=[]; sparks=[]; dusts=[];
-  leanVis=0; combo=0; comboT=-9; stageIdx=0; finT=0; dusk=0;
+  leanVis=0; combo=0; comboT=-9; stageIdx=0; finT=0; dusk=0; speedRamp=RAMP_V0;
   pxSteer=0; driftPx=0; camLat=0; driftEnv=0; curveCued=false;
   offroad=false; offExitT=-9; offroadCount=0; offroadSec=0; rumbleT=0;
   if(AE) AE.rustle(false);
@@ -2157,7 +2197,9 @@ function updatePlay(dt){
   nowT += dt;                 // 遊戲時鐘由這裡推進：fever／無敵／減速全靠它，別放到外層迴圈（換呼叫端就會停擺）
   const fever = nowT<feverUntil;
   // --- 速度 ---
-  let v=SPEED_V[cfg.speed];
+  // 起步加速：開局是「牽著走→慢慢騎→順順騎」，前 8 秒才爬到滿速（長者要有時間找到傾斜的手感）
+  speedRamp=rampAt(elapsed);
+  let v=SPEED_V[cfg.speed]*speedRamp;
   if(fever) v*=FEVER_MULT;    // v3：1.6 → 1.25（爽感改由引擎咆哮＋排氣爆聲＋速度線承擔）
   if(nowT<crashUntil) v*=0.42+0.58*(1-(crashUntil-nowT)/1.2);
   // v3.1 草地上車速 ×0.5；回到路面後給 0.5 秒把速度拉回來（瞬間跳回全速會很假、也感覺不到懲罰）
@@ -2210,7 +2252,8 @@ function updatePlay(dt){
   const leanIn = curvNow ? clamp01(norm*Math.sign(curvNow)) : 0;
   // ⚠️車速權重要用「名目車速」不能用當下車速：用當下車速的話，出界減速 → 離心力跟著變小 → 自己被推回路面，
   //   會變成 0.2 秒進出一次的抖動（實測 60 秒出界 13 次卻只滯留 3 秒）。出界的懲罰不該順便幫你解圍。
-  const spdF = SPEED_V[cfg.speed]*(fever?FEVER_MULT:1)/SPEED_V[3];
+  //   （起步加速的 speedRamp 例外：它只跟時間有關、不會被出界回饋影響，起步慢時離心力本來就該小）
+  const spdF = SPEED_V[cfg.speed]*speedRamp*(fever?FEVER_MULT:1)/SPEED_V[3];
   const dTarget = -curvNow*DRIFT_GAIN*(cfg.assist?DRIFT_ASSIST:1)*spdF*(1-DRIFT_GRIP*leanIn)*driftEnv;
   driftPx += (dTarget-driftPx)*Math.min(1,dt*DRIFT_LAG);
   px = clamp(pxSteer+driftPx,-PX_MAX,PX_MAX);
@@ -2282,7 +2325,7 @@ function updatePlay(dt){
       if(!offroad && Math.abs(px-n.lane*LANE_OFF)<0.46) doCrash('npc');
       else if(nowT-lastInputT<2.0){                        // 安全超車＝有感回饋；要有近期轉向輸入才算（防掛機白領）
         overtakes++; score+=20;
-        floats.push({txt:'追過 +20',col:'#8fe0d6',t:0,x:CW/2+n.lane*CW*0.15,y:CH*0.50});
+        floats.push({txt:'追過去了！',col:'#8fe0d6',t:0,x:CW/2+n.lane*CW*0.15,y:CH*0.50});
         if(AE&&cfg.sound){ AE.bell(0.26); AE.whoosh(); }
       }
     }
@@ -2353,7 +2396,8 @@ function stepLean(dt){
    不與玩家碰撞（重疊時半透明），名次＝比較 odo。 */
 function updateRivals(dt){
   if(!rivals.length||!route) return;
-  const base=SPEED_V[cfg.speed];
+  // 對手套用同一條起步加速曲線：不然開局那 8 秒六台會集體衝出去，玩家一起跑就墊底
+  const base=SPEED_V[cfg.speed]*speedRamp;
   for(const r of rivals){
     const gap=r.odo-odo;                                   // >0＝領先玩家
     const band=clamp(-gap*0.018,-0.08,0.08);               // 橡皮筋：領先減速、落後加速，上限 ±8%
@@ -2410,7 +2454,7 @@ function sweepSilently(dt){
     if(!n.done && n.pos-odo<=0.26) n.done=true;
   }
   while(sHead<scen.length && scen[sHead].pos-odo < -1.2) sHead++;
-  for(const r of rivals) r.odo += SPEED_V[cfg.speed]*r.spd*dt*0.6;   // 起跑前對手也在滑行熱車
+  for(const r of rivals) r.odo += SPEED_V[cfg.speed]*r.spd*dt*0.3;   // 起跑前對手也在滑行熱車（配合玩家起步變慢，同步降速免得倒數就被拉開）
 }
 
 function resolveItem(it){
@@ -2429,10 +2473,11 @@ function resolveItem(it){
       comboT=nowT; coinStreak=combo;
       M.collected[it.lane+1]++;
       if(AE&&cfg.sound) AE.coin(combo);              // 音調隨連吃數階梯上升
-      floats.push({txt:'+'+(10*mul),col:'#ffd23e',t:0,x:CW/2+it.lane*CW*0.15,y:carY});
+      // ⚠️老闆 2026-08-04：撿到／閃過／撞到的「＋幾分−幾分」飄字一律不畫，太干擾視線。
+      //   回饋改全部交給聲音（音調階梯）、火花與 HUD 分數牌；分數照算，只是不在畫面上寫出來。
       if(combo%5===0){                               // 每 5 的倍數給 bonus
         score+=10;
-        floats.push({txt:`連撿 ×${combo}  +10`,col:'#7fb84e',t:0,x:CW/2,y:carY-CH*0.09});
+        floats.push({txt:`連撿 ×${combo}`,col:'#7fb84e',t:0,x:CW/2,y:carY-CH*0.09});
         if(AE&&cfg.sound) AE.beep(660+Math.min(8,combo/5)*70,0.20);
       }
     }else{ combo=0; coinStreak=0; }                  // 斷檔歸零
@@ -2442,7 +2487,7 @@ function resolveItem(it){
     if(d<0.30) doCrash('cone');
     else if(d<0.52 && active){                       // 驚險閃避：貼身錯身但沒撞到（同樣要有近期動作才算）
       score+=5;
-      floats.push({txt:'閃過了！+5',col:'#8fe0d6',t:0,x:CW/2+it.lane*CW*0.12,y:carY-CH*0.05});
+      floats.push({txt:'閃過了！',col:'#8fe0d6',t:0,x:CW/2+it.lane*CW*0.12,y:carY-CH*0.05});
       if(AE&&cfg.sound){ AE.whoosh(); AE.beep(1180,0.09); }
     }
   }
@@ -2468,7 +2513,8 @@ function doCrash(src){
     floats.push({txt:'順風斷了',col:'#e8703c',t:0,x:CW/2,y:CH*0.56,big:1});
   }else{
     score=Math.max(0,score-30);                       // v3：扣 30 金幣（10→30），下限 0 不歸負
-    floats.push({txt:'−30',col:'#ff4d3d',t:0,x:CW/2,y:CH*0.56,big:1.5});
+    // 扣分飄字（−30）依老闆 08-04 指示拿掉：撞擊已經有震動＋白閃＋火花＋雞叫聲，
+    // 再壓一個紅色大字在畫面正中央只是干擾，對長者也容易讀成「我做錯了」。
   }
   if(AE&&cfg.sound){ AE.skid(); AE.crash(); }
   for(let i=0;i<22;i++) sparks.push({x:CW/2,y:CH*0.78,vx:(Math.random()-0.5)*820,vy:-300-Math.random()*340,t:0,col:'#ffb066'});
@@ -3123,7 +3169,8 @@ function loop(ts){
   pumpTilt();
   if(phase==='calib') stepCalib(dt);
   if(phase==='count'){ nowT+=dt; countT+=dt; stepLean(dt);
-    lastV=SPEED_V[cfg.speed]*clamp(countT/3.4,0.18,1);
+    // 倒數期間的滑行速度只爬到 RAMP_V0（＝起跑瞬間的速度），才不會「倒數時全速、一開始比賽反而變慢」
+    lastV=SPEED_V[cfg.speed]*RAMP_V0*clamp(countT/3.4,0.35,1);
     odo+=lastV*dt;
     sweepSilently(dt);                     // 倒數期間路已在跑：把掃過的道具靜默消耗掉，開局才不會瞬間爆一堆事件
     if(AE&&cfg.sound) AE.rideSet(0.16+0.20*clamp(countT/3.4,0,1),0.5);   // 牽車滑行、慢慢踩起來
@@ -3369,6 +3416,7 @@ function buildSession(){
   return {
     date:new Date().toISOString(), route:cfg.route, dur:cfg.dur, sens:cfg.sens, speed:cfg.speed,
     dens:cfg.dens, assist:cfg.assist, scene:cfg.scene, mode:axisMode, demo:demoMode, rider:cfg.rider,
+    diff:cfg.diff,                                   // 難度（1 簡單／2 普通／3 困難／0 治療師自訂）
     score, dist:Math.round(odo*M_PER_ODO), crashes, coneHits, npcHits, feverCount,
     finished, overtakes, playTime:Math.round(elapsed),
     // v3／v3.1 新欄位：舊紀錄沒有這些欄，判讀端一律用 != null 守（向下相容）
@@ -3516,6 +3564,7 @@ function renderReport(){
         <span>${s.mode==='land'?'A 橫式雙手':'B 直式單手'}</span>
         <span>騎士 ${RIDER_NAME(s.rider||'grandpa')}</span>
         <span>路線 ${['','田邊路','溪邊路','山腳路'][s.route]||'–'}</span>
+        <span>難度 ${s.diff==null?'–':(DIFFS[s.diff]?DIFFS[s.diff].label:'自訂')}</span>
         <span>時長 ${s.dur}s</span>
         <span>靈敏度 ${SENS_TXT[s.sens]}</span>
         <span>腳程 ${SPEED_TXT[s.speed]}</span>
@@ -3548,6 +3597,7 @@ function segBind(id,key,cast){
     const v=b.dataset[key]; if(v===undefined) return;
     [...e.currentTarget.children].forEach(x=>x.classList.remove('on'));
     b.classList.add('on'); cfg[key]=cast?cast(v):v; saveCfg();
+    if(DIFF_KEYS[key]) markCustom();     // 治療師動了難度旋鈕 → 上面的三選一改標「自訂」
   };
   const cur=String(cfg[key]);
   [...$(id).children].forEach(b=>b.classList.toggle('on',b.dataset[key]===cur));
@@ -3559,7 +3609,7 @@ $('btnEndingNext').onclick=()=>{ show('end'); };
 $('btnAdv').onclick=()=>{
   const open=$('advBox').classList.toggle('hidden')===false;
   $('btnAdv').classList.toggle('on',open);
-  $('btnAdv').textContent = open ? '🔧 收合難度設定 ▲' : '🔧 調整難度（治療師設定）▼';
+  $('btnAdv').textContent = open ? '🔧 收合進階微調 ▲' : '🔧 進階微調（治療師設定）▼';
 };
 segBind('segRider','rider');            // 騎士＝字串，不轉型
 segBind('segRoute','route',Number);
@@ -3568,16 +3618,46 @@ segBind('segAssist','assist',Number);
 segBind('segSound','sound',Number);
 segBind('segRivals','rivals',Number);
 
+const KNOBS={};                          // key → 重新整理該旋鈕 UI 的函式（難度三選一要回頭同步它們）
 function sliderBind(rid,vid,key,txt){
   const r=$(rid), v=$(vid);
   r.value=cfg[key];
   const u=()=>{ cfg[key]=+r.value; v.textContent=txt(+r.value); saveCfg(); };
-  r.oninput=u; u();
+  r.oninput=()=>{ u(); if(DIFF_KEYS[key]) markCustom(); };
+  KNOBS[key]=()=>{ r.value=cfg[key]; v.textContent=txt(+r.value); };
+  u();
 }
 sliderBind('rSens','vSens','sens',x=>SENS_TXT[x]);
 sliderBind('rSpeed','vSpeed','speed',x=>SPEED_TXT[x]);
 sliderBind('rDens','vDens','dens',x=>DENS_TXT[x]);
 $('lbSens').textContent='（數字越大＝要用掉越多活動範圍才轉得動，逼大動作）';
+
+/* ---- 難度三選一 ↔ 治療師旋鈕的雙向同步 ----
+   按難度＝一次套用一整組旋鈕；反過來動任一旋鈕＝難度變「自訂」（三顆都不亮）。
+   ⚠️markCustom 要等 UI 初始化完才生效，否則載入時 sliderBind 的第一次 u() 就會把難度清成自訂。 */
+var DIFF_KEYS={dur:1,assist:1,rivals:1,sens:1,speed:1,dens:1};
+var diffReady=false;
+function markCustom(){ if(!diffReady) return; cfg.diff=0; saveCfg(); syncDiffUI(); }
+function syncDiffUI(){
+  [...$('segDiff').children].forEach(b=>b.classList.toggle('on',Number(b.dataset.diff)===cfg.diff));
+}
+function applyDiff(n){
+  const d=DIFFS[n]; if(!d) return;
+  diffReady=false;                                  // 套用期間不要被自己觸發的 UI 更新反標成「自訂」
+  cfg.diff=n; cfg.speed=d.speed; cfg.dens=d.dens; cfg.sens=d.sens;
+  cfg.assist=d.assist; cfg.rivals=d.rivals; cfg.dur=d.dur;
+  for(const k in KNOBS) KNOBS[k]();                 // 三支 slider 的把手與文字
+  for(const [id,key] of [['segDur','dur'],['segAssist','assist'],['segRivals','rivals']]){
+    const cur=String(cfg[key]);
+    [...$(id).children].forEach(b=>b.classList.toggle('on',b.dataset[key]===cur));
+  }
+  saveCfg(); syncDiffUI(); diffReady=true;
+}
+$('segDiff').onclick=e=>{
+  const b=e.target.closest('button'); if(!b) return;
+  applyDiff(Number(b.dataset.diff));
+};
+applyDiff(cfg.diff||2);                             // 開場即套用（每次載入固定回「普通」）
 
 (function initScene(){
   const sel=$('selScene');
