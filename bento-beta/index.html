@@ -1,8 +1,11 @@
 <!DOCTYPE html>
 <!--
-  騎鐵馬，送便當 · 治療師版
+  騎鐵馬，回家吃飯 · 治療師版
   ─────────────────────────────────────────────────────────────
   由《傾斜賽車》v3.2 分支而來的懷舊化版本（1960 年代花東縱谷）。
+  ⚠️2026-08-08 改版：主題由「送便當去田頭」翻新成「做完穡騎鐵馬回家吃飯」，
+    並移除對手競速（老闆：那個年代不會在路上比賽），壓力來源只剩「趕在天黑前到厝」。
+    localStorage 仍沿用 bento_ 前綴，老闆既有的紀錄不會被清掉。
   ⚠️重機版《傾斜賽車》是另一個獨立檔案，兩者互不影響（localStorage key 也分開＝bento_*）。
 
   控制＝手機傾斜（DeviceOrientation）
@@ -13,8 +16,10 @@
     ・地面＝低頻雙色帶＋透視稻列＋地平線霧化（⚠️絕不可用照片紋理逐掃描線取樣，會 texture shimmering）
     ・碎石土路＝柏油照片程式後製成土黃碎石＋6 階手動 mipmap
     ・sprites＝綠純度軟鍵去背＋trimAlpha 貼地；影子統一右下（光源左上）
-    ・稻穗／竹簍／順風＝全程式繪製（解析度無關）；田頭大樹＋阿爸＝綠幕照片去背貼地
+    ・稻穗／竹簍／順風＝全程式繪製（解析度無關）；終點的厝＋門口的人＋三個里程碑＝綠幕照片去背貼地
   主角＝四款可選騎士（阿公／阿嬤／少年／少女）×直立／壓車，壓車傾角上限 21°（腳踏車不是重機）
+  進度回饋三通道（2026-08-08 新增）：①遠景的厝＋炊煙柱一路變大 ②三個里程碑真的蓋在路上 ③底部路程條
+    ⚠️遠景地標不用真透視放大（真透視前 80% 幾乎不動，長者會覺得「都沒進展」），改用可感知曲線
   ⚠️壓車素材自帶的傾角與方向由 spriteLean() 於載入時實測，不寫死（四張 AI 圖各自略有差異）
   素材：assets/ 全 AI 生成，無版權疑慮。
   ?demo=1 ＝ 免感測器展示模式（鍵盤 ← →）
@@ -27,9 +32,9 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#171310">
-<title>騎鐵馬，送便當 · 治療師版</title>
+<title>騎鐵馬，回家吃飯 · 治療師版</title>
 <!-- 內嵌 favicon：不放的話瀏覽器會去要 /favicon.ico，在 console 留一筆 404（驗收時很礙眼） -->
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ctext y='26' font-size='26'%3E%F0%9F%8D%B1%3C/text%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ctext y='26' font-size='26'%3E%F0%9F%8D%9A%3C/text%3E%3C/svg%3E">
 <style>
   :root{
     /* 懷舊版配色：底色由冷灰藍改成暖褐（土角厝／稻埕的暖調） */
@@ -174,7 +179,7 @@
   .story-text b{color:var(--accent);}
   @media (max-height:520px){ .story-pic{max-height:24vh;margin:8px 0 10px;}
     .story-text{font-size:14.5px;line-height:1.8;} }
-  /* 結局頁：便當交到阿爸手上（只有真的騎到終點才看得到，給一個「事情做完了」的圓滿感） */
+  /* 結局頁：騎到厝、家人端飯出來（只有真的騎到終點才看得到，給一個「事情做完了」的圓滿感） */
   .ending-pic{width:100%;max-height:46vh;object-fit:cover;border-radius:14px;display:block;
     margin:2px 0 14px;border:1px solid var(--line);}
   .ending-text{font-size:18.5px;line-height:1.95;margin-bottom:12px;text-align:center;}
@@ -324,35 +329,35 @@
     <div id="feverTag" class="hidden">下坡順風！</div>
     <!-- 現在播的民謠曲名：懷舊治療的引導鉤子（長輩聽到會有反應，治療師可以順勢聊起來） -->
     <div id="bgmTag" aria-hidden="true"><span class="mk">♪</span><span id="bgmName"></span></div>
-    <div id="rankBox" class="hidden"><div class="k">名次</div><div class="v" id="hRank">第 1 <small>/7</small></div></div>
 
     <!-- ===== 故事開場頁（照山豬民眾版：先給背景故事，一顆鈕就出發） ===== -->
     <div id="story" class="overlay">
       <div class="card">
-        <h1>騎鐵馬，送便當</h1>
+        <h1>騎鐵馬，回家吃飯</h1>
         <img class="story-pic" src="assets/bg_valley.jpg" alt="花東縱谷的稻田">
-        <!-- ⚠️故事在「選騎士」之前出現，送便當的對象依騎士而不同（阿公↔阿嬤、少年少女→阿爸），這裡不能寫死是誰 -->
+        <!-- ⚠️故事在「選騎士」之前出現，家裡等的人依騎士而不同，這裡不能寫死是誰 -->
         <div class="story-text">
           🌾 民國五十年，花東縱谷。<br>
-          日頭赤炎炎，<b>厝裡的人</b>透早就落田做穡。<br>
-          中晝到了，燒燒的便當款好、綁上鐵馬後座——<br>
-          「<b>緊騎去田頭，趁飯還燒的！</b>」<br>
-          沿路撿稻穗、閃竹簍，天黑前送到田頭大樹下！
+          做穡做歸工，日頭已經斜到山邊，<b>腹肚也咕嚕叫了</b>。<br>
+          鋤頭綁上鐵馬後座——<br>
+          「<b>好啦，轉去食飯！</b>」<br>
+          遠遠就看得到厝頂的炊煙，<b>厝裡的人已經在煮飯了</b>。<br>
+          沿路撿稻穗、閃竹簍，趕在天黑前騎到厝！
         </div>
-        <button class="start" id="btnStoryGo">🍱 出發，去送便當！</button>
+        <button class="start" id="btnStoryGo">🚲 出發，騎車回家！</button>
       </div>
     </div>
 
     <!-- ===== 設定頁 ===== -->
     <div id="setup" class="overlay hidden">
       <div class="card">
-        <h1>騎鐵馬，送便當 <span class="pill">治療師版</span><span class="pill demo hidden" id="demoTag">展示模式</span></h1>
+        <h1>騎鐵馬，回家吃飯 <span class="pill">治療師版</span><span class="pill demo hidden" id="demoTag">展示模式</span></h1>
         <div class="lead" id="setupLead">身體往哪邊傾，鐵馬就往哪邊倒。<b>過彎要主動往彎內倒</b>，不然車會被甩出去、騎進田埂裡卡住。</div>
 
         <div class="infobox" id="modeBox">偵測中…</div>
         <div class="warnbox hidden" id="sensorWarn"></div>
 
-        <div class="row rowRider"><div class="label">選騎士（要用誰的鐵馬去送便當？）</div>
+        <div class="row rowRider"><div class="label">選騎士（今天是誰騎鐵馬回家？）</div>
           <div class="riders" id="segRider">
             <button data-rider="grandpa" class="on"><canvas data-rc="grandpa" width="200" height="200"></canvas><span>阿公</span><small>斗笠·白汗衫</small></button>
             <button data-rider="grandma"><canvas data-rc="grandma" width="200" height="200"></canvas><span>阿嬤</span><small>花布衫·菜籃車</small></button>
@@ -362,9 +367,9 @@
 
         <div class="row"><div class="label">今天要騎多難的路？</div>
           <div class="diffseg" id="segDiff">
-            <button data-diff="1"><em>簡單</em><small>騎很慢·路上空曠<br>60 秒</small></button>
-            <button data-diff="2" class="on"><em>普通</em><small>騎順順的<br>90 秒</small></button>
-            <button data-diff="3"><em>困難</em><small>騎很快·稻穗障礙多<br>90 秒</small></button>
+            <button data-diff="1"><em>簡單</em><small>騎很慢·直路不轉彎<br>路上空曠·60 秒</small></button>
+            <button data-diff="2" class="on"><em>普通</em><small>騎順順的·緩彎<br>90 秒</small></button>
+            <button data-diff="3"><em>困難</em><small>騎很快·彎道多<br>稻穗障礙多·90 秒</small></button>
           </div></div>
 
         <button class="advtoggle" id="btnAdv">🔧 進階微調（治療師設定）▼</button>
@@ -395,17 +400,17 @@
           <div class="slider"><input type="range" id="rDens" min="1" max="5" step="1" value="3">
             <div class="val" id="vDens"></div></div></div>
 
+        <div class="row"><div class="label">路上有沒有彎道（彎道＝離心力，要主動往彎內倒才守得住）</div>
+          <div class="seg" id="segCurve">
+            <button data-curve="0">直路</button>
+            <button data-curve="1" class="on">緩彎</button>
+            <button data-curve="2">彎道</button>
+          </div></div>
+
         <div class="row"><div class="label">新手輔助（沒出力時自動扶正＋順著路走）</div>
           <div class="seg" id="segAssist">
             <button data-assist="1" class="on">開（建議）</button>
             <button data-assist="0">關</button>
-          </div></div>
-
-        <div class="row"><div class="label">庄裡少年家一起送飯（比名次，建議 <b>6 人</b>）</div>
-          <div class="seg" id="segRivals">
-            <button data-rivals="0">關</button>
-            <button data-rivals="3">3 人</button>
-            <button data-rivals="6" class="on">6 人</button>
           </div></div>
 
         <div class="row"><div class="label">田野風景</div>
@@ -431,6 +436,14 @@
       <div class="card">
         <h1>動作校正 <span class="pill" id="calibModeTag">—</span></h1>
         <div class="lead">校正會記錄「中立點」與「左右各自的最大舒適角度」，之後路上的左右兩邊就對應到個案自己的活動範圍。</div>
+
+        <!-- 直式單手＝練前臂旋前／旋後，臨床上多半只練患側；不記錄手別的話，報表趨勢會把左右手混成一條線 -->
+        <div class="row" id="rowHand"><div class="label">這趟用哪隻手拿手機？</div>
+          <div class="seg" id="segHand">
+            <button data-hand="R">右手</button>
+            <button data-hand="L">左手</button>
+            <button data-hand="" class="on">沒特別記</button>
+          </div></div>
 
         <div class="tiltwrap">
           <div class="tb-track"><div class="tb-fill" id="tbFill"></div><div class="tb-mid"></div></div>
@@ -470,12 +483,12 @@
       </div>
     </div>
 
-    <!-- ===== 結局：便當交到阿爸手上（完賽限定；沒騎完直接進結算） ===== -->
+    <!-- ===== 結局：騎到厝、家人端飯出來（完賽限定；沒騎完直接進結算） ===== -->
     <div id="ending" class="overlay hidden">
       <div class="card">
-        <h1>🍱 便當送到了！</h1>
-        <img class="ending-pic" id="endingPic" src="assets/ending_boy.jpg" alt="在田頭大樹下把便當交到家人手上">
-        <div class="ending-text" id="endingText">阿公放下鋤頭，笑呵呵接過還燒燒的便當：<br>「<b>辛苦啦！緊來樹腳歇睏，做伙呷飯！</b>」</div>
+        <h1>🍚 到厝了！</h1>
+        <img class="ending-pic" id="endingPic" src="assets/ending_home_boy.jpg" alt="騎到厝門口，家人端著熱飯出來迎接">
+        <div class="ending-text" id="endingText">阿公站在門口，端出還燒燒的飯菜：<br>「<b>轉來啦！緊來洗手，趁燒食！</b>」</div>
         <button class="start go" id="btnEndingNext">看這趟的成績 →</button>
       </div>
     </div>
@@ -485,7 +498,7 @@
       <div class="card">
         <h1>這趟結束了</h1>
         <div class="lead" id="endLead">辛苦了！以下是這趟的成績。</div>
-        <div id="finBanner" class="hidden">🍱 便當送到了！</div>
+        <div id="finBanner" class="hidden">🍚 騎到厝了！</div>
         <div id="recBanner" class="hidden">🏆 破紀錄！這是目前最好的一次</div>
         <div class="end-grid">
           <div class="cell"><div class="k">稻穗</div><div class="v" id="eScore">0</div></div>
@@ -493,7 +506,6 @@
           <div class="cell"><div class="k">撿穗率</div><div class="v" id="eRate">–</div></div>
           <div class="cell"><div class="k">撞到</div><div class="v" id="eCrash">0</div></div>
           <div class="cell"><div class="k">騎進田埂</div><div class="v" id="eOff">0</div></div>
-          <div class="cell hidden" id="eRankCell"><div class="k">最後名次</div><div class="v" id="eRank">–</div></div>
         </div>
         <div class="note" id="eBest"></div>
         <button class="start go" id="btnReport">查看復能報表</button>
@@ -526,7 +538,7 @@
 <script>
 /*!
  * tw_folk_bgm.js — 台灣民謠 WebAudio 合成器樂 BGM 模組
- * 《騎鐵馬，送便當》專用；單檔、零外部相依、零音檔（音符全部由程式合成）。
+ * 《騎鐵馬，回家吃飯》專用；單檔、零外部相依、零音檔（音符全部由程式合成）。
  *
  * 版權說明
  * --------
@@ -659,7 +671,7 @@
       title: '雨夜花',
       composer: '鄧雨賢',
       year: 1934,
-      note: '三拍子抒情調，速度最慢，適合當「田頭休息／完賽」段落。',
+      note: '三拍子抒情調，速度最慢，適合當「到厝歇睏／完賽」段落。',
       rights: '鄧雨賢 1934 年作曲，著作財產權已消滅、旋律進入公有領域；本曲為程式合成之純器樂編曲，不含歌詞與人聲。',
       source: 'verified',
       bpm: 78,
@@ -1219,7 +1231,13 @@ const SRC = {
   bg:'assets/bg_valley.jpg', road:'assets/road_asphalt.jpg',
   tree:'assets/tree_banana.jpg', pole:'assets/pole_wood.jpg', hay:'assets/haybale_straw.jpg',
   egret:'assets/egret_white.jpg',
-  treeBig:'assets/tree_big.jpg', father:'assets/father_wave.jpg'
+  father:'assets/father_wave.jpg',                 // ⚠️終點改成厝之後 tree_big 已無人引用，不再載入（省 210KB 手機流量）
+  // 2026-08-08 回家版：終點的厝＋三個里程碑
+  house:'assets/house_home.jpg', bridge:'assets/bridge_rail.jpg',
+  shrine:'assets/shrine_tudi.jpg', barn:'assets/barn_rice.jpg',
+  // 路上偶爾遇到的鄉下元素（老闆 08-08 加）
+  postman:'assets/postman_bike.jpg', police:'assets/police_bike.jpg',
+  farmhouse:'assets/farmhouse.jpg'
 };
 for(const r of RIDERS){
   SRC['bk_'+r.id+'_U']='assets/bike_'+r.id+'_upright.jpg';
@@ -1231,7 +1249,11 @@ for(const r of RIDERS){
 const KEY_STD  = {grHi:70,grLo:26,gHi:130,gLo:90};      // 一般物件（背景是純綠、主體無綠）
 const KEY_LEAF = {grHi:125,grLo:75,gHi:200,gLo:150};    // 有綠葉的主體
 const KEY = { tree:KEY_LEAF, pole:KEY_STD, hay:KEY_STD, egret:KEY_STD,
-              treeBig:KEY_LEAF, father:KEY_STD };
+              father:KEY_STD,
+              house:KEY_STD, bridge:KEY_STD, shrine:KEY_STD, barn:KEY_STD,
+              // ⚠️郵差的制服是墨綠：生圖時已指定「暗到接近墨黑的墨綠」，亮度落在 KEY_STD 的門檻之下，
+              //   不會被當成綠幕吃掉。若日後換圖換成鮮綠制服，這一張要改用更嚴的門檻。
+              postman:KEY_STD, police:KEY_STD, farmhouse:KEY_STD };
 for(const r of RIDERS){ KEY['bk_'+r.id+'_U']=KEY_STD; KEY['bk_'+r.id+'_L']=KEY_STD; }
 const clamp01 = v => v<0?0:v>1?1:v;
 const clamp = (v,a,b) => v<a?a:v>b?b:v;
@@ -1539,12 +1561,21 @@ const CURVE_AMP=[0.32,1.00,0.62];
 //   老闆試玩「多次來不及轉彎」的主因之一就在這裡。
 const RAMP_IN=[0.16,0.46,0.78], RAMP_OUT=[0.72,0.38,0.14];
 const CURVE_PEAK_MAX=0.86;      // 峰值上限（v3.1 是 0.92；遠處放大後太滿會把地平線的路推出畫面）
-function buildRoute(seed,totalOdo){
+/* curveMul＝彎道強度倍率（老闆 2026-08-08 指示）：
+     簡單 0（完全直路，離心力歸零，只練左右移動去撿稻穗）
+     普通 0.55（有彎但緩）
+     困難 1.00（原本那組）
+   ⚠️curveMul=0 時整條 k 全是 0 → 彎道 chevron 板牆也不會出現（ac<CHEV_MIN 直接 continue），
+     畫面連帶乾淨一大截，這正是簡單版要的。 */
+function buildRoute(seed,totalOdo,curveMul){
+  const cm = curveMul==null?1:curveMul;
   const rnd=mulberry32(seed), n=Math.ceil(totalOdo/SEG)+8, k=new Array(n).fill(0);
+  if(cm<=0) { /* 直路：k 全 0，下面的區塊生成整段跳過 */ }
   // 區塊式生成：直路 → 進彎 ramp → 滿曲率 hold → 出彎 ramp → 直路 …
   let i=2, lastDir=0;
   while(i<n-2){
-    const st=stageOf(i*SEG/totalOdo), amp=CURVE_AMP[st];
+    if(cm<=0) break;
+    const st=stageOf(i*SEG/totalOdo), amp=CURVE_AMP[st]*cm;
     i += (st===1?1:2) + Math.floor(rnd()*(st===1?2:3));       // 直路長度（連續彎段短一點）
     if(i>=n-2) break;
     let dir = rnd()<0.5?-1:1;
@@ -1621,15 +1652,29 @@ function buildItems(seed,totalOdo,cfg){
   npcs.sort((a,b)=>a.pos-b.pos);
   return {items,npcs};
 }
+/* 路旁景物離路面多遠（halfW 單位）：[起點, 隨機範圍]
+   白鷺鷥站在稻田裡（離路更遠），不會像電線桿一樣貼著路邊排排站；
+   農舍是房子，要退得更遠才不會擋住路；郵差／警察是路上遇到的人，貼著路肩才自然。 */
+const SCEN_OFF={ egret:[2.35,1.9], farmhouse:[2.70,1.30], postman:[1.12,0.42], police:[1.12,0.42] };
+/* 鄉下路上偶爾會遇到的人與房子（老闆 2026-08-08 加）。
+   ⚠️不能丟進 props 隨機池：這條路的景物密度約 245 個，池子裡放一份就會冒出十幾個郵差，
+     「偶爾遇到一個」的驚喜感直接變成雜訊（白鷺鷥當初只放 12 分之 1 就是同一個道理）。
+     改成固定張數、沿路平均散開＋抖動。 */
+const SCEN_RARE=[ {kind:'postman',n:2}, {kind:'police',n:2}, {kind:'farmhouse',n:4} ];
 function buildScenery(seed,totalOdo){
   const rnd=mulberry32(seed^0x5bf03635), list=[], kinds=SCENES.rice.props;
+  const put=(pos,kind)=>{
+    const o=SCEN_OFF[kind]||[1.25,1.15];
+    list.push({ pos, kind, side:rnd()<0.5?-1:1, off:o[0]+rnd()*o[1],
+                sc:0.82+rnd()*0.5, flip:rnd()<0.5 });
+  };
   // 間距拉開＋50% 鏡像：同一張 sprite 排排站的重複感就散掉了
-  for(let pos=3;pos<totalOdo+16;pos+=1.05+rnd()*1.0){
-    const kind=kinds[Math.floor(rnd()*kinds.length)];
-    // 白鷺鷥站在稻田裡（離路更遠），不會像電線桿一樣貼著路邊排排站
-    const off = kind==='egret' ? 2.35+rnd()*1.9 : 1.25+rnd()*1.15;
-    list.push({ pos, kind, side:rnd()<0.5?-1:1, off, sc:0.82+rnd()*0.5, flip:rnd()<0.5 });
-  }
+  for(let pos=3;pos<totalOdo+16;pos+=1.05+rnd()*1.0) put(pos,kinds[Math.floor(rnd()*kinds.length)]);
+  for(const r of SCEN_RARE)
+    for(let i=0;i<r.n;i++) put(totalOdo*(0.07+0.84*(i+0.15+rnd()*0.7)/r.n), r.kind);
+  // ⚠️稀有元素是後面補進來的，pos 不照順序 → 一定要重排，
+  //   繪製迴圈的 sHead 指標與 dz>DRAW_DZ 提前 break 都吃「已排序」這個前提。
+  list.sort((a,b)=>a.pos-b.pos);
   return list;
 }
 
@@ -1899,7 +1944,7 @@ function makeAudio(){
     curveCue(dir){ const t=ac.currentTime, up=dir>0;
       tone(sfx,up?640:900,t,0.12,0.17,'sine');
       tone(sfx,up?900:640,t+0.10,0.16,0.17,'sine'); },
-    /** 到田頭：四音上行（用三角波，接近口琴／月琴的軟音色） */
+    /** 到厝了：四音上行（用三角波，接近口琴／月琴的軟音色） */
     fanfare(){ const t=ac.currentTime; [523.25,587.33,783.99,1046.5].forEach((f,i)=>
       tone(sfx,f,t+i*0.14,0.36,0.26,'triangle')); },
     setMuted(m){ music.gain.value=m?0:VOL.music; sfx.gain.value=m?0:VOL.sfx; eng.gain.value=m?0:VOL.eng; }
@@ -1930,43 +1975,51 @@ function ensureAudio(){
 // ⚠️key 一律加 bento_ 前綴：重機版《傾斜賽車》用 tiltracer_*，兩款遊戲的設定與紀錄絕不可互相污染
 //   （同一台平板上治療師會兩款交替用，混在一起的話報表趨勢圖會把兩款的資料畫成同一條線）。
 const LS_CFG='bento_cfg', LS_SESS='bento_sessions', LS_BEST='bento_best';
-const cfg = { route:1, dur:90, sens:3, speed:3, dens:3, assist:1, scene:'rice', sound:1, rivals:6,
-              rider:'grandpa', diff:2, laneWeight:[1,1,1] };
+const cfg = { route:1, dur:90, sens:3, speed:3, dens:3, assist:1, scene:'rice', sound:1,
+              rider:'grandpa', hand:'', curve:1, diff:2, laneWeight:[1,1,1] };
 try{ const s=JSON.parse(localStorage.getItem(LS_CFG)||'{}'); Object.assign(cfg,s); cfg.laneWeight=[1,1,1]; }catch(e){}
-const RIVAL_OPTS=[0,3,6];
-if(!RIVAL_OPTS.includes(Number(cfg.rivals))) cfg.rivals=6; else cfg.rivals=Number(cfg.rivals);
-// 老闆定的統一預設：對手 6 人＋音效開＋難度「普通」，「每次打開遊戲」都回到這幾個值
+delete cfg.rivals;                       // 2026-08-08 移除對手競速後的舊設定殘留，清掉免得寫回 localStorage
+// 老闆定的統一預設：音效開＋難度「普通」，「每次打開遊戲」都回到這幾個值
 // （當次改動仍有效，只是不跨場記住）。場地上換一批長輩就是重開一次網頁，上一批的設定不該留下來。
-cfg.rivals=6; cfg.sound=1; cfg.diff=2;
+cfg.sound=1; cfg.diff=2;
 if(!RIDERS.some(r=>r.id===cfg.rider)) cfg.rider='grandpa';
 const saveCfg=()=>{ try{ localStorage.setItem(LS_CFG,JSON.stringify(cfg)); }catch(e){} };
 
 // odo → 公尺。⚠️重機版是 1 odo＝4.4 m，那是配重機的：換算下來「正常」檔位＝時速 79 公里，
 //   報表寫「騎了 353 公尺」聽起來像飆車。腳踏車改成 1 odo＝1.25 m → 正常檔位約時速 22 公里，
-//   90 秒的路程約 570 公尺，剛好是「騎去田頭送個飯」的距離。只影響報表數字，不動任何手感。
+//   90 秒的路程約 570 公尺，剛好是「從田裡騎回厝」的距離。只影響報表數字，不動任何手感。
 const M_PER_ODO=1.25;
 const SENS_REQ=[0,0.35,0.50,0.66,0.83,1.00];    // 靈敏度→需要用掉多少比例的 ROM 才打滿
 const SENS_TXT=['','很靈敏 35%','靈敏 50%','中等 66%','鈍 83%','很鈍 100%'];
-const SPEED_V =[0,3.4,4.2,5.0,5.9,6.9];         // odo/s
+// ⚠️2026-08-08 老闆：「簡單版的道路物件以及車速請你再放慢」。
+//   第 1 階 3.4→2.6（簡單版用）、第 2 階 4.2→3.8（普通版用），第 3 階以上維持老闆試玩過的手感。
+//   完賽門檻 totalOdo 是用 SPEED_V 算的，速度降下來里程也跟著降，完賽難度不變。
+const SPEED_V =[0,2.6,3.8,5.0,5.9,6.9];         // odo/s
 const SPEED_TXT=['','慢慢騎','小快','正常','快','很快'];
 const DENS_TXT=['','很疏','疏','中','密','很密'];
 
 /* ---- 難度三選一（老闆 2026-08-04 指示）----
    民眾只要看得懂「簡單／普通／困難」；底下那組治療師旋鈕仍在，選完難度還能個別微調。
-   ⚠️「困難」＝老闆 08-02 試玩的那組（速度 3／密度 3／靈敏 3／對手 6／90 秒）原封不動，
+   ⚠️「困難」＝老闆 08-02 試玩的那組（速度 3／密度 3／靈敏 3／90 秒）原封不動，
      所以困難不會比他玩過的更難；普通與簡單是往下降出來的，給病人用。
-   ⚠️對手人數只在「簡單」降到 3 人（一個人騎太孤單、6 人又一直被超車），
-     普通與困難維持老闆定的 6 人預設。 */
+   ⭐2026-08-08 老闆指示：
+     ・簡單版「本身要拉直、不要彎道」＋車速與路上物件再放慢 → curve 0、speed 1（已一併調慢）、dens 1
+       ⚠️直路＝離心力歸零，簡單版的動作處方剩「左右移動去撿稻穗」，不再要求過彎主動壓車。
+         這是刻意的降階，不是漏掉：先讓個案建立「我控制得動這台車」的成功經驗。
+     ・普通版適當微調 → curve 0.55（有彎但緩）、速度那一階也往下修
+     ・只有困難版維持完整彎道 curve 1.00 */
+const CURVE_TXT=['直路','緩彎','彎道'];         // cfg.curve 0/1/2 → 進階微調那一列的標籤
+const CURVE_MUL=[0, 0.55, 1.00];
 const DIFFS={
-  1:{ label:'簡單', speed:1, dens:2, sens:2, assist:1, rivals:3, dur:60  },
-  2:{ label:'普通', speed:2, dens:2, sens:3, assist:1, rivals:6, dur:90  },
-  3:{ label:'困難', speed:3, dens:3, sens:3, assist:1, rivals:6, dur:90  }
+  1:{ label:'簡單', speed:1, dens:1, sens:2, assist:1, curve:0, dur:60  },
+  2:{ label:'普通', speed:2, dens:2, sens:3, assist:1, curve:1, dur:90  },
+  3:{ label:'困難', speed:3, dens:3, sens:3, assist:1, curve:2, dur:90  }
 };
 
 /* ---- 起步加速（老闆 2026-08-04 指示：不要一開始就跑太快）----
    前 RAMP_T 秒從 RAMP_V0 倍速平滑爬到滿速（easeOut：一開始慢慢牽、後面才順起來）。
    ⚠️完賽門檻要跟著補償：起步少跑的里程＝(1-RAMP_V0)*RAMP_T/3 秒的等值距離，
-     不扣掉的話「騎到田頭」會變成不可能任務（FINISH_MULT 只有 1.02 的餘裕）。 */
+     不扣掉的話「騎到厝」會變成不可能任務（FINISH_MULT 只有 1.02 的餘裕）。 */
 const RAMP_T=8.0, RAMP_V0=0.40;
 const RAMP_LOSS=(1-RAMP_V0)*RAMP_T/3;              // ≈1.6 秒的等值里程
 const rampAt=t=>{ if(t>=RAMP_T) return 1; const u=t/RAMP_T; return RAMP_V0+(1-RAMP_V0)*(1-(1-u)*(1-u)); };
@@ -2069,26 +2122,24 @@ let coinStreak=0;
 // --- v3 新增狀態 ---
 let leanVis=0;                              // 壓車視覺量（-1 左 ~ +1 右，平滑後）
 let combo=0, comboT=-9;                     // 連吃 combo 與最後一次吃到的時刻
-let rivals=[], myRank=1, rankPrev=1;        // 對手競速
+let miles=[];                               // 三個里程碑（石橋／土地公廟／穀倉）
 let stageIdx=0;                             // 目前路程段（0 暖身 / 1 連續彎 / 2 終盤）
 let finT=0;                                 // 完賽慢動作計時
 let dusk=0;                                 // 天色（0 午後 → 1 黃昏）
 const COMBO_WIN=2.5;                        // 連吃視窗（秒）
-/* 庄裡少年家（對手）怎麼分辨？
-   ⚠️重機版是把「紅色車殼」做 hueShift；腳踏車的車架、輪胎、皮鞋全是黑的，
-     hueShift 對黑色與白色都完全無效（黑白沒有色相可轉）→ 這條路在這裡走不通。
-   改成兩層一起用：①輪流換騎士款式（四種剪影：斗笠／花布衫／白襯衫／麻花辮＋裙）
-                    ②把衣服（亮而不鮮豔的像素）染成六種高辨識度的布色
-   兩層疊起來，六個人在同一畫面上都認得出誰是誰。 */
-const RIVAL_WEAR=[
-  [ 96,140,210],   // 藍布衫
-  [214, 92, 78],   // 紅花布
-  [126,170, 84],   // 草綠
-  [232,178, 62],   // 土黃
-  [176,120,196],   // 紫花
-  [ 96,192,186]    // 湖水綠
+/* ---- 三個里程碑（2026-08-08 老闆定案）----
+   90 秒的路只有一個終點，對長者來說太遠：騎了半天厝還是一個小點，會覺得沒進展。
+   所以把整條路切成四段，每 25% 立一個看得出來的地標，通過時用生活語言講一句。
+   ⚠️提示句不放數字（沿用 08-04「加減分飄字全拿掉」的原則），只講「剩一半」這種話。
+   side：-1 左、1 右、0＝路兩側都放（石橋的欄杆，騎過去像真的過橋）。 */
+/* ⚠️hf 是「相對於畫面深度」的高度係數，跟路旁景物同一把尺（香蕉樹 1.25≈4 公尺、木電桿 2.15）。
+   第一版照實物比例給（廟 0.50、穀倉 0.72）實測太小，在彎道 chevron 板牆旁邊整個被吃掉，
+   長者看不出那是地標 → 一律往上加，寧可地標大一號，這是「看得到才算數」的取捨。 */
+const MILES=[
+  { at:0.25, kind:'bridge', side:0,  hf:0.38, off:1.16, say:'過石橋囉' },
+  { at:0.50, kind:'shrine', side:1,  hf:0.85, off:1.38, say:'土地公廟到了，剩一半路' },
+  { at:0.75, kind:'barn',   side:-1, hf:1.55, off:2.00, say:'看到穀倉，厝就在前面了' }
 ];
-const RIVAL_FADE0=0.30, RIVAL_FADE1=1.40;   // 對手錯身淡出區間（odo）：貼太近就別畫，免得糊在玩家身上
 
 /* ---- v3.1 離心力／衝出跑道 ----
    模型＝「位置控制＋離心偏移」：玩家傾斜決定的是想待的橫向位置（pxSteer），
@@ -2114,8 +2165,6 @@ const OFF_SPD=0.5, OFF_RECOVER=0.5;// 草地上車速 ×0.5；回到路面後 0.
 const CAM_DEAD=0.75, CAM_FOLLOW=1.25, CAM_LAG=4.0;
 // v3.2 離心力時間包絡：進彎 0.8 秒內 0→全力（老闆試玩「來不及轉彎」的第三個成因＝力道上得太急）
 const DRIFT_RAMP=0.8;
-// 對手起跑位置：頭尾兩端固定，中間依台數平均散開（3 台／6 台共用同一段賽道）
-const RIVAL_HEAD=6.2, RIVAL_TAIL=-6.4;
 
 // 臨床量測
 const M = {
@@ -2144,9 +2193,10 @@ function newGame(){
   const seed=seedBase ^ (cfg.dur*7919) ^ (cfg.dens*104729);
   // 扣掉起步加速少跑的那段（RAMP_LOSS），完賽難度才跟沒有加速曲線之前一樣
   const totalOdo=SPEED_V[cfg.speed]*Math.max(8,cfg.dur-RAMP_LOSS)*FINISH_MULT;
-  route=buildRoute(seed,totalOdo);
+  route=buildRoute(seed,totalOdo,CURVE_MUL[cfg.curve]!=null?CURVE_MUL[cfg.curve]:1);
   const built=buildItems(seed,totalOdo,cfg);
   items=built.items; npcs=built.npcs; scen=buildScenery(seed,totalOdo);
+  miles=MILES.map(m=>({...m, pos:totalOdo*m.at, passed:false}));
   bonus=[]; iHead=0; nHead=0; sHead=0;
   odo=0; elapsed=0; nowT=0; score=0; crashes=0; coneHits=0; npcHits=0; feverCount=0;
   px=0; pxPrev=0; normPrev=0; coinStreak=0; lastV=0; finished=false; overtakes=0; lastInputT=-9;
@@ -2155,28 +2205,6 @@ function newGame(){
   pxSteer=0; driftPx=0; camLat=0; driftEnv=0; curveCued=false;
   offroad=false; offExitT=-9; offroadCount=0; offroadSec=0; rumbleT=0;
   if(AE) AE.rustle(false);
-  // 對手：起跑時前後散開。橡皮筋 AI 讓他們貼著「基準車速 ±8%」跑，
-  // 所以玩家真正拉開差距的手段＝氮氣與不撞車，這正是我們要強化的行為。
-  // v3.1 改可調台數（0／3／6）：每台的節奏波動振幅、頻率、相位都拉開，
-  // 否則六台會一起加速一起減速，看起來像疊成一團的同一台車。
-  const rr=mulberry32(seed^0x2545f491);
-  const nR=RIVAL_OPTS.includes(cfg.rivals)?cfg.rivals:0;
-  const startLane=[-1,1,0,1,-1,0];
-  rivals=[];
-  for(let i=0;i<nR;i++){
-    rivals.push({
-      odo: nR>1 ? RIVAL_HEAD-(RIVAL_HEAD-RIVAL_TAIL)*i/(nR-1) : 1.0,
-      lane: startLane[i%6], look:i%RIVAL_WEAR.length,
-      // 基礎配速跨 1.02～0.94：橡皮筋的平衡點＝「配速比玩家快的排前面、慢的排後面」，
-      // ⚠️這一段要跨過玩家的實際配速，否則整團都黏在玩家前面，怎麼認真跑都是最後一名（6 台時特別明顯）。
-      spd: nR>1 ? 1.02-0.08*i/(nR-1) : 1.0,
-      laneT: 1.2+rr()*3.2,
-      wa: 0.018+rr()*0.030,          // 波動振幅 ±1.8～4.8%
-      wf: 0.55+rr()*0.95,            // 波動頻率
-      wp: rr()*6.2832                // 相位
-    });
-  }
-  myRank=1+rivals.filter(r=>r.odo>0).length; rankPrev=myRank;
   resetMetrics(); tiltFilter.reset();
 }
 
@@ -2213,11 +2241,15 @@ function updatePlay(dt){
     const st=stageOf(odo/route.totalOdo);
     if(st!==stageIdx){
       stageIdx=st;
-      const txt=['','彎路來了，小心','滿田都是稻穗！'][st];
+      // ⚠️直路（簡單版）沒有彎道，這句會變成看不懂的假警告 → 換成中段的稻穗提示
+      const txt = st===1 ? (cfg.curve===0 ? '路邊稻穗變多了' : '彎路來了，小心')
+                : st===2 ? '滿田都是稻穗！' : '';
       if(txt){ floats.push({txt,col:'#7fe3ff',t:0,x:CW/2,y:CH*0.40});
                if(AE&&cfg.sound) AE.beep(st===2?880:600,0.22); }
     }
-    dusk=clamp01((odo/route.totalOdo-0.30)/0.70);          // 午後 → 黃昏
+    // 黃昏封頂 0.58：滿值時整張圖會橘到把板牆與路邊物件都吃掉（老闆 08-08 回饋）。
+    // 「天要黑了」的時間壓力靠變化量就讀得到，不需要真的暗到看不清楚。
+    dusk=clamp01((odo/route.totalOdo-0.30)/0.70)*0.58;     // 午後 → 黃昏
   }
 
   // --- 轉向 ---
@@ -2332,7 +2364,7 @@ function updatePlay(dt){
   }
   while(sHead<scen.length && scen[sHead].pos-odo < -1.2) sHead++;
 
-  updateRivals(dt);
+  updateMiles();
   stepFx(dt);
   // 踏頻與風聲：以「很快」檔位打滿為基準，順風期間額外拉高＝風呼呼作響
   if(AE&&cfg.sound){
@@ -2340,14 +2372,15 @@ function updatePlay(dt){
     AE.rideSet(clamp(sp*(fever?1.25:1),0,1), fever?1:(nowT<crashUntil?0.35:0.75));
   }
 
-  if(odo>=route.totalOdo){ startFinish(); }              // 騎到田頭＝提前送達（先跑慢動作再結算）
+  if(odo>=route.totalOdo){ startFinish(); }              // 騎到厝＝提前到家（先跑慢動作再結算）
   else if(elapsed>=cfg.dur) endGame();
 }
 
 /** 特效衰減：play 與完賽慢動作共用，慢動作傳進來的是縮放後的 dt */
 function stepFx(dt){
   shake=Math.max(0,shake-dt*2.2); flash=Math.max(0,flash-dt*3.2);
-  for(let i=floats.length-1;i>=0;i--){ floats[i].t+=dt; if(floats[i].t>0.95) floats.splice(i,1); }
+  // life＝這則飄字的停留秒數（不給就是預設 0.95）。里程碑那句要讓長輩讀得完，所以放長。
+  for(let i=floats.length-1;i>=0;i--){ floats[i].t+=dt; if(floats[i].t>(floats[i].life||0.95)) floats.splice(i,1); }
   for(let i=sparks.length-1;i>=0;i--){ const s=sparks[i]; s.t+=dt; s.x+=s.vx*dt; s.y+=s.vy*dt; s.vy+=520*dt;
     if(s.t>0.7) sparks.splice(i,1); }
   // 揚塵：飄得慢、會膨脹、慢慢淡掉（跟火花的「噴出去」是兩種質感）
@@ -2391,38 +2424,17 @@ function stepLean(dt){
   leanVis += (target-leanVis)*Math.min(1,dt*7.5);
 }
 
-/* ---- 對手競速：不是真的物理車，是「同一條路線上的進度值」 ----
-   配速貼著基準車速 ±8%（橡皮筋），落後就催、領先就收，永遠追得到也甩得掉。
-   不與玩家碰撞（重疊時半透明），名次＝比較 odo。 */
-function updateRivals(dt){
-  if(!rivals.length||!route) return;
-  // 對手套用同一條起步加速曲線：不然開局那 8 秒六台會集體衝出去，玩家一起跑就墊底
-  const base=SPEED_V[cfg.speed]*speedRamp;
-  for(const r of rivals){
-    const gap=r.odo-odo;                                   // >0＝領先玩家
-    const band=clamp(-gap*0.018,-0.08,0.08);               // 橡皮筋：領先減速、落後加速，上限 ±8%
-    const wob=1+r.wa*Math.sin(nowT*r.wf+r.wp);             // 各自的節奏波動（相位／振幅都不同 → 六台不會疊成一團）
-    r.odo=Math.min(route.totalOdo, r.odo+base*r.spd*wob*(1+band)*dt);
-    r.laneT-=dt;
-    if(r.laneT<=0){
-      r.laneT=3.5+Math.random()*4;
-      // 換道時避開「同一段路已經有人佔的車道」：六台時常常前後貼很近，同 lane 同 dz 會疊圖
-      const used=rivals.filter(o=>o!==r&&Math.abs(o.odo-r.odo)<1.3).map(o=>o.lane);
-      const free=[-1,0,1].filter(l=>used.indexOf(l)<0);
-      const pool=free.length?free:[-1,0,1];
-      r.lane=pool[(Math.random()*pool.length)|0];
+/* ---- 里程碑：騎過去就報一句 ----
+   ⚠️只在「真的騎過」時觸發一次，不做倒數預告：長者一次只處理一件事，
+     路上同時有稻穗要撿、彎道要壓，再加預告會變成雜訊。 */
+function updateMiles(){
+  for(const m of miles){
+    if(!m.passed && odo>=m.pos){
+      m.passed=true;
+      // ⚠️y 要跟「彎路來了，小心」（0.44）錯開，不然直式時兩則會疊在一起看不懂
+      floats.push({ txt:m.say, col:'#ffe6a2', t:0, x:CW/2, y:CH*0.30, mile:1, life:2.0, big:0.86 });
+      if(AE&&cfg.sound) AE.bell(0.30);
     }
-  }
-  myRank=1+rivals.filter(r=>r.odo>odo).length;
-  if(myRank!==rankPrev){
-    const better=myRank<rankPrev;
-    // 6 台時名次會連跳，舊的名次飄字沒清掉會疊成看不懂的一團 → 同時只留最新一則
-    for(let i=floats.length-1;i>=0;i--) if(floats[i].rank) floats.splice(i,1);
-    floats.push({ txt: better?`第 ${myRank} 名！`:`被超車 · 第 ${myRank} 名`,
-                  col: better?'#4cc38a':'#ff7a59', t:0, x:CW/2, y:CH*0.44, rank:1 });
-    if(AE&&cfg.sound){ if(better){ AE.whoosh(); AE.beep(1046,0.16); } else AE.beep(392,0.18); }
-    const rb=$('rankBox'); rb.classList.add('pop'); setTimeout(()=>rb.classList.remove('pop'),200);
-    rankPrev=myRank;
   }
 }
 
@@ -2434,7 +2446,7 @@ function startFinish(){
   if(AE&&cfg.sound){ AE.bellRush(); AE.fanfare(); }
   for(let i=0;i<26;i++) sparks.push({x:CW/2+(Math.random()-0.5)*CW*0.5,y:CH*0.55,
     vx:(Math.random()-0.5)*720,vy:-320-Math.random()*340,t:0,col:i%2?'#ffd23e':'#4cc38a'});
-  floats.push({txt:'🍱 便當送到了！',col:'#ffd23e',t:0,x:CW/2,y:CH*0.40});
+  floats.push({txt:'🍚 到厝了！',col:'#ffd23e',t:0,x:CW/2,y:CH*0.40});
 }
 
 /** 倒數期間：同樣推進道具／前車指標，但不計分、不判撞、不記臨床資料 */
@@ -2454,7 +2466,6 @@ function sweepSilently(dt){
     if(!n.done && n.pos-odo<=0.26) n.done=true;
   }
   while(sHead<scen.length && scen[sHead].pos-odo < -1.2) sHead++;
-  for(const r of rivals) r.odo += SPEED_V[cfg.speed]*r.spd*dt*0.3;   // 起跑前對手也在滑行熱車（配合玩家起步變慢，同步降速免得倒數就被拉開）
 }
 
 function resolveItem(it){
@@ -2591,6 +2602,9 @@ function render(){
   if(ASSET.bg) ctx.drawImage(ASSET.bg,0,0,ASSET.bg.width,ASSET.bg.height*0.80,-W*0.15+par,-14,W*1.3,HOR+22);
   else { ctx.fillStyle='#8ec6f0'; ctx.fillRect(-20,-20,W+40,HOR+22); }
 
+  // ---- 遠景的目的地：厝＋炊煙柱（開場就看得到，一路變大）----
+  drawFarHome(W,H,HOR);
+
   // ---- 地面：金黃稻田（低頻雙色帶＋透視稻列）＋柏油 mipmap ----
   for(let y=Math.ceil(HOR);y<H+20;y++){
     const t=(y-HOR)/DEPTH; if(t<=0.002) continue;
@@ -2649,7 +2663,12 @@ function render(){
   // ⚠️tree 的 hf 從重機版的 2.60 砍到 1.25：那個數字是配檳榔樹（高瘦，比電線桿還高）調的，
   //   香蕉樹只有 3～4 公尺、比電線桿矮一大截，沿用 2.60 會在路邊長出比電線桿還高的巨大香蕉。
   const SCEN_CFG={ tree:{hf:1.25,sl:0.62,sw:0.22}, pole:{hf:2.15,sl:0.60,sw:0.05},
-                   hay:{hf:0.44,sl:0.85,sw:0.55}, egret:{hf:0.40,sl:0.42,sw:0.16} };
+                   hay:{hf:0.44,sl:0.85,sw:0.55}, egret:{hf:0.40,sl:0.42,sw:0.16},
+                   // 人＋腳踏車實際約 1.7 公尺＝0.56（香蕉樹 4 公尺＝1.25 這把尺），
+                   // 但實測那個大小在路邊一閃就過去、根本沒人注意到 → 放大到 0.72，
+                   // 同「里程碑寧可大一號」的取捨：這是要讓長輩看到的東西，不是背景紋理。
+                   postman:{hf:0.72,sl:0.55,sw:0.16}, police:{hf:0.72,sl:0.55,sw:0.16},
+                   farmhouse:{hf:1.55,sl:0.50,sw:0.32} };
   const drawList=[];
   for(let i=sHead;i<scen.length;i++){
     const sc=scen[i], dz=sc.pos-odo; if(dz>DRAW_DZ) break; if(dz<-0.9) continue;
@@ -2665,8 +2684,8 @@ function render(){
     if(dz>DRAW_DZ) break; if(dz<-0.30) continue;
     drawList.push({type:'npc',dz,o:n});
   }
-  for(const r of rivals){ const dz=r.odo-odo;
-    if(dz>RIVAL_FADE0&&dz<DRAW_DZ) drawList.push({type:'rival',dz,o:r}); }
+  for(const m of miles){ const dz=m.pos-odo;
+    if(dz>-1.2&&dz<DRAW_DZ) drawList.push({type:'mile',dz,o:m}); }
   if(route){ const fdz=route.totalOdo-odo;
     if(fdz>-0.5&&fdz<DRAW_DZ) drawList.push({type:'finish',dz:fdz}); }
   // ---- v3.2 彎道 chevron 板牆：沿彎道「外側路緣」連續立紅白 V 形箭頭板 ----
@@ -2691,7 +2710,11 @@ function render(){
       drawChevron(cx,baseY,halfW,t,d.o,1);
       chevs.push({cx,baseY,halfW,t,o:d.o});
     }else if(d.type==='scen'){
-      const sc=d.o, cf=SCEN_CFG[sc.kind], h=cf.hf*t*DEPTH*sc.sc;
+      const sc=d.o, cf=SCEN_CFG[sc.kind];
+      if(!cf) continue;
+      // 人的高度不吃隨機縮放：0.82～1.32 倍用在樹上叫變化，用在人身上就是巨人跟侏儒
+      const isPerson=(sc.kind==='postman'||sc.kind==='police');
+      const h=cf.hf*t*DEPTH*(isPerson?1:sc.sc);
       if(h<3) continue;
       const x=cx+sc.side*sc.off*halfW;
       if(x<-W*0.6||x>W*1.6) continue;
@@ -2715,28 +2738,32 @@ function render(){
         ctx.save(); ctx.fillStyle='rgba(18,24,12,0.36)';
         ctx.beginPath(); ctx.ellipse(x+cw*0.06,baseY-ch*0.02,cw*0.40,ch*0.05,0,0,7); ctx.fill(); ctx.restore();
         ctx.drawImage(sp,x-cw/2,baseY-ch,cw,ch); }
-    }else if(d.type==='rival'){
-      // 庄裡少年家：不碰撞。錯身時淡出（dz→0 時 t 會衝到 2 倍，硬畫會變成一台巨獸糊在玩家身上）
-      const r=d.o, sp=ASSET.rival[r.look];
-      const a=clamp01((d.dz-RIVAL_FADE0)/(RIVAL_FADE1-RIVAL_FADE0));
-      if(sp&&a>0.01){
-        const tt=Math.min(t,1.0), by=HOR+tt*DEPTH, hw=halfWAt(tt,W);
-        const x=roadCenterPx(tt,W)+r.lane*LANE_OFF*hw;
-        const bh=BIKE_HK*tt, bw=bh*sp.width/sp.height;
-        ctx.save(); ctx.globalAlpha=a;
-        ctx.fillStyle='rgba(18,24,12,0.34)';
-        ctx.beginPath(); ctx.ellipse(x+bw*0.08,by-bh*0.02,bw*0.40,bh*0.05,0,0,7); ctx.fill();
-        ctx.drawImage(sp,x-bw/2,by-bh,bw,bh);
-        ctx.restore();
+    }else if(d.type==='mile'){
+      // 里程碑：路邊（石橋是兩側）立一個大地標，量體比路旁景物大一號，遠遠就看得到
+      const m=d.o, sp=ASSET.sp[m.kind], h=m.hf*t*DEPTH;
+      if(!sp||h<4) continue;
+      const w=h*sp.width/sp.height;
+      const sides = m.side===0 ? [-1,1] : [m.side];
+      for(const sd of sides){
+        const x=cx+sd*m.off*halfW;
+        if(x<-W*0.7||x>W*1.7) continue;
+        castShadow(x,baseY,h*0.55,h*0.20,0.26);
+        ctx.save(); ctx.translate(x,baseY);
+        if(sd>0&&m.side===0) ctx.scale(-1,1);        // 對側的橋欄鏡像，兩邊看起來才像同一座橋
+        ctx.drawImage(sp,-w/2,-h,w,h); ctx.restore();
       }
     }
   }
 
   // ---- 地平線霧化：藏掉繪製路面與照片背景的接縫 ----
-  const fogH=DEPTH*0.20, hz=PAL.haze.map(v=>v|0).join(',');
+  // ⚠️2026-08-08 老闆回饋「黃色外暈遮到道路物件，旁邊的農舍也看不清楚」：
+  //   這條霧帶原本濃到 0.97，遠處的板牆、農舍、郵差全被它糊掉一層黃。
+  //   接縫其實只要一點點霧就藏得住 → 濃度砍掉約三分之一、範圍收窄，
+  //   換來的是「遠處看得清楚在發生什麼」，對長者比擬真的空氣感重要得多。
+  const fogH=DEPTH*0.15, hz=PAL.haze.map(v=>v|0).join(',');
   const fg=ctx.createLinearGradient(0,HOR-8,0,HOR+fogH);
-  fg.addColorStop(0,`rgba(${hz},0.97)`); fg.addColorStop(0.22,`rgba(${hz},0.62)`);
-  fg.addColorStop(0.55,`rgba(${hz},0.22)`); fg.addColorStop(1,`rgba(${hz},0)`);
+  fg.addColorStop(0,`rgba(${hz},0.62)`); fg.addColorStop(0.22,`rgba(${hz},0.34)`);
+  fg.addColorStop(0.55,`rgba(${hz},0.12)`); fg.addColorStop(1,`rgba(${hz},0)`);
   ctx.fillStyle=fg; ctx.fillRect(-20,HOR-8,W+40,fogH+8);
 
   // ---- 氮氣速度線 ----
@@ -2782,16 +2809,21 @@ function render(){
   if(dusk>0.01){
     const w=c=>`rgb(${Math.round(255+(c[0]-255)*dusk)},${Math.round(255+(c[1]-255)*dusk)},${Math.round(255+(c[2]-255)*dusk)})`;
     const dg=ctx.createLinearGradient(0,0,0,H);
+    // 顏色維持原本那組。真正把物件蓋掉的是下面那層 lighter 光暈與地平線霧化，不是 multiply
+    // （multiply 是把藍綠通道壓掉、對比留著）；把 dusk 封頂到 0.58 之後這組就不會橘到看不清楚。
     dg.addColorStop(0,   w([255,156,96]));
     dg.addColorStop(0.50,w([255,180,128]));
     dg.addColorStop(1,   w([204,142,104]));
     ctx.save(); ctx.globalCompositeOperation='multiply';
     ctx.fillStyle=dg; ctx.fillRect(-20,-20,W+40,H+40); ctx.restore();
-    // 地平線一抹夕陽光暈
-    const y0=HOR-DEPTH*0.55, hh=DEPTH*0.70;
+    // 地平線一抹夕陽光暈。
+    // ⚠️這一層就是老闆說的「黃色外暈」：用 lighter 疊上去會把落在光暈範圍內的板牆、
+    //   農舍、郵差一起提亮成同一片黃，物件的輪廓就消失了。強度砍到三分之一、
+    //   範圍也收窄到貼著地平線，只留「日頭斜了」的氣味，不再蓋住東西。
+    const y0=HOR-DEPTH*0.30, hh=DEPTH*0.38;
     const gg=ctx.createLinearGradient(0,y0,0,y0+hh);
     gg.addColorStop(0,'rgba(255,150,60,0)');
-    gg.addColorStop(0.80,`rgba(255,172,84,${(0.17*dusk).toFixed(3)})`);
+    gg.addColorStop(0.80,`rgba(255,172,84,${(0.055*dusk).toFixed(3)})`);
     gg.addColorStop(1,'rgba(255,190,110,0)');
     ctx.save(); ctx.globalCompositeOperation='lighter';
     ctx.fillStyle=gg; ctx.fillRect(-20,y0,W+40,hh); ctx.restore();
@@ -2806,10 +2838,15 @@ function render(){
   ctx.globalAlpha=1;
   ctx.textAlign='center';
   for(const f of floats){
-    const a=Math.max(0,1-f.t/0.95), fy=f.y-f.t*70, k=f.big||1;
+    const lf=f.life||0.95;
+    const a=Math.max(0,1-f.t/lf), fy=f.y-f.t*(70*0.95/lf), k=f.big||1;   // 停留久的往上飄慢一點，總位移一樣
     ctx.globalAlpha=a;
-    ctx.font=`900 ${Math.round(H*0.056*k)}px -apple-system,"PingFang TC",sans-serif`;
-    ctx.lineWidth=Math.max(3,H*0.007*k); ctx.strokeStyle='rgba(18,14,4,0.9)';  // 描邊：壓在車身或路面上都讀得到
+    // 字級先照 k 給，再依實際寬度縮到畫面塞得下（里程碑那句最長，直式 375 寬會爆出畫面）
+    let fs=H*0.056*k;
+    ctx.font=`900 ${Math.round(fs)}px -apple-system,"PingFang TC",sans-serif`;
+    const tw=ctx.measureText(f.txt).width, maxW=W*0.92;
+    if(tw>maxW){ fs*=maxW/tw; ctx.font=`900 ${Math.round(fs)}px -apple-system,"PingFang TC",sans-serif`; }
+    ctx.lineWidth=Math.max(3,fs*0.125); ctx.strokeStyle='rgba(18,14,4,0.9)';  // 描邊：壓在車身或路面上都讀得到
     ctx.strokeText(f.txt,f.x,fy);
     ctx.fillStyle=f.col; ctx.fillText(f.txt,f.x,fy);
   }
@@ -2819,6 +2856,7 @@ function render(){
   ctx.restore();
 
   drawNav(W,H);
+  drawRouteBar(W,H);
   if(phase==='count') drawCountdown(W,H);
 }
 
@@ -3025,8 +3063,84 @@ function drawWind(x,y,s){
   }
   ctx.restore();
 }
-/** 田頭大樹：阿爸在樹下揮手等便當（取代方格終點拱門）。
-    設計重點＝「遠遠就要看得到」，所以保留一條橫幅（改成紅布條）＋一棵深色大樹當量體。 */
+/* ==================================================================
+   遠景的目的地：厝＋炊煙柱（2026-08-08 老闆指定，參考「遠遠看得到 101」）
+   ------------------------------------------------------------------
+   為什麼看得到的是「煙」而不是把厝畫大？
+   一棟五公尺高的土角厝在 570 公尺外只有幾個像素——真透視下，前 80% 的路它幾乎不會變大，
+   長者只會覺得「騎歸晡攏無較近」。但炊煙是往上竄幾十公尺的東西，遠遠就看得到，
+   而且隨著接近會真的明顯變高變粗。所以分工是：
+     ・炊煙＝看得見的進度（會長大的那根柱子）
+     ・厝＝身分（那是我家，不是隨便一棟房子）
+   ⚠️2026-08-08 老闆指示改「直線距離」：煙柱**固定在正前方不隨彎道漂移**。
+     第一版讓它貼著路的消失點走（過彎時偏一邊當方向指引），等於同時給了「方向」與「距離」
+     兩個變數；對失智長輩來說一次只該處理一件事 → 拿掉方向這一維，只留「越來越大＝越來越近」。
+   ⚠️厝的尺寸走接近真透視的曲線：交棒給近景實體的厝時大小才對得上，不會「突然縮水」。
+   ================================================================== */
+const FAR_FADE0=30, FAR_FADE1=16;          // odo：這段距離內遠景層淡出，交棒給 drawFinish 的實體厝
+function drawFarHome(W,H,HOR){
+  if(!route) return;
+  const rem=route.totalOdo-odo;
+  const a = rem>=FAR_FADE0 ? 1 : (rem<=FAR_FADE1 ? 0 : (rem-FAR_FADE1)/(FAR_FADE0-FAR_FADE1));
+  if(a<=0.02) return;
+  const prog=clamp01(odo/route.totalOdo);
+  // 固定在正前方，不跟彎道跑。
+  // ⚠️偏右 10% 是實測調的：正中央會被玩家的斗笠與車頭擋住煙囪那一段（橫式直式都會），
+  //   偏太多又不像「正前方」。0.10 剛好讓整根煙柱貼著騎士右邊、完整露出來。
+  const x=W*0.5+W*0.10;
+  const baseY=HOR+2;
+  const hHouse=clamp(tOf(Math.max(rem,FAR_FADE1))*H*0.52, H*0.016, H*0.060);
+  // ⚠️煙柱刻意畫得比物理尺寸大：570 公尺外的真實煙柱只有幾個像素寬，長者根本看不到。
+  //   放大到「一眼看得到、而且每騎一段都看得出變粗變高」才達得到目的。
+  // 老闆：「炊煙柱應該可以看得了」→ 再加高加粗一級，起手就要一眼看得到
+  const hSmoke=H*(0.175+0.255*Math.pow(prog,1.15));
+  const wSmoke=H*(0.020+0.020*Math.pow(prog,1.15));
+  drawSmoke(x,baseY-hHouse*0.92,hSmoke,wSmoke,a);
+  const sp=ASSET.sp.house;
+  ctx.save(); ctx.globalAlpha=a;
+  if(sp){
+    const w=hHouse*sp.width/sp.height;
+    ctx.drawImage(sp,x-w/2,baseY-hHouse,w,hHouse);
+  }else{
+    // 素材沒趕上也要看得到目的地：一個紅屋頂＋土黃牆的小方塊（遊戲照樣完整）
+    const w=hHouse*1.5;
+    ctx.fillStyle='#b4966a'; ctx.fillRect(x-w/2,baseY-hHouse*0.62,w,hHouse*0.62);
+    ctx.fillStyle='#a8462e'; ctx.beginPath();
+    ctx.moveTo(x-w*0.60,baseY-hHouse*0.62); ctx.lineTo(x,baseY-hHouse);
+    ctx.lineTo(x+w*0.60,baseY-hHouse*0.62); ctx.closePath(); ctx.fill();
+  }
+  ctx.restore();
+}
+/** 炊煙：一串往上跑、越高越大越淡、被風吹歪的煙。alpha 由呼叫端傳入（要跟遠景層一起淡出）。
+    ⚠️每一球要用放射漸層畫（邊緣透明）：第一版用實心橢圓，遠看是一串硬邊泡泡不是煙。
+    ⚠️球要多、單球要淡：疊起來才連成一根柱子；球少而濃就會看見一顆一顆。 */
+function drawSmoke(x,y0,h,w0,alpha){
+  const T=performance.now()*0.001, N=18;
+  ctx.save();
+  for(let i=0;i<N;i++){
+    const u=((i/N)+(T*0.055))%1;                     // 0＝剛從煙囪出來，1＝快散掉
+    const a=alpha*0.55*(1-u*0.86)*(0.25+0.75*Math.min(1,u*5));
+    if(a<0.004) continue;
+    const rr=Math.max(1,w0*(0.55+u*2.0));
+    const cxp=x+(w0*1.1+h*0.20)*u*u+Math.sin(T*0.8+i*1.9)*w0*0.55*u;   // 越高越被風吹歪＋左右晃
+    const cyp=y0-h*u;
+    // ⚠️顏色隨高度由「灶口的暖灰」轉「散開的米白」。
+    //   純白（或接近白）在亮天空＋灰藍遠山底下對比根本不夠，長者會看不到那根柱子；
+    //   灶口這一端要壓到明顯偏暗的暖灰，整根煙才有邊界可讀。
+    const cr=Math.round(152+86*u), cg=Math.round(144+86*u), cb=Math.round(130+86*u);
+    const g=ctx.createRadialGradient(cxp,cyp,0,cxp,cyp,rr);
+    g.addColorStop(0,`rgba(${cr},${cg},${cb},${a})`);
+    g.addColorStop(0.55,`rgba(${cr},${cg},${cb},${a*0.55})`);
+    g.addColorStop(1,`rgba(${cr},${cg},${cb},0)`);
+    ctx.fillStyle=g;
+    ctx.beginPath(); ctx.ellipse(cxp,cyp,rr,rr*0.85,0,0,7); ctx.fill();
+  }
+  ctx.restore();
+}
+
+/** 終點的厝：騎到門口，厝裡的人站在門邊揮手（取代方格終點拱門）。
+    設計重點＝「遠遠就要看得到」，所以保留一條紅布條橫幅＋整棟厝當量體，
+    煙囪上再接一段炊煙，跟遠景那根柱子是同一件事（視覺才連得起來）。 */
 function drawFinish(cx,baseY,halfW,t,H){
   const x1=cx-halfW*1.02, x2=cx+halfW*1.02;
   const rowH=Math.max(2,t*H*0.022);
@@ -3036,15 +3150,17 @@ function drawFinish(cx,baseY,halfW,t,H){
   ctx.fillRect(x1,baseY-rowH*2,x2-x1,rowH*0.5);
   const ph=t*H*0.52;
   if(ph<16) return;
-  // ---- 田頭大樹（畫在路的右側，樹冠伸過路面上方；老榕樹綠幕照片，載入時已 keyOutGreen+trimAlpha 去背）----
-  const tx=x2+halfW*0.34;
-  const treeSp=ASSET.sp.treeBig;
-  let treeW=ph*1.05;                                              // 沒素材時仍給個寬度，father 的站位算式才不會爆掉
-  if(treeSp){
-    const treeH=ph*1.18; treeW=treeH*treeSp.width/treeSp.height;
-    ctx.fillStyle='rgba(48,36,14,0.30)';                          // 樹的落影（不然樹會像貼紙浮著）
-    ctx.beginPath(); ctx.ellipse(tx+treeW*0.08,baseY,treeW*0.40,treeW*0.075,0,0,7); ctx.fill();
-    ctx.drawImage(treeSp,tx-treeW/2,baseY-treeH,treeW,treeH);
+  // ---- 厝（畫在路的右側；綠幕照片，載入時已 keyOutGreen+trimAlpha 去背）----
+  const tx=x2+halfW*0.40;
+  const houseSp=ASSET.sp.house;
+  let treeW=ph*1.05;                                              // 沒素材時仍給個寬度，門口那個人的站位算式才不會爆掉
+  if(houseSp){
+    const hH=ph*1.12; treeW=hH*houseSp.width/houseSp.height;
+    ctx.fillStyle='rgba(48,36,14,0.30)';                          // 落影（不然厝會像貼紙浮著）
+    ctx.beginPath(); ctx.ellipse(tx+treeW*0.06,baseY,treeW*0.42,treeW*0.060,0,0,7); ctx.fill();
+    ctx.drawImage(houseSp,tx-treeW/2,baseY-hH,treeW,hH);
+    // 煙囪的炊煙：接在厝的左上角，跟遠景那根煙柱是同一件事
+    drawSmoke(tx-treeW*0.26,baseY-hH*0.98,hH*1.15,Math.max(1.6,treeW*0.055),1);
   }
   // ---- 兩根竹竿＋紅布條（跨過路面，就是「終點」的視覺錨）----
   const pw=Math.max(2,ph*0.040), bh=ph*0.19, by=baseY-ph, sq=bh;
@@ -3056,7 +3172,7 @@ function drawFinish(cx,baseY,halfW,t,H){
   ctx.fillStyle='rgba(255,236,180,0.85)';
   ctx.fillRect(x1,by,x2-x1,Math.max(1,sq*0.10));
   ctx.fillRect(x1,by+sq-Math.max(1,sq*0.10),x2-x1,Math.max(1,sq*0.10));
-  // ---- 阿爸：站在樹下、路邊，朝你揮手（斗笠白汗衫綠幕照片；整張圖輕微擺動模擬揮手感，不做骨架動畫）----
+  // ---- 厝裡的人：站在門口路邊，朝你揮手（斗笠白汗衫綠幕照片；整張圖輕微擺動模擬揮手感，不做骨架動畫）----
   const fh=ph*0.46;
   const fatherSp=ASSET.sp.father;
   if(fatherSp&&fh>12){
@@ -3073,8 +3189,8 @@ function drawFinish(cx,baseY,halfW,t,H){
     ctx.save(); ctx.textAlign='center';
     ctx.font=`900 ${Math.round(bh*0.86)}px -apple-system,"PingFang TC",sans-serif`;
     ctx.lineWidth=Math.max(2,bh*0.13); ctx.strokeStyle='rgba(20,14,2,0.9)';
-    ctx.strokeText('田頭到了',cx,by+sq*0.78);
-    ctx.fillStyle='#ffe6a2'; ctx.fillText('田頭到了',cx,by+sq*0.78);
+    ctx.strokeText('到厝了',cx,by+sq*0.78);
+    ctx.fillStyle='#ffe6a2'; ctx.fillText('到厝了',cx,by+sq*0.78);
     ctx.restore();
   }
 }
@@ -3111,34 +3227,75 @@ function drawNav(W,H){
   ctx.strokeStyle='rgba(88,94,102,0.96)'; ctx.lineWidth=Math.max(6,mmW*0.11-4); ctx.stroke();   // 路面
   ctx.setLineDash([4,5]); ctx.strokeStyle='rgba(244,235,210,0.85)'; ctx.lineWidth=1.4;
   ctx.stroke(); ctx.setLineDash([]);                                                             // 中央虛線
-  if(route.totalOdo-odo<NAV_FWD){ const [fx,fy]=proj(P.length-1); drawTreeIcon(fx,fy,mmW*0.085); }
+  if(route.totalOdo-odo<NAV_FWD){ const [fx,fy]=proj(P.length-1); drawHouseIcon(fx,fy,mmW*0.10); }
   // 玩家箭頭：固定窗底、永遠朝上（Google Maps 導航慣例）
   ctx.fillStyle='#ff5a3c'; ctx.strokeStyle='#fff'; ctx.lineWidth=1.8;
   ctx.beginPath(); ctx.moveTo(bx,by-8); ctx.lineTo(bx-6.4,by+6); ctx.lineTo(bx,by+2.6); ctx.lineTo(bx+6.4,by+6);
   ctx.closePath(); ctx.fill(); ctx.stroke();
   ctx.restore();
-  // ---- 終點進度條 ----
-  const pbY=y0+mmH+7, pbH=9, prog=clamp(odo/route.totalOdo,0,1);
-  ctx.save();
-  ctx.beginPath();
-  if(ctx.roundRect) ctx.roundRect(x0,pbY,mmW,pbH,5); else ctx.rect(x0,pbY,mmW,pbH);
-  ctx.fillStyle='rgba(14,18,24,0.66)'; ctx.fill();
-  ctx.beginPath();
-  if(ctx.roundRect) ctx.roundRect(x0,pbY,Math.max(6,mmW*prog),pbH,5); else ctx.rect(x0,pbY,Math.max(6,mmW*prog),pbH);
-  ctx.fillStyle='#f4b942'; ctx.fill();
-  ctx.font='11px -apple-system,sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
-  ctx.fillText('🍱',x0+mmW-7,pbY+pbH/2);
-  ctx.textBaseline='alphabetic'; ctx.restore();
+  // 舊的 9px 進度條已移除：改成畫面下方（直式在上方）那條看得懂的「路程條」，見 drawRouteBar()
 }
-/** 導航窗裡的終點記號：田頭那棵大樹 */
-function drawTreeIcon(x,y,s){
+/** 導航窗裡的終點記號：厝 */
+function drawHouseIcon(x,y,s){
   ctx.save(); ctx.translate(x,y);
-  ctx.strokeStyle='#8a6a3c'; ctx.lineWidth=Math.max(1.6,s*0.5);
-  ctx.beginPath(); ctx.moveTo(0,3); ctx.lineTo(0,-s*1.5); ctx.stroke();
-  ctx.fillStyle='#3c6f2c';
-  ctx.beginPath(); ctx.arc(0,-s*2.0,s*1.15,0,7); ctx.fill();
-  ctx.beginPath(); ctx.arc(-s*0.85,-s*1.6,s*0.72,0,7); ctx.fill();
-  ctx.beginPath(); ctx.arc(s*0.85,-s*1.6,s*0.72,0,7); ctx.fill();
+  ctx.fillStyle='#e0d4bc';
+  ctx.fillRect(-s*0.85,-s*1.35,s*1.7,s*1.35);
+  ctx.fillStyle='#c8503a';
+  ctx.beginPath(); ctx.moveTo(-s*1.15,-s*1.30); ctx.lineTo(0,-s*2.25); ctx.lineTo(s*1.15,-s*1.30);
+  ctx.closePath(); ctx.fill();
+  ctx.restore();
+}
+
+/* ==================================================================
+   路程條（2026-08-08 老闆指定）：看得懂的一條路，不是抽象進度條
+   ------------------------------------------------------------------
+   左端＝出發的田，右端＝厝；玩家是一台沿路移動的小鐵馬；
+   中間三顆點＝三個里程碑，騎過去就亮起來（跟場景裡真的蓋出來的地標是同一組）。
+   ⚠️不顯示百分比數字：沿用老闆 08-04 定的「加減分飄字全拿掉」原則，
+     進度用「走到哪裡」表達，不用數字表達。數字留在結算頁與報表給治療師看。
+   ⚠️兩種握法都放畫面下方（位置一致，治療師不用重新找）；直式時底部有三顆操作鈕，
+     所以直式往上抬一段、剛好停在按鈕上緣。壓到車尾沒關係，底板是半透明的。
+   ⚠️第一版直式放在上方，結果跟右上角的導航窗疊在一起（實測 375×812 直接壓過去）。
+   ================================================================== */
+function drawRouteBar(W,H){
+  if(!route||(phase!=='play'&&phase!=='count'&&phase!=='finish')) return;
+  const port=H>W;
+  const bw=Math.min(port?W*0.86:520,W-32), bh=port?15:17;
+  const x0=(W-bw)/2;
+  const y0=H-bh-(port ? Math.max(72,H*0.105) : Math.max(26,H*0.055));
+  const prog=clamp(odo/route.totalOdo,0,1);
+  ctx.save();
+  // 底板
+  ctx.beginPath();
+  if(ctx.roundRect) ctx.roundRect(x0-26,y0-11,bw+52,bh+22,(bh+22)/2); else ctx.rect(x0-26,y0-11,bw+52,bh+22);
+  ctx.fillStyle='rgba(20,16,12,0.62)'; ctx.fill();
+  ctx.strokeStyle='rgba(150,130,96,0.42)'; ctx.lineWidth=1; ctx.stroke();
+  // 路（土黃色）＋已經騎過的那段（稻穗金）
+  const rd=(x,w,col)=>{ ctx.beginPath();
+    if(ctx.roundRect) ctx.roundRect(x,y0,w,bh,bh/2); else ctx.rect(x,y0,w,bh);
+    ctx.fillStyle=col; ctx.fill(); };
+  rd(x0,bw,'#6f5a3c');
+  rd(x0,Math.max(bh,bw*prog),'#f0b13a');
+  // 中央那道虛線，讓它看起來是一條路不是一根棒子
+  ctx.save(); ctx.setLineDash([5,6]); ctx.strokeStyle='rgba(244,235,210,0.34)'; ctx.lineWidth=1.4;
+  ctx.beginPath(); ctx.moveTo(x0+6,y0+bh/2); ctx.lineTo(x0+bw-6,y0+bh/2); ctx.stroke(); ctx.restore();
+  // 三個里程碑：騎過去就從空心變成亮起來的實心
+  for(const m of miles){
+    const mx=x0+bw*m.at, r=bh*0.40;
+    ctx.beginPath(); ctx.arc(mx,y0+bh/2,r,0,7);
+    ctx.fillStyle=m.passed?'#fff2cf':'rgba(28,22,14,0.55)'; ctx.fill();
+    ctx.lineWidth=1.6; ctx.strokeStyle=m.passed?'#8a6a2c':'rgba(238,228,205,0.55)'; ctx.stroke();
+  }
+  // 兩端：出發的田（稻穗）與目的地（厝）
+  ctx.font=`${Math.round(bh*1.15)}px -apple-system,"PingFang TC",sans-serif`;
+  ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillText('🌾',x0-14,y0+bh/2);
+  ctx.fillText('🏠',x0+bw+14,y0+bh/2);
+  // 玩家：一台沿路移動的小鐵馬
+  const px2=x0+bw*prog;
+  ctx.font=`${Math.round(bh*1.35)}px -apple-system,"PingFang TC",sans-serif`;
+  ctx.fillText('🚲',px2,y0+bh/2-bh*0.06);
+  ctx.textAlign='left'; ctx.textBaseline='alphabetic';
   ctx.restore();
 }
 
@@ -3180,7 +3337,6 @@ function loop(ts){
   if(phase==='finish'){
     finT+=dt; const sdt=dt*0.30;
     nowT+=sdt; stepLean(sdt); stepFx(sdt);
-    for(const r of rivals) r.odo+=SPEED_V[cfg.speed]*r.spd*sdt;
     render(); updateHUD();
     if(finT>=0.55) endGame();
     return;
@@ -3201,9 +3357,6 @@ function updateHUD(){
   $('hCrash').textContent=crashes;
   $('hTime').textContent=Math.max(0,Math.ceil(cfg.dur-elapsed))+'s';
   $('hudBtns').classList.toggle('dim',offroad);
-  const rb=$('rankBox');
-  rb.classList.toggle('hidden',!rivals.length);
-  if(rivals.length) $('hRank').innerHTML=`第 ${myRank} <small>/${rivals.length+1}</small>`;
   if(nowT>=feverUntil) $('feverTag').classList.add('hidden');
 }
 
@@ -3216,7 +3369,6 @@ function show(name){
   const playing = (name===null);
   $('hud').classList.toggle('hidden',!playing);
   $('hudBtns').classList.toggle('hidden',!playing);
-  $('rankBox').classList.toggle('hidden',!playing||!rivals.length);
 }
 function goSetup(){
   phase='setup'; show('setup'); keepAwake(false);
@@ -3231,6 +3383,8 @@ const CAL_DUR={ neutral:3.0, left:4.0, right:4.0 };
 function enterCalib(){
   phase='calib'; show('calib'); resetCalib();
   $('calibModeTag').textContent = axisMode==='land' ? 'A 橫式・雙手握桿' : 'B 直式・單手旋轉前臂';
+  // 手別只在直式單手時要問（橫式是雙手握桿，沒有左右手之分）
+  $('rowHand').classList.toggle('hidden',axisMode==='land');
   $('calibNote').textContent = demoMode
     ? '展示模式：用鍵盤 ← → 模擬傾斜，或直接按「跳過」。'
     : '若個案左右活動度不同，系統會各自記錄，路上左右兩邊都到得了；不對稱的程度會寫進報表。';
@@ -3320,15 +3474,17 @@ function skipCalib(){
 /* ---- 四款騎士各自的結局（老闆指定：阿公送的對象是阿嬤）----
    阿公↔阿嬤＝老夫妻互送、少年/少女＝送給阿爸。
    圖在倒數開始就掛上 src：90 秒騎完時圖早就進快取，結局頁不會白一塊再慢慢浮出來。 */
+/* 結局：騎到厝門口，厝裡的人已經把飯菜端出來了。
+   ⚠️對白裡「等你的人」依騎士而不同，跟四張結局圖是一組的，改圖就要一起改詞。 */
 const ENDINGS={
-  grandpa:{ img:'assets/ending_grandpa.jpg',
-    txt:'佇田裡做穡的阿嬤，笑著雙手接過還燒燒的便當：<br>「<b>老伴仔，辛苦啦！緊來樹腳，做伙呷飯！</b>」' },
-  grandma:{ img:'assets/ending_grandma.jpg',
-    txt:'樹腳歇睏的阿公，笑呵呵接過還燒燒的便當：<br>「<b>老伴仔，恁款的飯上好呷！緊來歇睏！</b>」' },
-  boy:{ img:'assets/ending_boy.jpg',
-    txt:'阿公放下鋤頭，笑呵呵接過還燒燒的便當：<br>「<b>阿孫仔，辛苦啦！緊來樹腳歇睏，做伙呷飯！</b>」' },
-  girl:{ img:'assets/ending_girl.jpg',
-    txt:'阿公放下鋤頭，慈愛地笑著接過便當：<br>「<b>阿妹仔上乖！緊來樹腳歇睏，做伙呷飯！</b>」' }
+  grandpa:{ img:'assets/ending_home_grandpa.jpg',
+    txt:'阿嬤已經在門口等，手裡端著一鍋熱騰騰的：<br>「<b>老伴仔，做歸工啦！緊來洗手，趁燒食！</b>」' },
+  grandma:{ img:'assets/ending_home_grandma.jpg',
+    txt:'阿公把桌頂的菜端出來，笑笑仔講：<br>「<b>老伴仔，飯攏款好啊，緊來坐！</b>」' },
+  boy:{ img:'assets/ending_home_boy.jpg',
+    txt:'阿公站在門口，捧著一碗白飯：<br>「<b>阿孫仔，辛苦啦！緊來食飯，食予飽！</b>」' },
+  girl:{ img:'assets/ending_home_girl.jpg',
+    txt:'阿公站在門口，慈愛地笑著：<br>「<b>阿妹仔上乖！緊來食飯，莫予飯冷去。</b>」' }
 };
 function beginCountdown(){
   newGame();
@@ -3354,17 +3510,11 @@ function endGame(){
   $('eRate').textContent=presT?Math.round(collT/presT*100)+'%':'–';
   $('eCrash').textContent=crashes;
   $('eOff').textContent=offroadCount;
-  // 最終名次：只有開了對手競速才顯示（關掉時整格藏起來，版面自動變 3 格）
-  const rc=$('eRankCell');
-  if(rivals.length){ rc.classList.remove('hidden'); $('eRank').textContent='第 '+myRank+' 名'; }
-  else rc.classList.add('hidden');
   $('finBanner').classList.toggle('hidden',!finished);
   const offTxt = offroadCount ? `這趟騎進田埂 ${offroadCount} 次（在田裡卡了共 ${offroadSec.toFixed(1)} 秒，速度只剩一半）。` : '';
   $('endLead').textContent = (finished
-    ? `便當準時送到田頭！騎了 ${Math.round(elapsed)} 秒，提前 ${Math.max(0,Math.round(cfg.dur-elapsed))} 秒到。`
-      + (rivals.length?`這趟名次：第 ${myRank} 名／${rivals.length+1} 人。`:'')
-    : `辛苦了！以下是這趟的成績（路走了 ${comp}%，多搶到幾次下坡順風就騎得更遠）。`
-      + (rivals.length?`這趟名次：第 ${myRank} 名／${rivals.length+1} 人。`:'')) + offTxt;
+    ? `天黑前就騎到厝了！騎了 ${Math.round(elapsed)} 秒，提前 ${Math.max(0,Math.round(cfg.dur-elapsed))} 秒到。`
+    : `辛苦了！以下是這趟的成績（路走了 ${comp}%，多搶到幾次下坡順風就騎得更遠）。`) + offTxt;
   // 破紀錄（依設定組合分開記；騎士不列入 sig＝換人騎仍可比同一組設定的成績）
   const sig=`${cfg.route}_${cfg.dur}_${cfg.sens}_${cfg.speed}_${cfg.dens}_${cfg.assist}`;
   let best={}; try{ best=JSON.parse(localStorage.getItem(LS_BEST)||'{}'); }catch(e){}
@@ -3378,7 +3528,7 @@ function endGame(){
              : `同設定最佳紀錄：${prev.score} 穗（騎了 ${prev.dist} 公尺）。`)
     : '這是這組設定的第一筆紀錄。';
   if(isRec||finished){ celebrate(); if(AE&&cfg.sound){ AE.setMuted(muted); AE.fanfare(); } }
-  // 完賽先看「便當交到阿爸手上」的結局頁（老闆：要有 ending 的感覺），按一下才進成績；沒騎完直接進結算
+  // 完賽先看「到厝、家人端飯出來」的結局頁（老闆：要有 ending 的感覺），按一下才進成績；沒騎完直接進結算
   show(finished?'ending':'end');
 }
 function celebrate(){
@@ -3419,9 +3569,10 @@ function buildSession(){
     diff:cfg.diff,                                   // 難度（1 簡單／2 普通／3 困難／0 治療師自訂）
     score, dist:Math.round(odo*M_PER_ODO), crashes, coneHits, npcHits, feverCount,
     finished, overtakes, playTime:Math.round(elapsed),
-    // v3／v3.1 新欄位：舊紀錄沒有這些欄，判讀端一律用 != null 守（向下相容）
-    rivalsOn:rivals.length?1:0, rank:rivals.length?myRank:null, fieldSize:rivals.length?rivals.length+1:null,
-    rivalCount:rivals.length,
+    // ⚠️舊紀錄沒有這些欄，判讀端一律用 != null 守（向下相容）。
+    //   rank／fieldSize 是 08-08 移除對手競速前的舊欄位，新紀錄一律不寫，報表仍讀得到舊資料。
+    hand:cfg.hand||null,                             // 直式單手模式時記錄用哪隻手（旋前／旋後多半只練患側）
+    curve:cfg.curve,                                 // 0 直路／1 緩彎／2 彎道（直路＝這趟沒有離心力成分）
     offroadCount, offroadSec:+offroadSec.toFixed(1),
     completion:route?Math.min(100,Math.round(odo/route.totalOdo*100)):null,
     presented:M.presented.slice(), collected:M.collected.slice(),
@@ -3498,12 +3649,7 @@ function renderReport(){
          : '此筆為舊版紀錄，無此欄位',
        (s.offroadCount!=null&&s.offroadCount>5)?'bad':'')+
     M2('這趟成績', s.score+' 穗',
-       `路走了 ${s.completion!=null?s.completion+'%':'–'}${s.finished?'（🍱 送到）':''}．騎了 ${s.dist} 公尺．追過 ${s.overtakes||0} 人．順風 ${s.feverCount} 次`)+
-    (s.rank!=null
-      ? M2('最後名次', `第 ${s.rank} 名`+(prev&&prev.rank!=null?dl(s.rank,prev.rank,'',true):''),
-           `共 ${s.fieldSize||4} 人．少年家採橡皮筋配速，名次反映的是「衝刺與避撞的效率」而非絕對速度`,
-           s.rank===1?'sym':'')
-      : '');
+       `路走了 ${s.completion!=null?s.completion+'%':'–'}${s.finished?'（🍚 到厝）':''}．騎了 ${s.dist} 公尺．追過 ${s.overtakes||0} 台．順風 ${s.feverCount} 次`);
 
   const angleChart=barsSVG([
     {label:'左倒平均峰值',v:s.peakL,color:'#5aa9e6'},
@@ -3531,7 +3677,11 @@ function renderReport(){
   }
 
   const notes=[];
-  notes.push(`這趟在<b>${s.mode==='land'?'A 橫式（雙手握桿、整條上肢帶動）':'B 直式（單手前臂旋前／旋後）'}</b>下進行，時長 ${s.dur} 秒。`);
+  // ⚠️直式單手要把手別寫進來：旋前／旋後多半只練患側，不分手別的話跨場趨勢會把左右手混成一條線
+  notes.push(`這趟在<b>${s.mode==='land'
+      ? 'A 橫式（雙手握桿、整條上肢帶動，訓練標的偏軀幹核心穩定與雙側整合）'
+      : 'B 直式（單手前臂旋前／旋後'+(s.hand==='L'?'，左手':s.hand==='R'?'，右手':'，未記錄手別')+'）'
+    }</b>下進行，時長 ${s.dur} 秒。`);
   if(s.coinRate!=null) notes.push(`撿穗率 ${s.coinRate}%（稻穗位置即動作處方，撿穗率反映「引導到位的動作有沒有做出來」）。`);
   if(s.symAngle!=null){
     notes.push(s.symAngle>=85
@@ -3542,11 +3692,12 @@ function renderReport(){
     notes.push(`路左側達成率 ${s.rateL}%、路右側 ${s.rateR}%（達成率對稱性 ${s.symRate}%）；與角度對稱性合看，可分辨是「動作做不到」還是「反應來不及」。`);
   if(s.avgRT!=null) notes.push(`平均反應時間 ${(s.avgRT/1000).toFixed(2)} s（含看到目標→啟動轉向）；CV ${s.cvRT!=null?s.cvRT+'%':'–'}，越低代表啟動越穩定。`);
   else if(s.nRT) notes.push(`反應時間樣本僅 ${s.nRT} 次（需 ≥5 次才計），這趟不出數字；提高稻穗／障礙密度或延長時長可累積樣本。`);
-  if(s.finished) notes.push(`🍱 這趟提前 ${Math.max(0,s.dur-s.playTime)} 秒把便當送到田頭：順風抓取與路徑控制皆有效，可考慮提高腳程或密度增加挑戰。`);
-  if(s.rank!=null) notes.push(s.rank===1
-    ? `庄裡少年家之中拿到第 1 名／${s.fieldSize||4} 人：對手採橡皮筋配速貼著基準腳程，能領先代表順風抓取確實、撞到的損失少。`
-    : `庄裡少年家之中排第 ${s.rank} 名／${s.fieldSize||4} 人：名次落後多半來自撞到後減速（這趟 ${s.crashes} 次）或漏掉下坡順風（${s.feverCount} 次）；若名次造成挫折感，設定頁可關掉「庄裡少年家一起送飯」。`);
-  if(s.offroadCount!=null){
+  if(s.finished) notes.push(`🍚 這趟提前 ${Math.max(0,s.dur-s.playTime)} 秒騎到厝：順風抓取與路徑控制皆有效，可考慮提高腳程或密度增加挑戰。`);
+  // ⚠️直路那趟沒有離心力，「彎道跟隨能力」這個判讀不成立，要先講清楚免得誤判
+  if(s.curve===0) notes.push('這趟是<b>直路（簡單）</b>：路上沒有彎道，也就沒有離心力把車往彎外甩。'
+    +'因此本趟的動作成分是「左右移動去撿稻穗」，<b>出界次數不能拿來判讀彎道跟隨能力</b>；'
+    +'要評估過彎時的主動壓車，請改用「緩彎」或「彎道」再跑一趟。');
+  if(s.offroadCount!=null&&s.curve!==0){
     notes.push(s.offroadCount<=2
       ? `<b>彎道跟隨能力</b>：騎進田埂 ${s.offroadCount} 次（在田裡卡了 ${s.offroadSec??0} 秒）。彎道有離心力把車往彎外甩，出界少代表個案能在彎道<b>主動往彎內倒</b>並維持住，動作的時機與幅度都到位。`
       : `⚠️<b>彎道跟隨能力</b>：騎進田埂 ${s.offroadCount} 次（在田裡卡了 ${s.offroadSec??0} 秒，期間腳程只剩一半）。出界多半代表「該轉的時候沒轉，或轉了但幅度不夠」；可先降腳程、開啟新手輔助（離心力打 6 折），或把轉向靈敏度調靈敏一點，讓個案先建立「彎道要出力」的成功經驗。`);
@@ -3558,10 +3709,10 @@ function renderReport(){
   if(s.demo) notes.push('⚠️這趟為鍵盤展示模式，角度資料為模擬值，不可作為臨床紀錄。');
 
   $('reportBody').innerHTML=`
-    <div class="rep-head"><h1>復能訓練報表 <span class="pill">治療師版・騎鐵馬送便當</span></h1></div>
+    <div class="rep-head"><h1>復能訓練報表 <span class="pill">治療師版・騎鐵馬回家吃飯</span></h1></div>
     <div class="rep-sub">${dateStr}
       <div class="rep-chips">
-        <span>${s.mode==='land'?'A 橫式雙手':'B 直式單手'}</span>
+        <span>${s.mode==='land'?'A 橫式雙手':('B 直式單手'+(s.hand==='L'?'・左手':s.hand==='R'?'・右手':''))}</span>
         <span>騎士 ${RIDER_NAME(s.rider||'grandpa')}</span>
         <span>路線 ${['','田邊路','溪邊路','山腳路'][s.route]||'–'}</span>
         <span>難度 ${s.diff==null?'–':(DIFFS[s.diff]?DIFFS[s.diff].label:'自訂')}</span>
@@ -3570,7 +3721,7 @@ function renderReport(){
         <span>腳程 ${SPEED_TXT[s.speed]}</span>
         <span>密度 ${DENS_TXT[s.dens]}</span>
         <span>新手輔助 ${s.assist?'開':'關'}</span>
-        <span>少年家 ${s.rivalsOn?((s.rivalCount||s.fieldSize-1||3)+' 人'):'關'}</span>
+        <span>路況 ${s.curve==null?'–':(CURVE_TXT[s.curve]||'–')}</span>
         <span>${(SCENES[s.scene]||SCENES.rice).name}</span>
       </div>
     </div>
@@ -3602,6 +3753,8 @@ function segBind(id,key,cast){
   const cur=String(cfg[key]);
   [...$(id).children].forEach(b=>b.classList.toggle('on',b.dataset[key]===cur));
 }
+segBind('segCurve','curve',Number);
+segBind('segHand','hand');
 // 故事開場頁：看完故事才進設定頁（每次打開網頁都會再看一次，據點帶懷舊剛好當開場白）
 $('btnStoryGo').onclick=()=>{ show('setup'); };
 $('btnEndingNext').onclick=()=>{ show('end'); };
@@ -3616,7 +3769,6 @@ segBind('segRoute','route',Number);
 segBind('segDur','dur',Number);
 segBind('segAssist','assist',Number);
 segBind('segSound','sound',Number);
-segBind('segRivals','rivals',Number);
 
 const KNOBS={};                          // key → 重新整理該旋鈕 UI 的函式（難度三選一要回頭同步它們）
 function sliderBind(rid,vid,key,txt){
@@ -3635,7 +3787,7 @@ $('lbSens').textContent='（數字越大＝要用掉越多活動範圍才轉得�
 /* ---- 難度三選一 ↔ 治療師旋鈕的雙向同步 ----
    按難度＝一次套用一整組旋鈕；反過來動任一旋鈕＝難度變「自訂」（三顆都不亮）。
    ⚠️markCustom 要等 UI 初始化完才生效，否則載入時 sliderBind 的第一次 u() 就會把難度清成自訂。 */
-var DIFF_KEYS={dur:1,assist:1,rivals:1,sens:1,speed:1,dens:1};
+var DIFF_KEYS={dur:1,assist:1,sens:1,speed:1,dens:1,curve:1};
 var diffReady=false;
 function markCustom(){ if(!diffReady) return; cfg.diff=0; saveCfg(); syncDiffUI(); }
 function syncDiffUI(){
@@ -3645,9 +3797,9 @@ function applyDiff(n){
   const d=DIFFS[n]; if(!d) return;
   diffReady=false;                                  // 套用期間不要被自己觸發的 UI 更新反標成「自訂」
   cfg.diff=n; cfg.speed=d.speed; cfg.dens=d.dens; cfg.sens=d.sens;
-  cfg.assist=d.assist; cfg.rivals=d.rivals; cfg.dur=d.dur;
+  cfg.assist=d.assist; cfg.dur=d.dur; cfg.curve=d.curve;
   for(const k in KNOBS) KNOBS[k]();                 // 三支 slider 的把手與文字
-  for(const [id,key] of [['segDur','dur'],['segAssist','assist'],['segRivals','rivals']]){
+  for(const [id,key] of [['segDur','dur'],['segAssist','assist'],['segCurve','curve']]){
     const cur=String(cfg[key]);
     [...$(id).children].forEach(b=>b.classList.toggle('on',b.dataset[key]===cur));
   }
@@ -3771,11 +3923,19 @@ $('btnMute').onclick=()=>{ muted=!muted; if(AE)AE.setMuted(muted); $('btnMute').
   const sp={};
   for(const k of ['tree','pole','hay'])
     sp[k]= raw[k] ? shrink(keyOutGreen(raw[k],KEY[k]),560) : null;
-  // 田頭終點的老榕樹＋阿爸：比路邊景物大很多（終點是「量體感」的視覺焦點），去背後給更高解析度。
-  sp.treeBig = raw.treeBig ? shrink(keyOutGreen(raw.treeBig,KEY.treeBig),900) : null;
+  // 門口揮手的人：比路邊景物大一些，去背後給更高解析度。
   sp.father  = raw.father  ? shrink(keyOutGreen(raw.father,KEY.father),480)   : null;
   // 白鷺鷥：有照片就用照片，沒有就用程式畫的那張（AI 生圖若沒趕上，遊戲照樣完整）
   sp.egret = raw.egret ? shrink(keyOutGreen(raw.egret,KEY.egret),420) : makeEgretSprite();
+  // 2026-08-08 回家版：終點的厝（遠景與近景共用同一張）＋三個里程碑。
+  // ⚠️素材沒到齊時一律留 null：drawFarHome 有幾何 fallback，里程碑則整個不畫，遊戲照樣跑得完。
+  sp.house  = raw.house  ? shrink(keyOutGreen(raw.house ,KEY.house ),900) : null;
+  sp.bridge = raw.bridge ? shrink(keyOutGreen(raw.bridge,KEY.bridge),560) : null;
+  sp.shrine = raw.shrine ? shrink(keyOutGreen(raw.shrine,KEY.shrine),560) : null;
+  sp.barn   = raw.barn   ? shrink(keyOutGreen(raw.barn  ,KEY.barn  ),700) : null;
+  sp.postman   = raw.postman   ? shrink(keyOutGreen(raw.postman  ,KEY.postman  ),420) : null;
+  sp.police    = raw.police    ? shrink(keyOutGreen(raw.police   ,KEY.police   ),420) : null;
+  sp.farmhouse = raw.farmhouse ? shrink(keyOutGreen(raw.farmhouse,KEY.farmhouse),640) : null;
   sp.rice   = makeRiceSprite();
   sp.basket = makeBasketSprite();
 
@@ -3795,24 +3955,12 @@ $('btnMute').onclick=()=>{ muted=!muted; if(AE)AE.setMuted(muted); $('btnMute').
   }
   const pick=()=>BIKES[cfg.rider]||BIKES.grandpa;
 
-  /* ---- 庄裡少年家（對手）與路上慢騎的鐵馬 ----
-     ⚠️腳踏車車架是黑的，hueShift 換不了色（見 RIVAL_WEAR 註解）→ 改「換款式＋染衣服」。
-     六個人各自綁定一個騎士款式與一種布色，同一畫面上才分得出誰是誰。 */
-  const rivalBase=RIDERS.map(r=>BIKES[r.id].U).filter(Boolean);
-  /* ⚠️款式配對不能寫成 i % 4：那會讓阿嬤出現兩次，而阿嬤的深藍花布衫亮度太低，
-     tintBright 染不上去（染了會變成一坨看不出顏色的深色）→ 兩位阿嬤長得一模一樣。
-     改成 [阿公,阿嬤,少年,少女,阿公,少年]：重複到的都是白汗衫／白襯衫，染色吃得很好，六個人就都不一樣。 */
-  const RIVAL_BASE_IDX=[0,1,2,3,0,2];
-  const rival = rivalBase.length ? RIVAL_WEAR.map((col,i)=>{
-      const src=rivalBase[RIVAL_BASE_IDX[i]%rivalBase.length];
-      const c=tintBright(shrink(src,300),col,0.80); c.anchor=src.anchor; return c;
-    }) : [null,null,null,null,null,null];
   /* 路上慢騎、會擋路撞得到的鐵馬。
-     ⚠️這一款不能只是「換個顏色的阿公」：玩家自己也可以選阿公，六個對手裡也有阿公，
-       三者長得一樣的話，個案根本分不出「哪一台撞得到」。
+     ⚠️這一款不能只是「換個顏色的阿公」：玩家自己也可能選阿公，
+       兩者長得一樣的話，個案根本分不出「哪一台撞得到」。
      解法＝把稻草堆的素材疊到後貨架上，做成「載一大捆稻草的鐵馬」——
        剪影一眼就比別人胖一圈，而且完全符合 1960 年代田間的畫面。 */
-  const npcBase=BIKES.grandpa.U||rivalBase[0]||null;
+  const npcBase=BIKES.grandpa.U||null;
   const npc = npcBase ? [[214,202,176],[164,150,120],[128,120,104]].map(col=>{
       const t=tintBright(shrink(npcBase,300),col,0.55);
       t.anchor=npcBase.anchor; return loadHay(t,sp.hay);
@@ -3829,7 +3977,7 @@ $('btnMute').onclick=()=>{ muted=!muted; if(AE)AE.setMuted(muted); $('btnMute').
           // 霧色要落在「照片地平線色」與「繪製遠景色」之間，否則地平線會出現一條比兩邊都暗的帶子
           haze: mix(base.haze, mix(base.far,S.ground.far,S.ground.blend), 0.45) };
   rowPat = makeRowPattern(ctx,S.rowColor);
-  ASSET = { bg:raw.bg, sp, npc, rival, bikes:BIKES,
+  ASSET = { bg:raw.bg, sp, npc, bikes:BIKES,
             get bikeU(){ return pick().U; }, get bikeL(){ return pick().L; } };
   const updBikeK=()=>{
     const w=cv.clientWidth, h=cv.clientHeight;
