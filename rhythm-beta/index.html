@@ -1,0 +1,1455 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- 本機開發用：避免瀏覽器拿舊版 HTML，改完卻看不到 -->
+<meta http-equiv="Cache-Control" content="no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<title>節奏律動 — 鏡頭節奏復能遊戲</title>
+<style>
+  :root{
+    --mint:#00C9A7; --lime:#7ED957; --orange:#FF8A3D; --yellow:#FFD23F; --sky:#4DC3FF;
+    --ink:#1D3B36; --soft:#6B8A84; --line:#DCE8E5;
+    --round:"Yuanti TC","PingFang TC","Noto Sans TC",sans-serif;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;font-family:"PingFang TC","Noto Sans TC",sans-serif;}
+  html,body{width:100%;height:100%;background:#F2F7F5;color:var(--ink);overflow:hidden;}
+  .hidden{display:none!important;}
+  section{position:fixed;inset:0;overflow-y:auto;}
+  .wrap{max-width:880px;margin:0 auto;padding:34px 20px 60px;}
+  h1{font-size:2rem;margin-bottom:6px;font-family:var(--round);}
+  .sub{color:var(--soft);margin-bottom:22px;}
+  .card{background:#fff;border-radius:20px;padding:18px 20px;margin-bottom:14px;
+    box-shadow:0 2px 4px rgba(29,59,54,.05),0 10px 24px rgba(29,59,54,.07);}
+  .btn{background:var(--mint);color:#fff;border:none;border-radius:99px;padding:14px 28px;
+    font-size:1.15rem;font-weight:800;cursor:pointer;font-family:var(--round);
+    box-shadow:0 4px 12px rgba(0,201,167,.32);}
+  .btn:disabled{opacity:.45;box-shadow:none;}
+  .btn.ghost{background:#fff;color:var(--ink);box-shadow:0 2px 8px rgba(29,59,54,.14);}
+  .btn.big{font-size:1.35rem;padding:18px 44px;}
+  .songGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px;}
+  .song{background:#F7FBFA;border:3px solid transparent;border-radius:16px;padding:16px;cursor:pointer;transition:.15s;}
+  .song:hover{border-color:#BFE9E0;}
+  .song.on{border-color:var(--mint);background:#EAF8F5;}
+  .song .t{font-size:1.15rem;font-weight:800;font-family:var(--round);}
+  .song .meta{display:flex;align-items:center;gap:8px;margin-top:6px;flex-wrap:wrap;}
+  .song .stars{color:var(--orange);letter-spacing:1px;font-size:.95rem;}
+  .song .lv{background:#E4F7F2;color:#0A9C84;border-radius:999px;padding:1px 9px;font-size:.75rem;font-weight:700;}
+  .song .len{color:var(--soft);font-size:.8rem;}
+  .song .d{color:var(--soft);font-size:.86rem;margin-top:7px;line-height:1.55;}
+  .legend{color:var(--soft);font-size:.82rem;margin-top:12px;line-height:1.6;}
+  .seg{display:inline-flex;background:#EDF4F2;border-radius:99px;overflow:hidden;margin:4px 0;padding:4px;gap:4px;}
+  .seg button{background:none;border:none;color:var(--soft);padding:9px 20px;font-size:1.02rem;
+    cursor:pointer;border-radius:99px;font-family:var(--round);}
+  .seg button.on{background:#fff;color:var(--ink);font-weight:800;box-shadow:0 2px 6px rgba(29,59,54,.14);}
+  label.fld{display:block;color:var(--soft);margin:14px 0 4px;font-size:.95rem;}
+  input[type=range]{accent-color:var(--mint);}
+  /* 兩個動作：卡片放大置中，才不會左靠留一塊空白 */
+  .moves{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin:12px auto 0;max-width:520px;}
+  .moveCard{background:#F7FBFA;border-radius:18px;padding:14px 12px;text-align:center;}
+  .moveCard img{width:100%;max-width:150px;height:auto;}
+  .moveCard .nm{font-weight:800;font-family:var(--round);letter-spacing:.14em;margin-top:4px;font-size:1.1rem;}
+  .moveCard .sb{color:var(--soft);font-size:.8rem;}
+  .moveCard .cdot{display:inline-block;width:.6em;height:.6em;border-radius:99px;margin-right:.35em;
+    vertical-align:.02em;}
+  .err{color:#E4572E;margin-top:10px;min-height:1.2em;}
+
+  /* ═══ 手機（窄螢幕）═══ */
+  @media (max-width:640px){
+    .wrap{padding:20px 14px 44px;}
+    h1{font-size:1.5rem;}
+    .sub{font-size:.9rem;margin-bottom:16px;}
+    .card{padding:14px 14px;border-radius:16px;}
+    .songGrid{grid-template-columns:1fr;gap:10px;}
+    .song{padding:13px;}
+    .song .d{font-size:.82rem;}
+    .seg{width:100%;}
+    .seg button{flex:1;padding:11px 8px;font-size:.95rem;}
+    .btn.big{width:100%;font-size:1.2rem;padding:16px 20px;}
+    .btn.ghost{width:100%;margin-top:10px;}
+    .moveCard img{max-width:120px;}
+  }
+
+  /* ═══ 矮螢幕（橫向手機）：舞台上的按鈕縮小，免得玩到一半誤觸 ═══ */
+  @media (max-height:480px){
+    #quitRow{bottom:5%;gap:6px;}
+    #quitRow .btn{padding:5px 12px;font-size:.78rem;opacity:.75;}
+    #hud{padding:1.8vh 2vw;}
+    .pill{font-size:clamp(11px,2.4vw,17px);padding:.34em .8em;}
+    #bar{bottom:2.2%;height:6px;}
+  }
+
+  /* ═══ 請把手機轉成橫的（太鼓手機版也是強制橫向）═══ */
+  #rotate{position:fixed;inset:0;z-index:200;background:#F2F7F5;display:none;
+    place-items:center;text-align:center;padding:24px;}
+  #rotate .ic{font-size:4rem;animation:tilt 1.6s ease-in-out infinite;}
+  #rotate .tt{font-size:1.4rem;font-weight:900;font-family:var(--round);margin-top:10px;}
+  #rotate .ss{color:var(--soft);margin-top:8px;line-height:1.7;}
+  @keyframes tilt{0%,100%{transform:rotate(0)}50%{transform:rotate(-90deg)}}
+
+  /* ═══════════ 遊戲舞台 ═══════════ */
+  #stage{background:#DCEFEA;font-family:var(--round);}
+  #video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transform:scaleX(-1);visibility:hidden;}
+  #cv{position:absolute;inset:0;width:100%;height:100%;}
+  /* 鏡頭上的白色柔光：清爽路線不壓暗，改提亮 */
+  #wash{position:absolute;inset:0;pointer-events:none;
+    background:linear-gradient(180deg,rgba(255,255,255,.46),rgba(255,255,255,.18));}
+  #hud{position:absolute;top:0;left:0;right:0;display:flex;justify-content:space-between;
+    align-items:flex-start;padding:2.6vh 2.4vw;pointer-events:none;gap:8px;}
+  .pill{background:#fff;border-radius:99px;padding:.42em .95em;font-weight:900;
+    font-size:clamp(13px,1.9vw,21px);color:var(--ink);white-space:nowrap;
+    box-shadow:0 3px 10px rgba(29,59,54,.18);display:flex;align-items:center;gap:.4em;}
+  .pill.dark{background:var(--ink);color:#fff;}
+  .pill.combo{background:var(--orange);color:#fff;transform:rotate(-3deg);}
+  .dot{width:.6em;height:.6em;border-radius:99px;background:var(--mint);flex:none;}
+  .hudR{display:flex;gap:.5em;align-items:flex-start;}
+  .pill.gauge{gap:.5em;padding:.42em .8em;}
+  .pill .gLb{font-size:.72em;color:var(--soft);font-weight:800;}
+  .pill .gTrack{position:relative;display:block;width:clamp(64px,11vw,132px);height:.72em;
+    border-radius:99px;background:#E2EDEA;overflow:hidden;}
+  .pill .gTrack i{display:block;height:100%;width:0;border-radius:99px;
+    background:linear-gradient(90deg,var(--sky),var(--mint),var(--lime));transition:width .25s;}
+  .pill .gTrack b{position:absolute;top:-15%;left:80%;width:2px;height:130%;background:rgba(29,59,54,.45);}
+  .pill.gauge.done .gLb{color:#0A9C84;}
+
+  /* 判定文字：放在判定圈正下方（軌道之下），才會跟「撞擊」發生在同一個位置 */
+  #pop{position:absolute;left:17%;top:46%;transform:translate(-50%,-50%);
+    font-size:clamp(26px,4.6vw,56px);white-space:nowrap;
+    font-weight:900;pointer-events:none;opacity:0;
+    text-shadow:0 2px 0 #fff,0 -2px 0 #fff,2px 0 0 #fff,-2px 0 0 #fff,0 4px 16px rgba(255,255,255,.95);}
+  #burstBar{position:absolute;left:50%;top:58%;transform:translateX(-50%);background:var(--yellow);
+    color:#5A4300;border-radius:99px;padding:.35em 1.2em;font-weight:900;
+    font-size:clamp(15px,2.4vw,26px);box-shadow:0 4px 12px rgba(0,0,0,.16);}
+  /* 淺色背景上要看得見，所以軌道給實色＋內陰影，不能只靠半透明白 */
+  #bar{position:absolute;left:2.4vw;right:2.4vw;bottom:3.4%;height:clamp(7px,1vw,12px);
+    border-radius:99px;background:rgba(29,59,54,.16);overflow:hidden;
+    box-shadow:inset 0 1px 3px rgba(29,59,54,.22);}
+  #bar i{display:block;height:100%;width:0;border-radius:99px;
+    background:linear-gradient(90deg,var(--mint),var(--lime));transition:width .2s linear;}
+  #quitRow{position:absolute;left:2.4vw;bottom:9%;display:flex;gap:8px;}
+  #quitRow .btn{padding:8px 18px;font-size:.95rem;}
+  #bigMsg{position:absolute;left:50%;top:44%;transform:translate(-50%,-50%);
+    font-size:clamp(60px,12vw,150px);font-weight:900;color:#fff;
+    text-shadow:0 6px 26px rgba(29,59,54,.45);pointer-events:none;}
+
+  /* 暖身校正面板 */
+  #warm{position:absolute;inset:0;display:grid;place-items:center;pointer-events:none;}
+  #warmCard{background:rgba(255,255,255,.95);border-radius:26px;padding:22px 30px;text-align:center;
+    box-shadow:0 10px 34px rgba(29,59,54,.22);max-width:min(88vw,520px);}
+  #warmCard img{width:min(38vh,240px);height:auto;}
+  #warmTitle{font-size:clamp(20px,3vw,30px);font-weight:900;letter-spacing:.06em;}
+  #warmHint{color:var(--soft);font-size:clamp(13px,1.7vw,17px);margin-top:4px;line-height:1.6;}
+  #warmDots{display:flex;gap:10px;justify-content:center;margin-top:12px;}
+  #warmDots span{width:18px;height:18px;border-radius:99px;background:#DCE8E5;}
+  #warmDots span.on{background:var(--mint);}
+  #warmStep{color:var(--soft);font-size:.85rem;margin-top:8px;}
+
+  /* 結算 */
+  table.rpt{width:100%;border-collapse:collapse;margin-top:8px;}
+  table.rpt td,table.rpt th{padding:9px 10px;border-bottom:1px solid var(--line);text-align:left;font-size:1rem;}
+  table.rpt th{color:var(--soft);font-weight:400;}
+  .grade{font-size:4rem;font-weight:900;color:var(--mint);font-family:var(--round);}
+  #tl{width:100%;height:120px;background:#F7FBFA;border-radius:14px;margin-top:10px;}
+  .credit{color:#9AAFAA;font-size:.78rem;margin-top:26px;line-height:1.6;}
+  .bars{margin-top:6px;}
+  .barRow{display:flex;align-items:center;gap:10px;margin:7px 0;font-size:.92rem;}
+  .barRow .lb{width:4.2em;color:var(--soft);}
+  .barRow .tk{flex:1;height:12px;border-radius:99px;background:#E9F2F0;overflow:hidden;}
+  .barRow .tk i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,var(--mint),var(--lime));}
+  .barRow .vv{width:5.2em;text-align:right;font-weight:700;}
+
+  /* ═══ ⭐ v13 連擊火焰 ═══
+     火焰是「純正向」的裝飾：只在連擊夠長時出現，連擊斷掉就消失，
+     全程不出現任何負面字樣。動畫刻意做小（scale 1.10、0.8s），
+     長者的視野本來就對高頻閃爍敏感，晃太大會頭暈也會搶走軌道的注意力。 */
+  .pill.combo .flame{display:none;line-height:1;letter-spacing:-.04em;}
+  .pill.combo.hot .flame{display:inline-block;animation:flameBreath .8s ease-in-out infinite;}
+  /* 「外圍」的火光：pill 本身多一圈橘色柔光暈，比只加 emoji 更看得出等級變化 */
+  .pill.combo.hot{box-shadow:0 3px 10px rgba(29,59,54,.18),0 0 0 .26em rgba(255,138,61,.26);}
+  @keyframes flameBreath{0%,100%{transform:scale(1);filter:brightness(1);}
+                         50%{transform:scale(1.10);filter:brightness(1.18);}}
+  /* 系統層級要求減少動態效果時就別動（前庭功能不佳的長者會不舒服） */
+  @media (prefers-reduced-motion:reduce){
+    .pill.combo.hot .flame{animation:none;}
+  }
+
+  /* ═══ ⭐ v13 排行榜 ═══ */
+  table.rpt.board td,table.rpt.board th{padding:8px 9px;}
+  table.rpt.board td.num{text-align:right;font-weight:800;white-space:nowrap;}
+  table.rpt.board td.dt{color:var(--soft);white-space:nowrap;}
+  table.rpt.board td.rk{white-space:nowrap;font-weight:800;}
+  table.rpt.board tr.mine td{background:#E4F7F2;}
+  table.rpt.board tr.mine td:first-child{border-radius:12px 0 0 12px;}
+  table.rpt.board tr.mine td:last-child{border-radius:0 12px 12px 0;}
+  .newTag{display:inline-block;background:var(--mint);color:#fff;border-radius:99px;
+    padding:1px 9px;font-size:.7rem;font-weight:800;margin-left:6px;vertical-align:.1em;letter-spacing:.04em;}
+  #rNameAsk{background:#F7FBFA;border-radius:16px;padding:14px 14px 16px;margin-top:14px;}
+  #rNameAsk .askT{font-weight:800;font-family:var(--round);font-size:1.08rem;}
+  #rNameAsk .askS{color:var(--soft);font-size:.85rem;margin:4px 0 12px;line-height:1.6;}
+  .nameRow{display:flex;flex-wrap:wrap;gap:10px;}
+  /* 長者打字困難，所以「按一下就好」的大按鈕才是主要入口，鍵盤是備案 */
+  .nameBtn{background:var(--mint);color:#fff;border:none;border-radius:99px;padding:14px 26px;
+    font-size:1.15rem;font-weight:800;font-family:var(--round);cursor:pointer;
+    box-shadow:0 3px 10px rgba(0,201,167,.28);}
+  .nameBtn.ghost{background:#fff;color:var(--ink);box-shadow:0 2px 8px rgba(29,59,54,.14);}
+  .nameInput{display:flex;gap:10px;margin-top:12px;align-items:center;}
+  .nameInput input{flex:1;min-width:0;font-size:1.35rem;padding:12px 16px;border:2px solid var(--line);
+    border-radius:14px;font-family:var(--round);}
+  .nameInput input:focus{outline:none;border-color:var(--mint);}
+  .miniLink{color:#9AAFAA;font-size:.78rem;text-decoration:underline;cursor:pointer;}
+
+  @media (max-width:640px){
+    table.rpt.board td,table.rpt.board th{padding:7px 5px;font-size:.9rem;}
+    .newTag{font-size:.64rem;padding:1px 6px;margin-left:4px;}
+    .nameBtn{flex:1 1 44%;padding:14px 8px;font-size:1.02rem;}
+    .nameInput{flex-wrap:wrap;}
+    .nameInput input,.nameInput .nameBtn{flex:1 1 100%;}
+  }
+</style>
+</head>
+<body>
+
+<!-- 開啟方式錯誤時的救援提示（普通 script，不受 module／CORS 影響才能顯示） -->
+<section id="fileWarn" class="hidden" style="background:#F2F7F5;z-index:99;">
+  <div class="wrap">
+    <h1>⚠️ 請用「開始玩」啟動，不要直接雙擊網頁</h1>
+    <div class="card" style="line-height:1.9;font-size:1.05rem;">
+      <p>這個遊戲需要透過本機伺服器開啟，瀏覽器才允許使用<b>鏡頭</b>與<b>載入程式模組</b>。<br>
+      直接雙擊 HTML（<code>file://</code>）會被瀏覽器擋住，畫面就會像現在這樣沒有反應。</p>
+      <p style="margin-top:14px;"><b>正確開法：</b>回到「節奏律動」資料夾，雙擊 <b>🎵 開始玩.command</b>，瀏覽器會自動打開遊戲。</p>
+      <p style="margin-top:14px;color:#6B8A84;">若電腦已經在跑伺服器，也可以直接點：<br>
+      <a href="http://localhost:8795/節奏律動/index.html" style="color:#00A88C;">http://localhost:8795/節奏律動/index.html</a></p>
+    </div>
+  </div>
+</section>
+<section id="bootWarn" class="hidden" style="background:#F2F7F5;z-index:98;">
+  <div class="wrap">
+    <h1>⚠️ 遊戲程式載入失敗</h1>
+    <div class="card" style="line-height:1.9;">
+      <p>可能原因：網路不通（需要連線下載動作辨識模型），或程式檔案不完整。</p>
+      <p style="margin-top:10px;color:#6B8A84;" id="bootErrMsg"></p>
+      <button class="btn" style="margin-top:14px;" onclick="location.reload()">重新載入</button>
+    </div>
+  </div>
+</section>
+<script>
+  (function () {
+    if (location.protocol === 'file:') {
+      document.getElementById('fileWarn').classList.remove('hidden');
+      document.getElementById('setup').classList.add('hidden');
+      return;
+    }
+    window.addEventListener('error', function (e) { if (e.message) window.__bootErr = e.message; });
+    setTimeout(function () {
+      if (!document.querySelector('.song')) {
+        document.getElementById('bootWarn').classList.remove('hidden');
+        document.getElementById('setup').classList.add('hidden');
+        document.getElementById('bootErrMsg').textContent = window.__bootErr || '';
+      }
+    }, 3000);
+  })();
+</script>
+
+<!-- 手機直立時的轉向提示 -->
+<div id="rotate">
+  <div>
+    <div class="ic">📱</div>
+    <div class="tt">請把手機轉成橫的</div>
+    <div class="ss">音符是從右邊流過來的，<br>橫著拿才看得到完整的軌道。</div>
+  </div>
+</div>
+
+<!-- ═══════════ 選歌/設定 ═══════════ -->
+<section id="setup">
+  <div class="wrap">
+    <h1>🎵 節奏律動</h1>
+    <p class="sub">跟著音樂做動作。音符會從右邊流過來，<b>撞到左邊那個圈的瞬間</b>就做出動作。</p>
+
+    <div class="card">
+      <div style="font-weight:800;font-family:var(--round);margin-bottom:6px;">兩個動作</div>
+      <div class="moves" style="grid-template-columns:repeat(2,1fr);max-width:460px">
+        <div class="moveCard"><img src="art/seat-clap-t.png" alt="拍手"><div class="nm"><span class="cdot" style="background:#FF8A3D"></span>拍手</div><div class="sb">雙側協調・動作速度</div></div>
+        <div class="moveCard"><img src="art/seat-raise-t.png" alt="高舉"><div class="nm"><span class="cdot" style="background:#00C9A7"></span>高舉</div><div class="sb">肩屈曲 ROM</div></div>
+      </div>
+      <p class="legend">兩個動作都坐著完成，坐輪椅也可以玩。單手做得到的也算分，左右差異會記在結算報表裡。<br>圓點的顏色就是音符在軌道上的顏色。</p>
+    </div>
+
+    <div class="card">
+      <label class="fld" style="margin-top:0">玩法</label>
+      <div class="seg" id="segMode">
+        <button data-v="solo" class="on">👤 單人（開鏡頭）</button>
+        <button data-v="group">📽 團體投影（免鏡頭）</button>
+      </div>
+      <p class="legend" id="modeHint">開鏡頭偵測你的動作，結束後有復能報表。第一次玩會先做 30 秒暖身校正。</p>
+    </div>
+
+    <div class="card">
+      <label class="fld" style="margin-top:0">選一首歌（★ 越多越難）</label>
+      <div class="songGrid" id="songGrid"></div>
+      <p class="legend">★ 依實際譜面統計：指令密度、最密集處的間隔、動作切換頻率與曲長。</p>
+    </div>
+
+    <div class="card" id="soloOpts">
+      <label class="fld" style="margin-top:0">動作偵測靈敏度 — <span id="vSens">標準</span>（做了動作卻沒反應就調高；容易誤觸就調低）</label>
+      <input type="range" id="rSens" min="0.7" max="1.4" step="0.05" value="1" style="width:100%;max-width:420px;">
+      <label class="fld">📷 鏡頭自動取景 — <span id="vFrame">開啟</span>（自動把你放大置中，每台鏡頭視角不同也不用喬位置）</label>
+      <div class="seg" id="segFrame"><button data-v="on" class="on">開啟</button><button data-v="off">關閉</button></div>
+      <label class="fld">🏃 暖身校正 — <span id="vWarm">開啟</span>（量你的動作幅度與速度，難度自動跟著你調）</label>
+      <div class="seg" id="segWarm"><button data-v="on" class="on">開啟</button><button data-v="off">跳過</button></div>
+      <label class="fld">🎮 遊戲機制 — <span id="vArc">開啟</span>（做錯扣分、連擊加倍、過關量表）</label>
+      <div class="seg" id="segArc"><button data-v="on" class="on">開啟</button><button data-v="off">關閉</button></div>
+      <p class="legend" id="arcHint">做錯動作會扣分並中斷連擊；連擊滿 5 次就有 ×1.5 加成，之後每 10 次升一級，最高 ×3；
+      畫面上方的量表填到 80% 就過關；結算會記進排行榜。<br>重度個案建議關閉——關掉就完全沒有負面回饋與競爭，只記錄不扣分、也不上榜。</p>
+    </div>
+
+    <button class="btn big" id="startBtn">開始 ▶</button>
+    <button class="btn ghost" id="listenBtn" onclick="location.href='試聽.html'">🎧 曲庫試聽</button>
+    <div class="err" id="setupErr"></div>
+    <div class="credit" id="creditLine">
+      音樂為公共領域或自由授權之演奏／錄音，授權明細見 songs/LICENSES.md。<br>
+      <!-- ⭐ v13：清榜是治療師換據點才用的功能，刻意做小、放在最角落，長者不會誤觸 -->
+      <span class="miniLink" id="clearBoard">清除排行榜</span>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ 遊戲舞台 ═══════════ -->
+<section id="stage" class="hidden">
+  <video id="video" playsinline muted></video>
+  <canvas id="cv"></canvas>
+  <div id="wash"></div>
+
+  <div id="hud" class="hidden">
+    <div class="pill"><span class="dot"></span><span id="songLabel"></span></div>
+    <div class="hudR">
+      <div class="pill gauge hidden" id="gaugeWrap"><span class="gLb">過關</span>
+        <span class="gTrack"><i id="gaugeFill"></i><b id="gaugeMark"></b></span></div>
+      <div class="pill dark" id="score">0</div>
+      <!-- ⭐ v13：火焰與文字分開兩個 span，火焰才能單獨做脈動動畫而不影響數字閱讀 -->
+      <div class="pill combo" id="combo"><span class="flame" id="comboFlame"></span><span id="comboTxt">★ COMBO 0</span></div>
+    </div>
+  </div>
+
+  <!-- 太鼓式軌道整條畫在 canvas 上（音符要平順捲動，用 canvas 比 DOM 穩） -->
+  <div id="pop"></div>
+  <div id="burstBar" class="hidden">⚡ 一直拍手！ ×0</div>
+  <div id="bar" class="hidden"><i id="barFill"></i></div>
+
+  <!-- 暖身校正 -->
+  <div id="warm" class="hidden">
+    <div id="warmCard">
+      <img id="warmImg" src="art/seat-clap-t.png" alt="">
+      <div id="warmTitle">請跟著做</div>
+      <div id="warmHint">讓鏡頭看到你的頭、肩膀和雙手</div>
+      <div id="warmDots"></div>
+      <div id="warmStep"></div>
+    </div>
+  </div>
+
+  <div id="bigMsg"></div>
+  <div id="quitRow">
+    <button class="btn ghost" id="btnRestart">↺ 重來</button>
+    <button class="btn ghost" id="btnQuit">⚙ 回設定</button>
+  </div>
+</section>
+
+<!-- ═══════════ 結算 ═══════════ -->
+<section id="result" class="hidden">
+  <div class="wrap">
+    <h1>今天的成績</h1>
+    <div class="sub" id="rSong"></div>
+    <div class="card">
+      <div class="grade" id="rGrade">A</div>
+      <table class="rpt">
+        <tr><th>總分</th><td id="rScore"></td><th>最長連續跟上</th><td id="rCombo"></td></tr>
+        <tr><th>🏁 過關量表</th><td id="rClear"></td><th>連擊加成</th><td id="rMult"></td></tr>
+        <tr><th>跟上比例</th><td id="rHit"></td><th>平均反應偏移</th><td id="rReact"></td></tr>
+        <tr><th>剛剛好 / 太快 / 太慢</th><td id="rPG"></td><th>節奏傾向</th><td id="rTend"></td></tr>
+        <tr><th>⚡ 連拍總數</th><td id="rBurst"></td><th id="rWrongTh">做錯動作</th><td id="rWrong"></td></tr>
+      </table>
+      <p class="legend" id="rScaleNote"></p>
+    </div>
+
+    <div class="card">
+      <div style="font-weight:800;font-family:var(--round);">三個動作分別做得如何</div>
+      <div class="bars" id="rByType"></div>
+      <div style="font-weight:800;font-family:var(--round);margin-top:16px;">左右對稱性</div>
+      <div class="bars" id="rSym"></div>
+      <p class="legend" id="rSymNote"></p>
+    </div>
+
+    <div class="card">
+      <div style="font-weight:800;font-family:var(--round);">節奏軌跡</div><div style="color:var(--soft);font-size:.82rem">上＝太快（藍）・中線＝剛剛好（綠）・下＝太慢（橘）</div>
+      <canvas id="tl"></canvas>
+      <div id="rTrend" style="color:var(--soft);font-size:.92rem;margin-top:8px;"></div>
+      <div id="rFatigue" style="color:var(--soft);font-size:.92rem;margin-top:4px;"></div>
+    </div>
+
+    <!-- ⭐ v13 排行榜：擺在趨勢圖後面、按鈕前面。
+         放這裡的理由＝先看自己的復能數據（本人比較），再看跟別人比（社交比較），
+         順序反過來會讓分數低的長者一進結算就先受挫。 -->
+    <div class="card hidden" id="rBoardCard">
+      <div style="font-weight:800;font-family:var(--round);">🏅 排行榜</div>
+      <div style="color:var(--soft);font-size:.82rem;" id="rBoardScope"></div>
+      <table class="rpt board" id="rBoardTbl"></table>
+      <p class="legend" id="rBoardMine"></p>
+      <div id="rNameAsk" class="hidden"></div>
+    </div>
+
+    <button class="btn big" id="againBtn">再玩一次 ▶</button>
+    <button class="btn ghost" id="pickBtn">🎵 換歌 / 回設定</button>
+  </div>
+</section>
+
+<script type="module">
+/* ⚠️ import 的 ?v= 要跟著 detector.js 一起改版。HTML 本身有 no-store 不會被快取，
+   但 module import 會走 HTTP 快取——實測瀏覽器拿舊 detector 配新 HTML，
+   named export 對不上就 SyntaxError 整頁死掉（歌單空白、按鈕全無反應）。 */
+import { createDetector, createAutoFramer, loadPose, TUNE,
+         FLOOR_RAISE_UP, FLOOR_CLAP_SWING } from './detector.js?v=12';
+
+const $=id=>document.getElementById(id);
+const show=el=>el.classList.remove('hidden');
+const hide=el=>el.classList.add('hidden');
+const DEMO=new URLSearchParams(location.search).get('demo')==='1';
+
+/* ---------------- 三動作 ---------------- */
+const ACTS=['clap','raise'];          // 2026-08-08 老闆決定先簡化成兩個動作；
+                                      // 平舉的偵測邏輯保留在 detector.js，日後要加回來很快
+const NAME={clap:'拍　手',raise:'高　舉',side:'平　舉'};
+const SHORT={clap:'拍手',raise:'高舉',side:'平舉'};
+const IMG={clap:'art/seat-clap-t.png',raise:'art/seat-raise-t.png',side:'art/seat-side-t.png'};
+const GOAL={clap:'雙側協調・動作速度',raise:'肩屈曲 ROM',side:'肩外展・姿勢對稱'};
+const RCOL={clap:'#FF8A3D',raise:'#00C9A7',side:'#4DC3FF'};
+
+/* ---------------- 歌單 ---------------- */
+const SONGS=[
+  {id:'elise',    title:'給愛麗絲',        audio:'songs/elise.mp3', star:1, len:'2:49',
+   why:'指令最稀疏、拍點最寬鬆，垃圾車旋律人人會哼。第一次玩從這首開始。'},
+  {id:'radetzky', title:'拉德斯基進行曲',  audio:'songs/radetzky.ogg', star:2, len:'2:33',
+   why:'軍樂進行曲，鼓點方正好跟；動作變換最少，曲子也最短。'},
+  {id:'danube',   title:'藍色多瑙河',      audio:'songs/danube_main.mp3', star:2, len:'2:35',
+   why:'華爾滋三拍子，搖擺感強、節奏規律，適合帶動唱。'},
+  {id:'turkish',  title:'土耳其進行曲',    audio:'songs/turkish.mp3', star:3, len:'2:58',
+   why:'速度明快，但指令已放寬，動作之間留了喘息空間。'},
+  {id:'bang',     title:'望春風（1933）',  audio:'songs/bang_chhun_hong_1933.ogg', star:4, len:'3:10',
+   why:'純純原版人聲。老錄音的節奏比較自由，反而最難跟；全曲沒有連拍段可以喘息。'},
+  {id:'canon',    title:'卡農 Canon in D', audio:'songs/canon.mp3', star:4, len:'3:19',
+   why:'最長的一首，動作切換也最頻繁，是耐力型挑戰。'},
+];
+const cfg={song:null,mode:'solo',warmup:true,arcade:true};
+const grid=$('songGrid');
+const STAR_LABEL={1:'入門',2:'輕鬆',3:'普通',4:'挑戰',5:'高難度'};
+SONGS.forEach(s=>{
+  const d=document.createElement('div');d.className='song';
+  d.innerHTML=`<div class="t">${s.title}</div>
+    <div class="meta"><span class="stars">${'★'.repeat(s.star)+'☆'.repeat(5-s.star)}</span>
+      <span class="lv">${STAR_LABEL[s.star]}</span><span class="len">${s.len}</span></div>
+    <div class="d">${s.why}</div>`;
+  d.onclick=()=>{grid.querySelectorAll('.song').forEach(x=>x.classList.remove('on'));d.classList.add('on');cfg.song=s;};
+  grid.appendChild(d);
+});
+grid.firstChild.click();
+
+function segBind(id,fn){ $(id).querySelectorAll('button').forEach(b=>{ b.onclick=()=>{
+  $(id).querySelectorAll('button').forEach(x=>x.classList.remove('on')); b.classList.add('on'); fn(b.dataset.v); };});}
+segBind('segMode',v=>{ cfg.mode=v;
+  $('modeHint').textContent = v==='solo'
+    ? '開鏡頭偵測你的動作，結束後有復能報表。第一次玩會先做 30 秒暖身校正。'
+    : '不開鏡頭、不計分。畫面放大當帶動唱字卡投影出去，帶領者在台前示範，全班跟著做。';
+  $('soloOpts').classList.toggle('hidden',v!=='solo');
+  $('startBtn').textContent = v==='solo' ? '開啟鏡頭開始 ▶' : '開始播放 ▶';
+});
+segBind('segWarm',v=>{ cfg.warmup=(v==='on'); $('vWarm').textContent=cfg.warmup?'開啟':'跳過'; });
+segBind('segArc',v=>{ cfg.arcade=(v==='on'); $('vArc').textContent=cfg.arcade?'開啟':'關閉'; });
+
+/* 靈敏度（記憶上次設定） */
+const sensLabel=v=>v<0.85?'較嚴格':v<0.98?'略嚴':v<1.12?'標準':v<1.28?'較靈敏':'最靈敏';
+$('rSens').oninput=e=>{ const v=+e.target.value; det.setSensitivity(v); $('vSens').textContent=sensLabel(v);
+  try{localStorage.setItem('rhythm_sens',v);}catch(err){} };
+
+/* ---------------- 難度：由暖身校正決定，不再有固定三檔 ----------------
+   依據 Kruse et al. (2022) 的 VR exergame 研究：長者在「先個人化校正、
+   再往上加 50%」的條件下享受度最高（3.7/4），一味放慢反而享受度與運動量都最低。
+   所以這裡量出「舒適節奏」後，刻意把門檻收緊 ~20% 當作挑戰係數。          */
+const CHALLENGE=1.2;
+const DEFAULT_PACE=1150;            // ms/次，沒做校正時的預設值
+let personal={pace:DEFAULT_PACE,amp:{raise:1.15,side:1.75},tier:'easy',win:{p:.45,g:.75},approach:2.6};
+function applyPersonal(paceMs){
+  const pace=Math.max(450,Math.min(2200,paceMs));
+  const g=Math.max(.34,Math.min(.95,pace/1000*0.66/CHALLENGE));
+  personal.pace=pace;
+  /* ⚠️「剛剛好」不能跟著 g 等比例放大。
+     舊版用 g*0.5 → 慢節奏的人會拿到 ±475ms 的剛剛好窗，人跟拍的誤差本來就只有
+     100～250ms，結果所有動作都判剛剛好，「太快／太慢」永遠看不到。
+     改成上限 ±200ms（太鼓的「良」只有 ±25～108ms，這已經很寬容了），
+     但「跟上」的窗 g 維持個人化的寬鬆值 → 一樣不會有人被判失敗。 */
+  personal.win={p:Math.max(.12,Math.min(g*0.42,.20)),g};
+  personal.tier = pace<=850?'hard' : pace<=1250?'normal' : 'easy';
+  personal.approach=Math.max(1.8,Math.min(3.2,pace/1000*2.2));
+}
+applyPersonal(DEFAULT_PACE);
+const PTS={perfect:100,good:60,burst:30,wrong:-30};
+/* ⭐ v13 連擊加成曲線：第 5 連擊就 ×1.5，之後每 10 連擊升一級（15→×2、25→×2.5、35→×3 封頂）。
+   舊版要連滿 10 次才有第一級，但長者一首歌能連到 10 的次數不多，
+   「加成」這個機制對他們幾乎不存在。把第一級提前到 5，是為了讓大多數人
+   在遊戲前段就真的嚐到一次加成的甜頭；後面的級距維持平緩，避免高手與
+   一般人的分數被拉開太多（同一台機器上會互相比較）。
+   ⚠️ 加成與火焰共用這一個函式，級距只能在這裡改，不要散落到 HUD 或結算。 */
+const MULT_STEPS=[[35,3],[25,2.5],[15,2],[5,1.5]];
+const multOf=c=>{ for(const [need,m] of MULT_STEPS) if(c>=need) return m; return 1; };
+/* 火焰數量跟著加成級距走：×1.5＝🔥、×2／×2.5＝🔥🔥、×3＝🔥🔥🔥。
+   ⚠️ 吃的是 combo 不是 arcade 加成——機制關閉時也要有火（純正向回饋、無懲罰性），
+   只是不顯示 ×m 數字。 */
+const flamesOf=c=>{ const m=multOf(c); return m>=3?3:m>=2?2:m>=1.5?1:0; };
+const GAUGE_CLEAR=80;
+
+/* ---------------- 音訊 ---------------- */
+let audio=null, AC=null, sfxGain=null;
+let audioStarted=false, leadUntil=0; const LEAD=3;
+/* 曲目起點（如藍色多瑙河從 95 秒才進主題）。metadata 還沒載完就設 currentTime 會被瀏覽器
+   還原成 0，整首歌會從頭播、譜面卻等在 96 秒 → 前奏空等一分半。所以要等 metadata 再 seek，
+   播放前再對一次時間，播放後還有一道保險。 */
+let seekTarget=0, seekFixed=false;
+function seekSong(t){
+  seekTarget=t; seekFixed=false;
+  const doSeek=()=>{ try{ audio.currentTime=t; }catch(e){} };
+  if(audio.readyState>=1) doSeek();
+  else audio.addEventListener('loadedmetadata',doSeek,{once:true});
+}
+function seekReady(){ return audio.readyState>=1 && Math.abs(audio.currentTime-seekTarget)<0.5; }
+/* 選好曲目就先載檔＋定位，避免開打當下才開始抓 15MB 的音檔 */
+function primeAudio(){
+  if(!audio){ audio=new Audio(); audio.preload='auto'; }
+  const src=new URL(cfg.song.audio,location.href).href;
+  if(audio.src!==src){ audio.src=cfg.song.audio; }
+  audio.volume=1; seekSong(chart.start||0);
+}
+/* 到了該放音樂的時間才呼叫；metadata 未到就再寬限最多 3 秒，逾時照播並靠 fixDrift 補正 */
+function tryStartAudio(now){
+  if(audioStarted||!audio||now<leadUntil) return;
+  if(!seekReady()){
+    if(audio.readyState>=1){ try{ audio.currentTime=seekTarget; }catch(e){} }
+    if(now<leadUntil+3000) return;
+  }
+  audioStarted=true; audio.play().catch(()=>{ $('bigMsg').textContent='音樂播放失敗'; });
+}
+function fixDrift(){
+  if(!audioStarted||seekFixed||!audio) return;
+  if(audio.currentTime<seekTarget-1 && audio.readyState>=1){ seekFixed=true; try{ audio.currentTime=seekTarget; }catch(e){} }
+  else if(audio.currentTime>=seekTarget-1) seekFixed=true;
+}
+function ensureAC(){ if(!AC){ const C=window.AudioContext||window.webkitAudioContext; AC=new C(); sfxGain=AC.createGain(); sfxGain.gain.value=.4; sfxGain.connect(AC.destination);} if(AC.state==='suspended')AC.resume(); }
+function tone(f,dur=.12,vol=.3,type='triangle'){ ensureAC(); const t=AC.currentTime; const o=AC.createOscillator();o.type=type;o.frequency.value=f; const g=AC.createGain(); g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(vol,t+.02);g.gain.exponentialRampToValueAtTime(.0001,t+dur); o.connect(g);g.connect(sfxGain);o.start(t);o.stop(t+dur+.05); }
+/* 短促的雜訊爆點：純正弦聽起來很「電子」，加一層帶通雜訊才有「打到東西」的實體感 */
+function noise(dur=.06,vol=.2,freq=2600){
+  ensureAC();
+  const n=Math.max(1,Math.floor(AC.sampleRate*dur));
+  const buf=AC.createBuffer(1,n,AC.sampleRate), ch=buf.getChannelData(0);
+  for(let i=0;i<n;i++) ch[i]=(Math.random()*2-1)*Math.pow(1-i/n,2);   // 指數衰減
+  const src=AC.createBufferSource(); src.buffer=buf;
+  const bp=AC.createBiquadFilter(); bp.type='bandpass'; bp.frequency.value=freq; bp.Q.value=1.1;
+  const g=AC.createGain(); g.gain.value=vol;
+  src.connect(bp); bp.connect(g); g.connect(sfxGain); src.start();
+}
+/* ⚠️ 刻意沒有 miss 音效：沒跟上就安靜過去，不做任何負面回饋 */
+const sfx={
+  /* 「剛剛好」＝四層疊出成就感：雜訊撞擊 → 亮點 → 大三和弦 → 上揚尾音 */
+  perfect:()=>{
+    noise(.05,.26,3200);
+    tone(1568,.05,.26,'square');
+    tone(880,.24,.30); tone(1108.7,.24,.20); tone(1318.5,.28,.24);
+    setTimeout(()=>{tone(1760,.20,.24);tone(2093,.16,.14);},75);
+  },
+  /* 太快／太慢：仍然是正向的「有接到」，但比剛剛好單薄，聽得出差別 */
+  early:()=>{ noise(.03,.12,3600); tone(784,.13,.24); },
+  late: ()=>{ noise(.03,.12,1800); tone(587.3,.15,.24); },
+  burst:()=>{noise(.03,.14,3000);tone(1040,.08,.25);},
+  count:()=>tone(520,.15,.3),
+  go:()=>{tone(784,.2,.32);tone(1046,.3,.3);setTimeout(()=>tone(1568,.3,.26),120);},
+  ok:()=>{tone(720,.1,.26);tone(960,.12,.2);},
+  /* 做錯：往下滑的兩個音，聽得出是「不對」但不刺耳（刻意不用鋸齒波） */
+  wrong:()=>{tone(392,.14,.22);setTimeout(()=>tone(311,.18,.20),80);},
+};
+
+/* ---------------- 相機 + 模型 ---------------- */
+let landmarker=null,video=$('video'),camReady=false;
+const det=createDetector();
+try{ const sv=parseFloat(localStorage.getItem('rhythm_sens')); if(sv){ $('rSens').value=sv; det.setSensitivity(sv); $('vSens').textContent=sensLabel(sv);} }catch(e){}
+
+/* ═══ ⭐ v12 個人化偵測門檻 ═══
+   老闆實測：拍手小一點、手舉沒那麼高就整串偵測不到。根因是門檻固定，
+   而長者的動作幅度差異可以到三倍。這裡替每個動作存一個 0～1 的縮放係數：
+     ・暖身校正量出「他做得出來的幅度」→ 一次把門檻帶到對的量級
+     ・遊戲中連續兩次「近失」（有做但差一點）→ 再自動往下帶 15%
+   與靈敏度滑桿是相乘關係：滑桿＝玩家手動偏好，scale＝機器量出來的身體條件，
+   兩件事分開存才不會互相蓋掉。實際生效值另外被 detector 的安全地板夾住。 */
+const SCALE_KEY='rhythm_scales_v1';
+/* scale 下限＝有效門檻剛好落在安全地板的那個值。detector 內部本來就會夾，
+   這裡先夾一次，是為了讓存進 localStorage 與結算報表顯示的數字誠實。 */
+const SMIN={raise:FLOOR_RAISE_UP/TUNE.raiseUp, clap:FLOOR_CLAP_SWING/TUNE.clapSwing};
+const scales={clap:1,raise:1};
+const clampScale=(v,lo)=>Math.max(lo,Math.min(1,v));
+function applyScales(){ det.setScales(scales); }
+function saveScales(){ try{localStorage.setItem(SCALE_KEY,JSON.stringify(scales));}catch(e){} }
+/* 開頁載回上次的校正結果：跳過暖身的人也能沿用（不然每次都要重新校正一遍） */
+try{ const s=JSON.parse(localStorage.getItem(SCALE_KEY)||'null');
+  if(s) for(const a of ACTS){ const v=+s[a]; if(isFinite(v)&&v>0) scales[a]=clampScale(v,SMIN[a]); }
+}catch(e){}
+applyScales();
+/* 平舉已從遊戲退場：整段不判、不發事件。
+   ⚠️ 這一行也是在修「冤枉扣分」——小幅高舉停在半途會被判成平舉，
+   而 v10 的做錯機制會把落在判定窗內的異型事件算成做錯 −30。 */
+det.setActions(ACTS);
+const framer=createAutoFramer();
+const off=document.createElement('canvas'); const offCtx=off.getContext('2d');
+off.width=960; off.height=540;
+const AF_ANCHORS=[0,7,8,11,12,23,24];
+function setFrameUI(on){ framer.setEnabled(on); $('vFrame').textContent=on?'開啟':'關閉';
+  $('segFrame').querySelectorAll('button').forEach(b=>b.classList.toggle('on',(b.dataset.v==='on')===on)); }
+$('segFrame').querySelectorAll('button').forEach(b=>{ b.onclick=()=>{ const on=b.dataset.v==='on';
+  setFrameUI(on); try{localStorage.setItem('rhythm_autoframe',on?'on':'off');}catch(e){} }; });
+try{ setFrameUI(localStorage.getItem('rhythm_autoframe')!=='off'); }catch(e){ setFrameUI(true); }
+
+async function initModel(){ const r=await loadPose('full'); landmarker=r.model; }
+async function initCamera(){
+  const st=await navigator.mediaDevices.getUserMedia({video:{width:{ideal:960},height:{ideal:540},frameRate:{ideal:30},facingMode:'user'},audio:false});
+  video.srcObject=st; await video.play();
+  try{const tr=st.getVideoTracks()[0],caps=tr.getCapabilities?.(); if(caps&&caps.zoom&&caps.zoom.min!=null)await tr.applyConstraints({advanced:[{zoom:caps.zoom.min}]});}catch(e){}
+  if(video.videoWidth){ off.width=960; off.height=Math.round(960*video.videoHeight/video.videoWidth); }
+  camReady=true;
+}
+/* 手機直立時擋下來。桌機與平板不受影響（只認「窄邊 < 600 且是觸控裝置」）。 */
+function needRotate(){
+  return innerHeight>innerWidth && Math.min(innerWidth,innerHeight)<600
+      && matchMedia('(pointer:coarse)').matches;
+}
+let pendingStart=null, rotPoll=0;
+function gateRotate(fn){
+  if(needRotate()){
+    pendingStart=fn; $('rotate').style.display='grid';
+    /* ⚠️ 不能只靠 orientationchange／resize 事件：某些瀏覽器（與桌機的模擬器）
+       改變視窗大小時不一定發事件，玩家就會卡在轉向畫面出不去。加輪詢當保險。 */
+    clearInterval(rotPoll); rotPoll=setInterval(onOrient,300);
+  } else fn();
+}
+function onOrient(){
+  if(pendingStart && !needRotate()){
+    $('rotate').style.display='none';
+    clearInterval(rotPoll); rotPoll=0;
+    const f=pendingStart; pendingStart=null; resize(); f();
+  }else if(!pendingStart && state!=='setup' && state!=='result'){
+    $('rotate').style.display = needRotate() ? 'grid' : 'none';
+  }
+}
+addEventListener('orientationchange',()=>setTimeout(onOrient,250));
+addEventListener('resize',()=>setTimeout(onOrient,120));
+
+let wakeLock=null;
+async function keepAwake(){ try{ wakeLock=await navigator.wakeLock?.request('screen'); }catch(e){} }
+
+/* ---------------- 畫布（只畫鏡頭與骨架，UI 走 HTML） ---------------- */
+const cv=$('cv'),ctx=cv.getContext('2d');
+let CW=0,CH=0;
+function resize(){ const dpr=Math.min(devicePixelRatio||1,2); CW=cv.clientWidth;CH=cv.clientHeight; cv.width=CW*dpr;cv.height=CH*dpr; ctx.setTransform(dpr,0,0,dpr,0,0); }
+addEventListener('resize',resize);
+
+let pose=null, drawPose=null, dbg=null, lastVideoTime=-1;
+function resetFilters(){ det.reset(); gest.events.length=0; framer.reset(); pose=null; drawPose=null; }
+function detectAndSense(tNow,tSong){
+  if(!camReady||!landmarker||video.currentTime===lastVideoTime) return;
+  lastVideoTime=video.currentTime;
+  const vw=video.videoWidth,vh=video.videoHeight; if(!vw||!vh) return;
+  const crop=framer.getCrop(vw,vh);
+  offCtx.drawImage(video,crop.x,crop.y,crop.w,crop.h,0,0,off.width,off.height);
+  const res=landmarker.detectForVideo(off,tNow);
+  const lm=res.landmarks&&res.landmarks[0];
+  const out=det.update(lm,{vw:off.width,vh:off.height,CW,CH},tNow,tSong);
+  pose=out.pose; drawPose=out.drawPose; dbg=out.dbg;
+  for(const ev of out.events){
+    /* 順手記下這次動作的幅度（給結算的「幅度達成率」用）。
+       從 dbg 讀就好，不必動 detector，測試也不用重跑。 */
+    if(ev.type==='raise') ev.amp=dbg?.raiseUp;
+    if(ev.type==='side')  ev.amp=dbg?.sideOut;
+    gest.events.push(ev); gest.flash[ev.type]=tNow;
+  }
+  const anchors=[];
+  if(lm) for(const i of AF_ANCHORS){ const l=lm[i];
+    if(l&&(l.visibility==null||l.visibility>0.3))
+      anchors.push({i,x:(crop.x+l.x*crop.w)/vw,y:(crop.y+l.y*crop.h)/vh}); }
+  framer.update(anchors,vw,vh,tNow);
+}
+function drawCam(){
+  if(DEMO||cfg.mode==='group'||!camReady||!off.width||!off.height){ ctx.fillStyle='#DCEFEA';ctx.fillRect(0,0,CW,CH); return; }
+  const sc=Math.max(CW/off.width,CH/off.height), dw=off.width*sc, dh=off.height*sc;
+  ctx.save(); ctx.translate(CW,0); ctx.scale(-1,1);
+  ctx.drawImage(off,(CW-dw)/2,(CH-dh)/2,dw,dh); ctx.restore();
+}
+function drawPoseDots(){
+  const P=drawPose; if(!P)return;
+  const dot=(p,c,r)=>{ if(!p)return; ctx.fillStyle=c;ctx.beginPath();ctx.arc(p.x,p.y,r,0,7);ctx.fill(); };
+  dot(P.ls,'rgba(0,201,167,.75)',9); dot(P.rs,'rgba(0,201,167,.75)',9);
+  dot(P.lw,'rgba(255,138,61,.95)',13); dot(P.rw,'rgba(255,138,61,.95)',13);
+}
+
+const IMGS={};
+for(const a of ACTS){ const im=new Image(); im.src=IMG[a]; IMGS[a]=im; }
+
+const gest={ events:[], flash:{clap:0,raise:0,side:0} };
+/* 鍵盤測試：J=拍手 K=高舉 L=平舉 */
+addEventListener('keydown',e=>{ if(state!=='play'&&state!=='warm')return;
+  const m={KeyJ:'clap',KeyK:'raise'}[e.code];
+  if(m){gest.events.push({type:m,t:songT(),amp:1.3});gest.flash[m]=performance.now();} });
+
+/* ---------------- 遊戲狀態 ---------------- */
+let state='setup';           // setup|warm|count|play|result
+let chart=null, notes=[], bursts=[], stats=null, playRaf=0;
+function songT(){
+  if(!audio) return 0;
+  if(!audioStarted) return (chart?.start||0) - Math.max(0,(leadUntil-performance.now())/1000);
+  return audio.currentTime;
+}
+
+$('startBtn').onclick=async()=>{
+  if(!cfg.song)return;
+  $('setupErr').textContent=''; $('startBtn').disabled=true;
+  const label=$('startBtn').textContent; $('startBtn').textContent='載入中…';
+  try{
+    ensureAC();
+    const r=await fetch(`charts/${cfg.song.id}.json`); if(!r.ok)throw new Error('找不到譜面 charts/'+cfg.song.id+'.json');
+    chart=await r.json();
+    primeAudio();                       // 先載音檔並移到曲目起點，暖身／倒數期間就緒
+    const needCam = cfg.mode==='solo' && !DEMO;
+    if(needCam){ if(!landmarker)await initModel(); if(!camReady)await initCamera(); }
+    hide($('setup'));show($('stage'));resize();keepAwake();
+    gateRotate(()=>{ if(cfg.mode==='solo' && cfg.warmup && !DEMO) enterWarm();
+                     else { applyPersonal(personal.pace); enterCountdown(); } });
+  }catch(e){ $('setupErr').textContent='啟動失敗：'+(e.message||e); }
+  $('startBtn').disabled=false;$('startBtn').textContent=label;
+};
+$('btnQuit').onclick=()=>quitToSetup();
+$('btnRestart').onclick=()=>{ stopSong(); enterCountdown(); };
+/* ⭐ v13：離開結算前先把沒留名的成績鎖成訪客（autoGuest 內部會判斷是否需要動作） */
+$('againBtn').onclick=()=>{ autoGuest(); hide($('result'));show($('stage'));resize(); enterCountdown(); };
+$('pickBtn').onclick=()=>{ autoGuest(); hide($('result'));quitToSetup(); };
+function quitToSetup(){ autoGuest(); pendingStart=null; clearInterval(rotPoll); rotPoll=0;
+  $('rotate').style.display='none';
+  try{wakeLock?.release();wakeLock=null;}catch(e){} stopSong(); state='setup';
+  cancelAnimationFrame(playRaf); hide($('stage'));hide($('result'));show($('setup'));
+  /* ⚠️ 這裡原本還 hide 了 #center 與 #next——那是縮圈版留下的 id，v7 改成太鼓式軌道後
+     元素早就不存在，hide(null) 會丟 TypeError，後面幾行（收掉進度條、暖身卡、連拍條）
+     等於沒執行過。順手清掉。 */
+  hide($('hud'));hide($('bar'));hide($('warm'));hide($('burstBar')); }
+function stopSong(){ if(audio){try{audio.pause();}catch(e){}} }
+
+/* ═══════════ 暖身校正 ═══════════
+   讓長者跟著做每個動作各 3 次，量出：
+   ① 每次動作要花多久（pace）→ 決定譜面密度、判定窗、指令飛行時間
+   ② 動作幅度 → ⭐ v12 起用來反推個人化偵測門檻（scale），不再只是報表數字
+   ③ 事件當下的幅度（evAmps）→ 結算的「幅度達成率」拿它當個人基準
+   量完刻意把難度往上推 20%（見 CHALLENGE 註解）。
+
+   ⚠️ v12 之前這裡有一個雞生蛋的死結：計次與量幅度都靠 detector 發出的事件，
+   而事件要先跨過固定門檻才會發 → 幅度小的人連暖身都偵測不到，卡滿 12 秒被跳過，
+   門檻也就永遠調不下來。現在改成「事件 OR 次門檻 excursion」都算數。       */
+let warmState=null;
+/* 換動作時，把緩衝裡「上一個動作期間順手記到的」該型 excursion 先吃掉，
+   否則一進入下個動作就會被算成已經做了好幾次。 */
+function primeSeen(w,a){ for(const at of det.getRecentAttempts()) if(at.type===a&&at.t>w.seen[a])w.seen[a]=at.t; }
+function enterWarm(){
+  state='warm'; resetFilters();
+  hide($('hud'));hide($('bar'));hide($('burstBar'));
+  show($('warm')); $('bigMsg').textContent='';
+  $('warmDots').innerHTML='<span></span>'.repeat(3);
+  warmState={stage:'pose',ai:0,reps:[],times:[],
+    amps:{clap:[],raise:[]},        // excursion 的峰值／擺幅 → 算個人化門檻
+    evAmps:{raise:[],side:[]},      // 事件當下的幅度 → 沿用舊的「幅度達成率」基準
+    seen:{clap:-9e9,raise:-9e9},    // 已消化到哪一筆 excursion（時間戳）
+    lastRepT:-9e9,lastRepNow:-9e9,repHasAmp:false,
+    last:0,t0:performance.now()};
+  loopWarm();
+}
+function warmRender(){
+  const w=warmState;
+  if(w.stage==='pose'){
+    $('warmImg').src=IMG.clap;
+    $('warmTitle').textContent='先讓鏡頭看到你';
+    $('warmHint').textContent='坐好，讓頭、肩膀和雙手都在畫面裡';
+    $('warmStep').textContent='暖身校正 · 準備中';
+    $('warmDots').querySelectorAll('span').forEach(s=>s.classList.remove('on'));
+  }else{
+    const a=ACTS[w.ai];
+    $('warmImg').src=IMG[a];
+    $('warmTitle').textContent='請跟著做「'+SHORT[a]+'」3 次';
+    $('warmHint').textContent=GOAL[a]+'　—　用你舒服的速度就好，不用趕';
+    $('warmStep').textContent=`暖身校正 · 第 ${w.ai+1} / 3 個動作`;
+    $('warmDots').querySelectorAll('span').forEach((s,i)=>s.classList.toggle('on',i<w.reps.length));
+  }
+}
+function loopWarm(){
+  if(state!=='warm')return;
+  const tNow=performance.now();
+  /* ⚠️ 這裡刻意把「歌曲時間」餵成 tNow/1000（舊版固定傳 0）：
+     事件與 excursion 的時間戳要能互相比較，去重才有意義。 */
+  detectAndSense(tNow,tNow/1000);
+  ctx.clearRect(0,0,CW,CH); drawCam(); drawPoseDots();
+  const w=warmState;
+  if(w.stage==='pose'){
+    if(pose){ w.stage='act'; w.reps=[]; w.last=tNow; gest.events.length=0; primeSeen(w,ACTS[0]); }
+  }else{
+    const a=ACTS[w.ai];
+    const eff=det.getEffective();
+    /* 這一幀的候選：跨門檻的事件 ＋ 沒跨門檻但波形完成的 excursion */
+    const cand=[];
+    for(const ev of gest.events){ if(ev.type!==a)continue;
+      if(ev.amp!=null&&w.evAmps[a])w.evAmps[a].push(ev.amp);
+      cand.push({t:ev.t,amp:null,crossed:true}); }
+    for(const at of det.getRecentAttempts()){
+      if(at.type!==a||at.t<=w.seen[a])continue;
+      w.seen[a]=at.t;
+      const v=at.peak!=null?at.peak:at.swing;
+      cand.push({t:at.t,amp:v,crossed:v>=(a==='raise'?eff.raiseUp:eff.clapSwing)});
+    }
+    cand.sort((x,y)=>x.t-y.t);
+    for(const c of cand){
+      /* 同一次動作可能兩邊都出現：事件記在「跨過門檻」那一刻、excursion 記在
+         「峰值」那一刻，中間差個一兩百毫秒。±400ms 內視為同一次。
+         第二條只針對 excursion（c.amp!=null）：已經跨過門檻的 excursion 必定發過
+         事件，剛計過一次就不可能是新的。⚠️ 這條不可以套用在事件上——事件本來就
+         有自己的冷卻（拍手 95ms），套下去會把每秒兩下的正常連拍吃掉一半。 */
+      const dup = Math.abs(c.t-w.lastRepT)<=0.4
+               || (c.amp!=null && c.crossed && tNow-w.lastRepNow<900);
+      if(dup){ /* 不重複計次，但 excursion 的幅度比事件當下的值真實，補進去 */
+        if(c.amp!=null&&!w.repHasAmp&&w.amps[a]){ w.amps[a].push(c.amp); w.repHasAmp=true; }
+        continue; }
+      const dt=tNow-w.last; w.last=tNow;
+      w.lastRepT=c.t; w.lastRepNow=tNow; w.repHasAmp=false;
+      if(c.amp!=null&&w.amps[a]){ w.amps[a].push(c.amp); w.repHasAmp=true; }
+      w.reps.push(dt);
+      sfx.ok();
+      if(w.reps.length>=3){
+        /* 第 1 次的間隔含「看到指示才開始動」的反應時間，不計入節奏 */
+        w.times.push(...w.reps.slice(1));
+        w.ai++; w.reps=[]; w.last=tNow; w.lastRepT=-9e9; w.lastRepNow=-9e9;
+        gest.events.length=0;
+        if(w.ai>=ACTS.length){ finishWarm(); return; }
+        primeSeen(w,ACTS[w.ai]);
+        break;                       // 後面的候選屬於上一個動作，不要帶進下一關
+      }
+    }
+    gest.events.length=0;
+    /* 卡住太久（做不出來或偵測不到）就跳過這個動作，不要讓長者卡在這裡 */
+    if(tNow-w.last>12000){ w.ai++; w.reps=[]; w.last=tNow; w.lastRepT=-9e9; w.lastRepNow=-9e9;
+      if(w.ai>=ACTS.length){ finishWarm(); return; }
+      primeSeen(w,ACTS[w.ai]); }
+  }
+  warmRender();
+  playRaf=requestAnimationFrame(loopWarm);
+}
+function finishWarm(){
+  const w=warmState;
+  const ts=w.times.filter(x=>x>150&&x<4000).sort((a,b)=>a-b);
+  const pace=ts.length?ts[ts.length>>1]:DEFAULT_PACE;      // 取中位數，避免單次卡頓拉歪
+  applyPersonal(pace);
+  const mx=arr=>arr.length?Math.max(...arr):null;
+  const med=arr=>{ if(!arr.length)return null; const s=[...arr].sort((a,b)=>a-b); return s[s.length>>1]; };
+  personal.amp={raise:mx(w.evAmps.raise)||1.15, side:mx(w.evAmps.side)||1.75};
+  /* ⭐ v12：把量到的幅度換算成個人化門檻。
+     取中位數（不是最大值）：最大值常常是那一次特別用力的，拿它當門檻反而更難達成。
+     再乘安全係數 —— 高舉 0.70、拍手 0.60。留這麼多餘裕的理由是量到的是「還很有力
+     的前 30 秒」，玩到後段會疲勞、幅度會掉 10～30%；係數太接近 1 就會後半整串漏掉。
+     拍手係數更鬆，因為擺幅本身的量測雜訊比高度大。量不到就維持 1.0，不亂調。 */
+  const mr=med(w.amps.raise), mc=med(w.amps.clap);
+  if(mr) scales.raise=clampScale(0.70*mr/TUNE.raiseUp, SMIN.raise);
+  if(mc) scales.clap =clampScale(0.60*mc/TUNE.clapSwing, SMIN.clap);
+  applyScales(); saveScales();
+  hide($('warm'));
+  enterCountdown();
+}
+
+/* ═══════════ 321 倒數 ═══════════ */
+let countdownT=0;
+function enterCountdown(){
+  state='count'; countdownT=performance.now(); resetFilters();
+  hide($('warm'));hide($('hud'));hide($('bar'));hide($('burstBar'));
+  loopCount();
+}
+function loopCount(){
+  if(state!=='count')return;
+  const el=(performance.now()-countdownT)/1000, n=3-Math.floor(el);
+  if(cfg.mode==='solo'&&!DEMO)detectAndSense(performance.now(),0);
+  gest.events.length=0;
+  ctx.clearRect(0,0,CW,CH); drawCam(); drawPoseDots();
+  $('bigMsg').textContent=n>0?n:'GO!';
+  if(n>0&&Math.abs(el%1)<0.02)sfx.count();
+  if(el>=3.6){ $('bigMsg').textContent=''; startPlay(); return; }
+  playRaf=requestAnimationFrame(loopCount);
+}
+
+/* ═══════════ 遊玩 ═══════════ */
+let relief={misses:0,widen:1,near:{clap:0,raise:0}};   // 連續沒跟上就自動放寬（時間窗＋幅度門檻）
+const gauge={gain:1.2};             // 過關量表每次命中的增量（依曲長換算）
+function startPlay(){
+  const diff=chart.diffs[personal.tier]||chart.diffs.normal;
+  notes=diff.notes.map(n=>({...n,state:'wait',judge:null,off:null,amp:null}));
+  bursts=(diff.bursts||[]).map(b=>({...b,count:0}));
+  stats={score:0,combo:0,maxCombo:0,p:0,early:0,late:0,m:0,wrong:0,burst:0,
+    gauge:25,maxMult:1,trace:[],
+    byType:{clap:[0,0],raise:[0,0],side:[0,0]},
+    sides:{raise:[0,0],side:[0,0]},                 // [左次數, 右次數]
+    amps:{raise:[],side:[]}};
+  relief={misses:0,widen:1,near:{clap:0,raise:0}};
+  /* 量表增減量依曲長自動換算：命中約 6 成音符就能填滿，換首歌不用重調 */
+  gauge.gain=Math.max(0.6,(GAUGE_CLEAR-25)/Math.max(1,notes.length*0.6));
+  gest.events.length=0;
+  det.clearAttempts();          // 倒數期間亂動留下的波形時間軸不同，別帶進近失判斷
+  $('gaugeWrap').classList.toggle('hidden', !(cfg.arcade && cfg.mode==='solo'));
+  $('gaugeWrap').classList.remove('done');
+  primeAudio();                        // 重來／再玩一次也會回到曲目起點
+  $('songLabel').textContent=cfg.song.title;
+  if(cfg.mode==='solo'){ show($('hud')); updateHud(); }
+  show($('bar'));
+  audioStarted=false; leadUntil=performance.now()+LEAD*1000;
+  state='play'; sfx.go();
+  loopPlay();
+  audio.onended=()=>{ if(state==='play')endPlay(); };
+}
+function updateHud(){
+  $('score').textContent=stats.score;
+  const m=cfg.arcade?multOf(stats.combo):1;
+  stats.maxMult=Math.max(stats.maxMult,m);
+  $('comboTxt').textContent='★ COMBO '+stats.combo+(cfg.arcade&&m>1?'　×'+m.toFixed(1):'');
+  /* ⭐ v13 火焰：連擊歸零時 flamesOf 直接回 0 → class 拿掉、emoji 清空，火立刻消失。
+     不做淡出動畫，因為「火熄了」本身就是回饋，拖延反而看不出連擊已經斷了。 */
+  const f=flamesOf(stats.combo);
+  $('comboFlame').textContent='🔥'.repeat(f);
+  $('combo').classList.toggle('hot',f>0);
+  if(cfg.arcade){
+    $('gaugeFill').style.width=stats.gauge+'%';
+    $('gaugeWrap').classList.toggle('done',stats.gauge>=GAUGE_CLEAR);
+  }
+}
+function addGauge(d){ stats.gauge=Math.max(0,Math.min(100,stats.gauge+d)); }
+
+/* demo 自動玩 */
+function demoDriver(t){
+  for(const n of notes){ if(n.state==='wait'&&!n.demoFired&&t>=n.t-0.02){ n.demoFired=true;
+    /* 抖動刻意放大到 ±0.45 秒，讓展示模式跑得出「剛剛好／太快／太慢」三種判定；
+       另外 12% 機率故意做錯動作，展示扣分機制 */
+    const ty = Math.random()<0.12 ? ACTS.find(a=>a!==n.type) : n.type;
+    if(Math.random()>0.10)gest.events.push({type:ty,t:n.t+(Math.random()-.5)*.9,
+      amp:n.type==='raise'?1.1+Math.random()*.3:1.6+Math.random()*.5,
+      sides:{l:Math.random()>0.15,r:true}}); } }
+  for(const b of bursts){ if(t>=b.t0&&t<=b.t1&&Math.random()<0.5)gest.events.push({type:'clap',t}); }
+}
+/* 背景心跳：分頁不可見時 rAF 被節流，改由 interval 推進邏輯（不畫圖） */
+setInterval(()=>{
+  if(!document.hidden)return;
+  if(state==='count'){ const el=(performance.now()-countdownT)/1000; if(el>=3.6){ $('bigMsg').textContent=''; startPlay(); } }
+  else if(state==='play'){
+    tryStartAudio(performance.now()); fixDrift();
+    const t=songT(); if(DEMO||cfg.mode==='group')demoDriverIfNeeded(t); judge();
+    if((chart.end&&t>=chart.end)||(audio&&audio.ended))endPlay();
+  }
+},250);
+function demoDriverIfNeeded(t){ if(DEMO)demoDriver(t); }
+
+/* ⭐ v12 近失自動放寬
+   一個音符判 miss 時，回頭問 detector：「這段時間他其實有做嗎？」
+   有波形、幅度也到了門檻的 55% 以上，就代表不是沒做，是門檻對他來說太高。
+   同一個動作連兩次近失才動手調（單次可能只是雜訊或做到一半放棄），
+   每次往下帶 15%，並夾在安全地板之上。
+   沿用「無 MISS」原則：畫面完全不出字，長者不會知道系統在幫他，只覺得變順了。 */
+function nearMissCheck(n,wg){
+  if(!(n.type in relief.near))return;
+  const eff=det.getEffective();
+  const need=(n.type==='raise'?eff.raiseUp:eff.clapSwing)*0.55;
+  const got=det.getRecentAttempts().some(a=>a.type===n.type
+    && Math.abs(a.t-n.t)<=wg
+    && (a.peak!=null?a.peak:a.swing)>=need);
+  if(!got)return;
+  relief.near[n.type]++;
+  if(relief.near[n.type]<2)return;
+  relief.near[n.type]=0;
+  const nv=Math.max(SMIN[n.type],scales[n.type]*0.85);
+  if(nv<scales[n.type]){ scales[n.type]=nv; applyScales(); saveScales(); }
+}
+
+function judge(){
+  const t=songT();
+  if(cfg.mode==='group'){
+    /* 團體模式不計分，但音符仍要「隨時間過去」——不然 render 永遠停在第一個指令，
+       圈收合後就再也不動了。 */
+    for(const n of notes){ if(n.state==='wait'&&t>n.t+0.35) n.state='done'; }
+    gest.events.length=0; return;
+  }
+  const W={p:personal.win.p*relief.widen, g:personal.win.g*relief.widen};
+  for(const b of bursts){
+    for(const ev of gest.events){ if(!ev.used&&ev.type==='clap'&&ev.t>=b.t0&&ev.t<=b.t1){
+      ev.used=true;b.count++;stats.burst++;
+      stats.score+=Math.round(PTS.burst*(cfg.arcade?multOf(stats.combo):1));sfx.burst(); } }
+  }
+  /* ── 做錯動作 ──
+     ⚠️ 只在「明顯是在對某個音符出手」時才算錯：事件必須落在某個待判定音符的
+     判定窗內。不加這個條件的話，偵測器的偶發誤觸（沒人在動也可能跳一次）
+     就會平白扣分，那是懲罰玩家背程式的鍋。
+     連拍段內的拍手一律不算錯。 */
+  if(cfg.arcade){
+    const inBurst=bursts.some(b=>t>=b.t0-0.2&&t<=b.t1+0.2);
+    if(!inBurst) for(const ev of gest.events){
+      if(ev.used)continue;
+      let tgt=null,ab=1e9;
+      for(const n of notes){ if(n.state!=='wait')continue;
+        const d=Math.abs(ev.t-n.t); if(d<=W.g&&d<ab){tgt=n;ab=d;} }
+      if(tgt && tgt.type!==ev.type){
+        ev.used=true; tgt.state='done'; tgt.judge='wrong';
+        stats.wrong++; stats.combo=0;
+        stats.score=Math.max(0,stats.score+PTS.wrong);
+        stats.byType[tgt.type][1]++; stats.trace.push({t:tgt.t,off:null,wrong:true});
+        addGauge(-gauge.gain*1.4);
+        sfx.wrong(); popup('做錯了 · 是「'+SHORT[tgt.type]+'」','#8A7F72');
+        lastHit={tNow:performance.now(),type:tgt.type,judge:'wrong',off:ev.t-tgt.t};
+        updateHud();
+      }
+    }
+  }
+
+  for(const n of notes){
+    if(n.state!=='wait')continue;
+    if(t-n.t>W.g){
+      /* ⚠️ 沒跟上：不出現 MISS 字樣、不出音效、不扣分。只默默記錄給報表。 */
+      n.state='done';n.judge='miss';stats.m++;stats.combo=0;
+      stats.byType[n.type][1]++;stats.trace.push({t:n.t,off:null});
+      addGauge(-gauge.gain*0.8);
+      relief.misses++;
+      if(relief.misses>=3&&relief.widen<2){ relief.widen=Math.min(2,relief.widen+0.15); relief.misses=0; }
+      nearMissCheck(n,W.g);
+      updateHud();continue;
+    }
+    let best=null,bestAbs=1e9;
+    for(const ev of gest.events){ if(ev.used||ev.type!==n.type)continue;
+      const off=ev.t-n.t,ab=Math.abs(off); if(ab<=W.g&&ab<bestAbs){best=ev;bestAbs=ab;} }
+    if(best){ best.used=true; const off=best.t-n.t; n.state='done'; n.off=off; n.amp=best.amp;
+      /* 太鼓式三段判定：剛剛好／太快／太慢。
+         「太快／太慢」仍然算跟上、仍然加分——只是告訴你偏哪一邊，方向性回饋
+         比單一個「GOOD」更能幫長者修正節奏，也讓治療師看得出是搶拍還是遲鈍。 */
+      const mult=cfg.arcade?multOf(stats.combo):1;
+      let jt;
+      if(bestAbs<=W.p){ jt='perfect'; stats.p++;    stats.score+=Math.round(PTS.perfect*mult); sfx.perfect(); popup('剛剛好！','#00A88C'); addGauge(gauge.gain); }
+      else if(off<0){   jt='early';   stats.early++;stats.score+=Math.round(PTS.good*mult);    sfx.early();   popup('太快了 ⏪ 慢一點','#2E9FD4'); addGauge(gauge.gain*0.65); }
+      else{             jt='late';    stats.late++; stats.score+=Math.round(PTS.good*mult);    sfx.late();    popup('⏩ 太慢了 快一點','#E8722A'); addGauge(gauge.gain*0.65); }
+      n.judge=jt;
+      lastHit={tNow:performance.now(),type:n.type,judge:jt,off};
+      stats.combo++;stats.maxCombo=Math.max(stats.maxCombo,stats.combo);
+      stats.byType[n.type][0]++;stats.trace.push({t:n.t,off});
+      if(best.amp!=null&&stats.amps[n.type])stats.amps[n.type].push(best.amp);
+      if(best.sides&&stats.sides[n.type]){ if(best.sides.l)stats.sides[n.type][0]++; if(best.sides.r)stats.sides[n.type][1]++; }
+      relief.misses=0;
+      if(n.type in relief.near) relief.near[n.type]=0;   // 命中就把近失計數歸零
+      updateHud();
+    }
+  }
+  while(gest.events.length&&gest.events[0].t<t-2)gest.events.shift();
+}
+
+let popT=0;
+function popup(txt,col){ const p=$('pop'); p.textContent=txt; p.style.color=col; popT=performance.now(); }
+
+function loopPlay(){
+  if(state!=='play')return;
+  tryStartAudio(performance.now()); fixDrift();
+  const tNow=performance.now(), t=songT();
+  if(DEMO)demoDriver(t); else if(cfg.mode==='solo')detectAndSense(tNow,t);
+  judge();
+  if(chart.end&&t>=chart.end){ endPlay(); return; }
+  render(tNow,t);
+  playRaf=requestAnimationFrame(loopPlay);
+}
+
+/* ═══════════ 畫面更新（太鼓達人式橫向軌道） ═══════════
+   2026-08-08 老闆實測回饋：縮圈「不知道什麼時候要做動作」。
+   縮圈缺的是**碰撞的那一瞬間**——圈慢慢變小，沒有一個明確的「就是現在」。
+   太鼓的音符撞上判定圈是物理事件，一眼就懂，所以改回橫向軌道。
+
+   原本擔心的「分割注意力」用三招壓下來：
+   ① 軌道短（音符只從右邊來，飛行距離不長）、音符大（塞得下整張坐姿插畫）
+   ② 判定圈外圍畫一圈**淡色判定窗**：音符進到那圈裡就是可以做動作的時間，
+      把抽象的毫秒數變成看得見的寬度
+   ③ 判定圈正下方用大字寫出「即將到來的動作名稱」，不必只靠圖辨識         */
+let lastHit=null;      // {tNow, type, judge}
+
+function laneGeom(){
+  /* 橫向手機高度只有 ~390px，用固定 0.34 會讓音符太小 → 矮螢幕改吃 0.42 */
+  const ratio = CH<520 ? 0.42 : 0.34;
+  const laneH=Math.max(104,Math.min(CH*ratio,240));
+  const laneY=Math.max(CH*0.11,44);
+  return {laneH, laneY, cy:laneY+laneH/2, r:laneH*0.34,
+          hitX:Math.max(96,CW*0.17), spawnX:CW+laneH*0.4};
+}
+function drawNoteToken(x,y,r,type){
+  const im=IMGS[type];
+  ctx.save();
+  ctx.beginPath();ctx.arc(x,y,r,0,7);
+  ctx.fillStyle='#fff';ctx.fill();
+  if(im&&im.complete&&im.naturalWidth){
+    ctx.save();ctx.beginPath();ctx.arc(x,y,r*0.93,0,7);ctx.clip();
+    const s=r*1.9; ctx.drawImage(im,x-s/2,y-s/2+r*0.10,s,s); ctx.restore();
+  }
+  ctx.lineWidth=r*0.17;ctx.strokeStyle=RCOL[type];
+  ctx.beginPath();ctx.arc(x,y,r*0.93,0,7);ctx.stroke();
+  ctx.restore();
+}
+function render(tNow,t){
+  ctx.clearRect(0,0,CW,CH); drawCam(); if(cfg.mode==='solo')drawPoseDots();
+  const G=laneGeom(), ap=personal.approach;
+  const perSec=(G.spawnX-G.hitX)/ap;                  // 每秒前進幾 px
+  const xOf=nt=>G.hitX+(nt-t)*perSec;
+
+  /* 軌道底 */
+  ctx.save();
+  ctx.fillStyle='rgba(255,255,255,.80)';
+  ctx.beginPath();ctx.roundRect(8,G.laneY,CW-16,G.laneH,G.laneH*0.5);ctx.fill();
+  ctx.restore();
+
+  /* 連拍段金條 */
+  for(const b of bursts){
+    const x0=xOf(b.t0), x1=xOf(b.t1);
+    if(x1<8||x0>CW)continue;
+    ctx.fillStyle='rgba(255,210,63,.5)';
+    const a=Math.max(12,x0), w=Math.min(CW-12,x1)-a;
+    if(w>0){ ctx.beginPath();ctx.roundRect(a,G.laneY+G.laneH*0.13,w,G.laneH*0.74,G.laneH*0.37);ctx.fill(); }
+  }
+
+  /* 判定窗（看得見的「來得及」範圍）＋判定圈 */
+  const W={p:personal.win.p*relief.widen, g:personal.win.g*relief.widen};
+  ctx.save();
+  ctx.fillStyle='rgba(29,59,54,.09)';
+  ctx.beginPath();ctx.roundRect(G.hitX-W.g*perSec,G.laneY+G.laneH*0.09,
+    W.g*perSec*2,G.laneH*0.82,G.laneH*0.41);ctx.fill();
+  ctx.beginPath();ctx.arc(G.hitX,G.cy,G.r*1.16,0,7);
+  ctx.fillStyle='rgba(255,255,255,.9)';ctx.fill();
+  ctx.lineWidth=Math.max(4,G.r*0.13);ctx.strokeStyle='rgba(29,59,54,.5)';ctx.stroke();
+  ctx.restore();
+
+  /* 音符（由遠而近畫，近的蓋在上面） */
+  const vis=notes.filter(n=>n.state==='wait').map(n=>({n,x:xOf(n.t)}))
+                 .filter(o=>o.x>-G.r*1.5&&o.x<CW+G.r*1.5).reverse();
+  for(const o of vis) drawNoteToken(o.x,G.cy,G.r,o.n.type);
+
+  /* 命中特效：從判定圈擴散出去的環 */
+  if(lastHit){
+    const age=tNow-lastHit.tNow, LIFE=950;
+    const col={perfect:'#00C9A7',early:'#2E9FD4',late:'#E8722A',wrong:'#8A7F72'}[lastHit.judge]||RCOL[lastHit.type];
+    if(age<420){ const k=age/420;                       // 撞擊擴散環
+      ctx.save();ctx.globalAlpha=(1-k)*0.85;
+      ctx.lineWidth=Math.max(3,G.r*0.16*(1-k));ctx.strokeStyle=col;
+      ctx.beginPath();ctx.arc(G.hitX,G.cy,G.r*(1.1+k*0.9),0,7);ctx.stroke();ctx.restore();
+    }
+    /* 落點記號：把「你打在判定窗的哪個位置」畫出來。
+       文字要讀，這個一眼就看到偏左（太快）還是偏右（太慢）。 */
+    if(age<LIFE && lastHit.off!=null){
+      const mx=G.hitX+Math.max(-W.g,Math.min(W.g,lastHit.off))*perSec;
+      ctx.save();ctx.globalAlpha=1-age/LIFE;
+      ctx.strokeStyle=col;ctx.lineWidth=Math.max(3,G.r*0.11);ctx.lineCap='round';
+      ctx.beginPath();ctx.moveTo(mx,G.laneY+G.laneH*0.06);ctx.lineTo(mx,G.laneY+G.laneH*0.94);ctx.stroke();
+      ctx.fillStyle=col;
+      ctx.beginPath();ctx.arc(mx,G.laneY+G.laneH*0.06,G.r*0.13,0,7);ctx.fill();
+      ctx.restore();
+    }
+    if(age>=LIFE) lastHit=null;
+  }
+
+  /* 判定圈下方：大字寫出即將到來的動作 */
+  const up=notes.find(n=>n.state==='wait');
+  if(up){
+    const label=NAME[up.type], fs=Math.max(20,Math.min(G.laneH*0.30,44));
+    ctx.save();ctx.textAlign='center';ctx.textBaseline='middle';
+    const padX=fs*0.75, w=ctx.measureText?fs*label.length*1.05+padX*2:200;
+    const by=G.laneY+G.laneH+fs*0.95;
+    ctx.fillStyle=RCOL[up.type];
+    ctx.beginPath();ctx.roundRect(G.hitX-w/2,by-fs*0.72,w,fs*1.44,fs*0.72);ctx.fill();
+    ctx.fillStyle='#fff';ctx.font=`900 ${fs}px ${'"Yuanti TC","PingFang TC",sans-serif'}`;
+    ctx.fillText(label,G.hitX,by+1);
+    ctx.restore();
+  }
+
+  /* 連拍段提示 */
+  const b=bursts.find(b=>t>=b.t0&&t<=b.t1);
+  if(b){ show($('burstBar')); $('burstBar').textContent='⚡ 一直拍手！ ×'+b.count; } else hide($('burstBar'));
+
+  /* 進度條 */
+  const t0=chart.start||0, t1=chart.end||t0+1;
+  $('barFill').style.width=Math.max(0,Math.min(100,(t-t0)/(t1-t0)*100))+'%';
+
+  /* 判定文字（只有正向，沒跟上就什麼都不顯示） */
+  const p=$('pop'), age=tNow-popT;
+  const pw=p.offsetWidth||160;                     // 實測寬度，中文字寬難估
+  p.style.left=Math.max(pw/2+10,Math.min(G.hitX,CW-pw/2-10))+'px';
+  p.style.top=((G.laneY+G.laneH+G.laneH*0.62)/CH*100)+'%';
+  const POPMS=950;                       // 停久一點，長者才讀得完
+  p.style.opacity = age<POPMS ? String(Math.min(1,(1-age/POPMS)*1.6)) : '0';
+  const rise = age<POPMS ? -Math.pow(age/POPMS,.6)*26 : 0;
+  p.style.transform='translate(-50%,-50%) translateY('+rise+'px)';
+}
+
+/* ═══════════ ⭐ v13 排行榜 ═══════════
+   設計取捨（寫在這裡免得日後又被問一次）：
+   ① **每首歌 × 每個難度各一張榜**。譜面密度、判定窗、音符總數都跟著 tier 走，
+      easy 的 3000 分跟 hard 的 3000 分不是同一件事；混成一張榜，體能好的人會
+      永遠壓在上面，長者只會得到「我永遠上不了榜」的結論。分開之後，
+      每個人都在自己那一格裡跟自己的同儕比。
+   ② **只有 arcade × solo 才記榜**。機制關閉＝這台機器現在服務的是重度個案，
+      任何競爭性元素都不該出現；團體投影不計分，更沒有個人成績可記。
+   ③ 資料只存 localStorage：據點的平板本來就不連網，也不該把長者姓名上傳。 */
+const BOARD_KEY='rhythm_board_v1';
+const NAMES_KEY='rhythm_names_v1';   // 最近用過的名字（大按鈕的來源）
+const BOARD_MAX=10;
+const GUEST='訪客';
+const TIER_NAME={easy:'輕鬆',normal:'標準',hard:'挑戰'};
+const boardKeyOf=()=>cfg.song.id+'_'+personal.tier;
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function loadBoard(){ try{ const o=JSON.parse(localStorage.getItem(BOARD_KEY)||'{}');
+  return (o&&typeof o==='object'&&!Array.isArray(o))?o:{}; }catch(e){ return {}; } }
+function saveBoard(o){ try{ localStorage.setItem(BOARD_KEY,JSON.stringify(o)); }catch(e){} }
+function boardRows(k){ const r=loadBoard()[k]; return Array.isArray(r)?r:[]; }
+/* 名次：同分先到先贏 → 只有「分數嚴格大於」才插到人家前面 */
+function rankOf(rows,score){ const i=rows.findIndex(r=>score>r.score); return (i<0?rows.length:i)+1; }
+function insertScore(k,entry){
+  const b=loadBoard(); const rows=boardRows(k).slice();
+  rows.splice(rankOf(rows,entry.score)-1,0,entry);
+  while(rows.length>BOARD_MAX)rows.pop();          // 第 11 名擠出去
+  b[k]=rows; saveBoard(b);
+  return rows.indexOf(entry);
+}
+/* 留名＝就地改寫已經寫進去的那一筆（用 ISO 時間戳認人，資料結構不必多欄位） */
+function renameEntry(k,dateISO,name){
+  const b=loadBoard(); const rows=b[k]; if(!Array.isArray(rows))return;
+  const r=rows.find(x=>x&&x.date===dateISO); if(!r)return;
+  r.name=name; saveBoard(b);
+}
+function loadNames(){ try{ const a=JSON.parse(localStorage.getItem(NAMES_KEY)||'[]');
+  return Array.isArray(a)?a.filter(x=>typeof x==='string'&&x).slice(0,4):[]; }catch(e){ return []; } }
+function rememberName(n){ const a=loadNames().filter(x=>x!==n); a.unshift(n);
+  try{ localStorage.setItem(NAMES_KEY,JSON.stringify(a.slice(0,4))); }catch(e){} }
+const mmdd=iso=>{ const d=new Date(iso); return isNaN(d)?'—'
+  :(d.getMonth()+1)+'/'+String(d.getDate()).padStart(2,'0'); };
+
+/* boardState：{key, idx, entry, named, rank}；idx<0 代表這次沒進榜 */
+let boardState=null;
+function renderBoard(){
+  const card=$('rBoardCard');
+  if(!boardState){ hide(card); return; }
+  show(card);
+  const bs=boardState, rows=boardRows(bs.key);
+  $('rBoardScope').textContent=`${cfg.song.title}・自動難度「${TIER_NAME[personal.tier]}」・前 ${BOARD_MAX} 名`;
+  const MEDAL=['🥇','🥈','🥉'];
+  let h='<tr><th style="width:3.6em">名次</th><th>名字</th><th style="text-align:right">分數</th><th style="width:4em">日期</th></tr>';
+  if(!rows.length){ h+='<tr><td colspan="4" style="color:var(--soft)">還沒有人上榜，你就是第一個 🎉</td></tr>'; }
+  rows.forEach((r,i)=>{
+    const mine = bs.idx>=0 && bs.entry && r.date===bs.entry.date;
+    h+=`<tr class="${mine?'mine':''}"><td class="rk">${MEDAL[i]||(i+1)}</td>`
+      +`<td>${esc(r.name||GUEST)}${mine?'<span class="newTag">NEW</span>':''}</td>`
+      +`<td class="num">${r.score}</td><td class="dt">${mmdd(r.date)}</td></tr>`;
+  });
+  $('rBoardTbl').innerHTML=h;
+  /* 沒進榜也要有話對他說，而且不能寫「落榜」——寫成「差多少」才是可以行動的目標 */
+  if(bs.idx>=0){
+    $('rBoardMine').textContent=`這次 ${stats.score} 分，排在第 ${bs.rank} 名。`;
+  }else{
+    const last=rows.length?rows[rows.length-1].score:0;
+    $('rBoardMine').textContent=`你這次：${stats.score} 分，排在第 ${bs.rank} 名。`
+      +`再多 ${Math.max(1,last-stats.score+1)} 分就能進前 ${BOARD_MAX} 名了，下次再來 💪`;
+  }
+}
+/* 留名流程：進榜才問，而且只是結算頁裡的一區，不擋等第、不跳 modal */
+function renderNameAsk(){
+  const bs=boardState, box=$('rNameAsk');
+  if(!bs||bs.idx<0||bs.named){ hide(box); return; }
+  const names=loadNames();
+  let h='<div class="askT">🎉 進榜了！要留下名字嗎？</div>'
+       +'<div class="askS">選一個就好，不用打字。不留名會記成「'+GUEST+'」。</div><div class="nameRow">';
+  for(const n of names) h+=`<button class="nameBtn" data-nm="${esc(n)}">${esc(n)}</button>`;
+  h+='<button class="nameBtn ghost" data-act="type">✏️ 輸入名字</button>'
+    +`<button class="nameBtn ghost" data-act="skip">不留名</button></div>`
+    +'<div class="nameInput hidden" data-row="type">'
+    +'<input id="rNameInput" type="text" maxlength="8" placeholder="最多 8 個字" autocomplete="off">'
+    +'<button class="nameBtn" data-act="ok">確定</button></div>';
+  box.innerHTML=h; show(box);
+  box.querySelectorAll('[data-nm]').forEach(b=>b.onclick=()=>commitName(b.dataset.nm));
+  box.querySelector('[data-act="skip"]').onclick=()=>commitName(GUEST);
+  box.querySelector('[data-act="type"]').onclick=()=>{
+    show(box.querySelector('[data-row="type"]')); $('rNameInput').focus(); };
+  box.querySelector('[data-act="ok"]').onclick=()=>commitName($('rNameInput').value);
+  $('rNameInput').onkeydown=e=>{ if(e.key==='Enter')commitName($('rNameInput').value); };
+}
+function commitName(name){
+  const bs=boardState; if(!bs||bs.idx<0||bs.named)return;
+  const nm=String(name||'').trim().slice(0,8)||GUEST;
+  bs.entry.name=nm; bs.named=true;
+  renameEntry(bs.key,bs.entry.date,nm);
+  if(nm!==GUEST)rememberName(nm);
+  hide($('rNameAsk')); renderBoard();
+}
+/* 離開結算還沒選名字 → 就當作訪客。
+   ⚠️ 成績其實在 endPlay 當下就已經以「訪客」寫進 localStorage 了，
+   留名只是改寫那一筆 → 就算長者直接關掉平板，分數也不會蒸發。 */
+function autoGuest(){ if(boardState&&boardState.idx>=0&&!boardState.named)commitName(GUEST); }
+$('clearBoard').onclick=()=>{
+  if(!confirm('確定清除全部歌曲的排行榜與記住的名字嗎？\n清除後無法復原（換據點、換班級時才需要用到）。'))return;
+  try{ localStorage.removeItem(BOARD_KEY); localStorage.removeItem(NAMES_KEY); }catch(e){}
+  boardState=null; alert('排行榜已清除。');
+};
+
+/* ═══════════ 結算 ═══════════ */
+function endPlay(){
+  try{wakeLock?.release();wakeLock=null;}catch(e){}
+  stopSong(); state='result'; cancelAnimationFrame(playRaf);
+  hide($('stage'));
+  if(cfg.mode==='group'){ quitToSetup(); return; }         // 團體模式不出報表
+  show($('result'));
+  const total=notes.length, hit=stats.p+stats.early+stats.late;
+  const hitPct=total?Math.round(hit/total*100):0;
+  const offs=stats.trace.filter(x=>x.off!=null).map(x=>x.off);
+  const avgAbs=offs.length?Math.round(offs.reduce((a,b)=>a+Math.abs(b),0)/offs.length*1000):0;
+  /* 最低等第仍為正向：不給 F、不給「失敗」 */
+  const grade=hitPct>=95?'S':hitPct>=85?'A':hitPct>=70?'B':hitPct>=50?'C':'有動就有進步';
+  const tierName=TIER_NAME[personal.tier];
+  $('rSong').textContent=`${cfg.song.title}・自動難度「${tierName}」・${new Date().toLocaleString('zh-TW')}`;
+  $('rGrade').textContent=grade;
+  $('rGrade').style.fontSize = grade.length>2 ? '2rem' : '4rem';
+  $('rScore').textContent=stats.score;
+  $('rCombo').textContent=stats.maxCombo+' 次';
+  $('rHit').textContent=hit+' / '+total+'（'+hitPct+'%）';
+  $('rReact').textContent=avgAbs+' ms';
+  $('rPG').textContent=`${stats.p} / ${stats.early} / ${stats.late}`;
+  /* 節奏傾向：偏快＝搶拍（常見於焦慮或預測性動作），偏晚＝反應時間拉長 */
+  const signed=stats.trace.filter(x=>x.off!=null).map(x=>x.off);
+  const bias=signed.length?signed.reduce((a,b)=>a+b,0)/signed.length:0;
+  $('rTend').textContent = !signed.length ? '—'
+    : Math.abs(bias)<0.06 ? '很平均'
+    : (bias<0 ? `偏快 ${Math.round(-bias*1000)} ms` : `偏慢 ${Math.round(bias*1000)} ms`);
+  $('rBurst').textContent=stats.burst+' 下';
+  $('rWrong').textContent=cfg.arcade?(stats.wrong+' 次'):'—（機制關閉）';
+  /* 過關量表：這是「有沒有達標」，不是「有沒有失敗」——沒過也只寫再接再厲 */
+  if(cfg.arcade){
+    const ok=stats.gauge>=GAUGE_CLEAR;
+    $('rClear').textContent=`${Math.round(stats.gauge)}%　${ok?'✅ 過關！':'再一點點就到 '+GAUGE_CLEAR+'%'}`;
+    $('rClear').style.color=ok?'#0A9C84':'var(--soft)';
+    $('rMult').textContent='最高 ×'+stats.maxMult.toFixed(1);
+  }else{ $('rClear').textContent='—（遊戲機制關閉）'; $('rMult').textContent='—'; }
+  /* ⭐ v12：門檻若被個人化調過，據實寫一行小字（治療師看得到系統幫了多少忙）。
+     沒調過就整行留白，不佔版面、也不用解釋一個沒發生的事。 */
+  {
+    const sc=det.getScales(), pc=v=>Math.round(v*100)+'%';
+    $('rScaleNote').textContent=(sc.clap<0.98||sc.raise<0.98)
+      ? `偵測門檻已依你的動作幅度自動調整：拍手 ${pc(sc.clap)}／高舉 ${pc(sc.raise)}`
+      : '';
+  }
+
+  /* 三動作分項＋幅度達成率 */
+  const rows=[];
+  for(const a of ACTS){
+    const [h,m]=stats.byType[a]; const tt=h+m;
+    const pct=tt?Math.round(h/tt*100):0;
+    let extra='';
+    if(a!=='clap'){
+      const arr=stats.amps[a];
+      if(arr.length){ const avg=arr.reduce((x,y)=>x+y,0)/arr.length;
+        const base=personal.amp[a]||1; extra=`　幅度達成 ${Math.round(avg/base*100)}%`; }
+    }
+    rows.push(`<div class="barRow"><span class="lb">${SHORT[a]}</span>
+      <span class="tk"><i style="width:${pct}%"></i></span>
+      <span class="vv">${tt?h+'/'+tt:'—'}</span></div>
+      <div style="color:var(--soft);font-size:.8rem;margin:-4px 0 6px 4.9em">${GOAL[a]}${extra}</div>`);
+  }
+  $('rByType').innerHTML=rows.join('');
+
+  /* 左右對稱性 */
+  const symRows=[]; let symNote='';
+  /* 拍手是雙手一起，沒有左右之分；只有高舉（未來加回平舉）才算對稱性 */
+  for(const a of ACTS.filter(x=>x!=='clap')){
+    const [L,R]=stats.sides[a]; const tt=L+R;
+    if(!tt){ symRows.push(`<div class="barRow"><span class="lb">${SHORT[a]}</span><span class="tk"></span><span class="vv">—</span></div>`); continue; }
+    const lp=Math.round(L/(L+R)*100);
+    symRows.push(`<div class="barRow"><span class="lb">${SHORT[a]}</span>
+      <span class="tk"><i style="width:${lp}%;background:linear-gradient(90deg,#4DC3FF,#00C9A7)"></i></span>
+      <span class="vv">左 ${lp}%</span></div>`);
+    if(Math.abs(lp-50)>=18) symNote=`⚠️ ${SHORT[a]}的左右差異達 ${Math.abs(lp-50)*2}%，${lp<50?'左':'右'}側明顯較少參與，值得留意。`;
+  }
+  $('rSym').innerHTML=symRows.join('');
+  $('rSymNote').textContent=symNote||'左右參與度接近，沒有明顯偏用單側。';
+
+  drawTimeline();
+
+  /* 疲勞：前半段 vs 後半段的跟上比例 */
+  const halves=[0,0,0,0];
+  const mid=(chart.start+ (chart.end||chart.start))/2;
+  for(const n of notes){ const i=n.t<mid?0:2; if(n.judge&&n.judge!=='miss')halves[i]++; else if(n.judge==='miss')halves[i+1]++; }
+  const pctOf=(h,m)=>h+m?Math.round(h/(h+m)*100):0;
+  const fa=pctOf(halves[0],halves[1]), fb=pctOf(halves[2],halves[3]);
+  $('rFatigue').textContent=`耐力：前半段跟上 ${fa}%、後半段 ${fb}%${fb<fa-12?'（後半段明顯下降，可能是疲勞）':'（沒有明顯衰退）'}`;
+
+  try{
+    const key='rhythm_'+cfg.song.id+'_v6';
+    const hist=JSON.parse(localStorage.getItem(key)||'[]');
+    hist.push({d:Date.now(),score:stats.score,hit:hitPct,react:avgAbs,pace:Math.round(personal.pace)});
+    while(hist.length>30)hist.shift();
+    localStorage.setItem(key,JSON.stringify(hist));
+    if(hist.length>1){ const prev=hist[hist.length-2];
+      $('rTrend').textContent=`上次：${prev.score} 分／跟上 ${prev.hit}%／反應 ${prev.react}ms → 這次 ${stats.score>prev.score?'進步了 🎉':'再接再厲 💪'}（第 ${hist.length} 次遊玩）`; }
+    else $('rTrend').textContent='第 1 次遊玩，成績已記錄，下次可看趨勢。';
+  }catch(e){}
+
+  /* ⭐ v13 排行榜：機制關閉或團體模式就整塊不出現（見上面的設計取捨②） */
+  boardState=null;
+  if(cfg.arcade && cfg.mode==='solo'){
+    const key=boardKeyOf(), rows=boardRows(key), rank=rankOf(rows,stats.score);
+    if(rank<=BOARD_MAX){
+      /* 先以訪客身分寫進去，留名再改寫 → 中途離開也不會掉成績 */
+      const entry={name:GUEST,score:stats.score,maxCombo:stats.maxCombo,
+                   date:new Date().toISOString(),grade};
+      boardState={key,idx:insertScore(key,entry),entry,named:false,rank};
+    }else{
+      boardState={key,idx:-1,entry:null,named:true,rank};
+    }
+  }
+  renderBoard(); renderNameAsk();
+}
+function drawTimeline(){
+  const c=$('tl'); const dpr=Math.min(devicePixelRatio||1,2);
+  const w=c.clientWidth||600,h=120; c.width=w*dpr;c.height=h*dpr;
+  const g=c.getContext('2d'); g.setTransform(dpr,0,0,dpr,0,0);
+  g.fillStyle='#F7FBFA';g.fillRect(0,0,w,h);
+  g.strokeStyle='#DCE8E5';g.beginPath();g.moveTo(0,h/2);g.lineTo(w,h/2);g.stroke();
+  if(!stats.trace.length)return;
+  const t0=stats.trace[0].t,t1=stats.trace[stats.trace.length-1].t||1;
+  const W=personal.win;
+  for(const p of stats.trace){
+    const x=(p.t-t0)/((t1-t0)||1)*(w-20)+10;
+    if(p.off==null){ g.fillStyle=p.wrong?'#C9BCAB':'#E9F2F0'; g.fillRect(x-2,10,4,h-20); }   // 沒跟上：淡灰，不用刺眼的紅
+    else{ const y=h/2-Math.max(-1,Math.min(1,p.off/W.g))*(h/2-10);
+      g.fillStyle=Math.abs(p.off)<=W.p?'#00C9A7':(p.off<0?'#4DC3FF':'#FF8A3D');
+      g.beginPath();g.arc(x,y,4,0,7);g.fill(); }
+  }
+}
+
+resize();
+/* 開發除錯用（驗收時不必等整首歌跑完） */
+window.__dbg={
+  seek:s=>{if(audio)audio.currentTime=s;},
+  state:()=>state, stats:()=>stats, notes:()=>notes, personal:()=>personal,
+  scales:()=>det.getScales(), eff:()=>det.getEffective(),   // v12 個人化門檻現況
+  attempts:()=>det.getRecentAttempts(),
+  songT:()=>songT(), chart:()=>chart&&{start:chart.start,end:chart.end},
+  audio:()=>audio&&{cur:audio.currentTime,dur:audio.duration,ready:audio.readyState,paused:audio.paused},
+  finish:()=>{ if(state==='play')endPlay(); },
+  /* v13 驗收用 */
+  mult:c=>multOf(c), flames:c=>flamesOf(c),
+  board:()=>loadBoard(), boardState:()=>boardState, names:()=>loadNames(),
+  combo:c=>{ if(stats){ stats.combo=c; stats.maxCombo=Math.max(stats.maxCombo,c); updateHud(); } },
+};
+</script>
+<script src="/open-in-browser.js"></script>
+</body>
+</html>
