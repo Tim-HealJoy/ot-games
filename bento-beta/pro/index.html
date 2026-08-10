@@ -1,14 +1,7 @@
 <!DOCTYPE html>
 <!--
-  騎鐵馬，回家吃飯 · 民眾版
+  騎鐵馬，回家吃飯 · 治療師版
   ─────────────────────────────────────────────────────────────
-  ⭐2026-08-09 由治療師版（騎鐵馬回家吃飯.html）拆出的對外版本，兩檔並存、各自維護：
-    ・開場要輸入名字（排行榜的每一筆都要有主人），最近玩過的名字做成快選
-    ・結算只呈現「這趟幾穗＋排行榜名次」，復能報表與治療師微調面板不出現
-    ・FINISH_MULT 0.80（治療師版是 1.02）＝路程縮短，讓多數人天黑前都到得了厝，
-      看得到「吃到便當」的結局；騎得順的照樣提前到，爽感不變
-    ・排行榜存本機 localStorage（bento_lb）：據點活動＝一台平板輪流玩，本機榜剛好夠用
-  ⚠️2026-08-10 老闆定案：路上角色的台語對白與配音全部取消（詳見程式內 ⛔ 註記）。
   由《傾斜賽車》v3.2 分支而來的懷舊化版本（1960 年代花東縱谷）。
   ⚠️2026-08-08 改版：主題由「送便當去田頭」翻新成「做完穡騎鐵馬回家吃飯」，
     並移除對手競速（老闆：那個年代不會在路上比賽），壓力來源只剩「趕在天黑前到厝」。
@@ -39,7 +32,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="theme-color" content="#171310">
-<title>騎鐵馬，回家吃飯</title>
+<title>騎鐵馬，回家吃飯 · 治療師版</title>
 <!-- 內嵌 favicon：不放的話瀏覽器會去要 /favicon.ico，在 console 留一筆 404（驗收時很礙眼） -->
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ctext y='26' font-size='26'%3E%F0%9F%8D%9A%3C/text%3E%3C/svg%3E">
 <style>
@@ -160,32 +153,6 @@
   .seg button.on{border-color:var(--accent);background:rgba(240,177,58,.16);color:var(--accent);}
 
   /* ---------- 選騎士：四張大圖卡（長者要一眼看得出來選哪個） ---------- */
-  /* ---------- 民眾版：名字輸入＋排行榜 ---------- */
-  #inName{width:100%;box-sizing:border-box;background:var(--panel2);border:2.5px solid var(--line);
-    border-radius:14px;color:var(--fg);font-size:19px;font-weight:800;padding:12px 15px;outline:none;
-    font-family:inherit;letter-spacing:1px;}
-  #inName:focus{border-color:var(--accent);}
-  #inName.miss{border-color:#e8703c;animation:nameShake .35s;}
-  @keyframes nameShake{0%,100%{transform:none}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
-  .name-chips{display:flex;flex-wrap:wrap;gap:7px;margin-top:9px;}
-  .name-chips button{background:var(--panel2);border:2px solid var(--line);border-radius:999px;
-    color:var(--fg);font-size:15px;font-weight:700;padding:6px 14px;font-family:inherit;}
-  .name-chips button:active{border-color:var(--accent);color:var(--accent);}
-  .score-hero{background:var(--panel2);border-radius:16px;text-align:center;padding:16px 12px 14px;margin:14px 0 12px;}
-  .score-hero .k{font-size:15px;color:var(--sub);font-weight:700;letter-spacing:1px;}
-  .score-hero .v{font-size:52px;font-weight:900;color:var(--accent);line-height:1.15;}
-  .score-hero .v small{font-size:22px;font-weight:800;margin-left:4px;}
-  .score-hero .sub{font-size:16px;font-weight:800;color:var(--blue);margin-top:2px;}
-  .lb{background:var(--panel2);border-radius:16px;padding:13px 15px;margin:0 0 14px;}
-  .lb-title{font-size:16px;font-weight:900;letter-spacing:1px;margin-bottom:8px;}
-  .lb ol{list-style:none;margin:0;padding:0;}
-  .lb li{display:flex;align-items:center;gap:10px;padding:7px 9px;border-radius:10px;font-size:16.5px;font-weight:700;}
-  .lb li .rk{width:2em;text-align:center;flex:none;font-weight:900;}
-  .lb li .nm{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-  .lb li .sc{flex:none;font-weight:900;color:var(--accent);}
-  .lb li .fin{flex:none;font-size:13px;}
-  .lb li.me{background:rgba(240,177,58,.20);outline:2px solid var(--accent);}
-  .lb .gap{ text-align:center;color:var(--sub);font-size:14px;padding:2px 0;}
   .riders{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;}
   .riders button{background:var(--panel2);border:2.5px solid var(--line);border-radius:16px;
     padding:8px 4px 9px;cursor:pointer;color:var(--ink);display:flex;flex-direction:column;
@@ -386,7 +353,7 @@
     <div id="story" class="overlay">
       <div class="card">
         <h1>騎鐵馬，回家吃飯</h1>
-        <img class="story-pic" src="assets/bg_valley.jpg" alt="花東縱谷的稻田">
+        <img class="story-pic" src="../assets/bg_valley.jpg" alt="花東縱谷的稻田">
         <!-- ⚠️故事在「選騎士」之前出現，家裡等的人依騎士而不同，這裡不能寫死是誰 -->
         <div class="story-text">
           🌾 民國五十年，花東縱谷。<br>
@@ -403,17 +370,11 @@
     <!-- ===== 設定頁 ===== -->
     <div id="setup" class="overlay hidden">
       <div class="card">
-        <h1>騎鐵馬，回家吃飯 <span class="pill">民眾版</span><span class="pill demo hidden" id="demoTag">展示模式</span></h1>
+        <h1>騎鐵馬，回家吃飯 <span class="pill">治療師版</span><span class="pill demo hidden" id="demoTag">展示模式</span></h1>
         <div class="lead" id="setupLead">身體往哪邊傾，鐵馬就往哪邊倒。<b>過彎要主動往彎內倒</b>，不然車會被甩出去、騎進田埂裡卡住。</div>
 
         <div class="infobox" id="modeBox">偵測中…</div>
         <div class="warnbox hidden" id="sensorWarn"></div>
-
-        <!-- 民眾版：排行榜要有名字。輸入框＋最近玩過的名字快選（據點一台平板輪流玩，點一下就好） -->
-        <div class="row rowName"><div class="label">你的名字（會寫在排行榜上）</div>
-          <input type="text" id="inName" maxlength="8" placeholder="例：金水伯、阿珠姨" autocomplete="off" enterkeyhint="done">
-          <div class="name-chips" id="nameChips"></div>
-        </div>
 
         <div class="row rowRider"><div class="label">選騎士（今天是誰騎鐵馬回家？）</div>
           <div class="riders" id="segRider">
@@ -430,8 +391,7 @@
             <button data-diff="3"><em>困難</em><small>騎很快·彎道多<br>稻穗障礙多·90 秒</small></button>
           </div></div>
 
-        <!-- 民眾版：治療師微調面板整組收起來（元素保留，JS 才不用改） -->
-        <button class="advtoggle" id="btnAdv" style="display:none">🔧 進階微調（治療師設定）▼</button>
+        <button class="advtoggle" id="btnAdv">🔧 進階微調（治療師設定）▼</button>
         <div id="advBox" class="hidden">
         <div class="row"><div class="label">今天走哪條路（同一條路可重複比較）</div>
           <div class="seg" id="segRoute">
@@ -485,7 +445,7 @@
 
         <button class="start" id="btnStart">啟用感測器並開始</button>
         <div class="row-btns"><button class="hud-btn" id="btnDemoMode">改用鍵盤展示模式（← →）</button></div>
-        <div class="note">安全提醒：請坐著玩，手機拿穩；撞到不會結束，慢慢騎就好。</div>
+        <div class="note">安全提醒：坐姿進行，手機請牢固夾好；撞到不會結束，不必催促個案。所有設定會自動記住。</div>
         <div class="note">配樂：《望春風》《雨夜花》《四季紅》（鄧雨賢作曲，旋律已進入公有領域）、《丟丟銅仔》（宜蘭傳統民謠）。四首在遊戲中隨機輪播，畫面左下角會顯示曲名，可用來引導長輩回憶。全部由程式即時合成之純器樂編曲，不含錄音取樣、歌詞與人聲。</div>
       </div>
     </div>
@@ -497,7 +457,7 @@
         <div class="lead">校正會記錄「中立點」與「左右各自的最大舒適角度」，之後路上的左右兩邊就對應到個案自己的活動範圍。</div>
 
         <!-- 直式單手＝練前臂旋前／旋後，臨床上多半只練患側；不記錄手別的話，報表趨勢會把左右手混成一條線 -->
-        <div class="row" id="rowHand" style="display:none"><div class="label">這趟用哪隻手拿手機？</div>
+        <div class="row" id="rowHand"><div class="label">這趟用哪隻手拿手機？</div>
           <div class="seg" id="segHand">
             <button data-hand="R">右手</button>
             <button data-hand="L">左手</button>
@@ -546,7 +506,7 @@
     <div id="ending" class="overlay hidden">
       <div class="card">
         <h1>🍚 到厝了！</h1>
-        <img class="ending-pic" id="endingPic" src="assets/ending_home_boy.jpg" alt="騎到厝門口，家人端著熱飯出來迎接">
+        <img class="ending-pic" id="endingPic" src="../assets/ending_home_boy.jpg" alt="騎到厝門口，家人端著熱飯出來迎接">
         <div class="ending-text" id="endingText">阿公站在門口，端出還燒燒的飯菜：<br>「<b>轉來啦！緊來洗手，趁燒食！</b>」</div>
         <button class="start go" id="btnEndingNext">看這趟的成績 →</button>
       </div>
@@ -556,19 +516,18 @@
     <div id="end" class="overlay hidden">
       <div class="card">
         <h1>這趟結束了</h1>
-        <div class="lead" id="endLead">辛苦了！</div>
+        <div class="lead" id="endLead">辛苦了！以下是這趟的成績。</div>
         <div id="finBanner" class="hidden">🍚 騎到厝了！</div>
-        <div id="recBanner" class="hidden">🏆 全場第一名！</div>
-        <!-- 民眾版：結算只看兩件事＝這趟幾穗、排行榜第幾名（老闆 08-09 指示） -->
-        <div class="score-hero">
-          <div class="k">🌾 這趟撿到</div>
-          <div class="v"><span id="eScore">0</span><small>穗</small></div>
-          <div class="sub" id="eRankLine"></div>
+        <div id="recBanner" class="hidden">🏆 破紀錄！這是目前最好的一次</div>
+        <div class="end-grid">
+          <div class="cell"><div class="k">稻穗</div><div class="v" id="eScore">0</div></div>
+          <div class="cell"><div class="k">走完路程</div><div class="v" id="eComp">0%</div></div>
+          <div class="cell"><div class="k">撿穗率</div><div class="v" id="eRate">–</div></div>
+          <div class="cell"><div class="k">撞到</div><div class="v" id="eCrash">0</div></div>
+          <div class="cell"><div class="k">騎進田埂</div><div class="v" id="eOff">0</div></div>
         </div>
-        <div class="lb">
-          <div class="lb-title">🏆 排行榜</div>
-          <ol id="lbList"></ol>
-        </div>
+        <div class="note" id="eBest"></div>
+        <button class="start go" id="btnReport">查看復能報表</button>
         <div class="row-btns">
           <button class="hud-btn" id="btnAgain">再騎一趟</button>
           <button class="hud-btn" id="btnEndHome">⚙ 回設定</button>
@@ -1288,20 +1247,20 @@ const RIDERS = [
   {id:'girl',    name:'少女', sub:'麻花辮·淑女車'}
 ];
 const SRC = {
-  bg:'assets/bg_valley.jpg', road:'assets/road_asphalt.jpg',
-  tree:'assets/tree_banana.jpg', pole:'assets/pole_wood.jpg', hay:'assets/haybale_straw.jpg',
-  egret:'assets/egret_white.jpg',
-  father:'assets/father_wave.jpg',                 // ⚠️終點改成厝之後 tree_big 已無人引用，不再載入（省 210KB 手機流量）
+  bg:'../assets/bg_valley.jpg', road:'../assets/road_asphalt.jpg',
+  tree:'../assets/tree_banana.jpg', pole:'../assets/pole_wood.jpg', hay:'../assets/haybale_straw.jpg',
+  egret:'../assets/egret_white.jpg',
+  father:'../assets/father_wave.jpg',                 // ⚠️終點改成厝之後 tree_big 已無人引用，不再載入（省 210KB 手機流量）
   // 2026-08-08 回家版：終點的厝＋三個里程碑
-  house:'assets/house_home.jpg', bridge:'assets/bridge_rail.jpg',
-  shrine:'assets/shrine_tudi.jpg', barn:'assets/barn_rice.jpg',
+  house:'../assets/house_home.jpg', bridge:'../assets/bridge_rail.jpg',
+  shrine:'../assets/shrine_tudi.jpg', barn:'../assets/barn_rice.jpg',
   // 路上偶爾遇到的鄉下元素（老闆 08-08 加）
-  postman:'assets/postman_bike.jpg', police:'assets/police_bike.jpg',
-  farmhouse:'assets/farmhouse.jpg'
+  postman:'../assets/postman_bike.jpg', police:'../assets/police_bike.jpg',
+  farmhouse:'../assets/farmhouse.jpg'
 };
 for(const r of RIDERS){
-  SRC['bk_'+r.id+'_U']='assets/bike_'+r.id+'_upright.jpg';
-  SRC['bk_'+r.id+'_L']='assets/bike_'+r.id+'_lean.jpg';
+  SRC['bk_'+r.id+'_U']='../assets/bike_'+r.id+'_upright.jpg';
+  SRC['bk_'+r.id+'_L']='../assets/bike_'+r.id+'_lean.jpg';
 }
 // 綠幕去背門檻逐張調。
 // ⚠️香蕉樹葉本身就是中～深綠（gr 約 30～55），門檻要抓「高亮度純綠」才不會把葉子一起吃掉，
@@ -2090,10 +2049,9 @@ function ensureAudio(){
    ================================================================== */
 // ⚠️key 一律加 bento_ 前綴：重機版《傾斜賽車》用 tiltracer_*，兩款遊戲的設定與紀錄絕不可互相污染
 //   （同一台平板上治療師會兩款交替用，混在一起的話報表趨勢圖會把兩款的資料畫成同一條線）。
-const LS_CFG='bento_cfg', LS_SESS='bento_sessions', LS_BEST='bento_best',
-      LS_LB='bento_lb', LS_NAMES='bento_names';   // 民眾版：本機排行榜＋最近玩過的名字
+const LS_CFG='bento_cfg', LS_SESS='bento_sessions', LS_BEST='bento_best';
 const cfg = { route:1, dur:90, sens:3, speed:3, dens:3, assist:1, scene:'rice', sound:1,
-              rider:'grandpa', hand:'', curve:1, diff:2, laneWeight:[1,1,1], player:'' };
+              rider:'grandpa', hand:'', curve:1, diff:2, laneWeight:[1,1,1] };
 try{ const s=JSON.parse(localStorage.getItem(LS_CFG)||'{}'); Object.assign(cfg,s); cfg.laneWeight=[1,1,1]; }catch(e){}
 delete cfg.rivals;                       // 2026-08-08 移除對手競速後的舊設定殘留，清掉免得寫回 localStorage
 // 老闆定的統一預設：音效開＋難度「普通」，「每次打開遊戲」都回到這幾個值
@@ -2258,14 +2216,6 @@ const MILES=[
   { at:0.75, kind:'barn',   side:-1, hf:1.55, off:2.00, say:'看到穀倉，厝就在前面了' }
 ];
 
-/* ⛔2026-08-10 老闆定案：**路上角色的台語對白與配音全部拿掉**。
-   來由：08-09 先做了台語飄字＋預留配音掛載點，但唯一可用的台語 TTS（意傳科技）是參數式
-   合成、腔調機械不道地，其他家（macOS／Azure／Google Cloud／OpenAI／ElevenLabs）根本沒有
-   台語模型（餵漢字會用國語唸）。老闆判斷：沒有聲音的話，光留台語漢字飄字（例：毋通挵著人）
-   對長輩反而是閱讀負擔，不如不要 → 對白整組移除，里程碑提示句還原成原本的華語。
-   ⚠️結局頁的台語對白是 08-02 就有的、且是靜態畫面可以慢慢讀，保留不動。
-   保留的參考資料：demo 音檔與試聽頁在 `_封存_台語配音demo/`，句子原文見規格書。 */
-
 /* ---- v3.1 離心力／衝出跑道 ----
    模型＝「位置控制＋離心偏移」：玩家傾斜決定的是想待的橫向位置（pxSteer），
    彎道則疊上一個往彎外的偏移（driftPx），兩者相加＝實際位置 px。
@@ -2312,10 +2262,7 @@ const LANE_OFF=0.62;                                    // 車道中心（halfW 
 // 終點＝基準里程 ×1.02。v3 氮氣降到 ×1.25 後每次只賺 0.25×3＝0.75 個基準秒，
 // 90 秒局要多跑 1.8 個基準秒 → 約需吃到 2～3 次氮氣（撞一次約吃掉半次氮氣的量）。
 // ⚠️若日後再動 FEVER_MULT 或 FEVER_DUR，這個係數要一起重算，否則完賽會變成不可能任務。
-/* 民眾版 FINISH_MULT 1.02→0.80：完賽門檻＝全速騎八成時間就到厝。
-   老闆 08-09 指示「儘可能讓每個玩的人都看得到吃到便當的結局」——留兩成時間當
-   撞竹簍、騎進田埂的緩衝，多數人天黑前都到得了；騎得順的提前到，爽感不變。 */
-const FINISH_MULT=0.80, FEVER_MULT=1.25, FEVER_DUR=3.0;
+const FINISH_MULT=1.02, FEVER_MULT=1.25, FEVER_DUR=3.0;
 function newGame(){
   const seedBase=[0,20260729,880517,110711][cfg.route];
   const seed=seedBase ^ (cfg.dur*7919) ^ (cfg.dens*104729);
@@ -3502,8 +3449,6 @@ function goSetup(){
   phase='setup'; show('setup'); keepAwake(false);
   $('feverTag').classList.add('hidden'); $('confetti').classList.add('hidden');
   if(AE) AE.stop();
-  // 民眾版：回設定＝換下一位玩，剛剛的名字要立刻出現在快選（活動現場不會重新整理網頁）
-  if(typeof renderNameChips==='function') renderNameChips();
 }
 function pauseForReorient(){ phase='reorient'; show('reorient'); if(AE)AE.stop(); }
 
@@ -3607,13 +3552,13 @@ function skipCalib(){
 /* 結局：騎到厝門口，厝裡的人已經把飯菜端出來了。
    ⚠️對白裡「等你的人」依騎士而不同，跟四張結局圖是一組的，改圖就要一起改詞。 */
 const ENDINGS={
-  grandpa:{ img:'assets/ending_home_grandpa.jpg',
+  grandpa:{ img:'../assets/ending_home_grandpa.jpg',
     txt:'阿嬤已經在門口等，手裡端著一鍋熱騰騰的：<br>「<b>老伴仔，做歸工啦！緊來洗手，趁燒食！</b>」' },
-  grandma:{ img:'assets/ending_home_grandma.jpg',
+  grandma:{ img:'../assets/ending_home_grandma.jpg',
     txt:'阿公把桌頂的菜端出來，笑笑仔講：<br>「<b>老伴仔，飯攏款好啊，緊來坐！</b>」' },
-  boy:{ img:'assets/ending_home_boy.jpg',
+  boy:{ img:'../assets/ending_home_boy.jpg',
     txt:'阿公站在門口，捧著一碗白飯：<br>「<b>阿孫仔，辛苦啦！緊來食飯，食予飽！</b>」' },
-  girl:{ img:'assets/ending_home_girl.jpg',
+  girl:{ img:'../assets/ending_home_girl.jpg',
     txt:'阿公站在門口，慈愛地笑著：<br>「<b>阿妹仔上乖！緊來食飯，莫予飯冷去。</b>」' }
 };
 function beginCountdown(){
@@ -3627,49 +3572,37 @@ function beginCountdown(){
 }
 function startPlay(){ phase='play'; if(AE&&cfg.sound) AE.pedal(); }   // 「出發！」＝鈴鐺一響、用力踩下去
 
-/* ---- 民眾版排行榜：存這台裝置的 localStorage（據點活動＝一台平板輪流玩，本機榜剛好）----
-   同名不合併：阿公跟孫子可能都叫「阿明」，而且活動現場每一趟都該是一筆。 */
-const RIDER_EMOJI={grandpa:'👴',grandma:'👵',boy:'👦',girl:'👧'};
-function loadLB(){ try{ return JSON.parse(localStorage.getItem(LS_LB)||'[]'); }catch(e){ return []; } }
-function renderLB(lb,meIdx){
-  const list=$('lbList'); list.innerHTML='';
-  const li=(e,i,isMe)=>{
-    const el=document.createElement('li');
-    if(isMe) el.className='me';
-    const rk=i===0?'🥇':i===1?'🥈':i===2?'🥉':(i+1);
-    el.innerHTML=`<span class="rk">${rk}</span><span class="nm">${RIDER_EMOJI[e.rider]||'🚲'} ${
-      String(e.name).replace(/[<>&]/g,'')}</span>${e.fin?'<span class="fin">🍚</span>':''}<span class="sc">${e.score} 穗</span>`;
-    list.appendChild(el);
-  };
-  const TOP=8;
-  lb.slice(0,TOP).forEach((e,i)=>li(e,i,i===meIdx));
-  if(meIdx>=TOP){                       // 沒進前八：下面補「⋯」＋自己那列（一定要看得到自己）
-    const gap=document.createElement('li'); gap.className='gap'; gap.textContent='⋯'; list.appendChild(gap);
-    li(lb[meIdx],meIdx,true);
-  }
-}
 function endGame(){
   phase='end';
   keepAwake(false); if(AE) AE.stop();
   $('feverTag').classList.add('hidden');
+  const dist=Math.round(odo*M_PER_ODO);
+  const comp=route?Math.min(100,Math.round(odo/route.totalOdo*100)):0;
+  const presT=M.presented[0]+M.presented[1]+M.presented[2];
+  const collT=M.collected[0]+M.collected[1]+M.collected[2];
   $('eScore').textContent=score;
+  $('eComp').textContent=comp+'%';
+  $('eRate').textContent=presT?Math.round(collT/presT*100)+'%':'–';
+  $('eCrash').textContent=crashes;
+  $('eOff').textContent=offroadCount;
   $('finBanner').classList.toggle('hidden',!finished);
-  $('endLead').textContent = finished
-    ? `${cfg.player||'你'}天黑前就騎到厝了！騎了 ${Math.round(elapsed)} 秒。`
-    : `辛苦了！天黑了才到，明天再早點出發。`;
-  // 寫進排行榜（每一趟都是一筆；只留前 100 筆免得 localStorage 越長越肥）
-  let lb=loadLB();
-  const me={name:cfg.player||'無名氏',score,rider:cfg.rider,fin:finished?1:0,d:Date.now()};
-  lb.push(me);
-  lb.sort((a,b)=>b.score-a.score || a.d-b.d);        // 同分＝先騎的排前面
-  const meIdx=lb.indexOf(me);
-  if(lb.length>100){ lb=lb.slice(0,100); }
-  try{ localStorage.setItem(LS_LB,JSON.stringify(lb)); }catch(e){}
-  const rank=meIdx+1;
-  $('eRankLine').textContent = rank===1 ? '👑 目前全場第一名！' : `目前排第 ${rank} 名`;
-  renderLB(lb,meIdx);
-  $('recBanner').classList.toggle('hidden',rank!==1);
-  if(rank===1||finished){ celebrate(); if(AE&&cfg.sound){ AE.setMuted(muted); AE.fanfare(); } }
+  const offTxt = offroadCount ? `這趟騎進田埂 ${offroadCount} 次（在田裡卡了共 ${offroadSec.toFixed(1)} 秒，速度只剩一半）。` : '';
+  $('endLead').textContent = (finished
+    ? `天黑前就騎到厝了！騎了 ${Math.round(elapsed)} 秒，提前 ${Math.max(0,Math.round(cfg.dur-elapsed))} 秒到。`
+    : `辛苦了！以下是這趟的成績（路走了 ${comp}%，多搶到幾次下坡順風就騎得更遠）。`) + offTxt;
+  // 破紀錄（依設定組合分開記；騎士不列入 sig＝換人騎仍可比同一組設定的成績）
+  const sig=`${cfg.route}_${cfg.dur}_${cfg.sens}_${cfg.speed}_${cfg.dens}_${cfg.assist}`;
+  let best={}; try{ best=JSON.parse(localStorage.getItem(LS_BEST)||'{}'); }catch(e){}
+  const prev=best[sig];
+  const isRec = !prev || score>prev.score;
+  if(isRec){ best[sig]={score,dist,date:new Date().toISOString()};
+    try{ localStorage.setItem(LS_BEST,JSON.stringify(best)); }catch(e){} }
+  $('recBanner').classList.toggle('hidden',!isRec);
+  $('eBest').textContent = prev
+    ? (isRec ? `上次同設定最佳：${prev.score} 穗 → 這次 ${score} 穗。`
+             : `同設定最佳紀錄：${prev.score} 穗（騎了 ${prev.dist} 公尺）。`)
+    : '這是這組設定的第一筆紀錄。';
+  if(isRec||finished){ celebrate(); if(AE&&cfg.sound){ AE.setMuted(muted); AE.fanfare(); } }
   // 完賽先看「到厝、家人端飯出來」的結局頁（老闆：要有 ending 的感覺），按一下才進成績；沒騎完直接進結算
   show(finished?'ending':'end');
 }
@@ -3953,31 +3886,6 @@ $('segDiff').onclick=e=>{
 };
 applyDiff(cfg.diff||2);                             // 開場即套用（每次載入固定回「普通」）
 
-/* ---- 民眾版：名字輸入＋最近玩過的名字快選 ----
-   據點活動＝一台平板輪流玩，長輩打字慢，最近名單點一下就能接著玩。 */
-function renderNameChips(){
-  const inp=$('inName'), box=$('nameChips');
-  let names=[]; try{ names=JSON.parse(localStorage.getItem(LS_NAMES)||'[]'); }catch(e){}
-  box.innerHTML='';
-  names.slice(0,8).forEach(n=>{
-    const b=document.createElement('button'); b.type='button'; b.textContent=n;
-    b.onclick=()=>{ inp.value=n; cfg.player=n; inp.classList.remove('miss'); saveCfg(); };
-    box.appendChild(b);
-  });
-}
-(function initName(){
-  const inp=$('inName');
-  inp.value=cfg.player||'';
-  inp.oninput=()=>{ cfg.player=inp.value.trim(); inp.classList.remove('miss'); saveCfg(); };
-  renderNameChips();
-})();
-function rememberName(){
-  const n=(cfg.player||'').trim(); if(!n) return;
-  let names=[]; try{ names=JSON.parse(localStorage.getItem(LS_NAMES)||'[]'); }catch(e){}
-  names=[n,...names.filter(x=>x!==n)].slice(0,12);
-  try{ localStorage.setItem(LS_NAMES,JSON.stringify(names)); }catch(e){}
-}
-
 (function initScene(){
   const sel=$('selScene');
   for(const k in SCENES){
@@ -4042,14 +3950,6 @@ function showSensorWarn(msg){
 }
 
 $('btnStart').onclick=async()=>{
-  // 民眾版：沒名字不出發（排行榜的每一筆都要有主人）；抖一下輸入框提醒，不跳惱人的 alert
-  cfg.player=$('inName').value.trim();
-  if(!cfg.player){
-    const inp=$('inName'); inp.classList.remove('miss'); void inp.offsetWidth; inp.classList.add('miss');
-    inp.focus(); inp.scrollIntoView({block:'center',behavior:'smooth'});
-    return;
-  }
-  saveCfg(); rememberName();
   ensureAudio();
   if(AE&&AE.ac.state==='suspended') AE.ac.resume();   // iOS：一定要在這個點擊事件裡 resume
   $('btnStart').disabled=true; const old=$('btnStart').textContent; $('btnStart').textContent='啟用中…';
@@ -4080,6 +3980,7 @@ $('btnReorientCalib').onclick=()=>{
 };
 $('btnReorientSkip').onclick=()=>{ enterCalib(); skipCalib(); };
 $('btnEnd').onclick=()=>{ if(phase==='play'||phase==='count') endGame(); };
+$('btnReport').onclick=()=>{ renderReport(); show('report'); };
 $('btnAgain').onclick=beginCountdown;
 $('btnAgain2').onclick=beginCountdown;
 $('btnPrint').onclick=()=>window.print();
