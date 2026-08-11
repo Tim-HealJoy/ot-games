@@ -1,0 +1,522 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>台灣地名名產大挑戰 — 長輩懷舊猜謎</title>
+<meta name="description" content="專為長輩設計的台灣美食與景點二選一猜謎，大字體、45 題集章。答錯不判錯，答完聊回憶。教案設計：施昱廷 職能治療師。免費開放。">
+<meta name="theme-color" content="#065f46">
+<link rel="icon" href="../favicon.png">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="復能小遊戲">
+<meta property="og:title" content="台灣地名名產大挑戰 · 長輩懷舊猜謎">
+<meta property="og:description" content="左右二選一，猜猜看這是哪裡的名產。美食 25 題、景點 20 題，答完一起聊回憶。免費開放。">
+<meta property="og:url" content="https://games.otshih.com/taiwan-beta/">
+<meta property="og:image" content="https://games.otshih.com/taiwan-beta/share.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:locale" content="zh_TW">
+<meta name="twitter:card" content="summary_large_image">
+<style>
+:root{
+  --cream:#F4EFE3; --cream-deep:#EBE2CE;
+  --green:#065f46; --green-dark:#04382a; --green-soft:#d1e7dd;
+  --amber:#f59e0b; --amber-soft:#fde9c2;
+  --ink:#1c1c1a; --ink-soft:#54514a;
+  --blue:#1d4ed8; --red:#b42318;
+  --fs:1.15;
+  --radius:20px;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{height:100%}
+body{
+  margin:0; background:var(--cream); color:var(--ink);
+  font-family:"PingFang TC","Noto Sans TC","Microsoft JhengHei",system-ui,sans-serif;
+  font-size:calc(17px * var(--fs));
+  line-height:1.65; -webkit-text-size-adjust:100%;
+  min-height:100dvh; display:flex; flex-direction:column;
+}
+button{font-family:inherit;font-size:inherit;cursor:pointer;border:none;background:none;color:inherit}
+img{display:block;max-width:100%}
+.hidden{display:none !important}
+
+.wrap{width:100%;max-width:1100px;margin:0 auto;padding:0 16px}
+
+/* ---------- 標題列 ---------- */
+.bar{background:var(--green);color:#fff;flex:none}
+.bar-top{display:flex;align-items:center;gap:8px;min-height:50px;padding:6px 0;font-size:.82em}
+.bar-top .prog{font-weight:900;letter-spacing:.5px;white-space:nowrap}
+.bar-top .tools{margin-left:auto;display:flex;gap:6px}
+.bar-btn{background:rgba(255,255,255,.15);border:2px solid rgba(255,255,255,.32);
+  padding:.35em .7em;border-radius:999px;font-weight:800;white-space:nowrap;flex:none}
+.bar-btn:active{transform:scale(.95)}
+.tabs{background:var(--green-dark);border-bottom:5px solid var(--amber);flex:none}
+.tabs .wrap{display:flex;gap:6px;padding:6px 12px}
+.tabs button{flex:1;padding:.5em .3em;border-radius:12px 12px 0 0;font-weight:900;
+  color:#a9d3c4;font-size:.92em;white-space:nowrap}
+.tabs button[aria-selected="true"]{background:var(--cream);color:var(--green)}
+
+/* ---------- 題目 ---------- */
+#screen-quiz{flex:1;display:flex;flex-direction:column;min-height:0}
+#screen-quiz > .wrap{flex:1;display:flex;flex-direction:column;min-height:0;padding-bottom:16px}
+.qmeta{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:center;margin:14px 0 10px}
+.pill{background:var(--amber);color:var(--ink);font-weight:900;padding:.3em .85em;border-radius:999px;white-space:nowrap}
+.chip{background:var(--green-soft);color:var(--green-dark);font-weight:800;
+  padding:.28em .8em;border-radius:999px;border:2px solid #a7cfbf}
+.qcard{background:#fff;border:3px solid var(--amber);border-radius:var(--radius);
+  padding:16px;text-align:center;box-shadow:0 3px 12px rgba(0,0,0,.06)}
+.qtitle{margin:0;font-size:1.45em;font-weight:900;letter-spacing:.5px;line-height:1.4}
+
+.options{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:22px}
+@media(min-width:760px){.options{gap:22px}}
+.opt{position:relative;background:#fff;border:4px solid var(--green);border-radius:var(--radius);
+  padding:8px;display:flex;flex-direction:column;gap:8px;box-shadow:0 4px 0 rgba(0,0,0,.08);
+  transition:transform .12s;min-height:0}
+.opt.r{border-color:var(--blue)}
+.opt:active{transform:scale(.98)}
+@media(min-width:760px){.opt{border-width:5px;padding:12px;gap:10px}}
+.opt .side{position:absolute;top:-13px;left:8px;background:var(--green);color:#fff;
+  font-weight:900;padding:.1em .6em;border-radius:999px;border:3px solid var(--cream);font-size:.75em}
+.opt.r .side{left:auto;right:8px;background:var(--blue)}
+@media(min-width:760px){.opt .side{top:-14px;left:14px;font-size:.85em;padding:.15em .8em}
+  .opt.r .side{left:auto;right:14px}}
+.opt .ph{width:100%;aspect-ratio:1/1;border-radius:12px;overflow:hidden;background:var(--cream-deep)}
+.opt .ph img{width:100%;height:100%;object-fit:cover}
+.opt .name{font-size:1.15em;font-weight:900;text-align:center;padding:.1em 0;line-height:1.3}
+.opt .cta{background:var(--green);color:#fff;font-weight:900;text-align:center;
+  padding:.5em .2em;border-radius:12px;font-size:.92em}
+.opt.r .cta{background:var(--blue)}
+@media(min-width:760px){.opt .name{font-size:1.45em;padding:.1em 0 .2em}
+  .opt .cta{padding:.6em;border-radius:14px;font-size:1.05em}}
+.hint{text-align:center;color:var(--ink-soft);font-size:.82em;margin:14px 0 0;
+  background:var(--amber-soft);border-radius:999px;padding:.5em 1em}
+
+/* ---------- 揭曉 ---------- */
+#reveal{position:fixed;inset:0;background:rgba(28,28,26,.72);z-index:50;
+  display:flex;align-items:flex-end;justify-content:center}
+@media(min-width:760px){#reveal{align-items:center;padding:20px}}
+.rcard{background:var(--cream);width:100%;max-width:720px;max-height:100%;overflow-y:auto;
+  border-radius:22px 22px 0 0;border-top:7px solid var(--amber);padding:18px 16px 24px}
+@media(min-width:760px){.rcard{border-radius:22px;border:7px solid var(--amber)}}
+.rhead{text-align:center;font-size:1.45em;font-weight:900;color:var(--green);margin-bottom:.5em}
+.rhead.miss{color:#8a5a00}
+.ranswer{display:flex;gap:14px;align-items:center;background:#fff;border:3px solid var(--green);
+  border-radius:16px;padding:12px}
+.ranswer .ph{width:31%;max-width:150px;aspect-ratio:1/1;border-radius:12px;overflow:hidden;flex:none;background:var(--cream-deep)}
+.ranswer .ph img{width:100%;height:100%;object-fit:cover}
+.ranswer h3{margin:0;font-size:1.3em;color:var(--green);line-height:1.35}
+.ranswer p{margin:.35em 0 0;color:var(--ink-soft);font-size:.95em}
+.rblock{background:#fff;border:3px solid var(--cream-deep);border-radius:16px;padding:14px;margin-top:12px}
+.rblock h4{margin:0 0 .35em;font-size:1.05em;color:var(--green);display:flex;align-items:center;gap:.4em}
+.rblock p{margin:0}
+.rblock.chat{background:#fff8e6;border-color:var(--amber)}
+.rblock.chat h4{color:#8a5a00}
+.rblock.chat p{font-size:1.12em;font-weight:800}
+.rother{color:var(--ink-soft);font-size:.9em;margin-top:12px;text-align:center}
+/* 「下一題」黏在底部：手機上解說很長，按鈕被推出螢幕外長輩不會知道要滑 */
+#reveal .big-btn{position:sticky;bottom:6px;margin-top:16px;
+  box-shadow:0 4px 0 #b97708, 0 0 0 9px var(--cream)}
+#reveal .big-btn:active{box-shadow:0 1px 0 #b97708, 0 0 0 9px var(--cream)}
+
+.big-btn{display:flex;align-items:center;justify-content:center;gap:.5em;
+  width:100%;background:var(--amber);color:var(--ink);font-weight:900;
+  padding:.8em 1.2em;border-radius:var(--radius);box-shadow:0 4px 0 #b97708;font-size:1.1em}
+.big-btn:active{transform:translateY(3px);box-shadow:0 1px 0 #b97708}
+.big-btn.green{background:var(--green);color:#fff;box-shadow:0 4px 0 var(--green-dark)}
+.big-btn.green:active{box-shadow:0 1px 0 var(--green-dark)}
+
+/* ---------- 集章牆 ---------- */
+#screen-stamps{flex:1;padding-bottom:24px}
+.stamp-top{text-align:center;padding:16px 0 4px}
+.stamp-top h2{margin:0;font-size:1.5em;color:var(--green)}
+.stamp-count{font-size:1.1em;font-weight:900;margin:.3em 0 0}
+.part{margin-top:20px}
+.part > h3{margin:0 0 .5em;font-size:1.15em;color:var(--ink);
+  background:var(--amber-soft);border-radius:999px;padding:.3em 1em;display:inline-block}
+.area{margin-top:12px}
+.area h4{margin:0 0 .6em;font-size:.95em;color:var(--green);
+  border-bottom:3px solid var(--cream-deep);padding-bottom:.25em}
+.stamps{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:10px}
+.stamp{background:#fff;border:3px dashed var(--cream-deep);border-radius:16px;padding:10px 6px;
+  text-align:center;color:var(--ink-soft)}
+.stamp .rg{display:block;font-weight:900;font-size:1em;color:var(--ink);line-height:1.3}
+.stamp .it{display:block;font-size:.78em;margin-top:.15em;min-height:1.2em;line-height:1.3}
+.stamp.done{border-style:solid;border-color:var(--red);background:#fff5f4;color:var(--red)}
+.stamp.done .rg{color:var(--red)}
+.stamp.done .it{font-weight:800}
+.stamp.done::after{content:"已蓋章";display:block;font-size:.7em;font-weight:900;
+  border:2px solid var(--red);border-radius:6px;margin:.4em auto 0;width:4.2em;transform:rotate(-6deg)}
+
+footer{background:var(--green-dark);color:#cfe6dc;font-size:.78em;padding:12px 16px;
+  text-align:center;flex:none;line-height:1.6}
+footer strong{color:#ffd88a;font-size:1.12em}
+
+/* ---------- 投影模式：整題塞進一個畫面 ---------- */
+body.projector{height:100dvh;overflow:hidden}
+body.projector .hint{display:none}
+body.projector .qtitle{font-size:1.6em}
+body.projector .qmeta{margin:10px 0 8px}
+body.projector .qcard{padding:14px 16px}
+body.projector .options{flex:1;min-height:0;margin-top:18px}
+body.projector .opt .ph{aspect-ratio:auto;height:auto;flex:1;min-height:0}
+body.projector footer{font-size:.7em;padding:6px 16px}
+</style>
+</head>
+<body>
+
+<!-- ============ 標題列 ============ -->
+<header class="bar">
+  <div class="wrap bar-top">
+    <span class="prog" id="progress">第 1 / 25 題</span>
+    <div class="tools">
+      <button class="bar-btn" id="btn-font">🔠 大字</button>
+      <button class="bar-btn" id="btn-sound">🔔</button>
+      <button class="bar-btn" id="btn-stamps">🏅 <span id="stamp-mini">0/45</span></button>
+    </div>
+  </div>
+</header>
+<nav class="tabs"><div class="wrap">
+  <button id="tab-food" aria-selected="true">🍲 美食 25 題</button>
+  <button id="tab-sight" aria-selected="false">🏞️ 景點 20 題</button>
+</div></nav>
+
+<!-- ============ 題目 ============ -->
+<section id="screen-quiz">
+  <div class="wrap">
+    <div class="qmeta">
+      <span class="pill" id="q-place">📍 台北</span>
+      <span class="chip" id="q-type">🍲 地方名產</span>
+    </div>
+
+    <div class="qcard">
+      <h2 class="qtitle" id="q-title"></h2>
+    </div>
+
+    <div class="options">
+      <button class="opt l" id="opt-left">
+        <span class="side">👈 左邊</span>
+        <span class="ph"><img id="img-left" alt=""></span>
+        <span class="name" id="name-left"></span>
+        <span class="cta">選這個</span>
+      </button>
+      <button class="opt r" id="opt-right">
+        <span class="side">右邊 👉</span>
+        <span class="ph"><img id="img-right" alt=""></span>
+        <span class="name" id="name-right"></span>
+        <span class="cta">選這個</span>
+      </button>
+    </div>
+
+    <p class="hint">💡 用電腦時，也可以按鍵盤的 ← 左方向鍵 或 → 右方向鍵</p>
+  </div>
+</section>
+
+<!-- ============ 揭曉 ============ -->
+<div id="reveal" class="hidden">
+  <div class="rcard">
+    <div class="rhead" id="r-head"></div>
+    <div class="ranswer">
+      <span class="ph"><img id="r-img" alt=""></span>
+      <div>
+        <h3 id="r-name"></h3>
+        <p id="r-desc"></p>
+      </div>
+    </div>
+    <div class="rblock"><h4>📖 說給你聽</h4><p id="r-story"></p></div>
+    <div class="rblock chat"><h4>💬 聊聊看</h4><p id="r-chat"></p></div>
+    <p class="rother" id="r-other"></p>
+    <button class="big-btn" id="btn-next">下一題 ➜</button>
+  </div>
+</div>
+
+<!-- ============ 集章牆 ============ -->
+<section id="screen-stamps" class="hidden">
+  <div class="wrap">
+    <div class="stamp-top">
+      <h2>🏅 猜對的地方就蓋一個章</h2>
+      <p class="stamp-count" id="stamp-count"></p>
+    </div>
+    <div id="stamp-parts"></div>
+    <button class="big-btn green" id="btn-continue" style="margin-top:22px">▶️ 繼續猜謎</button>
+    <button class="big-btn" id="btn-reset" style="margin-top:10px;background:#fff;color:var(--green);box-shadow:0 4px 0 var(--cream-deep)">🧹 清空集章記錄</button>
+  </div>
+</section>
+
+<footer>
+  <strong>教案設計：施昱廷 職能治療師</strong><br>
+  免費開放給社區據點與治療師使用 ‧ 圖片為 AI 生成<a href="credits.html">示意圖</a>
+</footer>
+
+<!-- 版本號：改過題庫就把數字 +1，否則使用者的瀏覽器會拿到舊快取 -->
+<script src="questions.js?v=2"></script>
+<script>
+/* ============================================================
+   台灣地名名產大挑戰 — 遊戲邏輯
+   純靜態，無語音、無 AI、無後端
+   ============================================================ */
+
+const STORE_KEY = 'tw-place-quiz-v2';
+const FONTS = [
+  { v: 'normal',    label: '標準',  fs: 1 },
+  { v: 'large',     label: '大字',  fs: 1.15 },
+  { v: 'huge',      label: '超大',  fs: 1.35 },
+  { v: 'projector', label: '投影',  fs: 1.6 },
+];
+
+const state = {
+  font: 'large',
+  sound: true,
+  section: 'food',
+  qi: { food: 0, sight: 0 },   // 各分頁目前題號
+  stamped: [],                 // 已答對的題目 id
+  sides: {},                   // 正解在左或右：id -> 'L' | 'R'
+  picked: null,
+};
+
+const list = sec => QUESTIONS.filter(q => q.section === sec);
+
+/* ---------- 儲存 ---------- */
+function load() {
+  try {
+    const raw = JSON.parse(localStorage.getItem(STORE_KEY) || '{}');
+    if (raw.font) state.font = raw.font;
+    if (typeof raw.sound === 'boolean') state.sound = raw.sound;
+    if (Array.isArray(raw.stamped)) state.stamped = raw.stamped;
+  } catch (e) { /* 首次使用 */ }
+}
+function save() {
+  try {
+    localStorage.setItem(STORE_KEY, JSON.stringify(
+      { font: state.font, sound: state.sound, stamped: state.stamped }));
+  } catch (e) { /* 私密瀏覽會失敗，不影響遊戲 */ }
+}
+
+/* ---------- 音效（WebAudio 合成，不需外部檔案） ---------- */
+let actx = null;
+function ac() {
+  if (!actx) actx = new (window.AudioContext || window.webkitAudioContext)();
+  if (actx.state === 'suspended') actx.resume();
+  return actx;
+}
+function tone(seq) {
+  if (!state.sound) return;
+  try {
+    const c = ac(), t0 = c.currentTime;
+    seq.forEach(([f, at, dur, vol, type]) => {
+      const o = c.createOscillator(), g = c.createGain();
+      o.type = type || 'triangle';
+      o.frequency.setValueAtTime(f, t0 + at);
+      g.gain.setValueAtTime(0, t0 + at);
+      g.gain.linearRampToValueAtTime(vol, t0 + at + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.001, t0 + at + dur);
+      o.connect(g); g.connect(c.destination);
+      o.start(t0 + at); o.stop(t0 + at + dur + 0.02);
+    });
+  } catch (e) { /* 音效失敗不影響遊戲 */ }
+}
+const sndClick = () => tone([[440, 0, .08, .06, 'sine']]);
+const sndYes = () => tone([[523, 0, .3, .13], [659, .11, .3, .13], [784, .22, .38, .13], [1046, .33, .45, .1]]);
+const sndSoft = () => tone([[392, 0, .3, .09, 'sine'], [330, .16, .36, .09, 'sine']]);
+
+/* ---------- 外觀 ---------- */
+const $ = id => document.getElementById(id);
+function applyFont() {
+  const f = FONTS.find(x => x.v === state.font) || FONTS[1];
+  document.documentElement.style.setProperty('--fs', f.fs);
+  document.body.classList.toggle('projector', f.v === 'projector');
+  $('btn-font').textContent = `🔠 ${f.label}`;
+}
+function applySound() {
+  $('btn-sound').textContent = state.sound ? '🔔' : '🔕';
+  $('btn-sound').title = state.sound ? '音效開啟中，點一下關掉' : '音效已關閉，點一下開啟';
+}
+
+function showQuiz() {
+  $('screen-quiz').classList.remove('hidden');
+  $('screen-stamps').classList.add('hidden');
+  window.scrollTo(0, 0);
+}
+function showStamps() {
+  renderStamps();
+  $('screen-quiz').classList.add('hidden');
+  $('screen-stamps').classList.remove('hidden');
+  document.body.classList.remove('projector');   // 集章牆需要滑動，暫時解除鎖高
+  window.scrollTo(0, 0);
+}
+
+/* ---------- 出題 ---------- */
+function shuffleSides() {
+  QUESTIONS.forEach(q => { state.sides[q.id] = Math.random() < 0.5 ? 'L' : 'R'; });
+}
+function currentQ() {
+  const arr = list(state.section);
+  return arr[state.qi[state.section] % arr.length];
+}
+function optOf(q, side) { return (state.sides[q.id] || 'L') === side ? q.correct : q.wrong; }
+
+function renderQuestion() {
+  const q = currentQ(), arr = list(state.section);
+  const L = optOf(q, 'L'), R = optOf(q, 'R');
+
+  $('progress').textContent = `第 ${state.qi[state.section] + 1} / ${arr.length} 題`;
+  $('stamp-mini').textContent = `${state.stamped.length}/${QUESTIONS.length}`;
+  $('q-place').textContent = `📍 ${q.place}`;
+  $('q-type').textContent = q.section === 'food' ? '🍲 地方名產' : '🏞️ 知名景點';
+  $('q-title').textContent = q.title;
+
+  $('img-left').src = imgPath(L, q);   $('img-left').alt = L.name;
+  $('img-right').src = imgPath(R, q);  $('img-right').alt = R.name;
+  $('name-left').textContent = L.name;
+  $('name-right').textContent = R.name;
+
+  applyFont();   // 從集章牆回來時要把投影模式接回去
+}
+
+function pick(side) {
+  if (state.picked) return;
+  const q = currentQ();
+  const chosen = optOf(q, side);
+  const isRight = chosen === q.correct;
+  state.picked = side;
+  sndClick();
+
+  if (isRight && !state.stamped.includes(q.id)) {
+    state.stamped.push(q.id);
+    save();
+  }
+  $('stamp-mini').textContent = `${state.stamped.length}/${QUESTIONS.length}`;
+
+  const head = $('r-head');
+  head.textContent = isRight ? '✅ 答對了！' : '😊 沒關係，我們一起看答案';
+  head.classList.toggle('miss', !isRight);
+  $('r-img').src = imgPath(q.correct, q);
+  $('r-img').alt = q.correct.name;
+  $('r-name').textContent = `${q.place}的答案是「${q.correct.name}」`;
+  $('r-desc').textContent = q.correct.desc;
+  $('r-story').textContent = q.story;
+  $('r-chat').textContent = q.chat;
+  $('r-other').textContent = `另一個「${q.wrong.name}」：${q.wrong.desc}`;
+  $('reveal').classList.remove('hidden');
+  isRight ? sndYes() : sndSoft();
+}
+
+function nextQuestion() {
+  state.picked = null;
+  $('reveal').classList.add('hidden');
+  const arr = list(state.section);
+  if (state.qi[state.section] + 1 >= arr.length) {
+    state.qi[state.section] = 0;
+    showStamps();
+    return;
+  }
+  state.qi[state.section]++;
+  renderQuestion();
+}
+
+function switchSection(sec) {
+  state.section = sec;
+  state.picked = null;
+  $('reveal').classList.add('hidden');
+  $('tab-food').setAttribute('aria-selected', String(sec === 'food'));
+  $('tab-sight').setAttribute('aria-selected', String(sec === 'sight'));
+  showQuiz();
+  renderQuestion();
+}
+
+/* ---------- 集章牆 ---------- */
+function renderStamps() {
+  const total = QUESTIONS.length, got = state.stamped.length;
+  $('stamp-count').textContent = got >= total
+    ? `🎉 全部 ${total} 個章都蓋滿了，環島一圈完成！`
+    : `已經蓋了 ${got} 個章，還有 ${total - got} 個地方等你`;
+
+  const box = $('stamp-parts');
+  box.innerHTML = '';
+  ['food', 'sight'].forEach(sec => {
+    const arr = list(sec);
+    const part = document.createElement('div');
+    part.className = 'part';
+    const done = arr.filter(q => state.stamped.includes(q.id)).length;
+    part.innerHTML = `<h3>${SECTION[sec]}（${done}/${arr.length}）</h3>`;
+    ['north', 'central', 'south', 'east', 'islands'].forEach(area => {
+      const group = arr.filter(q => q.area === area);
+      if (!group.length) return;
+      const sec2 = document.createElement('div');
+      sec2.className = 'area';
+      const d2 = group.filter(q => state.stamped.includes(q.id)).length;
+      sec2.innerHTML = `<h4>${AREA[area]}（${d2}/${group.length}）</h4>`;
+      const grid = document.createElement('div');
+      grid.className = 'stamps';
+      group.forEach(q => {
+        const on = state.stamped.includes(q.id);
+        const cell = document.createElement('button');
+        cell.className = 'stamp' + (on ? ' done' : '');
+        cell.innerHTML = `<span class="rg">${q.place}</span>
+          <span class="it">${on ? q.correct.name : (sec === 'food' ? '名產' : '景點')}</span>`;
+        cell.title = `跳到${q.place}這一題`;
+        cell.addEventListener('click', () => {
+          sndClick();
+          state.section = sec;
+          state.qi[sec] = arr.indexOf(q);
+          $('tab-food').setAttribute('aria-selected', String(sec === 'food'));
+          $('tab-sight').setAttribute('aria-selected', String(sec === 'sight'));
+          state.picked = null;
+          $('reveal').classList.add('hidden');
+          showQuiz();
+          renderQuestion();
+        });
+        grid.appendChild(cell);
+      });
+      sec2.appendChild(grid);
+      part.appendChild(sec2);
+    });
+    box.appendChild(part);
+  });
+}
+
+/* ---------- 事件 ---------- */
+$('btn-font').addEventListener('click', () => {
+  const i = FONTS.findIndex(x => x.v === state.font);
+  state.font = FONTS[(i + 1) % FONTS.length].v;
+  applyFont(); save(); sndClick();
+  // 在集章牆時不鎖高
+  if (!$('screen-stamps').classList.contains('hidden')) document.body.classList.remove('projector');
+});
+$('btn-sound').addEventListener('click', () => {
+  state.sound = !state.sound; applySound(); save();
+  if (state.sound) sndClick();
+});
+$('btn-stamps').addEventListener('click', () => { sndClick(); showStamps(); });
+$('btn-continue').addEventListener('click', () => { sndClick(); showQuiz(); renderQuestion(); });
+$('btn-reset').addEventListener('click', () => {
+  if (!confirm('要清空所有集章記錄，重新開始嗎？')) return;
+  state.stamped = []; save(); sndClick(); renderStamps();
+});
+$('tab-food').addEventListener('click', () => { sndClick(); switchSection('food'); });
+$('tab-sight').addEventListener('click', () => { sndClick(); switchSection('sight'); });
+$('opt-left').addEventListener('click', () => pick('L'));
+$('opt-right').addEventListener('click', () => pick('R'));
+$('btn-next').addEventListener('click', nextQuestion);
+
+document.addEventListener('keydown', e => {
+  if (!$('reveal').classList.contains('hidden')) {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); nextQuestion(); }
+    return;
+  }
+  if ($('screen-quiz').classList.contains('hidden')) return;
+  if (e.key === 'ArrowLeft') pick('L');
+  else if (e.key === 'ArrowRight') pick('R');
+});
+
+/* ---------- 啟動：直接進第一題，不用設定畫面 ---------- */
+load();
+applyFont();
+applySound();
+shuffleSides();
+renderQuestion();
+</script>
+<script src="/open-in-browser.js"></script>
+<!-- Cloudflare Web Analytics：無 cookie、不追蹤個人，只統計造訪量 -->
+<script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "3df68cf5d6bd4975b97a157f7ff3cafb"}'></script>
+</body>
+</html>
