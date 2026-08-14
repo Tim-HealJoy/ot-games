@@ -1,8 +1,8 @@
 /* 台灣地名名產大挑戰 — 題庫
- * 兩個部分：美食 25 題、景點 20 題
+ * 兩個部分：美食 19 題、景點 9 題
  *
  * 設計鐵則：
- *  1. 題目的地名要寫完整並整段括在引號內（「桃園大溪」，不是「桃園」大溪）
+ *  1. 題目只秀地名，完整地名整段括在引號內（「桃園大溪」，不是「桃園」大溪），下面直接接兩張圖
  *  2. 選項名稱不得出現任何縣市名、鄉鎮名（長輩會直接看穿答案）
  *  3. 題目不得描述選項的獨有特徵（「大理石峽谷」等於直接說出太魯閣）
  *  4. 成對的兩張照片外觀必須明顯不同（兩碗湯、兩杯茶這種看不出差別的組合一律不用）
@@ -13,11 +13,10 @@ const SECTION = { food: '🍲 美食', sight: '🏞️ 景點' };
 
 const QUESTIONS = [
   // ======================================================================
-  //  第一部分：美食 25 題
+  //  第一部分：美食 19 題
   // ======================================================================
   {
     id: 'f-taipei', section: 'food', region: '台北市', place: '台北', area: 'north',
-    title: '請問哪一個是「台北」最具代表性的招牌麵食？',
     correct: { key: 'beef-noodle', name: '牛肉麵', desc: '大塊燉牛腱配濃郁醬色湯頭，麵條吸滿湯汁。' },
     wrong: { key: 'danzai-noodle', name: '擔仔麵', desc: '擔仔麵是台南的代表小吃，一小碗細麵配肉燥與一隻蝦。' },
     story: '台北牛肉麵是從眷村的紅燒口味發展出來的，一鍋湯頭要熬上好幾個鐘頭。台北市每年還會辦牛肉麵節，比誰家的湯頭最有功夫。',
@@ -25,23 +24,13 @@ const QUESTIONS = [
   },
   {
     id: 'f-newtaipei', section: 'food', region: '新北市', place: '新北淡水', area: 'north',
-    title: '請問哪一個是「新北淡水」最有名的伴手禮？',
     correct: { key: 'iron-egg', name: '鐵蛋', desc: '反覆滷過又風乾，蛋變得又小又黑、越嚼越香。' },
     wrong: { key: 'gong-wan', name: '貢丸', desc: '貢丸是新竹的代表，用槌打的豬肉做成，咬下去很有彈性。' },
     story: '淡水鐵蛋的來源是一位阿婆的意外——滷蛋賣不完就一直回鍋滷，滷到又小又硬，客人反而愛吃。要做出一顆鐵蛋，得反覆滷、反覆風乾好幾天。',
     chat: '你有去過淡水看夕陽嗎？那時候是跟誰一起去的？',
   },
   {
-    id: 'f-keelung', section: 'food', region: '基隆市', place: '基隆廟口', area: 'north',
-    title: '請問哪一個是「基隆廟口」最有名的湯食小吃？',
-    correct: { key: 'dingbiancuo', name: '鼎邊趖', desc: '米漿沿著大鍋邊滑下去凝固成片，配蝦米筍絲湯頭。' },
-    wrong: { key: 'wa-gui', name: '碗粿', desc: '碗粿是台南的代表，米漿蒸在碗裡，上面放肉燥與鹹蛋黃。' },
-    story: '「趖」是台語「爬」的意思——米漿沿著滾燙的鍋邊滑下去，遇熱凝固成一片一片。基隆廟口的鼎邊趖湯頭用小魚乾、金鉤蝦與竹筍熬成，鮮甜清爽。',
-    chat: '你去過基隆廟口夜市嗎？印象最深的是哪一攤？',
-  },
-  {
     id: 'f-taoyuan', section: 'food', region: '桃園市', place: '桃園大溪', area: 'north',
-    title: '請問哪一個是「桃園大溪」最有名的名產？',
     correct: { key: 'dougan', name: '豆干', desc: '用滷汁反覆浸煮的方形豆干，顏色深、口感扎實。' },
     wrong: { key: 'gong-tang', name: '貢糖', desc: '貢糖是金門的名產，花生與麥芽糖打成一層一層的酥糖。' },
     story: '大溪過去是大漢溪的碼頭重鎮，做豆干的人家沿著溪邊聚集。用醬油、糖與香料反覆滷煮，豆干才會顏色深、味道透到裡面去。',
@@ -49,23 +38,13 @@ const QUESTIONS = [
   },
   {
     id: 'f-hsinchu-city', section: 'food', region: '新竹市', place: '新竹', area: 'north',
-    title: '請問哪一個是「新竹」最出名的百年名產？',
     correct: { key: 'rice-noodle', name: '米粉', desc: '細細的米條，炒起來根根分明、特別有嚼勁。' },
     wrong: { key: 'ban-tiao', name: '板條', desc: '板條是高雄美濃的代表，寬寬的白色米製條，口感軟滑。' },
     story: '新竹每年秋冬會吹起強勁的「九降風」，米粉掛在架上被風吹乾，水分收得剛好，煮起來才會Q彈不爛。這是別的地方學不來的天然條件。',
     chat: '你比較喜歡炒米粉還是米粉湯？家裡誰最會炒米粉？',
   },
   {
-    id: 'f-hsinchu-county', section: 'food', region: '新竹縣', place: '新竹新埔', area: 'north',
-    title: '請問哪一個是「新竹新埔」秋天最著名的特產？',
-    correct: { key: 'persimmon-cake', name: '柿餅', desc: '柿子削皮後靠日曬與風乾，變成橙褐色、表面帶白霜。' },
-    wrong: { key: 'mango-dried', name: '芒果乾', desc: '芒果乾多來自台南玉井一帶的愛文芒果。' },
-    story: '新埔的柿餅一樣靠九降風。柿子削皮後排在竹篩上，白天曬太陽、整天吹風，反覆好幾天才收乾。表面那層白霜，是柿子自己的糖分滲出來的。',
-    chat: '你小時候家附近有柿子樹嗎？說到曬東西的季節，你會想起什麼？',
-  },
-  {
     id: 'f-yilan', section: 'food', region: '宜蘭縣', place: '宜蘭三星', area: 'north',
-    title: '請問哪一個是「宜蘭三星」最有名的小吃？',
     correct: { key: 'scallion-pancake', name: '蔥油餅', desc: '煎得金黃酥脆，裡面塞滿翠綠的蔥花。' },
     wrong: { key: 'o-de', name: '蚵嗲', desc: '蚵嗲以彰化王功最有名，麵糊裹蚵仔與韭菜下鍋油炸。' },
     story: '三星鄉多雨、水質好，種出來的蔥蔥白特別長、甜度高又不辣。蔥油餅要現點現煎，麵皮薄、蔥塞到滿，咬下去會爆出蔥香與熱氣。',
@@ -73,7 +52,6 @@ const QUESTIONS = [
   },
   {
     id: 'f-miaoli', section: 'food', region: '苗栗縣', place: '苗栗大湖', area: 'central',
-    title: '請問哪一個是「苗栗大湖」冬天最有名的水果？',
     correct: { key: 'strawberry', name: '草莓', desc: '冬天採收，紅通通、香氣濃，也能自己下田採。' },
     wrong: { key: 'loquat', name: '枇杷', desc: '枇杷主要產在台中太平一帶，橙黃色、表面帶絨毛。' },
     story: '大湖的山坡地日夜溫差大，草莓的糖分累積得好。從十二月一路到隔年三月，一家大小蹲在田裡自己採，是很多台灣家庭共同的回憶。',
@@ -81,7 +59,6 @@ const QUESTIONS = [
   },
   {
     id: 'f-taichung', section: 'food', region: '台中市', place: '台中', area: 'central',
-    title: '請問哪一個是「台中」最經典的傳統糕餅？',
     correct: { key: 'sun-cake', name: '太陽餅', desc: '扁圓的多層酥皮餅，裡面包著甜甜的麥芽糖餡。' },
     wrong: { key: 'ox-tongue-cookie', name: '牛舌餅', desc: '牛舌餅是宜蘭的名產，長長薄薄一片，脆得會掉屑。' },
     story: '台中是台灣的「糕餅之鄉」。太陽餅的酥皮要一層一層折出來，裡面的麥芽糖餡要熬到不黏牙。吃的時候餅屑會掉滿桌，所以老一輩會拿碗接著吃。',
@@ -89,31 +66,13 @@ const QUESTIONS = [
   },
   {
     id: 'f-changhua', section: 'food', region: '彰化縣', place: '彰化', area: 'central',
-    title: '請問哪一個是「彰化」最具代表性的傳統小吃？',
     correct: { key: 'ba-wan', name: '肉圓', desc: '半透明的番薯粉外皮，包豬肉與竹筍，淋紅白兩色醬。' },
     wrong: { key: 'zongzi', name: '肉粽', desc: '肉粽用竹葉包糯米，是全台各地端午節都會吃的食物。' },
     story: '彰化肉圓用低溫油泡而不是大火油炸，外皮才會Q而不硬。吃完剩下的醬汁，老饕會請店家加一碗大骨湯，變成一碗湯喝完。',
     chat: '你吃肉圓會不會最後加高湯？你家附近有沒有一家開很久的肉圓店？',
   },
   {
-    id: 'f-nantou-plum', section: 'food', region: '南投縣', place: '南投信義', area: 'central',
-    title: '請問哪一個是「南投信義」最有名的特產？',
-    correct: { key: 'plum', name: '梅子', desc: '春天採收的青梅，可以做成脆梅、話梅或梅子酒。' },
-    wrong: { key: 'wax-apple', name: '蓮霧', desc: '蓮霧是屏東的招牌水果，深紅色的鐘形果實。' },
-    story: '南投信義鄉的梅子產量是全台第一。三、四月採下青梅後要「打梅」——把梅子敲出裂縫，再用鹽漬去掉苦澀，才能做成脆梅。當地布農族部落也會用梅子釀酒。',
-    chat: '你自己做過脆梅或梅子酒嗎？以前家裡有沒有醃過什麼東西？',
-  },
-  {
-    id: 'f-nantou-potato', section: 'food', region: '南投縣', place: '南投竹山', area: 'central',
-    title: '請問哪一個是「南投竹山」最有名的作物？',
-    correct: { key: 'sweet-potato', name: '番薯', desc: '紅色外皮、橙黃色鬆軟果肉的塊根。' },
-    wrong: { key: 'taro', name: '芋頭', desc: '芋頭以台中大甲最有名，褐色粗皮、切開有紫色紋路。' },
-    story: '竹山的紅土砂質地排水好，種出來的番薯特別鬆軟香甜。老一輩都記得番薯不只是零嘴——早年米不夠吃，番薯切片摻在飯裡就是主食，叫做「番薯飯」。',
-    chat: '你小時候吃過番薯飯嗎？那時候是每天吃還是偶爾吃？',
-  },
-  {
     id: 'f-yunlin', section: 'food', region: '雲林縣', place: '雲林西螺', area: 'central',
-    title: '請問哪一個是「雲林西螺」最著名的百年名產？',
     correct: { key: 'soy-sauce', name: '醬油', desc: '用黑豆在陶缸裡日曝發酵，色澤濃黑、味道甘醇。' },
     wrong: { key: 'doubanjiang', name: '豆瓣醬', desc: '豆瓣醬以高雄岡山最有名，紅棕色、帶顆粒。' },
     story: '西螺的黑豆醬油用陶缸露天日曝，一缸要曝上四到六個月，靠的是濁水溪的好水與充足陽光。這種古法一年只能做兩批，快不了。',
@@ -121,7 +80,6 @@ const QUESTIONS = [
   },
   {
     id: 'f-chiayi-city', section: 'food', region: '嘉義市', place: '嘉義', area: 'south',
-    title: '請問哪一個是「嘉義」的招牌飯食？',
     correct: { key: 'turkey-rice', name: '火雞肉飯', desc: '白飯上鋪撕成絲的火雞肉，淋雞油醬汁、撒紅蔥頭。' },
     wrong: { key: 'kong-rou-rice', name: '爌肉飯', desc: '爌肉飯以彰化最有名，白飯上放一塊帶皮滷五花肉。' },
     story: '火雞肉飯會用火雞而不是雞，跟美軍在嘉義駐紮的年代有關——當時火雞容易取得，肉質又比較粗，撕成絲淋上雞油反而特別香。在嘉義，早餐吃一碗是很正常的事。',
@@ -129,7 +87,6 @@ const QUESTIONS = [
   },
   {
     id: 'f-chiayi-county', section: 'food', region: '嘉義縣', place: '嘉義阿里山', area: 'south',
-    title: '請問哪一個是「嘉義阿里山」鄒族的傳統食物？',
     correct: { key: 'bamboo-rice', name: '竹筒飯', desc: '糯米塞進竹筒裡烤，剖開來帶著竹子的香氣。' },
     wrong: { key: 'tong-mi-gao', name: '筒仔米糕', desc: '筒仔米糕以台中清水最有名，用小鐵筒蒸糯米後倒扣出來。' },
     story: '竹筒飯本來是原住民上山打獵的行動糧——就地砍一節竹子，塞進糯米用火烤，竹子的水分把米蒸熟，還帶一股清香。阿里山的鄒族到現在祭典與招待客人都還會做。',
@@ -137,7 +94,6 @@ const QUESTIONS = [
   },
   {
     id: 'f-tainan-beef', section: 'food', region: '台南市', place: '台南', area: 'south',
-    title: '請問哪一個是「台南」最代表性的道地美食？',
     correct: { key: 'beef-soup', name: '牛肉湯', desc: '生牛肉片淋上滾燙高湯燙熟，鮮甜嫩口。' },
     wrong: { key: 'mutton-soup', name: '當歸羊肉湯', desc: '當歸羊肉湯以高雄岡山最有名，湯頭是深色的藥膳味。' },
     story: '台南牛肉湯之所以能生切現燙，靠的是當地還有屠宰場、當天現宰的溫體牛。所以很多店清晨五點就開門，賣完就收攤。',
@@ -145,7 +101,6 @@ const QUESTIONS = [
   },
   {
     id: 'f-tainan-anping', section: 'food', region: '台南市', place: '台南安平', area: 'south',
-    title: '請問哪一個是「台南安平」最有名的小吃？',
     correct: { key: 'shrimp-roll', name: '蝦捲', desc: '圓筒狀的炸物，裡面包整隻蝦與豬肉魚漿。' },
     wrong: { key: 'squid-ball', name: '花枝丸', desc: '花枝丸是澎湖的名產，圓球狀，裡面吃得到花枝塊。' },
     story: '安平蝦捲的特色是用豬網油把蝦、豬肉與魚漿捲起來再下鍋炸，網油遇熱化開，外皮才會又薄又酥。配一碗魚肚湯是安平最經典的吃法。',
@@ -153,7 +108,6 @@ const QUESTIONS = [
   },
   {
     id: 'f-kaohsiung', section: 'food', region: '高雄市', place: '高雄旗山', area: 'south',
-    title: '請問哪一個是「高雄旗山」最有名的水果？',
     correct: { key: 'banana', name: '香蕉', desc: '金黃飽滿的香蕉，過去大量外銷到日本。' },
     wrong: { key: 'pomelo', name: '文旦', desc: '文旦以台南麻豆最有名，中秋節前後上市。' },
     story: '旗山在民國五、六十年代是「香蕉王國」的核心，香蕉大量賣到日本，鎮上因此蓋起氣派的洋樓與車站。很多老一輩都記得那段靠香蕉賺外匯的日子。',
@@ -161,7 +115,6 @@ const QUESTIONS = [
   },
   {
     id: 'f-pingtung-trotter', section: 'food', region: '屏東縣', place: '屏東萬巒', area: 'south',
-    title: '請問哪一個是「屏東萬巒」最著名的招牌菜？',
     correct: { key: 'pig-trotter', name: '豬腳', desc: '滷得油亮的豬腳切塊，皮Q肉嫩，配蒜泥醬油。' },
     wrong: { key: 'ya-shang', name: '鴨賞', desc: '鴨賞是宜蘭的名產，鴨肉壓扁後煙燻，切片配蔥絲。' },
     story: '萬巒豬腳的關鍵在那碟蒜泥醬油沾醬——豬腳先川燙去腥再滷，肉不油膩，沾醬把味道提起來。一條街上好幾家老店，各家的沾醬配方都不外傳。',
@@ -169,7 +122,6 @@ const QUESTIONS = [
   },
   {
     id: 'f-pingtung-tuna', section: 'food', region: '屏東縣', place: '屏東東港', area: 'south',
-    title: '請問哪一個是「屏東東港」最有名的漁獲？',
     correct: { key: 'bluefin-tuna', name: '黑鮪魚', desc: '厚切的深紅色生魚片，油花分明帶光澤。' },
     wrong: { key: 'milkfish', name: '虱目魚', desc: '虱目魚以台南最有名，煎得金黃的魚肚，油脂豐厚。' },
     story: '東港的黑鮪魚每年四到六月洄游經過台灣海峽，第一條上岸的會辦「第一鮪」拍賣，價格常常喊到幾百萬。東港三寶是黑鮪魚、櫻花蝦與油魚子。',
@@ -177,7 +129,6 @@ const QUESTIONS = [
   },
   {
     id: 'f-hualien', section: 'food', region: '花蓮縣', place: '花蓮', area: 'east',
-    title: '請問哪一個是「花蓮」最有名的伴手禮？',
     correct: { key: 'mochi', name: '麻糬', desc: '軟糯的小麻糬撒上花生粉，裡面包紅豆或芝麻餡。' },
     wrong: { key: 'mung-bean-cake', name: '綠豆椪', desc: '綠豆椪是台中糕餅老店的招牌，白色酥皮包綠豆沙。' },
     story: '花蓮麻糬跟阿美族的「杜倫」有關——本來是把糯米搗成一團的傳統食物，後來加上內餡、做成小顆包裝，變成觀光客一定要帶的伴手禮。',
@@ -185,115 +136,38 @@ const QUESTIONS = [
   },
   {
     id: 'f-taitung', section: 'food', region: '台東縣', place: '台東', area: 'east',
-    title: '請問哪一個是「台東」產量最多的招牌水果？',
     correct: { key: 'sugar-apple', name: '釋迦', desc: '表面像鱗片一樣凹凸，剖開來果肉雪白、非常甜。' },
     wrong: { key: 'guava', name: '芭樂', desc: '芭樂以高雄燕巢最有名，淺綠色、口感清脆。' },
     story: '台東的釋迦產量占全台九成以上。因為名字和外形像佛像的頭，才被叫做釋迦。要放到摸起來稍軟才好吃，太早吃會又硬又澀。',
     chat: '你吃過釋迦嗎？你會等它軟了再吃，還是喜歡脆一點的？',
   },
   {
-    id: 'f-penghu', section: 'food', region: '澎湖縣', place: '澎湖', area: 'islands',
-    title: '請問哪一個是「澎湖」特有的冰品？',
-    correct: { key: 'cactus-ice', name: '仙人掌冰', desc: '用野生仙人掌的果實做成，紫紅色、酸酸甜甜。' },
-    wrong: { key: 'taro-ice', name: '芋頭冰', desc: '芋頭冰以高雄甲仙最有名，淺紫色、綿密濃香。' },
-    story: '澎湖風大、日照強、土地乾，野生仙人掌長得特別好。果實榨出來的汁是漂亮的紫紅色，做成冰酸甜清爽，是海島夏天的消暑聖品。',
-    chat: '你去過澎湖嗎？印象中的澎湖是什麼樣子？',
-  },
-  {
     id: 'f-kinmen', section: 'food', region: '金門縣', place: '金門', area: 'islands',
-    title: '請問哪一個是「金門」最著名的名產酒？',
     correct: { key: 'kaoliang', name: '高粱酒', desc: '清澈透明、香氣濃烈的烈酒，用當地旱地高粱釀成。' },
     wrong: { key: 'shaoxing', name: '紹興酒', desc: '紹興酒以南投埔里最有名，酒色琥珀、味道溫潤。' },
     story: '金門的花崗岩地下水清澈甘甜，加上當地旱地種的高粱，用傳統固態發酵法釀造，再放進花崗岩坑道裡陳放。這些條件缺一個，味道就不一樣。',
     chat: '家裡有沒有一瓶捨不得開的酒？以前逢年過節你們會喝什麼？',
   },
-  {
-    id: 'f-lienchiang', section: 'food', region: '連江縣', place: '連江馬祖', area: 'islands',
-    title: '請問哪一個是「連江馬祖」的傳統名產餅？',
-    correct: { key: 'jiguang-bing', name: '繼光餅', desc: '中間有個孔的圓形烤餅，撒芝麻，可以串繩子帶著走。' },
-    wrong: { key: 'pepper-bun', name: '胡椒餅', desc: '胡椒餅是台北夜市的名物，貼在爐壁上炭烤，包黑胡椒豬肉餡。' },
-    story: '相傳戚繼光帶兵打倭寇時，讓士兵把餅中間打個洞、用繩子串起來掛在身上當乾糧，所以叫繼光餅。馬祖人會把它剖開夾蛋、夾肉，變成一份紮實的早餐。',
-    chat: '你有去過馬祖嗎？有沒有吃過什麼要帶著走的乾糧？',
-  },
 
   // ======================================================================
-  //  第二部分：景點 20 題
+  //  第二部分：景點 9 題
   // ======================================================================
   {
     id: 's-taipei', section: 'sight', region: '台北市', place: '台北市', area: 'north',
-    title: '請問哪一棟摩天大樓在「台北市」？',
     correct: { key: 'taipei-101', name: '101 大樓', desc: '一節一節像竹子往上長的高樓，跨年煙火從這裡放。' },
     wrong: { key: 'kaohsiung-85', name: '85 大樓', desc: '85 大樓在高雄，立面中間開一個洞，形狀像「高」字。' },
     story: '台北 101 在信義區，樓高 508 公尺，曾經是世界第一高樓。外型取自竹子「節節高升」的意象，裡面還吊著一顆巨大的金色阻尼球，用來抵抗地震與強風。',
     chat: '你有上去過 101 的觀景台嗎？跨年煙火你是在現場看還是看電視？',
   },
   {
-    id: 's-newtaipei', section: 'sight', region: '新北市', place: '新北市', area: 'north',
-    title: '請問哪一個老街在「新北市」？',
-    correct: { key: 'jiufen', name: '九份', desc: '依著山坡蓋的聚落，石階小巷、紅燈籠與海景。' },
-    wrong: { key: 'lukang', name: '鹿港', desc: '鹿港在彰化，是平地上的紅磚古厝與老街。' },
-    story: '九份在新北市瑞芳區，日治時期因為採金礦而繁榮，礦坑收掉後一度冷清，後來因為電影又熱鬧起來。山城的石階、茶樓與遠處的基隆嶼，是它最有名的畫面。',
-    chat: '你去過九份嗎？那邊的階梯是不是走得很累？你吃過芋圓嗎？',
-  },
-  {
-    id: 's-keelung', section: 'sight', region: '基隆市', place: '基隆市', area: 'north',
-    title: '請問哪一個景點在「基隆市」？',
-    correct: { key: 'zhengbin-harbor', name: '彩色屋', desc: '漁港邊一排刷成各種顏色的房子，倒影映在水面上。' },
-    wrong: { key: 'pier-2', name: '駁二特區', desc: '駁二在高雄，是港邊的老倉庫群改成的藝術園區。' },
-    story: '正濱漁港是日治時期台灣最現代的漁港。後來漁業沒落，居民把港邊的老房子刷成一整排彩色，倒影映在水面上，反而變成基隆最好拍的地方。',
-    chat: '你去過基隆嗎？你記得以前的漁港是什麼樣子？',
-  },
-  {
-    id: 's-taoyuan', section: 'sight', region: '桃園市', place: '桃園市', area: 'north',
-    title: '請問哪一條老街在「桃園市」？',
-    correct: { key: 'daxi-old-street', name: '大溪老街', desc: '街屋立面有繁複的花草浮雕與商號山牆，很氣派。' },
-    wrong: { key: 'shennong-street', name: '神農街', desc: '神農街在台南，是一條窄窄的巷子，兩側是樸素的老屋與木窗。' },
-    story: '大溪老街在桃園大溪，過去因為大漢溪航運而富裕。做生意的人家把店面的立面蓋成華麗的巴洛克式牌樓，上面刻著花草、動物與自家商號，比誰家的更氣派。',
-    chat: '你去過大溪嗎？除了豆干，你還記得那邊有什麼？',
-  },
-  {
-    id: 's-hsinchu', section: 'sight', region: '新竹市', place: '新竹市', area: 'north',
-    title: '請問哪一座古城門在「新竹市」？',
-    correct: { key: 'hsinchu-east-gate', name: '東門城', desc: '中式城樓孤立在圓環中央，四周有護城河與水岸廣場。' },
-    wrong: { key: 'chihkan-tower', name: '赤崁樓', desc: '赤崁樓在台南，是紅色的中式樓閣建在荷蘭時期的城基上。' },
-    story: '東門城正式的名字是「迎曦門」，是清朝竹塹城四座城門中僅存的一座，快兩百年了。後來城牆拆掉、周邊變成馬路圓環，城樓就這樣留在市中心，成了新竹的地標。',
-    chat: '你去過新竹嗎？印象中那邊的風是不是特別大？',
-  },
-  {
-    id: 's-yilan', section: 'sight', region: '宜蘭縣', place: '宜蘭縣', area: 'north',
-    title: '請問哪一個瀑布在「宜蘭縣」？',
-    correct: { key: 'wufengqi-waterfall', name: '五峰旗瀑布', desc: '從高處分成好幾層落下的細長瀑布，兩側是綠色山壁。' },
-    wrong: { key: 'shifen-waterfall', name: '十分瀑布', desc: '十分瀑布在新北平溪，水幕又寬又厚，像一道簾子。' },
-    story: '五峰旗瀑布在宜蘭礁溪，因為後面有五座像旗子的山峰而得名。瀑布分成三層，最上層落差最大，走上去的步道旁就是溪水，夏天特別涼快。',
-    chat: '你去過礁溪泡溫泉嗎？那邊的水你覺得跟別的地方一樣嗎？',
-  },
-  {
-    id: 's-miaoli', section: 'sight', region: '苗栗縣', place: '苗栗縣', area: 'central',
-    title: '請問哪一座橋在「苗栗縣」？',
-    correct: { key: 'longteng-bridge', name: '龍騰斷橋', desc: '只剩下幾座紅磚拱柱的斷橋，長滿綠色藤蔓。' },
-    wrong: { key: 'xiluo-bridge', name: '西螺大橋', desc: '西螺大橋在雲林，是一座紅色鋼架搭成的長橋，還能通車。' },
-    story: '龍騰斷橋在苗栗三義，本來是舊山線的磚造鐵橋，在民國十四年的大地震中斷成兩截。因為紅磚拱柱造型太美，斷橋反而比完整的橋更有名。',
-    chat: '你搭過舊山線的火車嗎？你記得以前的火車是什麼樣子？',
-  },
-  {
-    id: 's-taichung', section: 'sight', region: '台中市', place: '台中市', area: 'central',
-    title: '請問哪一個景點在「台中市」？',
-    correct: { key: 'rainbow-village', name: '彩虹眷村', desc: '老眷村的牆上畫滿花花綠綠的人物與動物。' },
-    wrong: { key: 'blueprint-culture-park', name: '藍晒圖', desc: '藍晒圖在台南，是用藍底白線畫成的立體房屋造景。' },
-    story: '彩虹眷村在台中南屯，是一位老榮民「彩虹爺爺」黃永阜一個人拿油漆畫出來的。原本眷村要拆，因為這些畫吸引了太多人來看，最後保留了下來。',
-    chat: '你以前住過眷村，或有眷村的朋友嗎？',
-  },
-  {
-    id: 's-changhua', section: 'sight', region: '彰化縣', place: '彰化縣', area: 'central',
-    title: '請問哪一個鐵道景點在「彰化縣」？',
-    correct: { key: 'changhua-roundhouse', name: '扇形車庫', desc: '十幾條鐵軌像扇子一樣散開，通進一座半圓形的車庫。' },
-    wrong: { key: 'shengxing-station', name: '勝興車站', desc: '勝興車站在苗栗三義，是一棟全木造的小火車站。' },
-    story: '彰化扇形車庫是全台灣唯一還在運作的扇形車庫。中央有一個圓形轉盤，火車開上轉盤轉個方向，就能停進不同的車道，所以被叫做「火車頭旅館」。',
-    chat: '你以前搭火車出遠門嗎？看過蒸汽火車嗎？',
+    id: 's-changhua', section: 'sight', region: '彰化縣', place: '彰化市', area: 'central',
+    correct: { key: 'baguashan-buddha', name: '八卦山大佛', desc: '一尊巨大的深色坐佛，盤腿坐在方形的蓮座台基上。' },
+    wrong: { key: 'dajia-mazu', name: '大甲媽祖', desc: '大甲媽祖在台中大甲鎮瀾宮，每年三月的遶境隊伍要走上九天八夜。' },
+    story: '八卦山大佛民國五十年完工，佛身高 22 公尺，曾經是東南亞最大的佛像。大佛是中空的，裡面有六層樓可以走上去，牆上畫著釋迦牟尼的故事。那個年代很多人的畢業旅行、蜜月旅行都在大佛前面拍過照。',
+    chat: '你有沒有在八卦山大佛前面拍過照？那時候是跟學校去的，還是跟家人去的？',
   },
   {
     id: 's-nantou', section: 'sight', region: '南投縣', place: '南投縣', area: 'central',
-    title: '請問哪一個風景區在「南投縣」？',
     correct: { key: 'sun-moon-lake', name: '日月潭', desc: '台灣最大的天然湖泊，湖面山影相映，湖中有一座小島。' },
     wrong: { key: 'qixingtan', name: '七星潭', desc: '七星潭在花蓮，名字叫潭，其實是太平洋的一段礫石海灣。' },
     story: '日月潭在南投縣魚池鄉，是台灣最大的天然湖泊。名字來自它的形狀——東邊像太陽、西邊像月亮。可以搭纜車俯瞰，也可以搭船環湖。',
@@ -301,47 +175,20 @@ const QUESTIONS = [
   },
   {
     id: 's-yunlin', section: 'sight', region: '雲林縣', place: '雲林縣', area: 'central',
-    title: '請問哪一座廟在「雲林縣」？',
     correct: { key: 'beigang-chaotian-temple', name: '朝天宮', desc: '香火鼎盛的媽祖廟，屋脊上有精細的剪黏與交趾陶。' },
     wrong: { key: 'penghu-bridge', name: '跨海大橋', desc: '跨海大橋在澎湖，是連接兩座島的長橋，橋頭有白色拱門。' },
     story: '北港朝天宮是台灣最有名的媽祖廟之一，已經有三百多年歷史。每年農曆三月的媽祖遶境，信徒把整個北港鎮擠得水洩不通，「北港迎媽祖」是台灣最盛大的廟會之一。',
     chat: '你有去過北港拜媽祖嗎？家裡拜什麼神明？',
   },
   {
-    id: 's-chiayi-city', section: 'sight', region: '嘉義市', place: '嘉義市', area: 'south',
-    title: '請問哪一個景點在「嘉義市」？',
-    correct: { key: 'hinoki-village', name: '檜意森活村', desc: '一整片黑瓦的日式木造平房，庭院裡有綠樹與碎石小徑。' },
-    wrong: { key: 'qijin-ferry', name: '旗津渡輪', desc: '旗津在高雄，要搭渡輪過海才到，碼頭邊停著渡船。' },
-    story: '檜意森活村是日治時期阿里山林場員工的宿舍區，整片都用阿里山的檜木蓋成，所以叫「檜村」。後來修復開放，是台灣最大的日式木造建築群。',
-    chat: '你見過這種日式的木造房子嗎？以前的老房子是什麼樣子？',
-  },
-  {
     id: 's-chiayi-county', section: 'sight', region: '嘉義縣', place: '嘉義縣', area: 'south',
-    title: '請問哪一個景點在「嘉義縣」？',
     correct: { key: 'alishan-train', name: '阿里山小火車', desc: '紅色的小火車穿行在高山的森林之間。' },
     wrong: { key: 'pingxi-lantern', name: '平溪天燈', desc: '平溪在新北，元宵節放天燈，天燈載著願望飛上夜空。' },
     story: '阿里山森林鐵路是日治時期為了運送檜木而蓋的，從嘉義市一路爬到海拔兩千多公尺。紅色的檜木車廂繞著山壁轉「螺旋線」上山，是全世界少見的高山鐵道。',
     chat: '你坐過阿里山小火車嗎？有沒有去看過阿里山的日出？',
   },
   {
-    id: 's-tainan', section: 'sight', region: '台南市', place: '台南市', area: 'south',
-    title: '請問哪一座古堡在「台南市」？',
-    correct: { key: 'anping-fort', name: '安平古堡', desc: '白色的城牆與瞭望塔，旁邊有大榕樹與斑駁的老磚牆。' },
-    wrong: { key: 'fort-santo-domingo', name: '紅毛城', desc: '紅毛城在新北淡水，主樓是顯眼的紅磚紅牆。' },
-    story: '安平古堡本來叫「熱蘭遮城」，是荷蘭人在四百年前蓋的。鄭成功趕走荷蘭人後改名安平鎮。現在還看得到當年用糖水、糯米汁與蚵殼灰砌成的老城牆殘蹟。',
-    chat: '你去過安平嗎？你記得那邊的老街跟蜜餞店嗎？',
-  },
-  {
-    id: 's-kaohsiung', section: 'sight', region: '高雄市', place: '高雄市', area: 'south',
-    title: '請問哪一尊大佛在「高雄市」？',
-    correct: { key: 'fo-guang-shan', name: '佛光山大佛', desc: '金色的立佛，四周圍繞著一整排小佛像。' },
-    wrong: { key: 'baguashan-buddha', name: '八卦山大佛', desc: '八卦山大佛在彰化，是一尊深色的巨大坐佛。' },
-    story: '佛光山在高雄市大樹區，中央的接引大佛高 36 公尺，四周有 480 尊小佛像圍繞。後來蓋的佛陀紀念館有八座塔，成了南台灣最有名的宗教園區。',
-    chat: '你去過佛光山嗎？你有沒有拜拜或參加過寺廟的活動？',
-  },
-  {
     id: 's-pingtung', section: 'sight', region: '屏東縣', place: '屏東縣', area: 'south',
-    title: '請問哪一個景點在「屏東縣」？',
     correct: { key: 'eluanbi-lighthouse', name: '鵝鑾鼻燈塔', desc: '白色的圓柱形燈塔，站在台灣最南端的草坡上。' },
     wrong: { key: 'yehliu-queen', name: '野柳女王頭', desc: '野柳在新北萬里，是海水侵蝕出來的蕈狀奇岩。' },
     story: '鵝鑾鼻燈塔在屏東縣恆春鎮，是台灣最南端的燈塔。因為過去這一帶常有船難，清朝時建塔，塔身還蓋了槍眼與壕溝防禦，是全世界少見的「武裝燈塔」。',
@@ -349,23 +196,13 @@ const QUESTIONS = [
   },
   {
     id: 's-hualien', section: 'sight', region: '花蓮縣', place: '花蓮縣', area: 'east',
-    title: '請問哪一個風景區在「花蓮縣」？',
     correct: { key: 'taroko', name: '太魯閣', desc: '溪水切出來的高聳峽谷，兩側是灰白色的岩壁。' },
     wrong: { key: 'xitou', name: '溪頭', desc: '溪頭在南投，是一片高聳的杉木森林與竹林步道。' },
     story: '太魯閣在花蓮縣，立霧溪花了幾百萬年把大理岩層切開，切出燕子口、九曲洞這樣的峽谷。當年開路的人是把工具吊在半空中，一寸一寸鑿出來的。',
     chat: '你去過太魯閣嗎？走過那條靠著岩壁的步道嗎？',
   },
   {
-    id: 's-taitung', section: 'sight', region: '台東縣', place: '台東縣', area: 'east',
-    title: '請問哪一個景點在「台東縣」？',
-    correct: { key: 'brown-boulevard', name: '伯朗大道', desc: '一條筆直的小路穿過金黃色的稻田，路邊有一棵孤立的樹。' },
-    wrong: { key: 'gaomei-wetland', name: '高美濕地', desc: '高美濕地在台中，是海邊的木棧道與一整排白色風車。' },
-    story: '伯朗大道在台東池上，因為一支廣告紅起來。整條路兩旁沒有電線桿，看過去只有稻田與遠山。稻子從綠色轉成金黃再收割，一年可以看到好幾種顏色。',
-    chat: '你看過整片金黃的稻田嗎？你家以前有種田嗎？',
-  },
-  {
     id: 's-penghu', section: 'sight', region: '澎湖縣', place: '澎湖縣', area: 'islands',
-    title: '請問哪一個景點在「澎湖縣」？',
     correct: { key: 'twin-heart-weir', name: '雙心石滬', desc: '在淺海上用石頭堆出兩個心形的古老陷阱。' },
     wrong: { key: 'sanxiantai', name: '三仙台', desc: '三仙台在台東，是一座跨海的八拱人行橋通到小島。' },
     story: '雙心石滬在澎湖七美，是老一輩用玄武岩與珊瑚礁石一顆顆堆出來的捕魚陷阱，漲潮時魚游進來、退潮就困在裡面。堆一座石滬要花好幾年，現在成了愛情的象徵。',
@@ -373,7 +210,6 @@ const QUESTIONS = [
   },
   {
     id: 's-kinmen', section: 'sight', region: '金門縣', place: '金門縣', area: 'islands',
-    title: '請問哪一個景點在「金門縣」？',
     correct: { key: 'juguang-tower', name: '莒光樓', desc: '黃瓦紅柱的中式三層樓閣，站在草坪與海岸邊。' },
     wrong: { key: 'qinbi-village', name: '芹壁聚落', desc: '芹壁在連江馬祖，是一整片用石頭砌成、依山面海的老房子。' },
     story: '莒光樓是民國四十一年為了表彰金門的戰地將士而蓋的，仿古的宮殿式建築。它曾經印在郵票與課本上，是那個年代台灣人最熟悉的金門畫面。',
