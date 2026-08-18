@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>五味人生 — 長輩五味辨識遊戲</title>
+<meta name="description" content="專為長輩設計的酸甜苦辣鹹五味辨識遊戲，大字體、大圖片、二選一。答錯不判錯，答完聊聊味道的回憶。教案設計：施昱廷 職能治療師。免費開放。">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="復能小遊戲">
+<meta property="og:title" content="五味人生 · 長輩五味辨識遊戲">
+<meta property="og:description" content="哪一個是酸的？大圖二選一，猜完一起聊味道的回憶。酸甜苦辣鹹五關＋終盤挑戰。免費開放。">
+<meta property="og:url" content="https://games.otshih.com/wuwei-beta/">
+<meta property="og:image" content="https://games.otshih.com/wuwei-beta/img/lemon.jpg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@500;700;900&family=Noto+Serif+TC:wght@600;700;900&display=swap">
+<style>
+/* ── 色彩：整頁由「目前這一味」的色相驅動，換味道＝換色世界 ── */
+:root{
+  --hue: 72; --accent-s: 62%;
+  --ground-l: 96%; --panel-l: 100%; --ink-l: 13%; --muted-l: 38%;
+  --line-l: 84%; --accent-l: 30%; --plate-l: 93%;
+  --scale: 1;
+  --ground: hsl(var(--hue) 28% var(--ground-l));
+  --panel:  hsl(var(--hue) 34% var(--panel-l));
+  --plate:  hsl(var(--hue) 30% var(--plate-l));
+  --ink:    hsl(var(--hue) 14% var(--ink-l));
+  --muted:  hsl(var(--hue) 10% var(--muted-l));
+  --line:   hsl(var(--hue) 18% var(--line-l));
+  --accent: hsl(var(--hue) var(--accent-s) var(--accent-l));
+  --on-accent: hsl(var(--hue) 40% 98%);
+  --shadow: 0 2px 0 hsl(var(--hue) 18% 80%), 0 14px 30px hsl(var(--hue) 25% 40% / .13);
+}
+:root[data-taste="sour"]  { --hue: 72;  --accent-s: 62%; }
+:root[data-taste="sweet"] { --hue: 340; --accent-s: 55%; }
+:root[data-taste="bitter"]{ --hue: 25;  --accent-s: 38%; }
+:root[data-taste="spicy"] { --hue: 4;   --accent-s: 62%; }
+:root[data-taste="salty"] { --hue: 205; --accent-s: 44%; }
+:root[data-taste="final"] { --hue: 46;  --accent-s: 60%; }
+
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --ground-l: 10%; --panel-l: 15%; --ink-l: 93%; --muted-l: 66%;
+    --line-l: 28%; --accent-l: 68%; --plate-l: 21%;
+    --on-accent: hsl(var(--hue) 30% 8%);
+    --shadow: 0 1px 0 hsl(var(--hue) 14% 22%), 0 14px 30px hsl(0 0% 0% / .45);
+  }
+}
+:root[data-theme="dark"]{
+  --ground-l: 10%; --panel-l: 15%; --ink-l: 93%; --muted-l: 66%;
+  --line-l: 28%; --accent-l: 68%; --plate-l: 21%;
+  --on-accent: hsl(var(--hue) 30% 8%);
+  --shadow: 0 1px 0 hsl(var(--hue) 14% 22%), 0 14px 30px hsl(0 0% 0% / .45);
+}
+
+*{ box-sizing: border-box; }
+body{
+  margin: 0;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background: var(--ground);
+  color: var(--ink);
+  font-family: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", system-ui, sans-serif;
+  transition: background-color .5s ease, color .5s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ── 上列：遊戲名＋味道進度＋字級 ── */
+header{
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px; flex-wrap: wrap;
+  padding: clamp(10px, 1.6vw, 18px) clamp(14px, 3vw, 34px);
+  border-bottom: 1px solid var(--line);
+}
+.brand{
+  font-family: "Noto Serif TC", "Songti TC", serif;
+  font-weight: 900;
+  font-size: calc(clamp(20px, 2.4vw, 28px) * var(--scale));
+  letter-spacing: .14em;
+  margin: 0; white-space: nowrap;
+}
+.brand small{
+  display: block; font-family: "Noto Sans TC", sans-serif; font-weight: 700;
+  font-size: calc(11px * var(--scale)); letter-spacing: .3em; color: var(--muted);
+}
+.tastes{ display: flex; gap: clamp(5px, .9vw, 11px); align-items: center; flex-wrap: wrap; }
+.taste-chip{
+  display: flex; flex-direction: column; align-items: center; gap: 5px;
+  padding: 5px clamp(7px, 1.2vw, 14px);
+  border-radius: 999px;
+  font-family: "Noto Serif TC", "Songti TC", serif;
+  font-weight: 700;
+  font-size: calc(clamp(18px, 2.2vw, 26px) * var(--scale));
+  color: var(--muted);
+  border: 2px solid transparent;
+  transition: color .3s, border-color .3s, background-color .3s;
+}
+.taste-chip[data-on="1"]{ color: var(--accent); border-color: var(--accent); background: var(--panel); }
+.taste-chip[data-done="1"]{ color: var(--ink); }
+.dots{ display: flex; gap: 4px; }
+.dots i{ width: 7px; height: 7px; border-radius: 50%; background: var(--line); display: block; }
+.taste-chip[data-on="1"] .dots i[data-fill="1"]{ background: var(--accent); }
+.taste-chip[data-done="1"] .dots i{ background: var(--muted); }
+
+.tools{ display: flex; align-items: center; gap: 8px; }
+.tool{
+  font: inherit; font-weight: 700;
+  font-size: calc(15px * var(--scale));
+  color: var(--muted); background: transparent;
+  border: 1.5px solid var(--line); border-radius: 10px;
+  padding: 7px 12px; cursor: pointer;
+  transition: color .2s, border-color .2s;
+}
+.tool:hover{ color: var(--accent); border-color: var(--accent); }
+
+/* ── 主區 ── */
+main{
+  flex: 1;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: clamp(14px, 2.4vh, 30px);
+  padding: clamp(16px, 3vh, 40px) clamp(14px, 3vw, 40px);
+  width: 100%; max-width: 1180px; margin: 0 auto;
+}
+.ask{
+  font-family: "Noto Serif TC", "Songti TC", serif;
+  font-weight: 700;
+  font-size: calc(clamp(26px, 4.4vw, 52px) * var(--scale));
+  line-height: 1.35; text-align: center; text-wrap: balance; margin: 0;
+}
+.ask b{ color: var(--accent); font-size: 1.22em; padding: 0 .06em; }
+.round{
+  font-size: calc(clamp(13px, 1.5vw, 17px) * var(--scale));
+  font-weight: 700; letter-spacing: .18em; color: var(--muted);
+  margin: 0; text-align: center;
+}
+
+.cards{ display: grid; grid-template-columns: 1fr 1fr; gap: clamp(12px, 2.4vw, 34px); width: 100%; }
+.card{
+  position: relative;
+  font: inherit; color: inherit; text-align: center; cursor: pointer;
+  background: var(--panel);
+  border: 3px solid var(--line);
+  border-radius: 26px;
+  padding: clamp(10px, 1.8vh, 24px) clamp(8px, 1.6vw, 22px);
+  display: flex; flex-direction: column; align-items: center; gap: clamp(8px, 1.4vh, 16px);
+  box-shadow: var(--shadow);
+  transition: border-color .25s, transform .18s, opacity .35s, filter .35s;
+}
+.card:hover:not([data-state]){ transform: translateY(-4px); border-color: var(--accent); }
+.card:focus-visible{ outline: 4px solid var(--accent); outline-offset: 4px; }
+
+/* 圓盤：有照片放照片，讀不到照片自動退回 emoji */
+.plate{
+  position: relative;
+  width: min(clamp(240px, 50vh, 560px), 42vw); aspect-ratio: 1;
+  border-radius: 50%;
+  background: var(--plate);
+  border: 2px solid var(--line);
+  display: grid; place-items: center;
+  font-size: clamp(120px, 27vh, 280px); line-height: 1;
+  overflow: hidden;
+}
+.plate img{
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  object-fit: cover; border-radius: 50%;
+}
+.card[data-state="right"]{ border-color: var(--accent); }
+.card[data-state="right"] .plate{ border-color: var(--accent); }
+.card[data-state="other"]{ opacity: .42; filter: grayscale(.7); }
+.name{
+  font-weight: 900;
+  font-size: calc(clamp(22px, 4vw, 46px) * var(--scale));
+  line-height: 1.2; letter-spacing: .02em;
+}
+.stamp{
+  position: absolute; top: -14px; right: -10px; z-index: 2;
+  width: clamp(62px, 8vw, 86px); aspect-ratio: 1; border-radius: 50%;
+  background: var(--accent); color: var(--on-accent);
+  display: grid; place-items: center;
+  font-family: "Noto Serif TC", "Songti TC", serif; font-weight: 700;
+  font-size: clamp(20px, 2.6vw, 28px); letter-spacing: .06em;
+  transform: rotate(-13deg);
+  animation: thunk .32s cubic-bezier(.2,1.5,.4,1) both;
+}
+@keyframes thunk{ from{ transform: rotate(-13deg) scale(2.4); opacity: 0; } to{ transform: rotate(-13deg) scale(1); opacity: 1; } }
+
+/* ── 終盤「這是什麼味道？」 ── */
+.solo{
+  position: relative;
+  display: flex; flex-direction: column; align-items: center; gap: clamp(10px, 1.8vh, 20px);
+  background: var(--panel);
+  border: 3px solid var(--line); border-radius: 26px;
+  padding: clamp(16px, 2.8vh, 36px) clamp(24px, 4vw, 60px);
+  box-shadow: var(--shadow);
+}
+.solo .plate{ width: min(clamp(280px, 55vh, 620px), 70vw); font-size: clamp(140px, 30vh, 320px); }
+.taste-picks{ display: flex; gap: clamp(8px, 1.6vw, 20px); flex-wrap: wrap; justify-content: center; }
+.pick{
+  position: relative;
+  font-family: "Noto Serif TC", "Songti TC", serif; font-weight: 900; color: inherit;
+  font-size: calc(clamp(26px, 4vw, 44px) * var(--scale));
+  width: clamp(76px, 11vw, 118px); aspect-ratio: 1; border-radius: 50%;
+  background: var(--panel);
+  border: 3px solid var(--line);
+  cursor: pointer; box-shadow: var(--shadow);
+  transition: border-color .25s, transform .18s, opacity .35s, background-color .3s, color .3s;
+}
+.pick:hover:not(:disabled){ transform: translateY(-4px); border-color: var(--accent); }
+.pick:focus-visible{ outline: 4px solid var(--accent); outline-offset: 4px; }
+.pick[data-state="right"]{ background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.pick[data-state="other"]{ opacity: .38; }
+.pick .stamp{
+  top: -16px; right: -16px;
+  width: clamp(46px, 5.6vw, 60px);
+  font-size: clamp(14px, 1.8vw, 19px);
+}
+
+/* ── 解說列 ── */
+.note{
+  width: 100%;
+  display: flex; align-items: center; justify-content: space-between; gap: clamp(12px, 2vw, 28px);
+  flex-wrap: wrap;
+  border-top: 2px solid var(--line);
+  padding-top: clamp(12px, 2vh, 22px);
+}
+.note p{
+  margin: 0; flex: 1 1 320px;
+  font-family: "Noto Serif TC", "Songti TC", serif;
+  font-size: calc(clamp(17px, 2.1vw, 26px) * var(--scale));
+  line-height: 1.65;
+}
+.note p em{ font-style: normal; color: var(--accent); font-weight: 700; }
+.next{
+  font: inherit; font-weight: 900;
+  font-size: calc(clamp(19px, 2.2vw, 27px) * var(--scale));
+  color: var(--on-accent); background: var(--accent);
+  border: none; border-radius: 999px;
+  padding: clamp(12px, 1.6vh, 18px) clamp(28px, 4vw, 48px);
+  cursor: pointer; white-space: nowrap;
+  transition: filter .2s, transform .15s;
+}
+.next:hover{ filter: brightness(1.12); transform: translateY(-2px); }
+.next:focus-visible{ outline: 4px solid var(--ink); outline-offset: 3px; }
+.hint{
+  font-size: calc(13px * var(--scale)); color: var(--muted); letter-spacing: .08em; margin: 0;
+  text-align: center;
+}
+
+/* ── 結束畫面 ── */
+.done{ text-align: center; display: flex; flex-direction: column; align-items: center; gap: clamp(14px, 2.4vh, 26px); }
+.done h2{
+  font-family: "Noto Serif TC", "Songti TC", serif;
+  font-size: calc(clamp(30px, 5vw, 56px) * var(--scale)); margin: 0; line-height: 1.3;
+}
+.done .five{ display: flex; gap: clamp(10px, 2vw, 24px); flex-wrap: wrap; justify-content: center; }
+.done .five span{
+  font-family: "Noto Serif TC", "Songti TC", serif; font-weight: 700;
+  font-size: calc(clamp(24px, 3.4vw, 40px) * var(--scale));
+  color: var(--accent);
+}
+.done p{
+  margin: 0; max-width: 34em;
+  font-family: "Noto Serif TC", "Songti TC", serif;
+  font-size: calc(clamp(17px, 2vw, 24px) * var(--scale)); line-height: 1.7;
+}
+
+.hidden{ display: none !important; }
+@media (max-width: 560px){
+  .plate{ width: clamp(84px, 26vw, 130px); font-size: clamp(40px, 13vw, 66px); }
+  .solo .plate{ width: clamp(110px, 34vw, 170px); font-size: clamp(52px, 17vw, 86px); }
+  .card{ border-radius: 20px; }
+  .brand small{ display: none; }
+}
+@media (prefers-reduced-motion: reduce){
+  *{ animation-duration: .001ms !important; transition-duration: .001ms !important; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <h1 class="brand">五味人生<small>酸甜苦辣鹹</small></h1>
+  <nav class="tastes" id="tastes" aria-label="關卡進度"></nav>
+  <div class="tools">
+    <button class="tool" id="sizeBtn" type="button">字級：標準</button>
+    <button class="tool" id="restartBtn" type="button">重新開始</button>
+  </div>
+</header>
+
+<main id="main"></main>
+<footer style="text-align:center; padding: 10px 0 16px; font-size: 13px; color: var(--muted); letter-spacing:.05em;">教案設計：施昱廷 職能治療師 · 免費開放</footer>
+
+<script>
+/* ── 題庫 ──
+   二選一：同一味排在一起，每一味前三題答案明確，第四題是複合味壓軸。
+   id 對應 img/{id}.jpg；讀不到照片時自動退回 emoji。 */
+const BANK = [
+  { key:"sour", label:"酸", items:[
+    { a:{id:"lemon", n:"檸檬", g:"🍋"}, b:{id:"cream-cake", n:"鮮奶油蛋糕", g:"🍰"}, ans:"a",
+      note:"檸檬一咬下去整張臉都皺起來，是最經典的酸。" },
+    { a:{id:"honey", n:"蜂蜜", g:"🍯"}, b:{id:"vinegar", n:"白醋", g:"🫙"}, ans:"b",
+      note:"包水餃沾的白醋，酸味最直接，一聞就知道。" },
+    { a:{id:"pickled-mustard", n:"酸菜", g:"🥬"}, b:{id:"rice", n:"白飯", g:"🍚"}, ans:"a",
+      note:"酸菜是醃出來的酸，酸菜白肉鍋、酸菜鴨都少不了它。" },
+    { a:{id:"hot-sour-soup", n:"酸辣湯", g:"🍲"}, b:{id:"gongwan-soup", n:"貢丸湯", g:"🥣"}, ans:"a",
+      note:"這題有點狡猾——酸辣湯<em>又酸又辣</em>，一道菜同時有兩種味道，叫做複合味。" }
+  ]},
+  { key:"sweet", label:"甜", items:[
+    { a:{id:"bitter-gourd", n:"苦瓜", g:"🥒"}, b:{id:"cream-cake", n:"鮮奶油蛋糕", g:"🍰"}, ans:"b",
+      note:"蛋糕的甜是砂糖來的，是最好認的一味。" },
+    { a:{id:"honey", n:"蜂蜜", g:"🍯"}, b:{id:"salt", n:"鹽巴", g:"🧂"}, ans:"a",
+      note:"蜂蜜的甜跟砂糖不一樣，尾韻帶花香。" },
+    { a:{id:"watermelon", n:"西瓜", g:"🍉"}, b:{id:"lemon", n:"檸檬", g:"🍋"}, ans:"a",
+      note:"夏天的西瓜越冰越甜，可以問問長輩以前都怎麼吃西瓜。" },
+    { a:{id:"bubble-tea", n:"珍珠奶茶", g:"🧋"}, b:{id:"dark-chocolate", n:"黑巧克力", g:"🍫"}, ans:"a",
+      note:"黑巧克力雖然歸在甜點，可可越純其實<em>越苦</em>。這題可以問問長輩吃過沒有。" }
+  ]},
+  { key:"bitter", label:"苦", items:[
+    { a:{id:"watermelon", n:"西瓜", g:"🍉"}, b:{id:"bitter-gourd", n:"苦瓜", g:"🥒"}, ans:"b",
+      note:"苦瓜的苦連名字都寫出來了，是台灣人最熟的苦味。" },
+    { a:{id:"black-coffee", n:"黑咖啡", g:"☕"}, b:{id:"yakult", n:"養樂多", g:"🥛"}, ans:"a",
+      note:"不加糖不加奶的黑咖啡，苦味最明顯。" },
+    { a:{id:"herbal-soup", n:"中藥湯", g:"🌿"}, b:{id:"maltose", n:"麥芽糖", g:"🍭"}, ans:"a",
+      note:"「良藥苦口」，這句話長輩一定聽過，可以順著聊小時候吃藥的經驗。" },
+    { a:{id:"strong-tea", n:"濃茶", g:"🍵"}, b:{id:"ramune", n:"彈珠汽水", g:"🥤"}, ans:"a",
+      note:"濃茶入口苦，可是<em>先苦後回甘</em>——「回甘」就是台灣人形容好茶的說法。" }
+  ]},
+  { key:"spicy", label:"辣", items:[
+    { a:{id:"banana", n:"香蕉", g:"🍌"}, b:{id:"chili", n:"紅辣椒", g:"🌶️"}, ans:"b",
+      note:"辣椒的辣其實不是味覺，是舌頭被辣到的痛覺，所以會越吃越熱。" },
+    { a:{id:"mala-pot", n:"麻辣鍋", g:"🥘"}, b:{id:"congee", n:"白粥", g:"🍚"}, ans:"a",
+      note:"麻辣鍋除了辣還有花椒的麻，兩種感覺不一樣。" },
+    { a:{id:"wasabi", n:"哇沙米（芥末）", g:"🍣"}, b:{id:"douhua", n:"豆花", g:"🍮"}, ans:"a",
+      note:"哇沙米的辣<em>衝到鼻子</em>，辣椒是辣在舌頭，長輩通常一講就懂。" },
+    { a:{id:"curry-rice", n:"咖哩飯", g:"🍛"}, b:{id:"taro-ball", n:"芋圓", g:"🍡"}, ans:"a",
+      note:"咖哩有小辣也有大辣，日式咖哩甚至<em>甜甜的不辣</em>，這題見仁見智，可以讓長輩各說各話。" }
+  ]},
+  { key:"salty", label:"鹹", items:[
+    { a:{id:"salt", n:"鹽巴", g:"🧂"}, b:{id:"sugar-cube", n:"方糖", g:"🍬"}, ans:"a",
+      note:"鹽是鹹味的源頭，白白的兩罐放廚房最容易拿錯。" },
+    { a:{id:"soy-sauce", n:"醬油", g:"🍶"}, b:{id:"ramune", n:"彈珠汽水", g:"🥤"}, ans:"a",
+      note:"醬油是鹹味的主角，滷肉、沾水餃都靠它。" },
+    { a:{id:"salted-egg", n:"鹹鴨蛋", g:"🥚"}, b:{id:"mango", n:"芒果", g:"🥭"}, ans:"a",
+      note:"鹹鴨蛋配稀飯，是很多長輩小時候的早餐記憶。" },
+    { a:{id:"sausage", n:"台式香腸", g:"🌭"}, b:{id:"pineapple-cake", n:"鳳梨酥", g:"🍪"}, ans:"a",
+      note:"香腸當然是鹹的，可是台式香腸<em>糖下得重</em>，有人吃起來覺得是甜的——南北口味差很多，可以聊聊。" }
+  ]}
+];
+
+/* 終盤「嚐一嚐」：只出一道菜，讓長輩從五味裡選。
+   五味刻意打散當總復習；前四題答案明確，薑母鴨壓軸開討論。 */
+const FINAL = {
+  key:"final", label:"嚐", items:[
+    { id:"red-bean-soup", n:"紅豆湯", g:"🫘", ans:"sweet",
+      note:"冬天來一碗熱紅豆湯，甜到心裡。可以問問：以前家裡的紅豆湯是誰煮的？" },
+    { id:"caipu-egg", n:"菜脯蛋", g:"🍳", ans:"salty",
+      note:"菜脯就是蘿蔔乾，鹹香下飯，是古早味便當裡的常客。" },
+    { id:"plum-drink", n:"酸梅湯", g:"🥤", ans:"sour",
+      note:"夏天冰鎮的酸梅湯，酸酸的生津解渴，以前廟口常有人賣。" },
+    { id:"bitter-tea", n:"苦茶", g:"🍵", ans:"bitter",
+      note:"「苦茶苦口才退火」，喝過的人都忘不了那個苦。" },
+    { id:"ginger-duck", n:"薑母鴨", g:"🦆", ans:"spicy",
+      note:"壓軸考大家——薑母鴨的辣是<em>老薑的辣</em>，不是辣椒。薑、蒜、胡椒都算辛辣，冬天吃了全身暖。" }
+  ]
+};
+
+const ROUNDS = [...BANK, FINAL];
+const TASTE_LABELS = ["酸","甜","苦","辣","鹹"];
+const TASTE_BY_KEY = { sour:"酸", sweet:"甜", bitter:"苦", spicy:"辣", salty:"鹹" };
+const SIZES = [ {label:"標準", v:1}, {label:"大", v:1.18}, {label:"特大", v:1.36} ];
+const TOTAL = ROUNDS.reduce((s, r) => s + r.items.length, 0);
+
+let ti = 0, qi = 0, picked = null, sizeIdx = 0;
+
+const root = document.documentElement;
+const main = document.getElementById("main");
+const tastesEl = document.getElementById("tastes");
+const sizeBtn = document.getElementById("sizeBtn");
+
+function isDone(){ return ti >= ROUNDS.length; }
+function isFinal(){ return !isDone() && ROUNDS[ti] === FINAL; }
+function qNumber(){ return ROUNDS.slice(0, ti).reduce((s, r) => s + r.items.length, 0) + qi + 1; }
+function lastQuestion(){ return ti === ROUNDS.length - 1 && qi === ROUNDS[ti].items.length - 1; }
+
+function renderTastes(){
+  tastesEl.innerHTML = ROUNDS.map((t, i) => {
+    const on = i === ti && !isDone();
+    const done = i < ti || isDone();
+    const dots = t.items.map((_, j) =>
+      `<i data-fill="${on && j <= qi ? 1 : 0}"></i>`).join("");
+    return `<div class="taste-chip" data-on="${on ? 1 : 0}" data-done="${done ? 1 : 0}">
+      ${t.label}<span class="dots">${dots}</span></div>`;
+  }).join("");
+}
+
+/* 圓盤：img 讀取失敗 → 移除自己 → 底下的 emoji 露出來 */
+function plate(o){
+  return `<span class="plate" aria-hidden="true">${o.g}<img src="img/${o.id}.jpg" alt="" onerror="this.remove()"></span>`;
+}
+
+function render(){
+  if (isDone()){ renderDone(); renderTastes(); return; }
+  renderTastes();
+  if (isFinal()){ renderFinal(); return; }
+
+  const taste = ROUNDS[ti];
+  const q = taste.items[qi];
+  root.dataset.taste = taste.key;
+
+  const card = (side) => {
+    const o = q[side];
+    let state = "";
+    if (picked){ state = (side === q.ans) ? "right" : "other"; }
+    return `<button class="card" type="button" data-side="${side}" ${state ? `data-state="${state}"` : ""} ${picked ? "disabled" : ""}>
+      ${state === "right" ? `<span class="stamp">答案</span>` : ""}
+      ${plate(o)}
+      <span class="name">${o.n}</span>
+    </button>`;
+  };
+
+  const correct = picked === q.ans;
+  const lead = correct ? "答對了！" : `答案是「${q[q.ans].n}」。`;
+
+  main.innerHTML = `
+    <p class="round">第 ${qNumber()} 題 ／ 共 ${TOTAL} 題</p>
+    <h2 class="ask">哪一個是 <b>${taste.label}</b> 的？</h2>
+    <div class="cards">${card("a")}${card("b")}</div>
+    <div class="note ${picked ? "" : "hidden"}">
+      <p><em>${lead}</em> ${q.note}</p>
+      <button class="next" type="button" id="nextBtn">下一題</button>
+    </div>
+    <p class="hint ${picked ? "hidden" : ""}">用 ← → 選左右，Enter 或空白鍵下一題</p>
+  `;
+
+  main.querySelectorAll(".card").forEach(el =>
+    el.addEventListener("click", () => choose(el.dataset.side)));
+  wireNext();
+}
+
+function renderFinal(){
+  const q = FINAL.items[qi];
+  /* 未作答時停在金黃的「嚐」色；亮牌後整頁轉成正解那一味的顏色 */
+  root.dataset.taste = picked ? q.ans : "final";
+
+  const pickBtn = (key) => {
+    let state = "";
+    if (picked){ state = (key === q.ans) ? "right" : "other"; }
+    return `<button class="pick" type="button" data-key="${key}" ${state ? `data-state="${state}"` : ""} ${picked ? "disabled" : ""}>
+      ${state === "right" ? `<span class="stamp">答案</span>` : ""}
+      ${TASTE_BY_KEY[key]}
+    </button>`;
+  };
+
+  const correct = picked === q.ans;
+  const lead = correct ? "答對了！" : `這一味是「${TASTE_BY_KEY[q.ans]}」。`;
+
+  main.innerHTML = `
+    <p class="round">第 ${qNumber()} 題 ／ 共 ${TOTAL} 題 ・ 總復習</p>
+    <h2 class="ask">「${q.n}」是<b>什麼</b>味道？</h2>
+    <div class="solo">
+      ${plate(q)}
+      <span class="name">${q.n}</span>
+    </div>
+    <div class="taste-picks">${Object.keys(TASTE_BY_KEY).map(pickBtn).join("")}</div>
+    <div class="note ${picked ? "" : "hidden"}">
+      <p><em>${lead}</em> ${q.note}</p>
+      <button class="next" type="button" id="nextBtn">${lastQuestion() ? "看結果" : "下一題"}</button>
+    </div>
+    <p class="hint ${picked ? "hidden" : ""}">按 1～5 選「酸 甜 苦 辣 鹹」，Enter 或空白鍵下一題</p>
+  `;
+
+  main.querySelectorAll(".pick").forEach(el =>
+    el.addEventListener("click", () => choose(el.dataset.key)));
+  wireNext();
+}
+
+function wireNext(){
+  const nb = document.getElementById("nextBtn");
+  if (nb){ nb.addEventListener("click", next); nb.focus(); }
+}
+
+function choose(val){
+  if (picked) return;
+  picked = val;
+  render();
+}
+
+function next(){
+  picked = null;
+  if (qi < ROUNDS[ti].items.length - 1){ qi++; } else { ti++; qi = 0; }
+  render();
+}
+
+function renderDone(){
+  root.dataset.taste = "final";
+  main.innerHTML = `
+    <div class="done">
+      <h2>五味人生，都嚐過一輪了</h2>
+      <div class="five">${TASTE_LABELS.map(t => `<span>${t}</span>`).join("")}</div>
+      <p>人生就像今天這些菜，有酸有甜、有苦有辣也有鹹。可以問問大家：這輩子到現在，哪一味嚐得最多？有沒有哪一道菜，一想到就想起某個人？</p>
+      <button class="next" type="button" id="againBtn">再玩一次</button>
+    </div>`;
+  const ab = document.getElementById("againBtn");
+  ab.addEventListener("click", restart);
+  ab.focus();
+}
+
+function restart(){ ti = 0; qi = 0; picked = null; render(); }
+
+sizeBtn.addEventListener("click", () => {
+  sizeIdx = (sizeIdx + 1) % SIZES.length;
+  root.style.setProperty("--scale", SIZES[sizeIdx].v);
+  sizeBtn.textContent = "字級：" + SIZES[sizeIdx].label;
+});
+document.getElementById("restartBtn").addEventListener("click", restart);
+
+document.addEventListener("keydown", (e) => {
+  if (isDone()) return;
+  if (picked && (e.key === "Enter" || e.key === " ")){
+    e.preventDefault(); next(); return;
+  }
+  if (picked) return;
+  if (isFinal()){
+    const keys = Object.keys(TASTE_BY_KEY);
+    const n = parseInt(e.key, 10);
+    if (n >= 1 && n <= 5){ e.preventDefault(); choose(keys[n - 1]); }
+  } else if (e.key === "ArrowLeft" || e.key === "ArrowRight"){
+    e.preventDefault();
+    choose(e.key === "ArrowLeft" ? "a" : "b");
+  }
+});
+
+render();
+</script>
+<script src="/open-in-browser.js"></script>
+<!-- Cloudflare Web Analytics：無 cookie、不追蹤個人，只統計造訪量 -->
+<script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "3df68cf5d6bd4975b97a157f7ff3cafb"}'></script>
+</body>
+</html>
