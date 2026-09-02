@@ -1,0 +1,14 @@
+{
+  "name": "unwatermark-test",
+  "version": "1.0.0",
+  "private": true,
+  "description": "AI 浮水印清除器的 Node 端測試（engine.js 純函式驗證）",
+  "type": "commonjs",
+  "scripts": {
+    "test": "node run.js"
+  },
+  "dependencies": {
+    "jpeg-js": "^0.4.4",
+    "pngjs": "^7.0.0"
+  }
+}

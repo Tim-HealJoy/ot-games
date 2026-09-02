@@ -1,0 +1,11 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><style>html,body{margin:0;background:#eee}iframe{width:390px;height:1900px;border:0;display:block;margin:0 auto}</style></head>
+<body><iframe id="fr" src="/unwatermark/"></iframe>
+<script>
+document.getElementById('fr').addEventListener('load', async function(){
+  var W=this.contentWindow; await W.__unwatermark.ready;
+  async function g(p,m){var r=await fetch(p);return new File([await r.blob()],p.split('/').pop(),{type:m});}
+  await W.__unwatermark.addFiles([await g('/unwatermark/test/fixtures/notebook_sample.jpeg','image/jpeg')]);
+  window.__shotStatus='DONE '+W.__unwatermark.items.map(i=>i.file.name+' → '+i.status).join(', ');
+  window.__done=true; window.__shotDone=true;
+});
+</script></body></html>

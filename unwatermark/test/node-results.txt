@@ -1,0 +1,39 @@
+## 測試 1：Gemini Notebook 對照組（PNG）
+- 偵測：score=0.9999  slope=249.2  scale=1  位置=(2544,1502)  尺寸=204×28  耗時 41 ms
+- 未處理 ROI PSNR：10.67 dB
+- 純 inpaint：ROI PSNR 50.04 dB／全圖 76.73 dB／ROI 最大誤差 5／去除耗時 26 ms
+- 混合式 hybrid：ROI PSNR 49.76 dB／全圖 76.44 dB／ROI 最大誤差 5／去除耗時 8 ms
+- **擇優**：純 inpaint → 設為預設模式
+  - PSNR 差 -0.28 dB（<0.5 dB，統計上等價）；改以殘影峰值判定：inpaint 5 vs hybrid 5
+  - 目視 200%（test/out/notebook_*_zoom200.png）：兩者在膨脹 3px 後皆無可辨認的字形殘影，僅剩不成結構的極淡色塊
+  - 選 inpaint 的另一理由：hybrid 的反向 alpha 步驟預設浮水印是純黑（墨色 0），一旦來源用了別的灰階或被 JPEG 位移就會過度提亮；inpaint 不依賴這個假設，對未知變體較穩
+- 目標 ≥ 45 dB：✅ 通過
+
+## 測試 2：Gemini Notebook JPEG
+- 偵測：score=0.8255  slope=131.5  scale=1  位置=(2512,1485)  尺寸=204×28  found=true
+- 框內亮度：處理前 min=20.0 mean=219.9／處理後 min=252.0 mean=254.9
+- 目視放大圖：test/out/jpeg_before_zoom200.png、test/out/jpeg_after_zoom200.png
+
+## 測試 3：Nano Banana 合成樣本（三種幾何）
+- nano_96（1400×1200）：偵測 variant=96（預期 96）score=0.3840 slope=32.8／還原後最大誤差 1（≤2）／PSNR 55.54 dB → ✅
+- nano_48（800×600）：偵測 variant=48（預期 48）score=0.5511 slope=23.3／還原後最大誤差 1（≤2）／PSNR 55.58 dB → ✅
+- nano_compact（1408×768）：偵測 variant=compact（預期 compact）score=0.8347 slope=5.0／還原後最大誤差 1（≤2）／PSNR 55.12 dB → ✅
+- 小結：✅ 三種幾何全部正確偵測並還原
+
+## 測試 4：誤判測試（乾淨圖不得誤報）
+- 高齡友善環境設計課程_無浮水印.png（2752×1536）：Notebook score=0.2094 slope=0.6（門檻 0.55，found=false）／星星 score=0.0631 slope=2.6（門檻 0.32，found=false）→ ✅ 無誤報
+- nano_96_clean.png（1400×1200）：Notebook score=0.3142 slope=0.7（門檻 0.55，found=false）／星星 score=0.0740 slope=0.3（門檻 0.32，found=false）→ ✅ 無誤報
+- nano_48_clean.png（800×600）：Notebook score=0.3229 slope=0.6（門檻 0.55，found=false）／星星 score=0.1347 slope=5.1（門檻 0.32，found=false）→ ✅ 無誤報
+- nano_compact_clean.png（1408×768）：Notebook score=0.3371 slope=0.7（門檻 0.55，found=false）／星星 score=0.1022 slope=0.4（門檻 0.32，found=false）→ ✅ 無誤報
+- 小結：✅ 四張乾淨圖皆無誤報
+
+## 附帶：交叉偵測（有 Notebook 浮水印的圖，星星偵測器不應誤報）
+- 高齡友善環境設計課程.png：星星 score=0.0631 slope=2.6 found=false → ✅
+
+## 測試 4b：大規模負樣本掃描（~/Downloads 真實圖片）
+- 掃描 45 張真實圖片（皆無 AI 浮水印）
+- 星星偵測：誤報 0 張；最高分 0.2244（ .JPG），門檻 0.32
+- Notebook 偵測：誤報 0 張；通過振幅檢查者最高分 0.4024（1-s2.0-S2451994416300141-gr3.jpg），門檻 0.55
+- 小結：✅ 零誤報
+
+（輸出圖檔位於 test/out/，Node v24.15.0）

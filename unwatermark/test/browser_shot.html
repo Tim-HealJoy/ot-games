@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<title>瀏覽器流程截圖用外殼</title>
+<style>
+  html,body{margin:0;background:#F4EFE3}
+  iframe{width:1240px;height:2400px;border:0;display:block}
+  #stat{position:fixed;right:8px;top:8px;z-index:9;background:#1B1A17;color:#fff;
+        font:12px/1.5 monospace;padding:6px 10px;border-radius:6px;white-space:pre}
+</style>
+</head>
+<body>
+<div id="stat">booting…</div>
+<iframe id="fr" src="/unwatermark/"></iframe>
+<script>
+/**
+ * 用 iframe 載入工具本體，程式化餵入 test/fixtures 的檔案，
+ * 讓 headless Chrome 可以截到「處理完成」的實際畫面。
+ * 場景由 ?case= 決定：images / zoom / manual / docs
+ */
+var CASE = new URLSearchParams(location.search).get('case') || 'images';
+var stat = document.getElementById('stat');
+var fr = document.getElementById('fr');
+
+function log(s) { stat.textContent = s; window.__shotStatus = s; }
+
+async function grab(path, mime) {
+  var r = await fetch(path);
+  return new File([await r.blob()], path.split('/').pop(), { type: mime });
+}
+
+fr.addEventListener('load', async function () {
+  try {
+    var W = fr.contentWindow;
+    var api = W.__unwatermark;
+    await api.ready;
+
+    if (CASE === 'docs') {
+      var files = [
+        await grab('/unwatermark/test/fixtures/watermark_test.pdf', 'application/pdf'),
+        await grab('/unwatermark/test/fixtures/watermark_test.pptx',
+          'application/vnd.openxmlformats-officedocument.presentationml.presentation')
+      ];
+      log('處理 PDF／PPTX 中…');
+      await api.addFiles(files);
+    } else {
+      if (CASE === 'manual') W.document.getElementById('mode').value = 'manual';
+      var imgs = [
+        await grab('/unwatermark/test/fixtures/nano96_sample.png', 'image/png'),
+        await grab('/unwatermark/test/fixtures/notebook_sample.jpeg', 'image/jpeg')
+      ];
+      log('處理圖片中…');
+      await api.addFiles(imgs);
+
+      if (CASE === 'zoom') {
+        // 兩張都按「放大右下角」（按鈕本身會切換 item.zoom 並重繪）
+        var btns = W.document.querySelectorAll('.card .row button');
+        for (var i = 0; i < btns.length; i++) {
+          if (btns[i].textContent === '放大右下角') btns[i].click();
+        }
+        await new Promise(function (r) { setTimeout(r, 2000); });
+      }
+      if (CASE === 'manual') {
+        // 直接塞兩個框（模擬使用者拖曳的結果），再按「清除框選區」
+        api.items.forEach(function (it) {
+          it.rects = [{ x: Math.round(it.width * 0.72), y: Math.round(it.height * 0.86),
+                        width: Math.round(it.width * 0.24), height: Math.round(it.height * 0.10) }];
+        });
+        W.document.getElementById('mode').dispatchEvent(new Event('change'));
+        await new Promise(function (r) { setTimeout(r, 300); });
+        var b2 = W.document.querySelectorAll('.card .row button');
+        for (var j = 0; j < b2.length; j++) {
+          if (b2[j].textContent === '清除框選區') b2[j].click();
+        }
+        await new Promise(function (r) { setTimeout(r, 2500); });
+      }
+    }
+
+    var summary = api.items.map(function (i) {
+      return i.file.name + ' → ' + i.status + (i.error ? ' (' + i.error + ')' : '') +
+             ' [' + ((i.report && i.report.applied.join('+')) || i.summary || '') + ']';
+    }).join('\n');
+    log('DONE\n' + summary);
+    window.__shotDone = true;
+  } catch (e) {
+    log('ERROR ' + e.message);
+    window.__shotDone = true;
+  }
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,967 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AI 浮水印清除器 — 圖片、PDF、簡報一次清乾淨</title>
+<meta name="description" content="免上傳的 AI 浮水印清除工具。自動偵測並移除 Nano Banana／Gemini 的右下角星星與 Gemini Notebook 文字標記，也支援手動框選。支援 PNG／JPG／WebP／PDF／PPTX，全程在你的瀏覽器裡處理，檔案不離開裝置。工具設計：施昱廷 職能治療師。">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="復能小工具">
+<meta property="og:title" content="AI 浮水印清除器">
+<meta property="og:description" content="自動清除 AI 生成圖片右下角的浮水印，支援圖片、PDF、簡報。檔案不上傳，全程在你的瀏覽器裡處理。">
+<meta property="og:url" content="https://games.otshih.com/unwatermark/">
+<meta property="og:image" content="https://games.otshih.com/unwatermark/share.png">
+<script src="/open-in-browser.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap">
+<style>
+:root{
+  --ground:#F4EFE3;      /* 品牌淺底色 Cream Beige */
+  --panel:#FFFDF8;
+  --ink:#1B1A17;
+  --muted:#6B6559;
+  --line:#DFD6C4;
+  --accent:#2F5D50;
+  --accent-soft:#E4EDE9;
+  --warn:#9A5B1E;
+  --warn-soft:#F6E9D8;
+  --ok:#2F5D50;
+  --radius:14px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--ground); color:var(--ink);
+  font-family:"Noto Sans TC","PingFang TC","Helvetica Neue",Arial,sans-serif;
+  font-size:17px; line-height:1.7; -webkit-text-size-adjust:100%;
+}
+.wrap{max-width:1080px; margin:0 auto; padding:28px 18px 64px}
+
+header h1{font-size:34px; font-weight:900; letter-spacing:.01em; margin:0 0 10px}
+header p.lead{font-size:18px; color:var(--muted); margin:0 0 6px; max-width:62ch}
+.privacy{
+  display:inline-flex; align-items:center; gap:8px; margin-top:10px;
+  background:var(--accent-soft); color:var(--accent);
+  border-radius:999px; padding:8px 16px; font-size:15px; font-weight:700;
+}
+
+/* ── 上傳區 ───────────────────────────────────────── */
+.drop{
+  margin:24px 0 18px; padding:34px 20px; text-align:center;
+  background:var(--panel); border:2px dashed var(--line); border-radius:var(--radius);
+  cursor:pointer; transition:border-color .15s, background .15s;
+}
+.drop:hover,.drop.hot{border-color:var(--accent); background:var(--accent-soft)}
+.drop strong{display:block; font-size:20px; font-weight:900; margin-bottom:6px}
+.drop span{color:var(--muted); font-size:15px}
+
+/* ── 控制列 ───────────────────────────────────────── */
+.bar{
+  display:flex; flex-wrap:wrap; gap:12px; align-items:center;
+  background:var(--panel); border:1px solid var(--line); border-radius:var(--radius);
+  padding:14px 16px; margin-bottom:22px;
+}
+.bar label{font-weight:700; font-size:15px}
+select,button{
+  font-family:inherit; font-size:16px;
+  min-height:44px; border-radius:10px; border:1px solid var(--line);
+  background:var(--panel); color:var(--ink); padding:0 16px; cursor:pointer;
+}
+select{padding-right:34px}
+button.primary{background:var(--accent); color:#fff; border-color:var(--accent); font-weight:700}
+button.primary:disabled{background:#B9C6C1; border-color:#B9C6C1; cursor:not-allowed}
+button:disabled{opacity:.5; cursor:not-allowed}
+button.ghost{background:transparent}
+.bar .spacer{flex:1 1 auto}
+.hint{font-size:14px; color:var(--muted); margin:-10px 0 22px}
+
+/* ── 檔案卡片 ─────────────────────────────────────── */
+.cards{display:grid; grid-template-columns:repeat(auto-fill,minmax(430px,1fr)); gap:18px}
+@media (max-width:760px){ .cards{grid-template-columns:1fr} .wrap{padding:20px 14px 56px} header h1{font-size:27px} }
+.card{
+  background:var(--panel); border:1px solid var(--line); border-radius:var(--radius);
+  padding:16px; display:flex; flex-direction:column; gap:12px; overflow:hidden;
+}
+.card .name{font-weight:700; font-size:15px; word-break:break-all; line-height:1.4}
+.chips{display:flex; flex-wrap:wrap; gap:8px}
+.chip{
+  font-size:13px; font-weight:700; padding:4px 12px; border-radius:999px;
+  background:#EFEAE0; color:var(--muted); white-space:nowrap;
+}
+.chip.ok{background:var(--accent-soft); color:var(--accent)}
+.chip.none{background:var(--warn-soft); color:var(--warn)}
+.chip.busy{background:#E7E2F0; color:#4A3E7A}
+.chip.err{background:#F7DEDA; color:#8C2F22}
+
+/* 前後對照 */
+.cmp{
+  position:relative; border-radius:10px; overflow:hidden; background:#EDE7DA;
+  touch-action:pan-y; user-select:none; -webkit-user-select:none;
+}
+.cmp img{display:block; width:100%; height:auto}
+.cmp .after{position:relative}
+.cmp .before{position:absolute; inset:0; width:100%; height:100%; object-fit:fill}
+.cmp .handle{
+  position:absolute; top:0; bottom:0; width:3px; background:#fff;
+  box-shadow:0 0 0 1px rgba(0,0,0,.28); pointer-events:none;
+}
+.cmp .handle::after{
+  content:"↔"; position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+  width:38px; height:38px; border-radius:50%; background:#fff; color:var(--ink);
+  box-shadow:0 1px 6px rgba(0,0,0,.3); display:flex; align-items:center; justify-content:center;
+  font-size:18px; font-weight:700;
+}
+.cmp .tagL,.cmp .tagR{
+  position:absolute; bottom:8px; font-size:12px; font-weight:700; color:#fff;
+  background:rgba(27,26,23,.62); padding:2px 9px; border-radius:999px; pointer-events:none;
+}
+.cmp .tagL{left:8px} .cmp .tagR{right:8px}
+/* 手動框選層 */
+.cmp .sel{position:absolute; inset:0; cursor:crosshair; touch-action:none}
+.cmp .rect{position:absolute; border:2px solid #E2603C; background:rgba(226,96,60,.22)}
+.cmp.manual{touch-action:none}
+
+.row{display:flex; flex-wrap:wrap; gap:8px}
+.row button{font-size:15px; padding:0 14px}
+.meta{font-size:13px; color:var(--muted); line-height:1.6}
+.meta code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-size:12px}
+
+/* ── 說明與頁尾 ───────────────────────────────────── */
+details.notes{
+  margin-top:30px; background:var(--panel); border:1px solid var(--line);
+  border-radius:var(--radius); padding:14px 18px;
+}
+details.notes summary{font-weight:700; cursor:pointer; min-height:32px; display:flex; align-items:center}
+details.notes ul{margin:10px 0 4px; padding-left:1.3em}
+details.notes li{margin-bottom:7px; font-size:15px; color:var(--muted)}
+footer{
+  margin-top:34px; padding-top:20px; border-top:1px solid var(--line);
+  font-size:14px; color:var(--muted); line-height:1.9;
+}
+footer strong{color:var(--ink)}
+.sr{position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>AI 浮水印清除器</h1>
+  <p class="lead">自動找出 AI 生成圖片右下角的浮水印並清乾淨——Nano Banana／Gemini 的星星標記、Gemini Notebook 的文字標記都支援。找不到的也可以自己框起來清。圖片、PDF、PowerPoint 都能丟進來。</p>
+  <div class="privacy">🔒 檔案不離開你的裝置，全程在瀏覽器裡處理</div>
+</header>
+
+<div class="drop" id="drop" tabindex="0" role="button" aria-label="選擇或拖曳檔案">
+  <strong>把檔案拖進來，或點這裡選檔</strong>
+  <span>支援 PNG／JPG／WebP／PDF／PPTX，可一次選多個檔</span>
+</div>
+<input type="file" id="picker" class="sr" multiple
+       accept=".png,.jpg,.jpeg,.webp,.pdf,.pptx,image/*,application/pdf">
+
+<div class="bar">
+  <label for="mode">處理模式</label>
+  <select id="mode">
+    <option value="auto">自動偵測（建議）</option>
+    <option value="manual">手動框選</option>
+    <option value="force48">強制 Nano Banana 48</option>
+    <option value="force96">強制 Nano Banana 96</option>
+    <option value="forcecompact">強制 Nano Banana compact</option>
+  </select>
+  <span class="spacer"></span>
+  <button id="runAll" class="primary" disabled>處理全部</button>
+  <button id="zipAll" disabled>全部下載（ZIP）</button>
+  <button id="clearAll" class="ghost" disabled>清空</button>
+</div>
+<p class="hint" id="modeHint">自動模式會同時檢查星星與文字兩種浮水印；沒偵測到的檔案可以切到「手動框選」自己圈。</p>
+
+<div class="cards" id="cards"></div>
+
+<details class="notes">
+  <summary>使用說明與注意事項</summary>
+  <ul>
+    <li><strong>檔案不上傳。</strong>所有解碼與運算都在你自己的瀏覽器裡跑，關掉分頁就什麼都不留。</li>
+    <li><strong>手動框選：</strong>把模式切到「手動框選」，在預覽圖上拖曳出一或多個矩形，按「清除框選區」。大面積建議分多次小框，一次框太大會補成平滑漸層。</li>
+    <li><strong>PDF：</strong>有偵測到浮水印的頁面會轉成圖片重新排版，<strong>該頁文字將不可選取</strong>；沒偵測到浮水印的頁面會原樣保留，文字層不受影響。</li>
+    <li><strong>PPTX：</strong>只會替換 <code>ppt/media/</code> 裡的圖片，版面、文字、動畫等其他內容完全不動。</li>
+    <li><strong>EXIF 不保留。</strong>圖片重新編碼後，拍攝時間、相機型號、GPS 等中繼資料會被去除。JPG 以品質 0.95 輸出，PNG 為無損。</li>
+    <li>大張圖片處理時畫面可能短暫停頓，這是正常的，請等狀態變成「已處理」。</li>
+  </ul>
+</details>
+
+<footer>
+  <strong>工具設計：施昱廷 職能治療師</strong><br>
+  星星遮罩取自開源專案 gemini-watermark-remover（MIT）。<br>
+  本工具僅移除可見的角落標記，不處理 SynthID 這類隱形浮水印；請用於自己生成的內容。
+</footer>
+
+</div>
+
+<script src="engine.js"></script>
+<script>
+(function () {
+'use strict';
+
+var E = window.UnwatermarkEngine;
+var RES = null;          // { alpha48, alpha96, notebook }
+var items = [];          // 檔案清單
+var seq = 0;
+
+var $ = function (id) { return document.getElementById(id); };
+var drop = $('drop'), picker = $('picker'), cardsEl = $('cards');
+var modeSel = $('mode'), runAllBtn = $('runAll'), zipBtn = $('zipAll'), clearBtn = $('clearAll');
+
+// ── 資源載入 ──────────────────────────────────────────────────────────────
+function loadImageData(src) {
+  return new Promise(function (resolve, reject) {
+    var img = new Image();
+    img.onload = function () {
+      var cv = document.createElement('canvas');
+      cv.width = img.naturalWidth; cv.height = img.naturalHeight;
+      var ctx = cv.getContext('2d', { willReadFrequently: true });
+      ctx.drawImage(img, 0, 0);
+      resolve(ctx.getImageData(0, 0, cv.width, cv.height));
+    };
+    img.onerror = reject;
+    img.src = src;
+  });
+}
+
+var resourcesReady = Promise.all([
+  loadImageData('assets/bg_48.png'),
+  loadImageData('assets/bg_96.png'),
+  loadImageData('assets/notebook_text.png')
+]).then(function (a) {
+  RES = {
+    alpha48: E.alphaMapFromRGB(a[0]),
+    alpha96: E.alphaMapFromRGB(a[1]),
+    notebook: { alpha: E.alphaMapFromGray(a[2]), width: a[2].width, height: a[2].height }
+  };
+});
+
+// ── 外部函式庫（用到才載，全部固定版本） ──────────────────────────────────
+var CDN = {
+  pdfjs: 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js',
+  pdfjsWorker: 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js',
+  pdflib: 'https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js',
+  jszip: 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js'
+};
+var loaded = {};
+function loadScript(url) {
+  if (loaded[url]) return loaded[url];
+  loaded[url] = new Promise(function (resolve, reject) {
+    var s = document.createElement('script');
+    s.src = url; s.onload = resolve;
+    s.onerror = function () { reject(new Error('載入失敗：' + url)); };
+    document.head.appendChild(s);
+  });
+  return loaded[url];
+}
+function needPdfJs() {
+  return loadScript(CDN.pdfjs).then(function () {
+    window.pdfjsLib.GlobalWorkerOptions.workerSrc = CDN.pdfjsWorker;
+  });
+}
+function needJSZip() { return loadScript(CDN.jszip); }
+function needPdfLib() { return loadScript(CDN.pdflib); }
+
+// ── 小工具 ────────────────────────────────────────────────────────────────
+function kindOf(file) {
+  var n = file.name.toLowerCase();
+  if (/\.pdf$/.test(n)) return 'pdf';
+  if (/\.pptx$/.test(n)) return 'pptx';
+  if (/\.(png|jpe?g|webp|gif|bmp)$/.test(n)) return 'image';
+  if (/^image\//.test(file.type)) return 'image';
+  return 'other';
+}
+function baseName(name) { return name.replace(/\.[^.]+$/, ''); }
+function extOf(name) { var m = name.match(/\.([^.]+)$/); return m ? m[1].toLowerCase() : ''; }
+function outName(item) {
+  var ext = extOf(item.file.name) || 'png';
+  return baseName(item.file.name) + '_已清除.' + ext;
+}
+function mimeFor(name) {
+  var e = extOf(name);
+  if (e === 'jpg' || e === 'jpeg') return 'image/jpeg';
+  if (e === 'webp') return 'image/webp';
+  return 'image/png';
+}
+function yieldUI() { return new Promise(function (r) { setTimeout(r, 0); }); }
+
+function decodeImageFile(file) {
+  return new Promise(function (resolve, reject) {
+    var url = URL.createObjectURL(file);
+    var img = new Image();
+    img.onload = function () { URL.revokeObjectURL(url); resolve(img); };
+    img.onerror = function () { URL.revokeObjectURL(url); reject(new Error('圖片解碼失敗')); };
+    img.src = url;
+  });
+}
+function imgToCanvas(img) {
+  var cv = document.createElement('canvas');
+  cv.width = img.naturalWidth || img.width;
+  cv.height = img.naturalHeight || img.height;
+  cv.getContext('2d', { willReadFrequently: true }).drawImage(img, 0, 0);
+  return cv;
+}
+function copyCanvas(src) {
+  var cv = document.createElement('canvas');
+  cv.width = src.width; cv.height = src.height;
+  cv.getContext('2d', { willReadFrequently: true }).drawImage(src, 0, 0);
+  return cv;
+}
+function canvasToBlob(cv, mime) {
+  return new Promise(function (resolve) {
+    cv.toBlob(function (b) { resolve(b); }, mime, mime === 'image/jpeg' ? 0.95 : undefined);
+  });
+}
+/**
+ * 放大鏡：右下角原尺寸裁切後放大 2 倍。
+ * 視窗大小抓得剛好蓋住兩種浮水印的落點——星星最遠是 96+64=160 px，
+ * Notebook 文字最寬 204 px 加邊距約 224 px——所以最小 280×200，
+ * 大圖再按短邊等比放大，免得浮水印在畫面裡小到看不出來。
+ */
+function cornerCanvas(srcCanvas) {
+  var side = Math.min(srcCanvas.width, srcCanvas.height);
+  var w = Math.min(srcCanvas.width, Math.max(280, Math.round(side / 5)));
+  var h = Math.min(srcCanvas.height, Math.max(200, Math.round(side / 7)));
+  var x = srcCanvas.width - w, y = srcCanvas.height - h;
+  var cv = document.createElement('canvas');
+  cv.width = w * 2; cv.height = h * 2;
+  var ctx = cv.getContext('2d');
+  ctx.imageSmoothingEnabled = false;
+  ctx.drawImage(srcCanvas, x, y, w, h, 0, 0, cv.width, cv.height);
+  return cv;
+}
+
+function engineOptions() {
+  var m = modeSel.value;
+  var o = { notebookMethod: 'inpaint' };
+  if (m === 'force48') { o.mode = 'nano'; o.forceNano = '48'; }
+  else if (m === 'force96') { o.mode = 'nano'; o.forceNano = '96'; }
+  else if (m === 'forcecompact') { o.mode = 'nano'; o.forceNano = 'compact'; }
+  else if (m === 'manual') { o.mode = 'none'; }
+  else { o.mode = 'auto'; }
+  return o;
+}
+
+function describe(report) {
+  if (!report) return null;
+  var hasNb = report.applied.indexOf('notebook') >= 0;
+  var hasNano = report.applied.indexOf('nano') >= 0;
+  if (hasNb && hasNano) return { text: '星星＋文字都清掉了', cls: 'ok' };
+  if (hasNb) return { text: 'Gemini Notebook 文字', cls: 'ok' };
+  if (hasNano) return { text: 'Nano Banana 星星', cls: 'ok' };
+  return { text: '未偵測到（可手動框選）', cls: 'none' };
+}
+
+// ── 單張圖片處理 ──────────────────────────────────────────────────────────
+function processCanvas(cv, rects) {
+  var ctx = cv.getContext('2d', { willReadFrequently: true });
+  var data = ctx.getImageData(0, 0, cv.width, cv.height);
+  var img = { width: data.width, height: data.height, data: data.data };
+  var report = E.processImage(img, RES, engineOptions());
+  if (rects && rects.length) {
+    E.inpaintRects(img, rects);
+    report.applied.push('manual');
+    report.manualCount = rects.length;
+  }
+  ctx.putImageData(data, 0, 0);
+  return report;
+}
+
+// ── 卡片渲染 ──────────────────────────────────────────────────────────────
+function statusChip(item) {
+  if (item.status === 'busy') return { text: item.busyText || '處理中…', cls: 'busy' };
+  if (item.status === 'error') return { text: '失敗：' + item.error, cls: 'err' };
+  if (item.status === 'pending') return { text: '待處理', cls: '' };
+  if (item.kind === 'image') {
+    var d = describe(item.report);
+    if (item.rects && item.rects.length) {
+      return { text: (d && d.cls === 'ok' ? d.text + '＋' : '') + '手動清除 ' + item.rects.length + ' 區', cls: 'ok' };
+    }
+    return d;
+  }
+  return { text: item.summary || '已處理', cls: 'ok' };
+}
+
+function render() {
+  cardsEl.innerHTML = '';
+  items.forEach(function (item) { cardsEl.appendChild(buildCard(item)); });
+  var done = items.filter(function (i) { return i.blob; });
+  runAllBtn.disabled = !items.length;
+  zipBtn.disabled = done.length < 1;
+  clearBtn.disabled = !items.length;
+  runAllBtn.textContent = items.length > 1 ? '處理全部（' + items.length + '）' : '處理';
+  zipBtn.textContent = done.length > 1 ? '全部下載（ZIP，' + done.length + '）' : '全部下載（ZIP）';
+}
+
+function buildCard(item) {
+  var card = document.createElement('div');
+  card.className = 'card';
+
+  var name = document.createElement('div');
+  name.className = 'name';
+  name.textContent = item.file.name;
+  card.appendChild(name);
+
+  var chips = document.createElement('div');
+  chips.className = 'chips';
+  var st = statusChip(item);
+  if (st) {
+    var c = document.createElement('span');
+    c.className = 'chip ' + (st.cls || '');
+    c.textContent = st.text;
+    chips.appendChild(c);
+  }
+  if (item.kind !== 'image') {
+    var k = document.createElement('span');
+    k.className = 'chip';
+    k.textContent = item.kind.toUpperCase();
+    chips.appendChild(k);
+  }
+  card.appendChild(chips);
+
+  if (item.kind === 'image' && item.beforeURL) {
+    card.appendChild(buildCompare(item));
+  }
+
+  if (item.meta) {
+    var m = document.createElement('div');
+    m.className = 'meta';
+    m.innerHTML = item.meta;
+    card.appendChild(m);
+  }
+
+  var row = document.createElement('div');
+  row.className = 'row';
+
+  if (item.kind === 'image') {
+    if (modeSel.value === 'manual') {
+      var clr = document.createElement('button');
+      clr.className = 'primary';
+      clr.textContent = '清除框選區';
+      clr.disabled = !(item.rects && item.rects.length);
+      clr.onclick = function () { runOne(item); };
+      row.appendChild(clr);
+
+      var undo = document.createElement('button');
+      undo.textContent = '復原上一個框';
+      undo.disabled = !(item.rects && item.rects.length);
+      undo.onclick = function () { item.rects.pop(); render(); };
+      row.appendChild(undo);
+
+      var wipe = document.createElement('button');
+      wipe.className = 'ghost';
+      wipe.textContent = '清空框選';
+      wipe.disabled = !(item.rects && item.rects.length);
+      wipe.onclick = function () { item.rects = []; render(); };
+      row.appendChild(wipe);
+    } else {
+      var re = document.createElement('button');
+      re.textContent = item.blob ? '重新處理' : '處理';
+      re.onclick = function () { runOne(item); };
+      row.appendChild(re);
+    }
+    if (item.blob) {
+      var lens = document.createElement('button');
+      lens.className = 'ghost';
+      lens.textContent = item.zoom ? '看整張' : '放大右下角';
+      lens.onclick = function () { item.zoom = !item.zoom; refreshPreview(item).then(render); };
+      row.appendChild(lens);
+    }
+  } else {
+    var reAll = document.createElement('button');
+    reAll.textContent = item.blob ? '重新處理' : '處理';
+    reAll.onclick = function () { runOne(item); };
+    row.appendChild(reAll);
+  }
+
+  var dl = document.createElement('button');
+  dl.className = 'primary';
+  dl.textContent = '下載';
+  dl.disabled = !item.blob;
+  dl.onclick = function () { downloadBlob(item.blob, item.outName); };
+  row.appendChild(dl);
+
+  var rm = document.createElement('button');
+  rm.className = 'ghost';
+  rm.textContent = '移除';
+  rm.onclick = function () {
+    items = items.filter(function (i) { return i !== item; });
+    render();
+  };
+  row.appendChild(rm);
+
+  card.appendChild(row);
+  return card;
+}
+
+function buildCompare(item) {
+  var box = document.createElement('div');
+  box.className = 'cmp' + (modeSel.value === 'manual' ? ' manual' : '');
+
+  var after = document.createElement('img');
+  after.className = 'after';
+  after.alt = '處理後';
+  after.src = item.afterURL || item.beforeURL;
+  box.appendChild(after);
+
+  var before = document.createElement('img');
+  before.className = 'before';
+  before.alt = '處理前';
+  before.src = item.beforeURL;
+  box.appendChild(before);
+
+  var handle = document.createElement('div');
+  handle.className = 'handle';
+  box.appendChild(handle);
+
+  var tl = document.createElement('span'); tl.className = 'tagL'; tl.textContent = '處理前';
+  var tr = document.createElement('span'); tr.className = 'tagR'; tr.textContent = '處理後';
+  box.appendChild(tl); box.appendChild(tr);
+
+  var pos = item.pos == null ? 50 : item.pos;
+  function apply(p) {
+    item.pos = p;
+    before.style.clipPath = 'inset(0 ' + (100 - p) + '% 0 0)';
+    handle.style.left = 'calc(' + p + '% - 1.5px)';
+  }
+  apply(pos);
+
+  // 滑桿拖曳（手動框選模式下讓位給框選層）
+  if (modeSel.value !== 'manual') {
+    var dragging = false;
+    var move = function (ev) {
+      var r = box.getBoundingClientRect();
+      var cx = (ev.touches ? ev.touches[0].clientX : ev.clientX) - r.left;
+      apply(Math.max(0, Math.min(100, cx / r.width * 100)));
+    };
+    box.addEventListener('pointerdown', function (ev) {
+      dragging = true; box.setPointerCapture(ev.pointerId); move(ev);
+    });
+    box.addEventListener('pointermove', function (ev) { if (dragging) move(ev); });
+    box.addEventListener('pointerup', function () { dragging = false; });
+    box.addEventListener('pointercancel', function () { dragging = false; });
+  } else {
+    box.appendChild(buildSelector(item));
+  }
+  return box;
+}
+
+/** 手動框選層：在預覽圖上拖曳矩形，座標換算回原圖像素。 */
+function buildSelector(item) {
+  var sel = document.createElement('div');
+  sel.className = 'sel';
+
+  function toImage(rect, dispW, dispH) {
+    var sx = item.width / dispW, sy = item.height / dispH;
+    return {
+      x: Math.round(rect.x * sx), y: Math.round(rect.y * sy),
+      width: Math.max(1, Math.round(rect.w * sx)), height: Math.max(1, Math.round(rect.h * sy))
+    };
+  }
+  (item.rects || []).forEach(function (r) {
+    var d = document.createElement('div');
+    d.className = 'rect';
+    d.style.left = (r.x / item.width * 100) + '%';
+    d.style.top = (r.y / item.height * 100) + '%';
+    d.style.width = (r.width / item.width * 100) + '%';
+    d.style.height = (r.height / item.height * 100) + '%';
+    sel.appendChild(d);
+  });
+
+  var live = null, start = null;
+  sel.addEventListener('pointerdown', function (ev) {
+    ev.preventDefault();
+    sel.setPointerCapture(ev.pointerId);
+    var r = sel.getBoundingClientRect();
+    start = { x: ev.clientX - r.left, y: ev.clientY - r.top };
+    live = document.createElement('div');
+    live.className = 'rect';
+    sel.appendChild(live);
+  });
+  sel.addEventListener('pointermove', function (ev) {
+    if (!start) return;
+    var r = sel.getBoundingClientRect();
+    var cx = Math.max(0, Math.min(r.width, ev.clientX - r.left));
+    var cy = Math.max(0, Math.min(r.height, ev.clientY - r.top));
+    var x = Math.min(start.x, cx), y = Math.min(start.y, cy);
+    live.style.left = x + 'px'; live.style.top = y + 'px';
+    live.style.width = Math.abs(cx - start.x) + 'px';
+    live.style.height = Math.abs(cy - start.y) + 'px';
+  });
+  function finish(ev) {
+    if (!start) return;
+    var r = sel.getBoundingClientRect();
+    var cx = Math.max(0, Math.min(r.width, ev.clientX - r.left));
+    var cy = Math.max(0, Math.min(r.height, ev.clientY - r.top));
+    var rect = {
+      x: Math.min(start.x, cx), y: Math.min(start.y, cy),
+      w: Math.abs(cx - start.x), h: Math.abs(cy - start.y)
+    };
+    start = null;
+    if (rect.w < 4 || rect.h < 4) { if (live) live.remove(); live = null; render(); return; }
+    item.rects = item.rects || [];
+    item.rects.push(toImage(rect, r.width, r.height));
+    live = null;
+    render();
+  }
+  sel.addEventListener('pointerup', finish);
+  sel.addEventListener('pointercancel', function () { start = null; if (live) live.remove(); live = null; });
+  return sel;
+}
+
+/** 預覽用縮圖：卡片最寬也不到 500px，超過 PREVIEW_MAX 就先縮，不然編碼原尺寸太慢。 */
+var PREVIEW_MAX = 900;
+function previewCanvas(src) {
+  var scale = Math.min(1, PREVIEW_MAX / Math.max(src.width, src.height));
+  if (scale >= 1) return src;
+  var cv = document.createElement('canvas');
+  cv.width = Math.max(1, Math.round(src.width * scale));
+  cv.height = Math.max(1, Math.round(src.height * scale));
+  var ctx = cv.getContext('2d');
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = 'high';
+  ctx.drawImage(src, 0, 0, cv.width, cv.height);
+  return cv;
+}
+function refreshPreview(item) {
+  if (!item.canvasBefore) return Promise.resolve();
+  if (item.beforeURL) URL.revokeObjectURL(item.beforeURL);
+  if (item.afterURL) URL.revokeObjectURL(item.afterURL);
+  item.beforeURL = null; item.afterURL = null;
+  // 放大鏡模式用原尺寸裁切（面積小、免縮放）；整張模式先縮到 PREVIEW_MAX
+  var b = item.zoom ? cornerCanvas(item.canvasBefore) : previewCanvas(item.canvasBefore);
+  var a = item.canvasAfter ? (item.zoom ? cornerCanvas(item.canvasAfter) : previewCanvas(item.canvasAfter)) : null;
+  return Promise.all([
+    canvasToBlob(b, 'image/png'),
+    a ? canvasToBlob(a, 'image/png') : Promise.resolve(null)
+  ]).then(function (r) {
+    item.beforeURL = URL.createObjectURL(r[0]);
+    item.afterURL = r[1] ? URL.createObjectURL(r[1]) : null;
+  });
+}
+
+function downloadBlob(blob, filename) {
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(function () { URL.revokeObjectURL(url); }, 4000);
+}
+
+// ── 各類型的處理流程 ──────────────────────────────────────────────────────
+function runOne(item) {
+  item.status = 'busy'; item.error = null; render();
+  return resourcesReady
+    .then(yieldUI)
+    .then(function () {
+      if (item.kind === 'image') return runImage(item);
+      if (item.kind === 'pdf') return runPdf(item);
+      if (item.kind === 'pptx') return runPptx(item);
+      throw new Error('不支援的檔案類型');
+    })
+    .then(function () { item.status = 'done'; render(); })
+    .catch(function (err) {
+      item.status = 'error';
+      item.error = (err && err.message) || String(err);
+      render();
+    });
+}
+
+function runImage(item) {
+  // 加入檔案時已經解碼過一次存在 item.canvasBefore，這裡直接複製，不重複解碼
+  var prep = item.canvasBefore
+    ? Promise.resolve(copyCanvas(item.canvasBefore))
+    : decodeImageFile(item.file).then(function (img) {
+        item.canvasBefore = imgToCanvas(img);
+        return copyCanvas(item.canvasBefore);
+      });
+  return prep.then(function (work) {
+    item.width = work.width; item.height = work.height;
+    var report = processCanvas(work, item.rects);
+    item.report = report;
+    item.canvasAfter = work;
+    var bits = [];
+    if (report.notebook) bits.push('文字分數 ' + report.notebook.score.toFixed(3) + (report.notebook.found ? '（命中）' : '（未達門檻 ' + E.NOTEBOOK_SCORE_THRESHOLD + '）'));
+    if (report.nano) bits.push('星星分數 ' + report.nano.score.toFixed(3) + '／' + report.nano.variant + (report.nano.found ? '（命中）' : '（未達門檻 ' + E.NANO_SCORE_THRESHOLD + '）'));
+    item.meta = item.width + ' × ' + item.height + ' px<br>' + bits.join('　');
+    item.outName = outName(item);
+    return refreshPreview(item).then(function () {
+      return canvasToBlob(work, mimeFor(item.file.name));
+    }).then(function (b) { item.blob = b; });
+  });
+}
+
+function runPdf(item) {
+  var processedPages = 0, totalPages = 0;
+  return needPdfJs()
+    .then(function () { return needPdfLib(); })
+    .then(function () { return item.file.arrayBuffer(); })
+    .then(function (buf) {
+      var srcBytes = new Uint8Array(buf.slice(0));
+      return window.pdfjsLib.getDocument({ data: new Uint8Array(buf.slice(0)) }).promise
+        .then(function (pdf) {
+          totalPages = pdf.numPages;
+          return window.PDFLib.PDFDocument.load(srcBytes).then(function (srcDoc) {
+            return window.PDFLib.PDFDocument.create().then(function (outDoc) {
+              var chain = Promise.resolve();
+              for (var p = 1; p <= pdf.numPages; p++) {
+                (function (pageNo) {
+                  chain = chain.then(function () {
+                    item.busyText = '處理第 ' + pageNo + '／' + totalPages + ' 頁…';
+                    render();
+                    return yieldUI();
+                  }).then(function () {
+                    return pdf.getPage(pageNo);
+                  }).then(function (page) {
+                    var base = page.getViewport({ scale: 1 });
+                    var scale = Math.min(2, 4096 / Math.max(base.width, base.height));
+                    if (!(scale > 0)) scale = 1;
+
+                    // 舊版星星是固定像素的，render 倍率一變幾何就跟著跑掉。
+                    // 先用規格的倍率試一次；沒偵測到而且倍率不是 1，再用倍率 1 試一次
+                    // （多數由圖片轉成的 PDF 是 72dpi，倍率 1 剛好等於原始像素格）。
+                    var tries = scale === 1 ? [scale] : [scale, 1];
+
+                    function attempt(idx) {
+                      var sc = tries[idx];
+                      var vp = page.getViewport({ scale: sc });
+                      var cv = document.createElement('canvas');
+                      cv.width = Math.round(vp.width); cv.height = Math.round(vp.height);
+                      var ctx = cv.getContext('2d', { willReadFrequently: true });
+                      // intent 用 'print'：pdf.js 的 'display' 繪製迴圈靠 requestAnimationFrame 推進，
+                      // 使用者一旦切到別的分頁就會整個停住（實測背景分頁 20 秒都畫不完）。
+                      // 'print' 走 Promise 排程，切分頁也照跑，畫面內容對純圖／文字頁完全相同。
+                      return page.render({ canvasContext: ctx, viewport: vp, intent: 'print' }).promise
+                        .then(function () {
+                          var data = ctx.getImageData(0, 0, cv.width, cv.height);
+                          var im = { width: data.width, height: data.height, data: data.data };
+                          var rep = E.processImage(im, RES, engineOptions());
+                          if (rep.applied.length) return { cv: cv, ctx: ctx, data: data };
+                          if (idx + 1 < tries.length) return attempt(idx + 1);
+                          return null;
+                        });
+                    }
+
+                    return attempt(0).then(function (hit) {
+                      if (!hit) {
+                        // 沒動到的頁面原樣搬過去，保住文字層
+                        return outDoc.copyPages(srcDoc, [pageNo - 1]).then(function (cp) {
+                          outDoc.addPage(cp[0]);
+                        });
+                      }
+                      processedPages++;
+                      hit.ctx.putImageData(hit.data, 0, 0);
+                      return canvasToBlob(hit.cv, 'image/png')
+                        .then(function (b) { return b.arrayBuffer(); })
+                        .then(function (ab) { return outDoc.embedPng(ab); })
+                        .then(function (png) {
+                          var pg = outDoc.addPage([base.width, base.height]);
+                          pg.drawImage(png, { x: 0, y: 0, width: base.width, height: base.height });
+                        });
+                    });
+                  });
+                })(p);
+              }
+              return chain.then(function () { return outDoc.save(); });
+            });
+          });
+        });
+    })
+    .then(function (bytes) {
+      item.blob = new Blob([bytes], { type: 'application/pdf' });
+      item.outName = baseName(item.file.name) + '_已清除.pdf';
+      item.summary = processedPages > 0
+        ? '已處理 ' + processedPages + '／' + totalPages + ' 頁'
+        : '全部 ' + totalPages + ' 頁都沒偵測到浮水印';
+      item.meta = processedPages > 0
+        ? '被處理的 ' + processedPages + ' 頁已轉為圖片（文字不可選取）；其餘 ' + (totalPages - processedPages) + ' 頁保留原始文字層。'
+        : '整份 PDF 原樣輸出，文字層完整保留。';
+      item.busyText = null;
+    });
+}
+
+function runPptx(item) {
+  var changed = 0, scanned = 0, names = [];
+  return needJSZip()
+    .then(function () { return window.JSZip.loadAsync(item.file); })
+    .then(function (zip) {
+      var targets = [];
+      var original = {};
+      zip.forEach(function (relPath, entry) {
+        original[relPath] = true;
+        if (!entry.dir && /^ppt\/media\/.+\.(png|jpe?g)$/i.test(relPath)) targets.push(relPath);
+      });
+      var chain = Promise.resolve();
+      targets.forEach(function (relPath, idx) {
+        chain = chain.then(function () {
+          item.busyText = '處理第 ' + (idx + 1) + '／' + targets.length + ' 張圖…';
+          render();
+          return yieldUI();
+        }).then(function () {
+          return zip.file(relPath).async('blob');
+        }).then(function (blob) {
+          var mime = /\.png$/i.test(relPath) ? 'image/png' : 'image/jpeg';
+          var f = new File([blob], relPath.split('/').pop(), { type: mime });
+          return decodeImageFile(f).then(function (img) {
+            scanned++;
+            var cv = imgToCanvas(img);
+            var ctx = cv.getContext('2d', { willReadFrequently: true });
+            var data = ctx.getImageData(0, 0, cv.width, cv.height);
+            var im = { width: data.width, height: data.height, data: data.data };
+            var rep = E.processImage(im, RES, engineOptions());
+            if (!rep.applied.length) return null;
+            ctx.putImageData(data, 0, 0);
+            changed++;
+            names.push(relPath.split('/').pop());
+            // 原副檔名寫回，PNG↔JPG 不互換
+            return canvasToBlob(cv, mime).then(function (out) {
+              return zip.file(relPath, out, { binary: true });
+            });
+          }).catch(function () { return null; });   // 單張圖失敗不中斷整份簡報
+        });
+      });
+      return chain.then(function () {
+        // JSZip 寫入 ppt/media/xxx.png 時會順手補上「ppt/media/」這種資料夾項目，
+        // 原始 pptx 並沒有。PowerPoint 雖然吃得下，但輸出應該跟原檔一模一樣才安全，
+        // 所以把不是原本就存在的資料夾項目清掉。
+        Object.keys(zip.files).forEach(function (name) {
+          if (zip.files[name].dir && !original[name]) delete zip.files[name];
+        });
+        return zip.generateAsync({
+          type: 'blob',
+          mimeType: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+          compression: 'DEFLATE'
+        });
+      });
+    })
+    .then(function (blob) {
+      item.blob = blob;
+      item.outName = baseName(item.file.name) + '_已清除.pptx';
+      item.summary = changed > 0 ? '已清除 ' + changed + '／' + scanned + ' 張圖' : scanned + ' 張圖都沒偵測到浮水印';
+      item.meta = '掃描 ppt/media/ 內的 ' + scanned + ' 張圖片' +
+        (changed ? '，處理了：' + names.join('、') : '') +
+        '。版面、文字與其他 XML 完全未更動。';
+      item.busyText = null;
+    });
+}
+
+// ── 加入檔案 ──────────────────────────────────────────────────────────────
+function addFiles(fileList) {
+  var added = [];
+  Array.prototype.forEach.call(fileList, function (file) {
+    var kind = kindOf(file);
+    if (kind === 'other') return;
+    var item = {
+      id: ++seq, file: file, kind: kind, status: 'pending',
+      rects: [], zoom: false, pos: 50
+    };
+    item.outName = outName(item);
+    items.push(item);
+    added.push(item);
+  });
+  render();
+
+  // 圖片先把「處理前」的預覽做出來，再依模式決定要不要自動處理
+  var chain = Promise.resolve();
+  added.forEach(function (item) {
+    chain = chain.then(function () {
+      if (item.kind !== 'image') return null;
+      return decodeImageFile(item.file).then(function (img) {
+        item.canvasBefore = imgToCanvas(img);
+        item.width = item.canvasBefore.width;
+        item.height = item.canvasBefore.height;
+        return refreshPreview(item).then(render);
+      }).catch(function () { });
+    }).then(function () {
+      if (modeSel.value === 'manual') return null;
+      return runOne(item);
+    });
+  });
+  return chain;
+}
+
+// ── 事件綁定 ──────────────────────────────────────────────────────────────
+drop.addEventListener('click', function () { picker.click(); });
+drop.addEventListener('keydown', function (e) {
+  if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); picker.click(); }
+});
+picker.addEventListener('change', function () {
+  addFiles(picker.files);
+  picker.value = '';
+});
+['dragenter', 'dragover'].forEach(function (ev) {
+  drop.addEventListener(ev, function (e) { e.preventDefault(); drop.classList.add('hot'); });
+});
+['dragleave', 'drop'].forEach(function (ev) {
+  drop.addEventListener(ev, function (e) { e.preventDefault(); drop.classList.remove('hot'); });
+});
+drop.addEventListener('drop', function (e) {
+  if (e.dataTransfer && e.dataTransfer.files) addFiles(e.dataTransfer.files);
+});
+window.addEventListener('dragover', function (e) { e.preventDefault(); });
+window.addEventListener('drop', function (e) { e.preventDefault(); });
+
+modeSel.addEventListener('change', function () {
+  $('modeHint').textContent = modeSel.value === 'manual'
+    ? '在預覽圖上拖曳出矩形（手機用手指拖），框好後按「清除框選區」。一次框小一點效果最好。'
+    : modeSel.value === 'auto'
+      ? '自動模式會同時檢查星星與文字兩種浮水印；沒偵測到的檔案可以切到「手動框選」自己圈。'
+      : '強制模式會略過偵測，直接對指定的星星位置做反向 alpha 還原。若位置不對會留下痕跡，請改回自動或用手動框選。';
+  render();
+});
+
+runAllBtn.addEventListener('click', function () {
+  runAllBtn.disabled = true;
+  var chain = Promise.resolve();
+  items.forEach(function (item) { chain = chain.then(function () { return runOne(item); }); });
+  chain.then(function () { render(); });
+});
+
+zipBtn.addEventListener('click', function () {
+  var done = items.filter(function (i) { return i.blob; });
+  if (!done.length) return;
+  if (done.length === 1) { downloadBlob(done[0].blob, done[0].outName); return; }
+  zipBtn.disabled = true;
+  zipBtn.textContent = '打包中…';
+  needJSZip().then(function () {
+    var zip = new window.JSZip();
+    var used = {};
+    done.forEach(function (i) {
+      var n = i.outName;
+      if (used[n]) { n = n.replace(/(\.[^.]+)$/, '_' + (used[i.outName] + 1) + '$1'); }
+      used[i.outName] = (used[i.outName] || 0) + 1;
+      zip.file(n, i.blob);
+    });
+    return zip.generateAsync({ type: 'blob' });
+  }).then(function (blob) {
+    downloadBlob(blob, '已清除浮水印.zip');
+    render();
+  }).catch(function (e) {
+    alert('打包失敗：' + e.message);
+    render();
+  });
+});
+
+clearBtn.addEventListener('click', function () {
+  items.forEach(function (i) {
+    if (i.beforeURL && i.beforeURL.indexOf('blob:') === 0) URL.revokeObjectURL(i.beforeURL);
+    if (i.afterURL && i.afterURL.indexOf('blob:') === 0) URL.revokeObjectURL(i.afterURL);
+  });
+  items = [];
+  render();
+});
+
+render();
+// 除錯／自動化測試用的把手（不影響一般使用）
+window.__unwatermark = {
+  get items() { return items; },
+  get res() { return RES; },
+  addFiles: addFiles, engine: E, ready: resourcesReady
+};
+})();
+</script>
+</body>
+</html>
