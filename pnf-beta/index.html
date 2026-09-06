@@ -1,0 +1,404 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>PNF 從理論到實務｜治療師線上自學課</title>
+<meta name="description" content="職能治療師整理的 PNF（本體感覺神經肌肉促進術）線上自學課：國際公開教學影片＋中文摘要＋自我檢核，從基本程序、動作型態、手法技術到帶長輩做的功能應用，逐步從不會到會。">
+<link rel="icon" href="/favicon.png">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="復能小遊戲">
+<meta property="og:title" content="PNF 從理論到實務｜治療師線上自學課">
+<meta property="og:description" content="國際公開教學影片＋中文摘要＋自我檢核，從基本程序到帶長輩做的功能應用，一步一步學會 PNF。">
+<meta property="og:url" content="https://games.otshih.com/pnf-beta/">
+<meta property="og:image" content="https://games.otshih.com/pnf-beta/share.png">
+<meta property="og:locale" content="zh_TW">
+<meta name="twitter:card" content="summary_large_image">
+<script src="/open-in-browser.js" defer></script>
+<style>
+  :root{
+    --bg:#F4EFE3; --card:#FAF6EE; --ink:#22201C; --muted:#6B6459;
+    --line:#E2D9C7; --accent:#8A6A3B; --ok:#5E7A32; --warn:#C4622F; --info:#3F6293;
+    --m0:#8A6A3B; --m1:#3F6293; --m2:#5E7A32; --m3:#C4622F; --m4:#7A4E8A; --m5:#22201C;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--bg);color:var(--ink);
+       font-family:"PingFang TC","Noto Sans TC","Helvetica Neue",Arial,sans-serif;
+       line-height:1.75;-webkit-text-size-adjust:100%}
+  a{color:inherit}
+  button{font-family:inherit}
+
+  /* ---------- Layout ---------- */
+  .app{display:grid;grid-template-columns:300px 1fr;min-height:100vh}
+  aside{background:var(--card);border-right:1px solid var(--line);padding:22px 18px 40px;
+        position:sticky;top:0;height:100vh;overflow-y:auto}
+  main{padding:28px 32px 80px;max-width:860px;width:100%;margin:0 auto}
+  @media(max-width:900px){
+    .app{grid-template-columns:1fr}
+    aside{position:fixed;inset:0 auto 0 0;width:min(86vw,320px);transform:translateX(-105%);
+          transition:transform .22s ease;z-index:40;box-shadow:0 0 0 rgba(0,0,0,0)}
+    aside.open{transform:none;box-shadow:0 0 40px rgba(34,32,28,.35)}
+    main{padding:18px 16px 80px}
+  }
+  .topbar{display:none;align-items:center;gap:10px;position:sticky;top:0;z-index:30;
+          background:rgba(244,239,227,.96);backdrop-filter:blur(6px);
+          padding:10px 14px;border-bottom:1px solid var(--line)}
+  @media(max-width:900px){.topbar{display:flex}}
+  .topbar .menu{background:var(--ink);color:var(--bg);border:0;border-radius:10px;
+                min-height:42px;padding:0 14px;font-size:1rem;font-weight:600}
+  .topbar .where{font-size:.92rem;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .scrim{display:none;position:fixed;inset:0;background:rgba(34,32,28,.35);z-index:35}
+  .scrim.show{display:block}
+
+  /* ---------- Sidebar ---------- */
+  .brand{margin:0 0 14px}
+  .brand h1{font-size:1.18rem;margin:0;letter-spacing:.02em}
+  .brand p{margin:2px 0 0;color:var(--muted);font-size:.85rem}
+  .prog{margin:12px 0 18px}
+  .prog .bar{height:9px;background:var(--line);border-radius:6px;overflow:hidden}
+  .prog .bar i{display:block;height:100%;background:var(--ok);width:0;transition:width .3s}
+  .prog small{color:var(--muted);font-size:.82rem}
+  .mod{margin:0 0 12px}
+  .mod > button{width:100%;text-align:left;background:none;border:0;padding:8px 6px;
+                display:flex;align-items:center;gap:8px;cursor:pointer;font-size:.98rem;font-weight:700;color:var(--c)}
+  .mod > button .n{display:inline-flex;width:24px;height:24px;border-radius:50%;background:var(--c);color:#fff;
+                   align-items:center;justify-content:center;font-size:.8rem;flex:none}
+  .mod > button .caret{margin-left:auto;color:var(--muted);font-weight:400;transition:transform .2s}
+  .mod.closed > button .caret{transform:rotate(-90deg)}
+  .mod.closed ul{display:none}
+  .mod ul{list-style:none;margin:0;padding:0 0 0 8px}
+  .mod li a{display:flex;align-items:center;gap:8px;padding:7px 8px;border-radius:9px;text-decoration:none;
+            font-size:.92rem;color:var(--ink)}
+  .mod li a:hover{background:rgba(34,32,28,.05)}
+  .mod li a.cur{background:var(--ink);color:var(--bg)}
+  .mod li a .st{width:18px;height:18px;border-radius:50%;border:1.5px solid var(--line);flex:none;
+                display:inline-flex;align-items:center;justify-content:center;font-size:.7rem}
+  .mod li a .st.done{background:var(--ok);border-color:var(--ok);color:#fff}
+  .mod li a.cur .st{border-color:var(--bg)}
+  .side-foot{margin-top:22px;font-size:.8rem;color:var(--muted);border-top:1px solid var(--line);padding-top:12px}
+  .side-foot a{display:block;margin-top:4px}
+
+  /* ---------- Lesson ---------- */
+  .crumb{font-size:.88rem;color:var(--c);font-weight:700;margin:0 0 4px}
+  h2.title{font-size:1.75rem;margin:0 0 6px;line-height:1.3}
+  .meta{color:var(--muted);font-size:.9rem;margin:0 0 18px;display:flex;gap:14px;flex-wrap:wrap}
+  .sec{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px 22px;margin:0 0 18px}
+  .sec h3{margin:0 0 10px;font-size:1.08rem;display:flex;align-items:center;gap:8px}
+  .sec h3 .tag{font-size:.74rem;font-weight:700;letter-spacing:.06em;color:#fff;background:var(--c);
+               padding:2px 9px;border-radius:12px}
+  .sec ul,.sec ol{margin:0;padding-left:1.3em}
+  .sec li{margin:0 0 6px}
+  .sec li:last-child{margin:0}
+  .sub{margin:14px 0 6px;font-weight:700;font-size:.95rem;color:var(--muted)}
+  .callout{border-left:4px solid var(--warn);background:rgba(196,98,47,.07);padding:10px 14px;border-radius:0 10px 10px 0;margin:12px 0 0}
+  .callout.info{border-color:var(--info);background:rgba(63,98,147,.07)}
+  .callout.ok{border-color:var(--ok);background:rgba(94,122,50,.08)}
+  .callout b{display:block;margin-bottom:2px}
+
+  /* video facade */
+  .vid{margin:0 0 14px}
+  .vid:last-child{margin:0}
+  .vid .box{position:relative;aspect-ratio:16/9;background:#000;border-radius:12px;overflow:hidden;cursor:pointer}
+  .vid .box img{width:100%;height:100%;object-fit:cover;display:block;opacity:.85}
+  .vid .box .play{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:8px;color:#fff;text-shadow:0 2px 8px rgba(0,0,0,.6)}
+  .vid .box .play i{width:72px;height:72px;border-radius:50%;background:rgba(244,239,227,.92);display:flex;align-items:center;justify-content:center;font-size:1.6rem;color:var(--ink);font-style:normal}
+  .vid .box .play span{font-size:.92rem;font-weight:600}
+  .vid .box iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+  .vid .cap{font-size:.86rem;color:var(--muted);margin:6px 2px 0;display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  .vid .cap .lang{border:1px solid var(--line);border-radius:10px;padding:0 8px;font-size:.78rem}
+  .vid .cap a{color:var(--muted)}
+  .timeline{margin:10px 0 0;padding:0;list-style:none;font-size:.92rem}
+  .timeline li{display:flex;gap:10px;padding:5px 0;border-top:1px dashed var(--line)}
+  .timeline li:first-child{border-top:0}
+  .timeline li b{flex:none;font-variant-numeric:tabular-nums;color:var(--c);cursor:pointer;text-decoration:underline dotted}
+
+  /* quiz */
+  .q{margin:0 0 16px;padding:0 0 14px;border-bottom:1px dashed var(--line)}
+  .q:last-of-type{border:0}
+  .q p{margin:0 0 8px;font-weight:600}
+  .q label{display:flex;gap:10px;align-items:flex-start;padding:8px 10px;border:1.5px solid var(--line);border-radius:10px;margin:0 0 6px;cursor:pointer;background:#fff}
+  .q label:hover{border-color:var(--accent)}
+  .q label input{margin-top:5px}
+  .q label.right{border-color:var(--ok);background:rgba(94,122,50,.08)}
+  .q label.wrong{border-color:var(--warn);background:rgba(196,98,47,.08)}
+  .q .why{display:none;font-size:.9rem;color:var(--muted);margin:4px 0 0 4px}
+  .q.shown .why{display:block}
+  .quiz-foot{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:6px}
+  .score{font-weight:700}
+
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;background:var(--ink);color:var(--bg);
+       border:0;text-decoration:none;padding:12px 22px;min-height:46px;border-radius:11px;font-size:1rem;font-weight:600;cursor:pointer}
+  .btn:hover{opacity:.9}
+  .btn.ghost{background:transparent;color:var(--ink);border:1.5px solid var(--ink)}
+  .btn.ok{background:var(--ok)}
+  .btn[disabled]{opacity:.45;cursor:not-allowed}
+  .navrow{display:flex;justify-content:space-between;gap:12px;margin-top:8px;flex-wrap:wrap}
+  .done-badge{display:inline-flex;align-items:center;gap:6px;color:var(--ok);font-weight:700}
+
+  /* home */
+  .hero{padding:10px 0 24px}
+  .hero h2{font-size:2rem;margin:0 0 8px;line-height:1.25}
+  .hero p.lead{font-size:1.05rem;max-width:640px;margin:0 0 16px}
+  .path{display:grid;gap:14px;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));margin:18px 0 8px}
+  .pcard{background:var(--card);border:1px solid var(--line);border-left:6px solid var(--c);border-radius:14px;padding:16px 18px;text-decoration:none;display:block}
+  .pcard:hover{transform:translateY(-2px);box-shadow:0 10px 22px rgba(34,32,28,.12)}
+  .pcard b{display:block;color:var(--c);margin-bottom:4px}
+  .pcard span{font-size:.9rem;color:var(--muted)}
+  .pcard .cnt{display:block;margin-top:8px;font-size:.82rem;color:var(--muted)}
+  .howto{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));margin:14px 0 0}
+  .howto div{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px;font-size:.92rem}
+  .howto div b{display:block;font-size:1.3rem;color:var(--accent)}
+  .refs{font-size:.86rem;color:var(--muted)}
+  .refs li{margin:0 0 4px}
+  .lock{opacity:.55}
+  .cert{text-align:center;padding:30px 20px}
+  .cert h2{margin:0 0 6px}
+  .foot{margin-top:40px;font-size:.84rem;color:var(--muted);border-top:1px solid var(--line);padding-top:14px}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <button class="menu" id="menuBtn">☰ 課程目錄</button>
+  <div class="where" id="where">PNF 從理論到實務</div>
+</div>
+<div class="scrim" id="scrim"></div>
+<div class="app">
+  <aside id="side">
+    <div class="brand">
+      <h1><a href="#home" style="text-decoration:none">PNF 從理論到實務</a></h1>
+      <p>治療師線上自學課｜施昱廷 職能治療師</p>
+    </div>
+    <div class="prog">
+      <div class="bar"><i id="progBar"></i></div>
+      <small id="progTxt">尚未開始</small>
+    </div>
+    <nav id="nav"></nav>
+    <div class="side-foot">
+      影片均為 YouTube 公開內容，僅嵌入播放，版權歸原作者。中文摘要與測驗為本站整理。
+      <a href="https://games.otshih.com/">← 回復能小遊戲</a>
+      <a href="#" id="resetBtn">重設學習進度</a>
+    </div>
+  </aside>
+  <main id="main"></main>
+</div>
+
+<script src="data.js"></script>
+<script src="timelines.js"></script>
+<script>
+(function(){
+  const C = window.PNF_COURSE;
+  const TL = window.PNF_TIMELINES || {};
+  C.modules.forEach(m => m.lessons.forEach(l => (l.videos||[]).forEach(v => { if(!v.timeline && TL[v.yt]) v.timeline = TL[v.yt]; })));
+  const KEY = 'pnf_progress_v1';
+  const $ = s => document.querySelector(s);
+  const esc = s => String(s??'').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+  let state = {};
+  try { state = JSON.parse(localStorage.getItem(KEY)||'{}') || {}; } catch(e){ state = {}; }
+  const save = () => { try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){} };
+  const done = id => !!(state.done && state.done[id]);
+  const markDone = id => { state.done = state.done||{}; state.done[id] = Date.now(); save(); renderNav(); };
+
+  const flat = []; C.modules.forEach(m => m.lessons.forEach(l => flat.push({...l, mod:m})));
+  const total = flat.length;
+  const idx = id => flat.findIndex(l => l.id===id);
+
+  // ---------- nav ----------
+  function renderNav(){
+    const cur = location.hash.replace('#','') || 'home';
+    const openMods = state.openMods || {};
+    $('#nav').innerHTML = C.modules.map((m,mi) => {
+      const active = m.lessons.some(l => l.id===cur);
+      const closed = openMods[m.id]===false || (openMods[m.id]===undefined && !active && mi>0);
+      return `<div class="mod ${closed?'closed':''}" style="--c:${m.color}" data-m="${m.id}">
+        <button type="button"><span class="n">${mi}</span>${esc(m.title)}<span class="caret">▾</span></button>
+        <ul>${m.lessons.map(l => `<li><a href="#${l.id}" class="${l.id===cur?'cur':''}">
+          <span class="st ${done(l.id)?'done':''}">${done(l.id)?'✓':''}</span>${esc(l.id)}　${esc(l.title)}</a></li>`).join('')}</ul>
+      </div>`;
+    }).join('');
+    const n = flat.filter(l => done(l.id)).length;
+    $('#progBar').style.width = (n/total*100)+'%';
+    $('#progTxt').textContent = n ? `已完成 ${n} / ${total} 課（${Math.round(n/total*100)}%）` : `共 ${total} 課，尚未開始`;
+    document.querySelectorAll('.mod > button').forEach(b => b.onclick = () => {
+      const box = b.parentElement; box.classList.toggle('closed');
+      state.openMods = state.openMods||{}; state.openMods[box.dataset.m] = !box.classList.contains('closed'); save();
+    });
+    document.querySelectorAll('#nav a').forEach(a => a.onclick = closeSide);
+  }
+
+  // ---------- home ----------
+  function renderHome(){
+    const n = flat.filter(l => done(l.id)).length;
+    const next = flat.find(l => !done(l.id)) || flat[0];
+    $('#where').textContent = 'PNF 從理論到實務';
+    $('#main').innerHTML = `
+      <div class="hero">
+        <h2>PNF 從理論到實務</h2>
+        <p class="lead">${esc(C.meta.lead)}</p>
+        <p style="color:var(--muted);font-size:.95rem;margin:0 0 14px">${esc(C.meta.note)}</p>
+        <a class="btn" href="#${next.id}">${n?'繼續學習：':'從第一課開始：'}${esc(next.id)} ${esc(next.title)} →</a>
+        <div class="howto">
+          <div><b>1</b>先讀學習目標與摘要</div>
+          <div><b>2</b>看影片（開字幕，對照時間軸）</div>
+          <div><b>3</b>做自我檢核</div>
+          <div><b>4</b>找一位夥伴做實作作業</div>
+        </div>
+      </div>
+      <div class="path">
+        ${C.modules.map((m,mi) => `<a class="pcard" style="--c:${m.color}" href="#${m.lessons[0].id}">
+          <b>模組 ${mi}｜${esc(m.title)}</b><span>${esc(m.intro)}</span>
+          <em class="cnt">${m.lessons.length} 課・已完成 ${m.lessons.filter(l=>done(l.id)).length}</em></a>`).join('')}
+      </div>
+      <div class="sec" style="--c:var(--m5)">
+        <h3><span class="tag">關於本課</span>這門課怎麼來的</h3>
+        ${C.meta.about.map(p=>`<p style="margin:0 0 8px">${esc(p)}</p>`).join('')}
+      </div>
+      <div class="foot">教案整理：施昱廷 職能治療師｜影片版權歸各原作者，本站僅嵌入公開影片並提供中文摘要｜內容更新：${esc(C.meta.updated)}</div>`;
+  }
+
+  // ---------- lesson ----------
+  function ytEmbed(v){
+    const p = new URLSearchParams({rel:'0', modestbranding:'1', cc_load_policy:'1', cc_lang_pref:'zh-Hant', hl:'zh-TW', autoplay:'1'});
+    if(v.start) p.set('start', v.start);
+    return `https://www.youtube-nocookie.com/embed/${v.yt}?${p}`;
+  }
+  function list(arr){ return arr && arr.length ? `<ul>${arr.map(x=>`<li>${x}</li>`).join('')}</ul>` : ''; }
+
+  function renderLesson(id){
+    const i = idx(id); if(i<0) return renderHome();
+    const L = flat[i], m = L.mod, prev = flat[i-1], next = flat[i+1];
+    const mi = C.modules.indexOf(m);
+    $('#where').textContent = `${L.id} ${L.title}`;
+    const vids = (L.videos||[]).length ? L.videos.map((v,k)=>`
+      <div class="vid" data-k="${k}">
+        <div class="box" data-yt="${esc(v.yt)}" data-start="${v.start||0}">
+          <img src="https://i.ytimg.com/vi/${esc(v.yt)}/hqdefault.jpg" alt="" loading="lazy">
+          <div class="play"><i>▶</i><span>點一下播放（預設開啟字幕）</span></div>
+        </div>
+        <div class="cap">
+          <span>${esc(v.title)}</span>
+          <span>｜${esc(v.channel||'')}${v.dur?'・'+esc(v.dur):''}</span>
+          <span class="lang">${esc(v.lang||'英文')}${v.cc?'・'+esc(v.cc):''}</span>
+          <a href="https://www.youtube.com/watch?v=${esc(v.yt)}" target="_blank" rel="noopener">在 YouTube 開啟 ↗</a>
+        </div>
+        ${v.note?`<div style="font-size:.9rem;color:var(--muted);margin:4px 2px 0">${v.note}</div>`:''}
+        ${v.timeline&&v.timeline.length?`<ul class="timeline">${v.timeline.map(t=>`<li><b data-t="${t.t}">${esc(t.t)}</b><span>${t.text}</span></li>`).join('')}</ul>${(window.PNF_TIMELINE_NOTES||{})[v.yt]?`<div style="font-size:.82rem;color:var(--muted);margin:6px 2px 0">※ ${esc(window.PNF_TIMELINE_NOTES[v.yt])}</div>`:''}`:''}
+      </div>`).join('') : `<div class="callout info"><b>${L.videoNote?'本課沒有影片':'影片整理中'}</b>${L.videoNote||'本課影片來源尚在核對，先讀下方摘要與檢核。'}</div>`;
+
+    const S = L.summary||{};
+    const quiz = (L.quiz||[]).map((q,qi)=>`
+      <div class="q" data-q="${qi}">
+        <p>${qi+1}. ${q.q}</p>
+        ${q.options.map((o,oi)=>`<label><input type="radio" name="q${qi}" value="${oi}"><span>${o}</span></label>`).join('')}
+        <div class="why">${q.why||''}</div>
+      </div>`).join('');
+
+    $('#main').innerHTML = `
+      <p class="crumb" style="--c:${m.color}">模組 ${mi}｜${esc(m.title)}</p>
+      <h2 class="title">${esc(L.id)}　${esc(L.title)}</h2>
+      <div class="meta"><span>⏱ 約 ${L.minutes||20} 分鐘</span>${L.en?`<span>EN：${esc(L.en)}</span>`:''}${done(L.id)?'<span class="done-badge">✓ 已完成</span>':''}</div>
+
+      <div class="sec" style="--c:${m.color}"><h3><span class="tag">目標</span>學完你會</h3>${list(L.goals)}</div>
+
+      ${L.pre?`<div class="sec" style="--c:${m.color}"><h3><span class="tag">先讀</span>看影片前先知道</h3>${L.pre}</div>`:''}
+
+      <div class="sec" style="--c:${m.color}"><h3><span class="tag">影片</span>看示範</h3>
+        <p style="margin:0 0 12px;font-size:.92rem;color:var(--muted)">影片為英文，請對照下方摘要與時間軸；字幕可在播放器點 ⚙ 選「自動翻譯 → 中文（繁體）」。</p>
+        ${vids}
+      </div>
+
+      <div class="sec" style="--c:${m.color}"><h3><span class="tag">摘要</span>中文重點整理</h3>
+        ${S.keypoints?`<div class="sub">核心觀念</div>${list(S.keypoints)}`:''}
+        ${S.steps?`<div class="sub">操作步驟</div><ol>${S.steps.map(x=>`<li>${x}</li>`).join('')}</ol>`:''}
+        ${S.mistakes?`<div class="sub">常見錯誤</div>${list(S.mistakes)}`:''}
+        ${S.elder?`<div class="callout ok"><b>帶長輩怎麼做</b>${list(S.elder)}</div>`:''}
+        ${S.safety?`<div class="callout"><b>安全提醒</b>${list(S.safety)}</div>`:''}
+        ${S.irradiation?`<div class="callout info"><b>Irradiation 在這裡怎麼用</b>${list(S.irradiation)}</div>`:''}
+      </div>
+
+      ${quiz?`<div class="sec" style="--c:${m.color}"><h3><span class="tag">檢核</span>自我測驗</h3>
+        <form id="quiz">${quiz}</form>
+        <div class="quiz-foot"><button class="btn ghost" id="checkBtn" type="button">看答案</button><span class="score" id="score"></span></div>
+      </div>`:''}
+
+      ${L.practice?`<div class="sec" style="--c:${m.color}"><h3><span class="tag">實作</span>找一位夥伴練</h3>${L.practice}</div>`:''}
+
+      ${L.refs&&L.refs.length?`<div class="sec" style="--c:${m.color}"><h3><span class="tag">證據</span>延伸閱讀</h3><ul class="refs">${L.refs.map(r=>`<li>${r}</li>`).join('')}</ul></div>`:''}
+
+      <div class="navrow">
+        ${prev?`<a class="btn ghost" href="#${prev.id}">← ${esc(prev.id)}</a>`:`<a class="btn ghost" href="#home">← 首頁</a>`}
+        <button class="btn ${done(L.id)?'ok':''}" id="doneBtn" type="button">${done(L.id)?'✓ 已完成，再看一次也可以':'我完成這一課了 ✓'}</button>
+        ${next?`<a class="btn" href="#${next.id}">${esc(next.id)} →</a>`:`<a class="btn" href="#home">回首頁</a>`}
+      </div>
+      <div class="foot">教案整理：施昱廷 職能治療師｜影片版權歸原作者</div>`;
+
+    // video facade
+    document.querySelectorAll('.vid .box').forEach(box => box.onclick = () => {
+      const v = {yt:box.dataset.yt, start:+box.dataset.start||0};
+      box.innerHTML = `<iframe src="${ytEmbed(v)}" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen title="YouTube"></iframe>`;
+      box.style.cursor='default';
+    });
+    document.querySelectorAll('.timeline b').forEach(b => b.onclick = () => {
+      const box = b.closest('.vid').querySelector('.box');
+      const [mm,ss] = b.dataset.t.split(':').map(Number);
+      box.dataset.start = mm*60+(ss||0);
+      box.onclick && box.onclick();
+      box.scrollIntoView({behavior:'smooth',block:'center'});
+    });
+
+    // quiz
+    const cb = $('#checkBtn');
+    if(cb) cb.onclick = () => {
+      let ok=0, ans=0;
+      L.quiz.forEach((q,qi)=>{
+        const box = document.querySelector(`.q[data-q="${qi}"]`);
+        const sel = box.querySelector('input:checked');
+        box.classList.add('shown');
+        box.querySelectorAll('label').forEach((lab,oi)=>{
+          lab.classList.remove('right','wrong');
+          if(oi===q.a) lab.classList.add('right');
+          else if(sel && +sel.value===oi) lab.classList.add('wrong');
+        });
+        if(sel){ ans++; if(+sel.value===q.a) ok++; }
+      });
+      $('#score').textContent = ans<L.quiz.length ? `還有 ${L.quiz.length-ans} 題沒作答` : `答對 ${ok} / ${L.quiz.length}`;
+      if(ans===L.quiz.length && ok===L.quiz.length){ $('#score').textContent += '　全對！'; }
+    };
+
+    $('#doneBtn').onclick = () => {
+      markDone(L.id);
+      $('#doneBtn').classList.add('ok'); $('#doneBtn').textContent='✓ 已完成，再看一次也可以';
+      const n = flat.filter(l=>done(l.id)).length;
+      if(n===total) renderCert();
+    };
+    window.scrollTo({top:0});
+  }
+
+  function renderCert(){
+    $('#main').innerHTML = `<div class="cert">
+      <h2>🎉 你完成了全部 ${total} 課</h2>
+      <p>從基本程序、動作型態、手法技術到帶長輩做的功能應用，你已經走完一遍。下一步是把它用在真實個案上——每週挑一個手法，記錄反應，回來對照摘要。</p>
+      <a class="btn" href="#home">回首頁</a>
+    </div>`;
+  }
+
+  function route(){
+    const h = location.hash.replace('#','') || 'home';
+    renderNav();
+    if(h==='home') renderHome(); else renderLesson(h);
+  }
+
+  // sidebar mobile
+  function closeSide(){ $('#side').classList.remove('open'); $('#scrim').classList.remove('show'); }
+  $('#menuBtn').onclick = () => { $('#side').classList.toggle('open'); $('#scrim').classList.toggle('show'); };
+  $('#scrim').onclick = closeSide;
+  $('#resetBtn').onclick = e => { e.preventDefault(); if(confirm('確定要清除所有學習進度？')){ state={}; save(); route(); } };
+
+  window.addEventListener('hashchange', route);
+  route();
+})();
+</script>
+<!-- Cloudflare Web Analytics --><script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "3df68cf5d6bd4975b97a157f7ff3cafb"}'></script>
+</body>
+</html>
