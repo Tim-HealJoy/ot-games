@@ -3,16 +3,16 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>食材上菜秀 — 記憶中的好味道</title>
-<meta name="description" content="投影帶領用的懷舊猜菜遊戲：主食材先登場，配料一樣一樣出現，長輩猜出這是哪道台灣家常菜。6 種食材、12 道菜。教案設計：施昱廷 職能治療師。">
+<title>阿公阿嬤的料理教室 — 猜猜看今天煮什麼</title>
+<meta name="description" content="阿公阿嬤的料理教室：主食材先登場，配料一樣一樣端上來，猜猜看會煮成哪道台灣家常料理。6 種食材、12 道菜，投影帶團體或手機都能玩。教案設計：施昱廷 職能治療師。">
 <meta name="theme-color" content="#3F6293">
 <link rel="icon" href="../favicon.png">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="復能小遊戲">
-<meta property="og:title" content="食材上菜秀 · 記憶中的好味道">
-<meta property="og:description" content="主食材先登場，配料一樣一樣出現，猜猜看會變成哪道台灣家常菜。6 種食材、12 道菜，投影帶團體用。免費開放。">
-<meta property="og:url" content="https://games.otshih.com/dish-beta/">
-<meta property="og:image" content="https://games.otshih.com/dish-beta/share.png">
+<meta property="og:title" content="阿公阿嬤的料理教室 · 猜猜看今天煮什麼">
+<meta property="og:description" content="主食材先登場，配料一樣一樣端上來，猜猜看會煮成哪道台灣家常料理。6 種食材、12 道菜，投影帶團體、手機也能玩。免費開放。">
+<meta property="og:url" content="https://games.otshih.com/kitchen/">
+<meta property="og:image" content="https://games.otshih.com/kitchen/share.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:locale" content="zh_TW">
@@ -76,7 +76,8 @@ h1.big{font-size:150px;line-height:1.1;margin:0;font-weight:900;color:var(--indi
 /* ---------- 封面 ---------- */
 .cover{display:flex;align-items:center;gap:80px}
 .cover .txt{flex:1}
-.cover .sub{font-size:72px;font-weight:800;color:var(--orange);margin:26px 0 50px;letter-spacing:6px}
+.cover .pre{font-size:72px;font-weight:900;color:var(--indigo);margin-top:26px;letter-spacing:6px}
+.cover .sub{font-size:66px;font-weight:800;color:var(--orange);margin:26px 0 50px;letter-spacing:6px}
 .cover .go{font-size:38px;color:var(--ink-soft);font-weight:600}
 .cover .mosaic{display:grid;grid-template-columns:repeat(2,300px);gap:22px}
 .cover .mosaic .card{width:300px;height:220px}
@@ -165,7 +166,8 @@ kbd{display:inline-block;background:var(--ink);color:#fff;border-radius:10px;pad
 .portrait .label{font-size:50px}
 .portrait .cover{flex-direction:column;justify-content:center;gap:60px;text-align:center}
 .portrait .cover .txt{flex:none}
-.portrait .cover h1.big{font-size:132px}
+.portrait .cover .pre{font-size:64px}
+.portrait .cover h1.big{font-size:150px}
 .portrait .cover .sub{font-size:60px;margin:20px 0 30px}
 .portrait .cover .go{font-size:36px}
 .portrait .cover .mosaic{grid-template-columns:repeat(3,300px)}
@@ -231,7 +233,7 @@ kbd{display:inline-block;background:var(--ink);color:#fff;border-radius:10px;pad
   </div></div>
 </div></div>
 
-<script src="questions.js?v=2"></script>
+<script src="questions.js?v=3"></script>
 <script>
 (function(){
   const G = window.GROUPS;
@@ -257,11 +259,12 @@ kbd{display:inline-block;background:var(--ink);color:#fff;border-radius:10px;pad
     el.className = 'slide ' + s.type;
     if (s.type === 'cover') {
       el.innerHTML = `<div class="txt">
-        <span class="chip">懷舊活動 · 猜猜看</span>
-        <h1 class="big" style="margin-top:26px">食材上菜秀</h1>
-        <div class="sub">記憶中的好味道</div>
+        <span class="chip">懷舊活動 · 猜料理</span>
+        <div class="pre">阿公阿嬤的</div>
+        <h1 class="big">料理教室</h1>
+        <div class="sub">猜猜看，今天煮什麼？</div>
         <div class="go">點一下螢幕開始上菜（電腦可按 → 鍵或簡報筆）</div>
-        <div class="go" style="margin-top:14px;font-size:32px">6 種食材 · 12 道台灣家常菜</div>
+        <div class="go" style="margin-top:14px;font-size:32px">6 種食材 · 12 道台灣家常料理 · 記憶中的好味道</div>
       </div>
       <div class="mosaic">${G.map(g=>`<div class="card"><img src="${img(g.img)}" alt="${g.name}"></div>`).join('')}</div>`;
     }

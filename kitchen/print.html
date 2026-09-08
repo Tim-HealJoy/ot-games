@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>食材上菜秀 — 帶領者提示卡</title>
+<title>阿公阿嬤的料理教室 — 帶領者提示卡</title>
 <style>
 :root{--ink:#1c1c1a;--soft:#5a564d;--indigo:#3F6293;--amber:#E8A23A;--cream:#F4EFE3}
 *{box-sizing:border-box}
@@ -36,8 +36,8 @@ td.dish small{display:block;font-weight:600;color:var(--soft);font-size:11px}
 <script src="questions.js?v=1"></script>
 <script>
 const G = window.GROUPS;
-const header = `<h1>食材上菜秀 · 帶領者提示卡</h1>
-  <div class="sub">6 種食材 × 2 道台灣家常菜｜四拍節奏：猜 → 揭曉 → 故事 → 聊聊看｜每組約 6～8 分鐘</div>
+const header = `<h1>阿公阿嬤的料理教室 · 帶領者提示卡</h1>
+  <div class="sub">6 種食材 × 2 道台灣家常料理｜四拍節奏：猜 → 揭曉 → 故事 → 聊聊看｜每組約 6～8 分鐘</div>
   <div class="intro">
     <b>帶法：</b>主食材登場先請長輩命名 → 配料一張一張出現，每出一張問「加了這個會是什麼菜？」→ 猜不出來先給<b>口感提示</b>、再給<b>場合提示</b>（投影上按 💡 或 H 鍵）→ 揭曉後念一句故事 → 用<b>二選一問句</b>帶分享。
     答錯不糾正，任何答案都接住：「對，那也是白菜可以做的菜！」
@@ -55,9 +55,9 @@ const groupHtml = (g,gi)=>`
   </table>
   <div class="talk">聊聊看：${g.talk.q}　<small>延伸：${g.talk.ext.map(x=>x.name).join('、')}</small></div>
 </div>`;
-const foot = (n,t)=>`<div class="foot"><span>教案設計：施昱廷 職能治療師</span><span>投影版：games.otshih.com　${n}／${t}</span></div>`;
+const foot = (n,t)=>`<div class="foot"><span>教案設計：施昱廷 職能治療師</span><span>投影版：games.otshih.com/kitchen/　${n}／${t}</span></div>`;
 const pages = [G.slice(0,3), G.slice(3)];
-document.getElementById('pages').innerHTML = pages.map((gs,pi)=>`<div class="page">${pi===0?header:'<h1 style="font-size:16px;color:#5a564d">食材上菜秀 · 帶領者提示卡（續）</h1>'}${gs.map((g)=>groupHtml(g, G.indexOf(g))).join('')}${foot(pi+1,pages.length)}</div>`).join('');
+document.getElementById('pages').innerHTML = pages.map((gs,pi)=>`<div class="page">${pi===0?header:'<h1 style="font-size:16px;color:#5a564d">阿公阿嬤的料理教室 · 帶領者提示卡（續）</h1>'}${gs.map((g)=>groupHtml(g, G.indexOf(g))).join('')}${foot(pi+1,pages.length)}</div>`).join('');
 </script>
 </body>
 </html>
