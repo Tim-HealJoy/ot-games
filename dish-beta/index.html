@@ -154,10 +154,56 @@ kbd{display:inline-block;background:var(--ink);color:#fff;border-radius:10px;pad
 #menu .foot{margin-top:30px;display:flex;gap:18px;flex-wrap:wrap}
 #menu .foot a,#menu .foot button{font-size:32px;font-weight:800;padding:12px 28px;border-radius:999px;background:var(--indigo);color:#fff;text-decoration:none}
 
-@media (orientation:portrait){
-  #rotate{display:flex}
-}
-#rotate{display:none;position:fixed;inset:0;background:var(--cream);z-index:50;align-items:center;justify-content:center;text-align:center;padding:30px;font-size:22px;line-height:1.6;font-weight:700}
+/* ---------- 手機直式舞台（1080×1920，同樣等比縮放） ---------- */
+#stage.portrait{width:1080px;height:1920px}
+.portrait .slide{padding:150px 50px 150px}
+.portrait #tools{right:40px;top:44px;gap:10px}
+.portrait .tbtn{font-size:30px;padding:12px 22px}
+.portrait #credit{right:40px;bottom:40px;font-size:28px}
+.portrait #prog{left:40px;bottom:36px;font-size:30px}
+.portrait .qtitle{font-size:66px;margin:0 0 30px;letter-spacing:2px}
+.portrait .label{font-size:50px}
+.portrait .cover{flex-direction:column;justify-content:center;gap:60px;text-align:center}
+.portrait .cover .txt{flex:none}
+.portrait .cover h1.big{font-size:132px}
+.portrait .cover .sub{font-size:60px;margin:20px 0 30px}
+.portrait .cover .go{font-size:36px}
+.portrait .cover .mosaic{grid-template-columns:repeat(3,300px)}
+.portrait .howto{grid-template-columns:1fr;gap:34px;align-content:start}
+.portrait .howto h2{font-size:48px}
+.portrait .howto p,.portrait .howto li{font-size:36px}
+.portrait .howto .beats span{font-size:34px}
+.portrait .howto .keys{display:none}
+.portrait .howto .touch{display:block !important}
+.portrait .intro .card{width:900px;height:640px;margin:20px 0 40px}
+.portrait .intro .name{font-size:120px}
+.portrait .intro .line{font-size:42px;padding:0 20px}
+.portrait .guess .row{flex-direction:column;gap:20px;justify-content:center}
+.portrait .guess .main{width:560px}
+.portrait .guess .main .card{width:560px;height:400px}
+.portrait .guess .plus{font-size:140px;width:auto}
+.portrait .guess .ings.n4,.portrait .guess .ings.n2{grid-template-columns:repeat(2,470px);gap:24px}
+.portrait .guess .ings.n3{grid-template-columns:repeat(3,315px);gap:18px}
+.portrait .n3 .slot .card{width:315px;height:240px}
+.portrait .n4 .slot .card,.portrait .n2 .slot .card{width:470px;height:300px}
+.portrait .hint{bottom:140px;white-space:normal;max-width:980px;text-align:center;font-size:40px;padding:16px 40px;border-radius:40px}
+.portrait .reveal{flex-direction:column;gap:40px;justify-content:center}
+.portrait .reveal .card{width:960px;height:680px}
+.portrait .reveal .txt{flex:none;width:100%;gap:22px;align-items:center;text-align:center}
+.portrait .reveal .name{font-size:104px}
+.portrait .reveal .story{font-size:38px;text-align:left}
+.portrait .talk{justify-content:center}
+.portrait .talk .q{font-size:66px;margin:20px 0 40px}
+.portrait .talk .more{font-size:40px;text-align:center}
+.portrait .talk .exts{gap:40px}
+.portrait .talk .exts .card{width:470px;height:330px}
+.portrait .end{justify-content:center}
+.portrait .end .grid{grid-template-columns:repeat(3,320px);gap:22px}
+.portrait .end .grid .card{width:320px;height:220px}
+.portrait .end .grid .label{font-size:38px}
+.portrait .end .thanks{font-size:56px;text-align:center;line-height:1.4}
+.portrait #menu .box{width:980px;padding:40px}
+.portrait #menu .list{grid-template-columns:1fr}
 </style>
 <script src="/open-in-browser.js"></script>
 </head>
@@ -184,9 +230,8 @@ kbd{display:inline-block;background:var(--ink);color:#fff;border-radius:10px;pad
     </div>
   </div></div>
 </div></div>
-<div id="rotate">📱 請把手機或平板<br>轉成橫的來玩<br><small style="font-weight:600;color:#5a564d">（本教案為 16:9 投影設計）</small></div>
 
-<script src="questions.js?v=1"></script>
+<script src="questions.js?v=2"></script>
 <script>
 (function(){
   const G = window.GROUPS;
@@ -215,7 +260,7 @@ kbd{display:inline-block;background:var(--ink);color:#fff;border-radius:10px;pad
         <span class="chip">懷舊活動 · 猜猜看</span>
         <h1 class="big" style="margin-top:26px">食材上菜秀</h1>
         <div class="sub">記憶中的好味道</div>
-        <div class="go">按一下螢幕、或按 → 鍵，開始上菜</div>
+        <div class="go">點一下螢幕開始上菜（電腦可按 → 鍵或簡報筆）</div>
         <div class="go" style="margin-top:14px;font-size:32px">6 種食材 · 12 道台灣家常菜</div>
       </div>
       <div class="mosaic">${G.map(g=>`<div class="card"><img src="${img(g.img)}" alt="${g.name}"></div>`).join('')}</div>`;
@@ -241,6 +286,7 @@ kbd{display:inline-block;background:var(--ink);color:#fff;border-radius:10px;pad
           <li><kbd>H</kbd> 提示 ／ <kbd>M</kbd> 目錄 ／ <kbd>F</kbd> 全螢幕</li>
           <li>點螢幕右側＝下一步，點左側＝上一步</li>
         </div>
+        <p class="touch" style="display:none;background:#fff;border-radius:26px;padding:22px 30px;border:4px solid var(--cream-deep)">手機／平板：<b>點右邊或往左滑＝下一步</b>，點左邊或往右滑＝上一步。想投影請用電腦開同一個網址。</p>
       </div>`;
     }
     if (s.type === 'intro') {
@@ -395,13 +441,19 @@ kbd{display:inline-block;background:var(--ink);color:#fff;border-radius:10px;pad
 
   /* ---------- 縮放 16:9 ---------- */
   function fit(){
-    const s = Math.min(innerWidth/1920, innerHeight/1080);
+    const portrait = innerHeight > innerWidth;
+    stage.classList.toggle('portrait', portrait);
+    // 直式舞台高度跟著螢幕比例走（1440～2400），避免上下留黑邊
+    const W = portrait ? 1080 : 1920;
+    const H = portrait ? Math.min(2400, Math.max(1440, Math.round(1080 * innerHeight / innerWidth))) : 1080;
+    stage.style.width = W + 'px'; stage.style.height = H + 'px';
+    const s = Math.min(innerWidth/W, innerHeight/H);
     stage.style.transform = `scale(${s})`;
-    stage.style.marginLeft = ((innerWidth - 1920*s)/2) + 'px';
-    stage.style.marginTop = ((innerHeight - 1080*s)/2) + 'px';
+    stage.style.marginLeft = ((innerWidth - W*s)/2) + 'px';
+    stage.style.marginTop = ((innerHeight - H*s)/2) + 'px';
     $('#viewport').style.display = 'block';
   }
-  addEventListener('resize', fit); fit();
+  addEventListener('resize', fit); addEventListener('orientationchange', ()=>setTimeout(fit,150)); fit();
   show();
 })();
 </script>
