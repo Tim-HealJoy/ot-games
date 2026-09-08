@@ -1,0 +1,411 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>食材上菜秀 — 記憶中的好味道</title>
+<meta name="description" content="投影帶領用的懷舊猜菜遊戲：主食材先登場，配料一樣一樣出現，長輩猜出這是哪道台灣家常菜。6 種食材、12 道菜。教案設計：施昱廷 職能治療師。">
+<meta name="theme-color" content="#3F6293">
+<link rel="icon" href="../favicon.png">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="復能小遊戲">
+<meta property="og:title" content="食材上菜秀 · 記憶中的好味道">
+<meta property="og:description" content="主食材先登場，配料一樣一樣出現，猜猜看會變成哪道台灣家常菜。6 種食材、12 道菜，投影帶團體用。免費開放。">
+<meta property="og:url" content="https://games.otshih.com/dish-beta/">
+<meta property="og:image" content="https://games.otshih.com/dish-beta/share.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:locale" content="zh_TW">
+<meta name="twitter:card" content="summary_large_image">
+<style>
+:root{
+  --cream:#F4EFE3; --cream-deep:#EBE2CE; --card:#FFFDF8;
+  --ink:#1c1c1a; --ink-soft:#5a564d;
+  --indigo:#3F6293; --indigo-dark:#2b4568; --indigo-soft:#dfe7f3;
+  --amber:#E8A23A; --amber-soft:#fbe9c9;
+  --orange:#C4622F; --green:#5E7A32;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none}
+html,body{height:100%;margin:0;background:#1a1916;overflow:hidden;
+  font-family:"PingFang TC","Noto Sans TC","Microsoft JhengHei",system-ui,sans-serif;color:var(--ink)}
+button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+img{display:block;max-width:100%}
+img[hidden],[hidden]{display:none !important}
+
+/* ---------- 16:9 舞台 ---------- */
+#viewport{position:fixed;inset:0;display:flex;align-items:center;justify-content:center}
+#stage{width:1920px;height:1080px;background:var(--cream);position:relative;overflow:hidden;
+  transform-origin:top left;flex:none;box-shadow:0 0 0 1px rgba(0,0,0,.2)}
+.slide{position:absolute;inset:0;padding:70px 110px 120px}
+.slide:not(.on){display:none !important}
+
+/* 舞台固定元件 */
+#topbar{position:absolute;left:0;right:0;top:0;height:14px;background:var(--indigo);border-bottom:6px solid var(--amber);z-index:5}
+#credit{position:absolute;right:60px;bottom:34px;font-size:26px;color:var(--ink-soft);font-weight:600;letter-spacing:1px;z-index:5}
+#prog{position:absolute;left:60px;bottom:30px;font-size:28px;color:var(--ink-soft);font-weight:700;z-index:5;display:flex;align-items:center;gap:18px}
+#prog .dots{display:flex;gap:10px}
+#prog .dots i{width:18px;height:18px;border-radius:50%;background:var(--cream-deep);border:3px solid #cfc5ad;display:block}
+#prog .dots i.done{background:var(--amber);border-color:var(--amber)}
+#tools{position:absolute;right:60px;top:40px;display:flex;gap:14px;z-index:6}
+.tbtn{font-size:26px;font-weight:800;padding:12px 24px;border-radius:999px;background:rgba(63,98,147,.10);
+  color:var(--indigo-dark);border:3px solid rgba(63,98,147,.25)}
+.tbtn:hover{background:rgba(63,98,147,.18)}
+.tbtn.warn{background:var(--amber-soft);border-color:var(--amber)}
+
+/* 共用文字 */
+h1.big{font-size:150px;line-height:1.1;margin:0;font-weight:900;color:var(--indigo-dark);letter-spacing:4px}
+.chip{display:inline-block;font-size:34px;font-weight:900;padding:8px 32px;border-radius:999px;background:var(--indigo);color:#fff;letter-spacing:3px}
+.chip.amber{background:var(--amber);color:var(--ink)}
+.chip.green{background:var(--green);color:#fff}
+.qtitle{font-size:84px;font-weight:900;color:var(--indigo-dark);margin:0 0 30px;letter-spacing:4px;text-align:center}
+.card{background:var(--card);border-radius:34px;box-shadow:0 10px 30px rgba(60,40,10,.12);overflow:hidden;border:4px solid #fff}
+.card img{width:100%;height:100%;object-fit:cover}
+.label{font-size:52px;font-weight:900;text-align:center;color:var(--ink);letter-spacing:3px}
+
+/* 出現動畫 */
+@keyframes pop{0%{opacity:0;transform:scale(.6) translateY(30px)}70%{transform:scale(1.06)}100%{opacity:1;transform:none}}
+@keyframes fade{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:none}}
+.pop{animation:pop .55s cubic-bezier(.2,.9,.3,1.2) both}
+.fade{animation:fade .5s ease-out both}
+.step{visibility:hidden}
+.step.show{visibility:visible}
+.step .fade,.step .pop{animation:none}
+.step.show .fade{animation:fade .5s ease-out both}
+.step.show .pop{animation:pop .55s cubic-bezier(.2,.9,.3,1.2) both}
+
+/* ---------- 封面 ---------- */
+.cover{display:flex;align-items:center;gap:80px}
+.cover .txt{flex:1}
+.cover .sub{font-size:72px;font-weight:800;color:var(--orange);margin:26px 0 50px;letter-spacing:6px}
+.cover .go{font-size:38px;color:var(--ink-soft);font-weight:600}
+.cover .mosaic{display:grid;grid-template-columns:repeat(2,300px);gap:22px}
+.cover .mosaic .card{width:300px;height:220px}
+
+/* ---------- 說明頁 ---------- */
+.howto{display:grid;grid-template-columns:1fr 1fr;gap:70px;align-items:start}
+.howto h2{font-size:54px;margin:0 0 18px;color:var(--indigo-dark);letter-spacing:3px}
+.howto p,.howto li{font-size:38px;line-height:1.55;margin:0 0 14px}
+.howto ol{padding-left:52px;margin:0}
+.howto .beats{display:flex;gap:18px;margin:10px 0 34px}
+.howto .beats span{flex:1;text-align:center;background:#fff;border:4px solid var(--indigo-soft);border-radius:22px;padding:14px 0;font-size:40px;font-weight:900;color:var(--indigo-dark)}
+.howto .keys{background:#fff;border-radius:26px;padding:26px 34px;border:4px solid var(--cream-deep)}
+.howto .keys li{font-size:34px}
+kbd{display:inline-block;background:var(--ink);color:#fff;border-radius:10px;padding:2px 18px;font-size:.85em;font-weight:900;margin:0 6px}
+
+/* ---------- 食材登場 ---------- */
+.intro{display:flex;flex-direction:column;align-items:center}
+.intro .card{width:760px;height:560px;margin:10px 0 30px}
+.intro .name{font-size:130px;font-weight:900;color:var(--indigo-dark);letter-spacing:8px;line-height:1.1}
+.intro .line{font-size:44px;color:var(--ink-soft);margin-top:14px;font-weight:600}
+
+/* ---------- 猜猜看 ---------- */
+.guess{display:flex;flex-direction:column}
+.guess .row{display:flex;align-items:center;gap:34px;flex:1}
+.guess .main{width:470px;flex:none;display:flex;flex-direction:column;align-items:center;gap:18px}
+.guess .main .card{width:470px;height:400px;border-color:var(--amber)}
+.guess .plus{font-size:190px;font-weight:900;color:var(--orange);line-height:1;flex:none;width:130px;text-align:center}
+.guess .ings{flex:1;display:grid;gap:28px;align-content:center;justify-content:center}
+.guess .ings.n4{grid-template-columns:repeat(2,470px)}
+.guess .ings.n3{grid-template-columns:repeat(3,340px)}
+.guess .ings.n2{grid-template-columns:repeat(2,470px)}
+.slot{display:flex;flex-direction:column;align-items:center;gap:12px}
+.n4 .slot .card{width:470px;height:300px}
+.n3 .slot .card{width:340px;height:300px}
+.n2 .slot .card{width:470px;height:300px}
+.slot .label{font-size:46px}
+.slot.wait .card{background:transparent;border:6px dashed #cfc5ad;box-shadow:none;display:flex;align-items:center;justify-content:center;font-size:120px;font-weight:900;color:#cfc5ad}
+.slot.wait .label{color:transparent}
+.hint{position:absolute;left:50%;bottom:110px;transform:translateX(-50%);background:var(--amber-soft);border:5px solid var(--amber);
+  border-radius:999px;padding:16px 60px;font-size:44px;font-weight:800;color:var(--ink);white-space:nowrap;display:none;z-index:4}
+.hint.show{display:block}
+
+/* ---------- 揭曉 ---------- */
+.reveal{display:flex;gap:70px;align-items:center}
+.reveal .card{width:1020px;height:760px;flex:none;border-color:var(--amber)}
+.reveal .txt{flex:1;display:flex;flex-direction:column;gap:26px}
+.reveal .name{font-size:120px;font-weight:900;color:var(--indigo-dark);letter-spacing:6px;line-height:1.15}
+.reveal .story{font-size:40px;line-height:1.6;color:var(--ink);background:#fff;border-radius:26px;padding:28px 34px;border-left:14px solid var(--amber)}
+.reveal .story b{color:var(--orange)}
+
+/* ---------- 聊聊看 ---------- */
+.talk{display:flex;flex-direction:column;align-items:center}
+.talk .q{font-size:78px;font-weight:900;color:var(--indigo-dark);text-align:center;line-height:1.35;margin:30px 0 40px;max-width:1600px;letter-spacing:3px}
+.talk .more{font-size:44px;color:var(--ink-soft);font-weight:700;margin-bottom:16px}
+.talk .exts{display:flex;gap:60px}
+.talk .exts .card{width:600px;height:400px}
+.talk .exts .slot{gap:16px}
+
+/* ---------- 結尾 ---------- */
+.end{display:flex;flex-direction:column;align-items:center}
+.end .grid{display:grid;grid-template-columns:repeat(6,260px);gap:22px 26px;margin:26px 0 30px}
+.end .grid .card{width:260px;height:180px}
+.end .grid .label{font-size:34px}
+.end .thanks{font-size:64px;font-weight:900;color:var(--orange);letter-spacing:6px}
+
+/* ---------- 目錄 ---------- */
+#menu{position:absolute;inset:0;background:rgba(28,28,26,.72);display:none;z-index:20;align-items:center;justify-content:center}
+#menu.show{display:flex}
+#menu .box{background:var(--cream);border-radius:34px;padding:50px 70px;width:1200px;max-height:900px;overflow:auto}
+#menu h2{font-size:56px;margin:0 0 26px;color:var(--indigo-dark)}
+#menu .list{display:grid;grid-template-columns:repeat(2,1fr);gap:16px 30px}
+#menu .list button{display:flex;align-items:center;gap:18px;font-size:38px;font-weight:800;padding:14px 22px;border-radius:20px;background:#fff;text-align:left;border:4px solid var(--cream-deep)}
+#menu .list button:hover{border-color:var(--indigo)}
+#menu .list button img{width:120px;height:80px;object-fit:cover;border-radius:12px}
+#menu .foot{margin-top:30px;display:flex;gap:18px;flex-wrap:wrap}
+#menu .foot a,#menu .foot button{font-size:32px;font-weight:800;padding:12px 28px;border-radius:999px;background:var(--indigo);color:#fff;text-decoration:none}
+
+@media (orientation:portrait){
+  #rotate{display:flex}
+}
+#rotate{display:none;position:fixed;inset:0;background:var(--cream);z-index:50;align-items:center;justify-content:center;text-align:center;padding:30px;font-size:22px;line-height:1.6;font-weight:700}
+</style>
+<script src="/open-in-browser.js"></script>
+</head>
+<body>
+<div id="viewport"><div id="stage">
+  <div id="topbar"></div>
+  <div id="tools">
+    <button class="tbtn" id="btnHint" title="提示（H）">💡 提示</button>
+    <button class="tbtn" id="btnMenu" title="目錄（M）">☰ 目錄</button>
+    <button class="tbtn" id="btnFull" title="全螢幕（F）">⛶ 全螢幕</button>
+  </div>
+  <div id="slides"></div>
+  <div class="hint" id="hint"></div>
+  <div id="prog"></div>
+  <div id="credit">教案設計：施昱廷 職能治療師</div>
+  <div id="menu"><div class="box">
+    <h2>目錄</h2>
+    <div class="list" id="menuList"></div>
+    <div class="foot">
+      <button id="menuCover">回封面</button>
+      <button id="menuHow">玩法說明</button>
+      <a href="print.html" target="_blank">🖨 帶領者提示卡</a>
+      <button id="menuClose">關閉</button>
+    </div>
+  </div></div>
+</div></div>
+<div id="rotate">📱 請把手機或平板<br>轉成橫的來玩<br><small style="font-weight:600;color:#5a564d">（本教案為 16:9 投影設計）</small></div>
+
+<script src="questions.js?v=1"></script>
+<script>
+(function(){
+  const G = window.GROUPS;
+  const $ = s => document.querySelector(s);
+  const img = k => `img/${k}.jpg`;
+
+  /* ---------- 建立投影片清單 ---------- */
+  const slides = [];
+  slides.push({type:'cover', steps:1});
+  slides.push({type:'howto', steps:1});
+  G.forEach((g, gi) => {
+    slides.push({type:'intro', g, gi, steps:2});
+    g.dishes.forEach((d, di) => {
+      slides.push({type:'guess', g, gi, d, di, steps:1 + d.ings.length});
+      slides.push({type:'reveal', g, gi, d, di, steps:2});
+    });
+    slides.push({type:'talk', g, gi, steps:2});
+  });
+  slides.push({type:'end', steps:1});
+
+  function render(s){
+    const el = document.createElement('div');
+    el.className = 'slide ' + s.type;
+    if (s.type === 'cover') {
+      el.innerHTML = `<div class="txt">
+        <span class="chip">懷舊活動 · 猜猜看</span>
+        <h1 class="big" style="margin-top:26px">食材上菜秀</h1>
+        <div class="sub">記憶中的好味道</div>
+        <div class="go">按一下螢幕、或按 → 鍵，開始上菜</div>
+        <div class="go" style="margin-top:14px;font-size:32px">6 種食材 · 12 道台灣家常菜</div>
+      </div>
+      <div class="mosaic">${G.map(g=>`<div class="card"><img src="${img(g.img)}" alt="${g.name}"></div>`).join('')}</div>`;
+    }
+    if (s.type === 'howto') {
+      el.innerHTML = `<div>
+        <h2>遊戲目的</h2>
+        <p>用大家熟悉的食材，一樣一樣秀出配料，猜猜看會變成哪道菜。從「猜」帶到「聊」，喚起記憶中的味道，也練習命名與聯想。</p>
+        <h2 style="margin-top:34px">四拍節奏</h2>
+        <div class="beats"><span>① 猜</span><span>② 揭曉</span><span>③ 故事</span><span>④ 聊聊看</span></div>
+        <p>每種食材出兩道菜：第一道全台都吃（暖身），第二道地方或節慶菜（進階）。</p>
+      </div>
+      <div>
+        <h2>怎麼帶</h2>
+        <ol>
+          <li>先秀主食材，請長輩說出它的名字。</li>
+          <li>配料一張一張出現，每出一張就問：「加了這個，會是什麼菜？」</li>
+          <li>猜不出來按 <kbd>💡 提示</kbd>：先給口感、再給場合。</li>
+          <li>揭曉後念故事一句，再用「聊聊看」的問句帶大家分享。</li>
+        </ol>
+        <div class="keys" style="margin-top:26px">
+          <li><kbd>→</kbd><kbd>空白鍵</kbd> 下一步 ／ <kbd>←</kbd> 上一步（簡報筆可用）</li>
+          <li><kbd>H</kbd> 提示 ／ <kbd>M</kbd> 目錄 ／ <kbd>F</kbd> 全螢幕</li>
+          <li>點螢幕右側＝下一步，點左側＝上一步</li>
+        </div>
+      </div>`;
+    }
+    if (s.type === 'intro') {
+      el.innerHTML = `<div class="qtitle">第 ${s.gi+1} 位主角登場</div>
+        <div class="card pop"><img src="${img(s.g.img)}" alt=""></div>
+        <div class="step" data-step="1"><div class="name fade">${s.g.name}</div><div class="line fade">${s.g.intro}</div></div>`;
+      el.querySelector('.qtitle').style.fontSize = '60px';
+      el.querySelector('.qtitle').style.color = 'var(--ink-soft)';
+      el.querySelector('.step').style.textAlign = 'center';
+    }
+    if (s.type === 'guess') {
+      const n = s.d.ings.length;
+      el.innerHTML = `<div class="qtitle">猜猜這是哪道菜？ <span class="chip ${s.di?'amber':'green'}" style="vertical-align:middle;font-size:34px">${s.d.level}</span></div>
+        <div class="row">
+          <div class="main"><div class="card"><img src="${img(s.g.img)}" alt=""></div><div class="label">${s.g.name}</div></div>
+          <div class="plus">+</div>
+          <div class="ings n${n}">${s.d.ings.map((x,i)=>`<div class="slot wait" data-i="${i}"><div class="card"><span class="q">？</span><img src="${img(x.img)}" alt="" hidden></div><div class="label">${x.name}</div></div>`).join('')}</div>
+        </div>`;
+    }
+    if (s.type === 'reveal') {
+      el.innerHTML = `<div class="card pop"><img src="${img(s.d.img)}" alt=""></div>
+        <div class="txt">
+          <div><span class="chip ${s.di?'amber':'green'}">${s.g.name} 的第 ${s.di+1} 道菜</span></div>
+          <div class="name fade">${s.d.name}</div>
+          <div class="step" data-step="1"><div class="story fade">${s.d.story}</div></div>
+        </div>`;
+    }
+    if (s.type === 'talk') {
+      el.innerHTML = `<span class="chip">聊聊看</span>
+        <div class="q">${s.g.talk.q}</div>
+        <div class="step" data-step="1" style="display:flex;flex-direction:column;align-items:center">
+          <div class="more fade">${s.g.name}還能做成……你家還會做什麼？</div>
+          <div class="exts">${s.g.talk.ext.map(x=>`<div class="slot pop"><div class="card"><img src="${img(x.img)}" alt=""></div><div class="label">${x.name}</div></div>`).join('')}</div>
+        </div>`;
+    }
+    if (s.type === 'end') {
+      const all = G.flatMap(g=>g.dishes);
+      el.innerHTML = `<div class="qtitle">今天上了 ${all.length} 道菜</div>
+        <div class="grid">${all.map(d=>`<div class="slot"><div class="card"><img src="${img(d.img)}" alt=""></div><div class="label">${d.name}</div></div>`).join('')}</div>
+        <div class="thanks">哪一道，是你記憶中的好味道？</div>`;
+    }
+    return el;
+  }
+  const wrap = $('#slides');
+  slides.forEach(s => { s.el = render(s); wrap.appendChild(s.el); });
+
+  /* ---------- 狀態 ---------- */
+  let cur = 0, step = 0, hintLv = 0;
+  try { const sv = JSON.parse(localStorage.getItem('dish-show-pos')||'null'); if (sv && sv.cur < slides.length) { cur = sv.cur; step = 0; } } catch(e){}
+  const qs = new URLSearchParams(location.search); if (qs.get('slide')) { cur = Math.min(slides.length-1, +qs.get('slide')|0); step = Math.min(slides[cur].steps-1, +(qs.get('step')||0)|0); }
+
+  function show(){
+    slides.forEach((s,i)=> s.el.classList.toggle('on', i===cur));
+    const s = slides[cur];
+    // 步驟顯示
+    s.el.querySelectorAll('.step').forEach(x=> x.classList.toggle('show', +x.dataset.step <= step));
+    if (s.type === 'guess') {
+      s.el.querySelectorAll('.slot').forEach(sl => {
+        const i = +sl.dataset.i, on = i < step;
+        sl.classList.toggle('wait', !on);
+        sl.querySelector('img').hidden = !on;
+        sl.querySelector('.q').hidden = on;
+        if (on && !sl.dataset.shown) { sl.classList.add('pop'); sl.dataset.shown = 1; setTimeout(()=>sl.classList.remove('pop'), 700); }
+        if (!on) sl.dataset.shown = '';
+      });
+    }
+    // 提示
+    hintLv = 0; $('#hint').classList.remove('show');
+    $('#btnHint').style.visibility = s.type === 'guess' ? 'visible' : 'hidden';
+    // 進度
+    let txt = '';
+    if (s.gi !== undefined) txt = `第 ${s.gi+1} 組／${G.length} · ${s.g.name}` + (s.d ? ` · 第 ${s.di+1} 道` : '');
+    if (s.type === 'cover') txt = '';
+    if (s.type === 'howto') txt = '玩法說明';
+    if (s.type === 'end') txt = '結尾';
+    let dots = '';
+    if (s.type === 'guess') dots = `<span class="dots">${s.d.ings.map((_,i)=>`<i class="${i<step?'done':''}"></i>`).join('')}</span>`;
+    $('#prog').innerHTML = `<span>${txt}</span>${dots}`;
+    try { localStorage.setItem('dish-show-pos', JSON.stringify({cur})); } catch(e){}
+  }
+  function next(){
+    const s = slides[cur];
+    if (step < s.steps - 1) { step++; }
+    else if (cur < slides.length - 1) { cur++; step = 0; }
+    show();
+  }
+  function prev(){
+    const s = slides[cur];
+    if (step > 0) { step--; }
+    else if (cur > 0) { cur--; step = 0; }
+    show();
+  }
+  function goto(i){ cur = i; step = 0; closeMenu(); show(); }
+
+  /* ---------- 提示 ---------- */
+  function hint(){
+    const s = slides[cur]; if (s.type !== 'guess') return;
+    hintLv = (hintLv + 1) % 3;
+    const h = $('#hint');
+    if (hintLv === 0) { h.classList.remove('show'); return; }
+    h.textContent = (hintLv === 1 ? '💡 口感：' + s.d.hint2 : '💡 場合：' + s.d.hint3);
+    h.classList.add('show');
+  }
+
+  /* ---------- 目錄 ---------- */
+  const menu = $('#menu');
+  $('#menuList').innerHTML = G.map((g,gi)=>{
+    const idx = slides.findIndex(s=> s.type==='intro' && s.gi===gi);
+    return `<button data-go="${idx}"><img src="${img(g.img)}" alt="">第 ${gi+1} 組 ${g.name}<span style="font-weight:600;color:#5a564d;font-size:28px;margin-left:auto">${g.dishes.map(d=>d.name).join('／')}</span></button>`;
+  }).join('');
+  $('#menuList').addEventListener('click', e => { const b = e.target.closest('button'); if (b) goto(+b.dataset.go); });
+  $('#menuCover').onclick = ()=> goto(0);
+  $('#menuHow').onclick = ()=> goto(1);
+  $('#menuClose').onclick = closeMenu;
+  function openMenu(){ menu.classList.add('show'); }
+  function closeMenu(){ menu.classList.remove('show'); }
+  menu.addEventListener('click', e => { if (e.target === menu) closeMenu(); });
+
+  /* ---------- 全螢幕 ---------- */
+  function full(){
+    const d = document.documentElement;
+    if (!document.fullscreenElement) (d.requestFullscreen||d.webkitRequestFullscreen||function(){}).call(d);
+    else (document.exitFullscreen||document.webkitExitFullscreen||function(){}).call(document);
+  }
+
+  /* ---------- 輸入 ---------- */
+  $('#btnHint').onclick = e => { e.stopPropagation(); hint(); };
+  $('#btnMenu').onclick = e => { e.stopPropagation(); openMenu(); };
+  $('#btnFull').onclick = e => { e.stopPropagation(); full(); };
+  document.addEventListener('keydown', e => {
+    if (menu.classList.contains('show')) { if (e.key === 'Escape' || e.key === 'm' || e.key === 'M') closeMenu(); return; }
+    switch (e.key) {
+      case 'ArrowRight': case ' ': case 'Enter': case 'PageDown': case 'ArrowDown': e.preventDefault(); next(); break;
+      case 'ArrowLeft': case 'PageUp': case 'ArrowUp': case 'Backspace': e.preventDefault(); prev(); break;
+      case 'h': case 'H': hint(); break;
+      case 'm': case 'M': openMenu(); break;
+      case 'f': case 'F': full(); break;
+      case 'Home': goto(0); break;
+      case 'End': goto(slides.length-1); break;
+    }
+  });
+  const stage = $('#stage');
+  let tx = null;
+  stage.addEventListener('pointerdown', e => { tx = e.clientX; });
+  stage.addEventListener('pointerup', e => {
+    if (e.target.closest('#tools') || e.target.closest('#menu')) return;
+    if (tx !== null && Math.abs(e.clientX - tx) > 60) { (e.clientX < tx) ? next() : prev(); tx = null; return; }
+    tx = null;
+    const r = stage.getBoundingClientRect();
+    ((e.clientX - r.left) / r.width < 0.15) ? prev() : next();
+  });
+
+  /* ---------- 縮放 16:9 ---------- */
+  function fit(){
+    const s = Math.min(innerWidth/1920, innerHeight/1080);
+    stage.style.transform = `scale(${s})`;
+    stage.style.marginLeft = ((innerWidth - 1920*s)/2) + 'px';
+    stage.style.marginTop = ((innerHeight - 1080*s)/2) + 'px';
+    $('#viewport').style.display = 'block';
+  }
+  addEventListener('resize', fit); fit();
+  show();
+})();
+</script>
+<!-- Cloudflare Web Analytics：無 cookie、不追蹤個人，只統計造訪量 -->
+<script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "3df68cf5d6bd4975b97a157f7ff3cafb"}'></script>
+</body>
+</html>
