@@ -4,13 +4,13 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>菜市場數一數 — 數字認知教案</title>
-<meta name="description" content="菜市場數一數：數一數、比大小、排順序、算一算，四關 72 題的失智長者數字認知教案。投影帶團體或手機都能玩。教案設計：施昱廷 職能治療師。">
+<meta name="description" content="菜市場數一數：數一數、比多少、排順序、算一算，四關 72 題的失智長者數字認知教案。投影帶團體或手機都能玩。教案設計：施昱廷 職能治療師。">
 <meta name="theme-color" content="#3F6293">
 <link rel="icon" href="../favicon.png">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="復能小遊戲">
 <meta property="og:title" content="菜市場數一數 · 失智長者數字認知教案">
-<meta property="og:description" content="數一數、比大小、排順序、算一算，四關 72 題，用菜市場最熟悉的東西練數字。投影帶團體、手機也能玩。免費開放。">
+<meta property="og:description" content="數一數、比多少、排順序、算一算，四關 72 題，用菜市場最熟悉的東西練數字。投影帶團體、手機也能玩。免費開放。">
 <meta property="og:url" content="https://games.otshih.com/market-beta/">
 <meta property="og:image" content="https://games.otshih.com/market-beta/share.png">
 <meta property="og:image:width" content="1200">
@@ -114,7 +114,7 @@ kbd{display:inline-block;background:var(--ink);color:#fff;border-radius:10px;pad
 .scene.studio{background-image:url(img/bg_studio.jpg)} .scene.wood{background-image:url(img/bg_wood.jpg)}
 .items{position:absolute;inset:0;display:flex;flex-wrap:wrap;align-content:center;justify-content:center;gap:var(--gap,10px);padding:40px}
 .item{position:relative;width:var(--sz);height:var(--sz);display:flex;align-items:flex-end;justify-content:center}
-.item img{max-width:100%;max-height:100%;width:auto;height:auto;filter:drop-shadow(0 12px 10px rgba(0,0,0,.22));transform:rotate(var(--rot,0deg)) scaleX(var(--flip,1))}
+.item img{max-width:100%;max-height:100%;width:auto;height:auto;filter:drop-shadow(0 12px 10px rgba(0,0,0,.22));transform:rotate(var(--rot,0deg)) scaleX(var(--flip,1)) scale(var(--sc,1));transform-origin:center bottom}
 .item .num{position:absolute;top:-6px;right:-6px;width:.6em;height:.6em;font-size:calc(var(--sz) * .5);border-radius:50%;background:var(--amber);color:var(--ink);font-weight:900;display:none;align-items:center;justify-content:center;box-shadow:0 4px 10px rgba(0,0,0,.25);line-height:1}
 .item.num-on .num{display:flex;animation:drop .35s ease-out both}
 .items.fives{align-content:center;padding:30px 60px}
@@ -302,13 +302,13 @@ kbd{display:inline-block;background:var(--ink);color:#fff;border-radius:10px;pad
   </div></div>
 </div></div>
 
-<script src="questions.js?v=1"></script>
+<script src="questions.js?v=2"></script>
 <script>
 (function(){
   const T = window.TOPICS, R = window.ROUNDS, M = window.MONEY, LV = window.LEVELS;
   const $ = s => document.querySelector(s);
   const png = k => `img/${k}.png`, jpg = k => `img/${k}.jpg`;
-  const LVDESC = ["1～5、明顯差距、3 張牌、數硬幣","6～10、尺寸比較、4 張牌、50 元找零","11～20、比價錢、5 張牌、100 元買兩樣"];
+  const LVDESC = ["1～5、差很多、3 張牌、數硬幣","6～10、差 2～3 個、4 張牌、50 元找零","11～20、差 1～3 個、5 張牌、100 元買兩樣"];
 
   /* 可重現的亂數（同一題每次排法一樣，帶領者提示卡才對得上） */
   function rng(seed){ let s = seed * 9301 + 49297; return () => { s = (s * 9301 + 49297) % 233280; return s / 233280; }; }
@@ -318,10 +318,12 @@ kbd{display:inline-block;background:var(--ink);color:#fff;border-radius:10px;pad
     const t = T[topic], r = rng(seed);
     const sz = opt.sz || (n <= 5 ? 300 : n <= 10 ? 220 : 160);
     let h = `<div class="items" style="--sz:${sz}px;--gap:${opt.gap ?? (n<=5?40:n<=10?26:14)}px">`;
+    let last = -1;
     for (let i = 0; i < n; i++) {
-      const im = t.items[Math.floor(r() * t.items.length)];
-      const rot = (r() * 16 - 8).toFixed(1), flip = r() < 0.4 ? -1 : 1;
-      h += `<div class="item" style="--rot:${rot}deg;--flip:${flip}"><img src="${png(im)}" alt=""><span class="num">${i+1}</span></div>`;
+      let k = Math.floor(r() * t.items.length); if (t.items.length > 1 && k === last) k = (k + 1) % t.items.length; last = k;
+      const im = t.items[k];
+      const rot = (r() * 16 - 8).toFixed(1), flip = r() < 0.45 ? -1 : 1, sc = (0.86 + r() * 0.22).toFixed(2);
+      h += `<div class="item" style="--rot:${rot}deg;--flip:${flip};--sc:${sc}"><img src="${png(im)}" alt=""><span class="num">${i+1}</span></div>`;
     }
     return h + `</div>`;
   }
@@ -363,7 +365,7 @@ kbd{display:inline-block;background:var(--ink);color:#fff;border-radius:10px;pad
         <span class="chip">失智長者 · 數字認知教案</span>
         <div class="pre">阿公阿嬤上市場</div>
         <h1 class="big">菜市場數一數</h1>
-        <div class="sub">數一數 · 比大小 · 排順序 · 算一算</div>
+        <div class="sub">數一數 · 比多少 · 排順序 · 算一算</div>
         <div class="go">點一下螢幕開始（電腦可按 → 鍵或簡報筆）<br><span style="font-size:30px">四關 · 三級 · 72 題 · 帶領者主持，長輩用嘴巴回答</span></div>
       </div>
       <div class="mosaic">${R.map(r=>`<div class="card"><img src="${jpg(['story_duck','story_egg','story_market','story_shop'][R.indexOf(r)])}" alt=""><span>${r.icon} ${r.name}</span></div>`).join('')}</div>`;
@@ -371,7 +373,7 @@ kbd{display:inline-block;background:var(--ink);color:#fff;border-radius:10px;pad
     if (s.type === 'howto') {
       el.innerHTML = `<div>
         <h2>教案目的</h2>
-        <p>用菜市場裡最熟悉的東西練數字：數鴨子、比大小、排價錢、算找零。數字能力是長輩一輩子在用的，從「一定答得出來」開始，把成功經驗留給他們。</p>
+        <p>用菜市場裡最熟悉的東西練數字：數鴨子、比多少、排價錢、算找零。數字能力是長輩一輩子在用的，從「一定答得出來」開始，把成功經驗留給他們。</p>
         <h2 style="margin-top:30px">四拍節奏</h2>
         <div class="beats"><span>① 看</span><span>② 答</span><span>③ 揭曉</span><span>④ 聊聊看</span></div>
         <p>三個級別：<b>初階</b>一定答得出來、<b>中階</b>要想一下、<b>進階</b>給輕度長輩挑戰。混合班可以同一題先讓輕度答，再按提示降階讓中度也答。</p>
@@ -381,7 +383,7 @@ kbd{display:inline-block;background:var(--ink);color:#fff;border-radius:10px;pad
         <ol>
           <li>目錄選關卡與級別，一堂課打一關約 20 分鐘。</li>
           <li>出題後先等長輩開口，不急著揭曉；按 <kbd>→</kbd> 才會 3、2、1 揭曉。</li>
-          <li>答不出來按 <kbd>💡 提示</kbd>：數一數會排成五個一排、比大小會標數字、排順序正確卡片會發亮、算一算硬幣一枚一枚亮。</li>
+          <li>答不出來按 <kbd>💡 提示</kbd>：數一數會排成五個一排、比多少會標數字、排順序正確卡片會發亮、算一算硬幣一枚一枚亮。</li>
           <li>分組時開 <kbd>🏆 計分</kbd>，只加分不扣分，結尾看兩隊合計。</li>
         </ol>
         <ul class="keys" style="margin-top:22px">
