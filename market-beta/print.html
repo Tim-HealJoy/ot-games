@@ -1,0 +1,23 @@
+<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><title>菜市場數一數 — 帶領者提示卡</title>
+<style>body{font-family:"PingFang TC","Noto Sans TC",sans-serif;margin:24px;color:#1c1c1a;font-size:14px}
+h1{font-size:22px;margin:0 0 4px}h2{font-size:18px;margin:22px 0 8px;color:#2b4568;border-left:8px solid #E8A23A;padding-left:10px}
+table{border-collapse:collapse;width:100%;margin-bottom:10px}th,td{border:1px solid #cfc5ad;padding:6px 8px;text-align:left;vertical-align:top}
+th{background:#F4EFE3}.lv{font-weight:900;color:#C4622F}.note{color:#5a564d;font-size:12px}
+@media print{h2{page-break-before:auto}.r{page-break-inside:avoid}}</style></head><body>
+<h1>菜市場數一數 — 帶領者提示卡（答案與聊聊看）</h1>
+<p class="note">四拍：看 → 答 → 揭曉（按 → 才會 3、2、1）→ 聊聊看。答不出來先按 H 提示降階，不催、不糾正，讓每個人都有開口的機會。教案設計：施昱廷 職能治療師</p>
+<div id="out"></div>
+<script src="questions.js?v=1"></script>
+<script>
+const T=window.TOPICS,R=window.ROUNDS,LV=window.LEVELS;let h='';
+R.forEach((rd,ri)=>{h+=`<div class="r"><h2>第 ${ri+1} 關 ${rd.name}｜${rd.sub}｜練習：${rd.goal}</h2><p class="note">${rd.how}</p>`;
+ rd.levels.forEach((qs,li)=>{h+=`<table><tr><th style="width:60px">級別</th><th style="width:40px">#</th><th>題目</th><th style="width:120px">答案</th><th>聊聊看</th></tr>`;
+  qs.forEach((q,qi)=>{const t=T[q.topic];let ask='',ans='';
+   if(rd.id==='count'){ask=`畫面上有幾${t.unit}${t.name}？`;ans=`${q.n} ${t.unit}`;}
+   if(rd.id==='compare'){ask=q.ask+`（左 ${q.a}${q.type==='price'?' 元':q.type==='count'?' '+t.unit:'（'+(q.a===1?'大':'小')+'）'}／右 ${q.b}${q.type==='price'?' 元':q.type==='count'?' '+t.unit:'（'+(q.b===1?'大':'小')+'）'}）`;const pick=q.want==='min'?(q.a<q.b?'左邊':'右邊'):(q.a>q.b?'左邊':'右邊');ans=pick;}
+   if(rd.id==='order'){const s=q.vals.slice().sort((a,b)=>q.dir==='asc'?a-b:b-a);ask=`${t.name}：${q.ask}（${q.vals.join('、')}）`;ans=s.join(' → ');}
+   if(rd.id==='calc'){if(q.kind==='sum'){ask=`數錢：${q.coins.join(' + ')}`;ans=q.coins.reduce((a,b)=>a+b,0)+' 元';}else{const c=q.items.reduce((a,b)=>a+b.price,0);ask=`付 ${q.pay} 元，買 ${q.items.map(i=>T[i.topic].name+' '+i.price+' 元').join('＋')}`;ans=`找 ${q.pay-c} 元`;}}
+   h+=`<tr><td class="lv">${LV[li]}</td><td>${qi+1}</td><td>${ask}</td><td><b>${ans}</b></td><td>${t.talk[li]}</td></tr>`;});
+  h+=`</table>`;});h+=`</div>`;});
+document.getElementById('out').innerHTML=h;
+</script></body></html>
