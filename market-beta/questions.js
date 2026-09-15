@@ -1,5 +1,5 @@
 /* 菜市場數一數 — 題庫
- * 四關 × 3 級 × 6 題 = 72 題。數量由程式排列去背單品，數字絕對精準。
+ * 三關 × 3 級 × 6 題 = 54 題（09-15 老闆指示取消第四關算一算）。數量由程式排列去背單品，數字絕對精準。
  * 主題（TOPICS）帶故事一句＋三級聊聊看問句；故事頁用農家自然光大圖。
  */
 window.TOPICS = {
@@ -96,28 +96,6 @@ window.ROUNDS = [
         {topic:"sweetpotato",kind:"price",vals:[12,18,25,32,40],dir:"asc",ask:"由便宜到貴排"},
         {topic:"egg",kind:"count",vals:[15,12,9,6,3],dir:"desc",ask:"雞蛋由多到少排"},
         {topic:"cabbage",kind:"price",vals:[28,35,42,58,66],dir:"asc",ask:"由便宜到貴排"} ],
-    ] },
-  { id:"calc", name:"算一算", sub:"買菜要付多少、找多少？", icon:"🧮", bg:"wood", goal:"心算、金錢概念、生活化計算",
-    how:"初階數錢、中階 50 元找零、進階 100 元買兩樣。按「提示」硬幣會一枚一枚亮起來，帶大家一起加。",
-    levels:[
-      [ {topic:"shop",kind:"sum",coins:[10,10],ask:"桌上的錢總共幾元？"},
-        {topic:"shop",kind:"sum",coins:[5,1,1],ask:"桌上的錢總共幾元？"},
-        {topic:"shop",kind:"sum",coins:[10,5,1],ask:"桌上的錢總共幾元？"},
-        {topic:"market",kind:"sum",coins:[10,10,10],ask:"桌上的錢總共幾元？"},
-        {topic:"market",kind:"sum",coins:[10,5,5,1],ask:"桌上的錢總共幾元？"},
-        {topic:"market",kind:"sum",coins:[10,10,5,1,1],ask:"桌上的錢總共幾元？"} ],
-      [ {topic:"egg",kind:"change",pay:50,items:[{topic:"egg",price:30}],ask:"付 50 元，要找多少？"},
-        {topic:"orange",kind:"change",pay:50,items:[{topic:"orange",price:20}],ask:"付 50 元，要找多少？"},
-        {topic:"tomato",kind:"change",pay:50,items:[{topic:"tomato",price:35}],ask:"付 50 元，要找多少？"},
-        {topic:"corn",kind:"change",pay:50,items:[{topic:"corn",price:45}],ask:"付 50 元，要找多少？"},
-        {topic:"sweetpotato",kind:"change",pay:50,items:[{topic:"sweetpotato",price:15}],ask:"付 50 元，要找多少？"},
-        {topic:"cabbage",kind:"change",pay:50,items:[{topic:"cabbage",price:40}],ask:"付 50 元，要找多少？"} ],
-      [ {topic:"market",kind:"change",pay:100,items:[{topic:"cabbage",price:40},{topic:"tomato",price:35}],ask:"付 100 元買兩樣，要找多少？"},
-        {topic:"market",kind:"change",pay:100,items:[{topic:"fish",price:60},{topic:"egg",price:25}],ask:"付 100 元買兩樣，要找多少？"},
-        {topic:"market",kind:"change",pay:100,items:[{topic:"orange",price:30},{topic:"banana",price:45}],ask:"付 100 元買兩樣，要找多少？"},
-        {topic:"market",kind:"change",pay:100,items:[{topic:"radish",price:20},{topic:"corn",price:25}],ask:"付 100 元買兩樣，要找多少？"},
-        {topic:"shop",kind:"change",pay:100,items:[{topic:"sweetpotato",price:15},{topic:"egg",price:35}],ask:"付 100 元買兩樣，要找多少？"},
-        {topic:"shop",kind:"change",pay:100,items:[{topic:"fish",price:55},{topic:"cabbage",price:30}],ask:"付 100 元買兩樣，要找多少？"} ],
     ] },
 ];
 window.LEVELS = L;
