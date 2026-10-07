@@ -48,7 +48,7 @@ button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
 .tile.sos .nm{background:var(--red);color:#fff}
 .tile.sos .rel{color:#FFE3E3}
 .tile.empty{opacity:.45;border-style:dashed;border-color:var(--line);box-shadow:none}
-#gear{position:absolute;right:8px;top:calc(var(--safe-t) + 8px);width:34px;height:34px;border-radius:50%;
+#gear{position:absolute;right:4px;top:calc(var(--safe-t) + 4px);width:44px;height:44px;border-radius:50%;
   display:flex;align-items:center;justify-content:center;color:#A99F8D;opacity:.7}
 #gear svg{width:20px;height:20px}
 #gear .ring{position:absolute;inset:-4px;border-radius:50%;border:3px solid var(--accent);
@@ -115,6 +115,23 @@ button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
 .howto{background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px 14px;font-size:15px;line-height:1.7}
 .howto b{color:var(--accent)}
 
+/* ---------- 加到主畫面教學 ---------- */
+#install{background:#FBF8F2;overflow:auto;display:none;padding:calc(var(--safe-t) + 14px) 16px calc(var(--safe-b) + 24px);-webkit-user-select:text;user-select:text}
+#install.on{display:block}
+#install h1{font-size:24px;margin:4px 0 4px}
+#install .lead{font-size:15px;color:var(--ink2);margin:0 0 14px;line-height:1.6}
+#install .seg{margin-bottom:14px}
+#segOS button{font-size:14px;white-space:nowrap;padding:10px 0}
+.step{display:flex;gap:12px;background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:10px;align-items:flex-start}
+.step .no{flex:none;width:36px;height:36px;border-radius:50%;background:var(--accent);color:#fff;font-weight:700;font-size:20px;display:flex;align-items:center;justify-content:center}
+.step .tx{font-size:18px;line-height:1.55}
+.step .tx small{display:block;font-size:14px;color:var(--ink2);margin-top:4px}
+.ico{display:inline-flex;align-items:center;justify-content:center;min-width:30px;height:30px;padding:0 6px;border:1.5px solid #3478F6;color:#3478F6;border-radius:8px;vertical-align:middle;margin:0 2px;font-size:16px;font-weight:700}
+.ico svg{width:18px;height:18px}
+#oneTap{display:none;width:100%;background:var(--green);color:#fff;font-size:24px;font-weight:700;border-radius:16px;padding:16px;margin-bottom:12px;box-shadow:0 3px 0 var(--green-d)}
+#installDone{width:100%;background:var(--ink);color:#fff;font-size:18px;font-weight:700;border-radius:12px;padding:14px;margin-top:6px}
+#installSkip{width:100%;color:var(--ink2);font-size:15px;padding:12px;margin-top:4px;text-decoration:underline}
+
 /* ---------- PIN ---------- */
 #pin{align-items:center;justify-content:center;gap:16px;background:rgba(31,27,22,.6)}
 #pin .box{background:#fff;border-radius:18px;padding:20px;width:min(320px,90vw);text-align:center}
@@ -131,8 +148,8 @@ button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
 <section id="home" class="screen on" aria-label="打電話">
   <div id="clock"><span class="d" id="cD"></span><span class="t" id="cT"></span></div>
   <div id="grid"></div>
-  <div id="hint">家人請<b>長按右上角齒輪 2 秒</b>，放上照片與電話</div>
-  <button id="gear" aria-label="家人設定（長按 2 秒）">
+  <div id="hint">家人請<b>點右上角齒輪</b>，放上照片與電話</div>
+  <button id="gear" aria-label="家人設定">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
     <span class="ring" id="ring"></span>
   </button>
@@ -185,7 +202,7 @@ button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
     <h2>其他</h2>
     <label class="opt"><span>按照片時唸出名字<small>「要打給小女兒嗎？」</small></span><input type="checkbox" id="optVoice"></label>
     <label class="opt"><span>上方顯示日期時間<small>幫助長輩知道今天幾號、星期幾</small></span><input type="checkbox" id="optClock"></label>
-    <label class="opt"><span>設定密碼（4 碼）<small>空白＝不用密碼，長按齒輪就能進來</small></span><input type="text" id="optPin" inputmode="numeric" maxlength="4" placeholder="----"></label>
+    <label class="opt"><span>設定密碼（4 碼）<small>空白＝不用密碼。長輩常誤按齒輪的話建議設定</small></span><input type="text" id="optPin" inputmode="numeric" maxlength="4" placeholder="----"></label>
   </div>
 
   <div class="sec">
@@ -197,14 +214,23 @@ button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
 
   <div class="sec">
     <h2>放到長輩手機主畫面（很重要）</h2>
+    <button class="wide" id="howBtn" style="font-weight:700">看步驟：怎麼放到主畫面</button>
     <div class="howto">
-      <b>iPhone：</b>用 Safari 開這頁 → 下方「分享」→「加入主畫面」。<br>
-      <b>Android：</b>用 Chrome 開這頁 → 右上「⋮」→「加到主畫面」或「安裝應用程式」。<br>
-      加好後，把圖示拖到主畫面第一頁最顯眼的位置。<br>
       <span style="color:var(--ink2);font-size:13px">照片與電話只存在這支手機裡，不會上傳。iPhone 沒加到主畫面的話，太久沒開資料可能被系統清掉，建議也匯出一份備份。</span>
     </div>
   </div>
   <input type="file" id="picFile" accept="image/*" hidden>
+</section>
+
+<!-- 加到主畫面教學 -->
+<section id="install" class="screen" aria-label="放到主畫面">
+  <h1>第一次使用：先放到主畫面</h1>
+  <p class="lead">放好之後，長輩只要點主畫面上的「打電話」圖示就能用，不用再找網址。照片和電話也比較不會被手機清掉。</p>
+  <div class="seg" id="segOS"></div>
+  <button id="oneTap">一鍵安裝到主畫面</button>
+  <div id="steps"></div>
+  <button id="installDone">我放好了，開始設定</button>
+  <button id="installSkip">先跳過，之後在設定裡可以再看</button>
 </section>
 
 <!-- PIN -->
@@ -331,17 +357,8 @@ document.addEventListener('visibilitychange',()=>{if(document.visibilityState===
   ['pointerup','pointerleave','pointercancel'].forEach(ev=>btn.addEventListener(ev,()=>{if(S.mode==='hold')stop();}));
 })();
 
-/* ---------- 進入設定：長按齒輪 2 秒 ---------- */
-(function(){
-  const g=$('gear'),ring=$('ring');let t=0,raf=0,t0=0;
-  function cancel(){clearTimeout(t);cancelAnimationFrame(raf);ring.style.opacity=0;}
-  g.addEventListener('pointerdown',()=>{t0=performance.now();ring.style.opacity=1;
-    const step=()=>{const p=(performance.now()-t0)/2000;ring.style.clipPath=`inset(${(1-p)*100}% 0 0 0)`;if(p<1)raf=requestAnimationFrame(step);};
-    raf=requestAnimationFrame(step);
-    t=setTimeout(()=>{cancel();if(navigator.vibrate)navigator.vibrate(60);S.pin?askPin():openSetup();},2000);});
-  ['pointerup','pointerleave','pointercancel'].forEach(ev=>g.addEventListener(ev,cancel));
-  g.addEventListener('contextmenu',e=>e.preventDefault());
-})();
+/* ---------- 進入設定：點齒輪 ---------- */
+$('gear').onclick=()=>{S.pin?askPin():openSetup();};
 function askPin(){$('pinIn').value='';$('pinErr').textContent='';show('pin');setTimeout(()=>$('pinIn').focus(),50);}
 $('pinCancel').onclick=goHome;
 $('pinOk').onclick=()=>{if($('pinIn').value===S.pin)openSetup();else $('pinErr').textContent='密碼不對';};
@@ -445,8 +462,49 @@ $('impFile').onchange=e=>{
   fr.readAsText(f);
 };
 
+/* ---------- 加到主畫面教學 ---------- */
+const UA=navigator.userAgent;
+const IS_IOS=/iPhone|iPad|iPod/.test(UA)||(/Macintosh/.test(UA)&&navigator.maxTouchPoints>1);
+const STANDALONE=matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;
+let osTab=IS_IOS?(/CriOS|FxiOS|EdgiOS/.test(UA)?'iosChrome':'iosSafari'):'android';
+let deferred=null;
+addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferred=e;renderInstall();});
+const SHARE='<span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12M7 8l5-5 5 5"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg></span>';
+const PLUS='<span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="M12 8v8M8 12h8"/></svg></span>';
+const DOTS='<span class="ico">⋯</span>',KEBAB='<span class="ico">⋮</span>';
+const LAST=['回到手機主畫面，找到「打電話」圖示','<small>長按圖示可以拖到第一頁最顯眼的地方。之後都從這個圖示打開。</small>'];
+const STEPS={
+  iosSafari:[
+    ['點畫面下方的「分享」按鈕 '+SHARE,'<small>如果下方只看到 '+DOTS+'，先點 '+DOTS+'，再點「分享」。</small>'],
+    ['把選單往上滑，點「加入主畫面」 '+PLUS,'<small>在比較下面，要往上滑才看得到。</small>'],
+    ['點右上角的「加入」','<small>如果有「以網頁 App 打開」的開關，保持打開（綠色）。</small>'],
+    LAST],
+  iosChrome:[
+    ['點網址列右邊的「分享」按鈕 '+SHARE,'<small>沒看到的話，點右下角 '+DOTS+'，再點「分享」。</small>'],
+    ['把選單往上滑，點「加入主畫面」 '+PLUS,'<small>在比較下面，要往上滑才看得到。</small>'],
+    ['點右上角的「加入」',''],
+    LAST],
+  android:[
+    ['點右上角的 '+KEBAB,'<small>三個直的點點。</small>'],
+    ['點「加到主畫面」或「安裝應用程式」',''],
+    ['點「安裝」或「新增」','<small>有的手機會再問一次要放哪裡，選「自動新增」。</small>'],
+    LAST]
+};
+function renderInstall(){
+  seg($('segOS'),{iosSafari:'iPhone Safari',iosChrome:'iPhone Chrome',android:'Android'},osTab,k=>{osTab=k;renderInstall();});
+  $('oneTap').style.display=(osTab==='android'&&deferred)?'block':'none';
+  $('steps').innerHTML=STEPS[osTab].map((s,i)=>`<div class="step"><div class="no">${i+1}</div><div class="tx">${s[0]}${s[1]}</div></div>`).join('');
+}
+function openInstall(){renderInstall();show('install');$('install').scrollTop=0;}
+$('oneTap').onclick=async()=>{if(!deferred)return;deferred.prompt();const r=await deferred.userChoice;deferred=null;renderInstall();if(r.outcome==='accepted')alert('好了！回到主畫面找「打電話」圖示。');};
+$('installDone').onclick=()=>{try{localStorage.setItem(KEY+'.guided','1');}catch(e){}openSetup();};
+$('installSkip').onclick=()=>{try{localStorage.setItem(KEY+'.guided','1');}catch(e){}goHome();};
+$('howBtn').onclick=openInstall;
+
 addEventListener('resize',()=>{if($('home').classList.contains('on'))renderHome();});
 tick();setInterval(tick,15000);renderHome();
+let guided=false;try{guided=!!localStorage.getItem(KEY+'.guided');}catch(e){}
+if(!STANDALONE&&!guided&&!new URLSearchParams(location.search).has('skip'))openInstall();
 if('serviceWorker' in navigator&&location.protocol==='https:')navigator.serviceWorker.register('sw.js').catch(()=>{});
 })();
 </script>
