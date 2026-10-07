@@ -1,0 +1,455 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>按照片打電話</title>
+<meta name="theme-color" content="#F4EFE3">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="打電話">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="robots" content="noindex">
+<script src="/open-in-browser.js"></script>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-512.png">
+<link rel="icon" href="icon-512.png">
+<style>
+:root{
+  --bg:#F4EFE3; --card:#FFFFFF; --ink:#1F1B16; --ink2:#5C554B; --line:#D9D0BE;
+  --green:#1E8E3E; --green-d:#166C2F; --red:#C62828; --accent:#B4551F;
+  --safe-t:env(safe-area-inset-top,0px); --safe-b:env(safe-area-inset-bottom,0px);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);
+  font-family:"PingFang TC","Noto Sans TC","Microsoft JhengHei",system-ui,sans-serif;
+  -webkit-user-select:none;user-select:none;touch-action:manipulation;overscroll-behavior:none}
+button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
+.screen{position:fixed;inset:0;display:none;flex-direction:column;
+  padding:calc(var(--safe-t) + 10px) 10px calc(var(--safe-b) + 10px)}
+.screen.on{display:flex}
+
+/* ---------- 長輩主畫面 ---------- */
+#clock{display:flex;padding-right:40px!important;padding-left:40px!important;align-items:baseline;justify-content:center;gap:10px;padding:4px 0 10px;flex:none;white-space:nowrap}
+#clock .d{font-size:clamp(18px,4.8vw,30px);font-weight:600}
+#clock .t{font-size:clamp(18px,4.8vw,30px);color:var(--ink2)}
+#grid{flex:1;display:grid;gap:10px;min-height:0}
+.tile{position:relative;border-radius:18px;overflow:hidden;background:var(--card);
+  border:3px solid #fff;box-shadow:0 2px 0 var(--line);display:flex;flex-direction:column;min-height:0;
+  transition:transform .08s}
+.tile:active{transform:scale(.97)}
+.tile .ph{flex:1;min-height:0;background-size:cover;background-position:center;position:relative}
+.tile .ph .ini{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  color:#fff;font-weight:700}
+.tile .nm{flex:none;background:#fff;text-align:center;font-weight:700;line-height:1.15;padding:6px 4px 8px;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tile .rel{display:block;font-weight:500;color:var(--ink2);font-size:.55em;margin-top:2px}
+.tile.sos{border-color:var(--red)}
+.tile.sos .nm{background:var(--red);color:#fff}
+.tile.sos .rel{color:#FFE3E3}
+.tile.empty{opacity:.45;border-style:dashed;border-color:var(--line);box-shadow:none}
+#gear{position:absolute;right:8px;top:calc(var(--safe-t) + 8px);width:34px;height:34px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;color:#A99F8D;opacity:.7}
+#gear svg{width:20px;height:20px}
+#gear .ring{position:absolute;inset:-4px;border-radius:50%;border:3px solid var(--accent);
+  clip-path:inset(0 0 0 0);opacity:0}
+#hint{position:absolute;left:10px;right:10px;bottom:calc(var(--safe-b) + 10px);font-size:14px;color:var(--ink2);
+  background:#fff;border-radius:10px;padding:8px 10px;display:none}
+
+/* ---------- 確認畫面 ---------- */
+#confirm{align-items:center;justify-content:space-between;text-align:center;padding-top:calc(var(--safe-t) + 24px)}
+#cPhoto{width:min(62vw,46vh);aspect-ratio:1;border-radius:50%;background-size:cover;background-position:center;
+  border:6px solid #fff;box-shadow:0 3px 0 var(--line);position:relative;flex:none}
+#cPhoto .ini{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#fff;
+  font-weight:700;font-size:min(22vw,16vh);border-radius:50%}
+#cName{font-size:clamp(34px,10vw,56px);font-weight:700;margin:14px 0 2px}
+#cNum{font-size:clamp(18px,5vw,24px);color:var(--ink2);letter-spacing:1px}
+.btns{width:100%;display:flex;flex-direction:column;gap:12px}
+.big{width:100%;border-radius:20px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:12px}
+#callBtn{background:var(--green);color:#fff;font-size:clamp(32px,9vw,46px);padding:22px 0;box-shadow:0 4px 0 var(--green-d)}
+#callBtn:active{transform:translateY(3px);box-shadow:0 1px 0 var(--green-d)}
+#callBtn svg{width:1em;height:1em}
+#backBtn{background:#fff;color:var(--ink2);font-size:clamp(22px,6vw,28px);padding:14px 0;border:2px solid var(--line)}
+#holdBar{height:10px;border-radius:5px;background:#E3DCCD;overflow:hidden;display:none}
+#holdBar i{display:block;height:100%;width:0;background:var(--green)}
+
+/* ---------- 撥號中 ---------- */
+#calling{align-items:center;justify-content:center;gap:18px;text-align:center}
+#calling .msg{font-size:clamp(28px,8vw,40px);font-weight:700}
+#calling .sub{font-size:20px;color:var(--ink2)}
+
+/* ---------- 家人設定 ---------- */
+#setup{background:#FBF8F2;overflow:auto;display:none;padding:calc(var(--safe-t) + 0px) 0 calc(var(--safe-b) + 30px);
+  -webkit-user-select:text;user-select:text}
+#setup.on{display:block}
+.bar{position:sticky;top:0;z-index:2;background:#FBF8F2;border-bottom:1px solid var(--line);
+  display:flex;align-items:center;justify-content:space-between;padding:12px 16px}
+.bar h1{font-size:20px;margin:0}
+.done{background:var(--ink);color:#fff;border-radius:10px;padding:8px 18px;font-size:17px;font-weight:600}
+.sec{padding:14px 16px 4px}
+.sec h2{font-size:15px;color:var(--ink2);font-weight:600;margin:6px 0 10px}
+.seg{display:flex;background:#EDE6D8;border-radius:10px;padding:3px;gap:3px}
+.seg button{flex:1;padding:9px 0;border-radius:8px;font-size:16px;color:var(--ink2)}
+.seg button.on{background:#fff;color:var(--ink);font-weight:700;box-shadow:0 1px 2px rgba(0,0,0,.12)}
+.note{font-size:13px;color:var(--ink2);margin:6px 2px 0;line-height:1.5}
+.slot{display:flex;gap:12px;background:#fff;border:1px solid var(--line);border-radius:14px;padding:10px;margin-bottom:10px}
+.slot.off{opacity:.5}
+.slot .pic{width:84px;height:84px;border-radius:12px;background-size:cover;background-position:center;flex:none;
+  position:relative;overflow:hidden;border:1px solid var(--line)}
+.slot .pic .ini{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#fff;font-size:34px;font-weight:700}
+.slot .pic span.cam{position:absolute;left:0;right:0;bottom:0;background:rgba(0,0,0,.55);color:#fff;font-size:12px;text-align:center;padding:2px 0}
+.slot .f{flex:1;min-width:0;display:flex;flex-direction:column;gap:6px}
+.slot input[type=text],.slot input[type=tel]{width:100%;font-size:16px;padding:7px 9px;border:1px solid var(--line);border-radius:8px;background:#FFFDF9}
+.slot .row{display:flex;gap:6px;align-items:center}
+.slot .row input{flex:1}
+.slot .ctl{display:flex;flex-direction:column;gap:4px}
+.mini{font-size:13px;padding:5px 8px;border:1px solid var(--line);border-radius:8px;background:#FFFDF9;color:var(--ink2);white-space:nowrap}
+.mini.warn{color:var(--red);border-color:#E9B4B4}
+.slot label.sos{font-size:13px;color:var(--ink2);display:flex;align-items:center;gap:4px}
+.opt{display:flex;align-items:center;justify-content:space-between;background:#fff;border:1px solid var(--line);
+  border-radius:12px;padding:12px 14px;margin-bottom:8px;font-size:16px}
+.opt small{display:block;color:var(--ink2);font-size:13px;margin-top:2px}
+.opt input[type=checkbox]{width:22px;height:22px}
+.opt input[type=text]{width:90px;font-size:18px;text-align:center;padding:6px;border:1px solid var(--line);border-radius:8px;letter-spacing:4px}
+.wide{width:100%;padding:12px;border-radius:12px;border:1px solid var(--line);background:#fff;font-size:16px;margin-bottom:8px}
+.howto{background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px 14px;font-size:15px;line-height:1.7}
+.howto b{color:var(--accent)}
+
+/* ---------- PIN ---------- */
+#pin{align-items:center;justify-content:center;gap:16px;background:rgba(31,27,22,.6)}
+#pin .box{background:#fff;border-radius:18px;padding:20px;width:min(320px,90vw);text-align:center}
+#pin input{font-size:28px;letter-spacing:10px;text-align:center;width:100%;padding:8px;border:2px solid var(--line);border-radius:10px}
+#pin .err{color:var(--red);font-size:14px;min-height:20px;margin-top:6px}
+#pin .r{display:flex;gap:8px;margin-top:8px}
+#pin .r button{flex:1;padding:10px;border-radius:10px;border:1px solid var(--line);font-size:16px}
+#pin .r button.ok{background:var(--ink);color:#fff;border-color:var(--ink)}
+</style>
+</head>
+<body>
+
+<!-- 長輩主畫面 -->
+<section id="home" class="screen on" aria-label="打電話">
+  <div id="clock"><span class="d" id="cD"></span><span class="t" id="cT"></span></div>
+  <div id="grid"></div>
+  <div id="hint">家人請<b>長按右上角齒輪 2 秒</b>，放上照片與電話</div>
+  <button id="gear" aria-label="家人設定（長按 2 秒）">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
+    <span class="ring" id="ring"></span>
+  </button>
+</section>
+
+<!-- 確認撥打 -->
+<section id="confirm" class="screen" aria-label="確認撥打">
+  <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding-bottom:16px">
+    <div id="cPhoto"></div>
+    <div id="cName"></div>
+    <div id="cNum"></div>
+  </div>
+  <div class="btns">
+    <div id="holdBar"><i></i></div>
+    <button id="callBtn" class="big"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1A17 17 0 0 1 3 4c0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1z"/></svg><span id="callTxt">打電話</span></button>
+    <button id="backBtn" class="big">不要，回去</button>
+  </div>
+</section>
+
+<!-- 撥號中 -->
+<section id="calling" class="screen" aria-label="撥號中">
+  <div class="msg" id="callingMsg"></div>
+  <div class="sub">講完電話，回到這裡就好</div>
+  <button class="big" id="callingBack" style="background:#fff;border:2px solid var(--line);font-size:24px;padding:14px 0;margin-top:20px;width:80%">回到照片</button>
+</section>
+
+<!-- 家人設定 -->
+<section id="setup" class="screen" aria-label="家人設定">
+  <div class="bar"><h1>家人設定</h1><button class="done" id="doneBtn">完成</button></div>
+
+  <div class="sec">
+    <h2>畫面要幾格？</h2>
+    <div class="seg" id="segN"></div>
+    <p class="note">格子越少、照片越大。認不太出照片或常按錯，就改少一點。</p>
+  </div>
+
+  <div class="sec">
+    <h2>聯絡人（點照片可換照片）</h2>
+    <div id="slots"></div>
+    <button class="wide" id="pickContact" style="display:none">從手機通訊錄帶入一位</button>
+  </div>
+
+  <div class="sec">
+    <h2>撥打方式</h2>
+    <div class="seg" id="segMode"></div>
+    <p class="note" id="modeNote"></p>
+  </div>
+
+  <div class="sec">
+    <h2>其他</h2>
+    <label class="opt"><span>按照片時唸出名字<small>「要打給小女兒嗎？」</small></span><input type="checkbox" id="optVoice"></label>
+    <label class="opt"><span>上方顯示日期時間<small>幫助長輩知道今天幾號、星期幾</small></span><input type="checkbox" id="optClock"></label>
+    <label class="opt"><span>設定密碼（4 碼）<small>空白＝不用密碼，長按齒輪就能進來</small></span><input type="text" id="optPin" inputmode="numeric" maxlength="4" placeholder="----"></label>
+  </div>
+
+  <div class="sec">
+    <h2>備份（換手機或幫另一位長輩複製設定）</h2>
+    <button class="wide" id="expBtn">匯出設定檔（含照片）</button>
+    <button class="wide" id="impBtn">匯入設定檔</button>
+    <input type="file" id="impFile" accept="application/json,.json" hidden>
+  </div>
+
+  <div class="sec">
+    <h2>放到長輩手機主畫面（很重要）</h2>
+    <div class="howto">
+      <b>iPhone：</b>用 Safari 開這頁 → 下方「分享」→「加入主畫面」。<br>
+      <b>Android：</b>用 Chrome 開這頁 → 右上「⋮」→「加到主畫面」或「安裝應用程式」。<br>
+      加好後，把圖示拖到主畫面第一頁最顯眼的位置。<br>
+      <span style="color:var(--ink2);font-size:13px">照片與電話只存在這支手機裡，不會上傳。iPhone 沒加到主畫面的話，太久沒開資料可能被系統清掉，建議也匯出一份備份。</span>
+    </div>
+  </div>
+  <input type="file" id="picFile" accept="image/*" hidden>
+</section>
+
+<!-- PIN -->
+<section id="pin" class="screen">
+  <div class="box">
+    <div style="font-size:18px;font-weight:700;margin-bottom:10px">家人設定密碼</div>
+    <input id="pinIn" type="password" inputmode="numeric" maxlength="4" autocomplete="off">
+    <div class="err" id="pinErr"></div>
+    <div class="r"><button id="pinCancel">取消</button><button class="ok" id="pinOk">進入</button></div>
+  </div>
+</section>
+
+<script>
+(function(){
+const KEY='photoDial.v1';
+const COLORS=['#C4622F','#3F6293','#5E7A32','#8A4F9E','#2A8C8C','#B5832A','#A33B5A','#5B6B7A','#C62828'];
+const LAYOUT={1:[1,1],2:[1,2],4:[2,2],6:[2,3],9:[3,3]};
+const MODES={confirm:'先確認再撥（推薦）',hold:'按住 1 秒撥出',direct:'點一下就撥'};
+const MODE_NOTE={
+  confirm:'點照片 → 出現大照片和「打電話」按鈕 → 再按一次。最不容易打錯人。',
+  hold:'點照片 → 大照片出現 → 按住綠色按鈕 1 秒才撥出。適合手會抖、容易誤觸的長輩。',
+  direct:'點照片就直接撥出（iPhone 系統仍會再問一次「撥打」）。適合手眼協調好、只是記不得號碼的長輩。'
+};
+const DEMO=[
+  {name:'大兒子',rel:'阿明'},{name:'小女兒',rel:'小慧'},{name:'孫子',rel:'小寶'},
+  {name:'老伴',rel:''},{name:'妹妹',rel:'阿玉'},{name:'鄰居',rel:'阿珠'},
+  {name:'診所',rel:'王醫師'},{name:'送餐',rel:'據點'},{name:'緊急',rel:'119',tel:'119',sos:true}
+];
+let S=load();
+
+function load(){
+  try{const s=JSON.parse(localStorage.getItem(KEY));if(s&&s.slots)return fill(s);}catch(e){}
+  return fill({n:9,mode:'confirm',voice:true,clock:true,pin:'',slots:DEMO.map(d=>({name:d.name,rel:d.rel,tel:d.tel||'',img:'',sos:!!d.sos}))});
+}
+function fill(s){while(s.slots.length<9)s.slots.push({name:'',rel:'',tel:'',img:'',sos:false});return s;}
+function save(){
+  try{localStorage.setItem(KEY,JSON.stringify(S));return true;}
+  catch(e){alert('手機空間不夠存照片，請換小一點的照片或減少格數。');return false;}
+}
+const $=id=>document.getElementById(id);
+function show(id){document.querySelectorAll('.screen').forEach(x=>x.classList.toggle('on',x.id===id));}
+function initial(name){return (name||'?').trim().slice(-1)||'?';}
+function photoHTML(c,i,cls){
+  return c.img?'':`<div class="ini" style="background:${c.sos?'#C62828':COLORS[i%9]}">${esc(initial(c.name))}</div>`;
+}
+function esc(t){return String(t).replace(/[&<>"]/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]));}
+function fmtTel(t){const d=t.replace(/[^\d+]/g,'');
+  if(/^09\d{8}$/.test(d))return d.slice(0,4)+'-'+d.slice(4,7)+'-'+d.slice(7);
+  if(/^0\d{8,9}$/.test(d))return d.slice(0,2)+'-'+d.slice(2);return d;}
+
+/* ---------- 主畫面 ---------- */
+function renderHome(){
+  const [c,r]=LAYOUT[S.n];const land=innerWidth>innerHeight*1.15;
+  const cols=land?r:c,rows=land?c:r;
+  const g=$('grid');
+  g.style.gridTemplateColumns=`repeat(${cols},minmax(0,1fr))`;
+  g.style.gridTemplateRows=`repeat(${rows},minmax(0,1fr))`;
+  const fs=Math.round(Math.min(innerWidth/cols,innerHeight/rows)*0.17);
+  const fsz=Math.max(22,Math.min(fs,60));
+  g.innerHTML='';
+  let anyTel=false;
+  S.slots.slice(0,S.n).forEach((s,i)=>{
+    const has=!!s.tel.trim();anyTel=anyTel||(has&&!s.sos);
+    const b=document.createElement('button');
+    b.className='tile'+(s.sos?' sos':'')+(has?'':' empty');
+    b.innerHTML=`<div class="ph" style="${s.img?`background-image:url(${s.img})`:''}">${photoHTML(s,i)}</div>
+      <div class="nm" style="font-size:${fsz}px">${esc(s.name||'（空）')}${s.rel?`<span class="rel">${esc(s.rel)}</span>`:''}</div>`;
+    b.querySelector('.ini')&&(b.querySelector('.ini').style.fontSize=Math.round(fsz*2.2)+'px');
+    b.addEventListener('click',()=>has&&openConfirm(i));
+    g.appendChild(b);
+  });
+  $('clock').style.display=S.clock?'flex':'none';
+  $('hint').style.display=anyTel?'none':'block';
+}
+function tick(){
+  const d=new Date(),w='日一二三四五六'[d.getDay()];
+  $('cD').textContent=`${d.getMonth()+1} 月 ${d.getDate()} 日　星期${w}`;
+  const h=d.getHours(),m=String(d.getMinutes()).padStart(2,'0');
+  const p=h<5?'凌晨':h<11?'早上':h<13?'中午':h<18?'下午':'晚上';
+  $('cT').textContent=`${p} ${h%12||12}:${m}`;
+}
+
+/* ---------- 確認撥打 ---------- */
+let cur=-1,idleT=0;
+function openConfirm(i){
+  cur=i;const s=S.slots[i];
+  if(navigator.vibrate)navigator.vibrate(30);
+  if(S.mode==='direct'){dial();return;}
+  $('cPhoto').style.backgroundImage=s.img?`url(${s.img})`:'none';
+  $('cPhoto').innerHTML=photoHTML(s,i);
+  $('cName').textContent='打給 '+s.name;
+  $('cNum').textContent=fmtTel(s.tel);
+  $('callTxt').textContent=S.mode==='hold'?'按住 打電話':'打電話';
+  $('holdBar').style.display=S.mode==='hold'?'block':'none';
+  $('holdBar').firstElementChild.style.width='0';
+  show('confirm');
+  speak(`要打給${s.name}嗎？`);
+  clearTimeout(idleT);idleT=setTimeout(goHome,25000);
+}
+function speak(t){
+  if(!S.voice||!('speechSynthesis' in window))return;
+  try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t);u.lang='zh-TW';u.rate=.9;speechSynthesis.speak(u);}catch(e){}
+}
+function dial(){
+  const s=S.slots[cur];clearTimeout(idleT);
+  try{speechSynthesis.cancel();}catch(e){}
+  $('callingMsg').textContent='正在打給 '+s.name;
+  show('calling');
+  location.href='tel:'+s.tel.replace(/[^\d+*#]/g,'');
+  idleT=setTimeout(goHome,60000);
+}
+function goHome(){clearTimeout(idleT);try{speechSynthesis.cancel();}catch(e){}show('home');renderHome();}
+$('backBtn').onclick=goHome;$('callingBack').onclick=goHome;
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&$('calling').classList.contains('on'))setTimeout(goHome,800);});
+
+// 撥打鈕：confirm＝點一下；hold＝按住 1 秒
+(function(){
+  const btn=$('callBtn'),bar=$('holdBar').firstElementChild;let t0=0,raf=0;
+  btn.addEventListener('click',()=>{if(S.mode==='confirm')dial();});
+  function stop(){cancelAnimationFrame(raf);t0=0;bar.style.width='0';}
+  btn.addEventListener('pointerdown',e=>{if(S.mode!=='hold')return;t0=performance.now();
+    const step=()=>{const p=Math.min(1,(performance.now()-t0)/1000);bar.style.width=(p*100)+'%';
+      if(p>=1){stop();dial();}else raf=requestAnimationFrame(step);};raf=requestAnimationFrame(step);});
+  ['pointerup','pointerleave','pointercancel'].forEach(ev=>btn.addEventListener(ev,()=>{if(S.mode==='hold')stop();}));
+})();
+
+/* ---------- 進入設定：長按齒輪 2 秒 ---------- */
+(function(){
+  const g=$('gear'),ring=$('ring');let t=0,raf=0,t0=0;
+  function cancel(){clearTimeout(t);cancelAnimationFrame(raf);ring.style.opacity=0;}
+  g.addEventListener('pointerdown',()=>{t0=performance.now();ring.style.opacity=1;
+    const step=()=>{const p=(performance.now()-t0)/2000;ring.style.clipPath=`inset(${(1-p)*100}% 0 0 0)`;if(p<1)raf=requestAnimationFrame(step);};
+    raf=requestAnimationFrame(step);
+    t=setTimeout(()=>{cancel();if(navigator.vibrate)navigator.vibrate(60);S.pin?askPin():openSetup();},2000);});
+  ['pointerup','pointerleave','pointercancel'].forEach(ev=>g.addEventListener(ev,cancel));
+  g.addEventListener('contextmenu',e=>e.preventDefault());
+})();
+function askPin(){$('pinIn').value='';$('pinErr').textContent='';show('pin');setTimeout(()=>$('pinIn').focus(),50);}
+$('pinCancel').onclick=goHome;
+$('pinOk').onclick=()=>{if($('pinIn').value===S.pin)openSetup();else $('pinErr').textContent='密碼不對';};
+$('pinIn').addEventListener('keydown',e=>{if(e.key==='Enter')$('pinOk').click();});
+
+/* ---------- 家人設定 ---------- */
+let picFor=-1;
+function openSetup(){renderSetup();show('setup');$('setup').scrollTop=0;}
+function seg(el,opts,val,onPick){
+  el.innerHTML='';Object.entries(opts).forEach(([k,label])=>{
+    const b=document.createElement('button');b.textContent=label;b.className=(String(k)===String(val))?'on':'';
+    b.onclick=()=>onPick(k);el.appendChild(b);});
+}
+function renderSetup(){
+  seg($('segN'),{1:'1 格',2:'2 格',4:'4 格',6:'6 格',9:'9 格'},S.n,k=>{S.n=+k;save();renderSetup();});
+  seg($('segMode'),{confirm:'先確認',hold:'按住 1 秒',direct:'直接撥'},S.mode,k=>{S.mode=k;save();renderSetup();});
+  $('modeNote').textContent=MODE_NOTE[S.mode];
+  $('optVoice').checked=S.voice;$('optClock').checked=S.clock;$('optPin').value=S.pin;
+  const box=$('slots');box.innerHTML='';
+  S.slots.forEach((s,i)=>{
+    const d=document.createElement('div');d.className='slot'+(i>=S.n?' off':'');
+    d.innerHTML=`<div class="pic" style="${s.img?`background-image:url(${s.img})`:''}">${photoHTML(s,i)}<span class="cam">${s.img?'換照片':'放照片'}</span></div>
+      <div class="f">
+        <div class="row"><input type="text" data-k="name" placeholder="大字名稱（例：小女兒）" value="${esc(s.name)}"></div>
+        <div class="row"><input type="text" data-k="rel" placeholder="小字補充（例：小慧）" value="${esc(s.rel)}"></div>
+        <div class="row"><input type="tel" data-k="tel" placeholder="電話號碼" value="${esc(s.tel)}"></div>
+        <label class="sos"><input type="checkbox" data-k="sos" ${s.sos?'checked':''}> 紅色緊急格</label>
+      </div>
+      <div class="ctl">
+        <button class="mini" data-a="up" ${i===0?'disabled':''}>上移</button>
+        <button class="mini" data-a="down" ${i===8?'disabled':''}>下移</button>
+        ${s.img?'<button class="mini" data-a="rmimg">刪照片</button>':''}
+        <button class="mini warn" data-a="clear">清空</button>
+      </div>`;
+    d.querySelector('.pic').onclick=()=>{picFor=i;$('picFile').value='';$('picFile').click();};
+    d.querySelectorAll('input[data-k]').forEach(inp=>{
+      const k=inp.dataset.k;
+      inp.addEventListener(k==='sos'?'change':'input',()=>{s[k]=k==='sos'?inp.checked:inp.value;save();});
+    });
+    d.querySelectorAll('button[data-a]').forEach(b=>b.onclick=()=>{
+      const a=b.dataset.a;
+      if(a==='up'&&i>0)[S.slots[i-1],S.slots[i]]=[S.slots[i],S.slots[i-1]];
+      if(a==='down'&&i<8)[S.slots[i+1],S.slots[i]]=[S.slots[i],S.slots[i+1]];
+      if(a==='rmimg')s.img='';
+      if(a==='clear'&&confirm(`清空第 ${i+1} 格？`))S.slots[i]={name:'',rel:'',tel:'',img:'',sos:false};
+      save();renderSetup();
+    });
+    if(i===S.n){const h=document.createElement('p');h.className='note';h.style.margin='4px 2px 10px';
+      h.textContent=`以下 ${9-S.n} 格目前不會顯示（改成更多格才會出現）`;box.appendChild(h);}
+    box.appendChild(d);
+  });
+  if('contacts' in navigator&&'select' in navigator.contacts)$('pickContact').style.display='block';
+}
+$('optVoice').onchange=e=>{S.voice=e.target.checked;save();};
+$('optClock').onchange=e=>{S.clock=e.target.checked;save();};
+$('optPin').oninput=e=>{e.target.value=e.target.value.replace(/\D/g,'');if(e.target.value.length===4||e.target.value===''){S.pin=e.target.value;save();}};
+$('doneBtn').onclick=()=>{
+  const p=$('optPin').value;if(p&&p.length!==4){alert('密碼要 4 碼，或整個清空不用密碼');return;}
+  S.pin=p;save();goHome();
+};
+
+// 照片：裁成正方形、縮到 480px、存 JPEG
+$('picFile').onchange=e=>{
+  const f=e.target.files[0];if(!f||picFor<0)return;
+  const img=new Image();
+  img.onload=()=>{
+    const side=Math.min(img.width,img.height),sx=(img.width-side)/2,sy=(img.height-side)*0.35;
+    const cv=document.createElement('canvas');cv.width=cv.height=480;
+    cv.getContext('2d').drawImage(img,sx,Math.max(0,sy),side,side,0,0,480,480);
+    S.slots[picFor].img=cv.toDataURL('image/jpeg',.8);URL.revokeObjectURL(img.src);
+    save();renderSetup();
+  };
+  img.onerror=()=>alert('這張照片讀不到，請換一張（iPhone 可先截圖再選）');
+  img.src=URL.createObjectURL(f);
+};
+
+// Android Chrome：從通訊錄帶入
+$('pickContact').onclick=async()=>{
+  try{
+    const r=await navigator.contacts.select(['name','tel','icon'],{multiple:false});if(!r.length)return;
+    const c=r[0];let i=S.slots.findIndex((s,k)=>k<S.n&&!s.tel.trim());if(i<0)i=S.slots.findIndex(s=>!s.tel.trim());
+    if(i<0){alert('9 格都滿了，先清空一格');return;}
+    S.slots[i].name=S.slots[i].name||(c.name&&c.name[0])||'';S.slots[i].tel=(c.tel&&c.tel[0])||'';
+    if(c.icon&&c.icon[0]){const fr=new FileReader();fr.onload=()=>{S.slots[i].img=fr.result;save();renderSetup();};fr.readAsDataURL(c.icon[0]);}
+    save();renderSetup();
+  }catch(e){}
+};
+
+// 備份
+$('expBtn').onclick=()=>{
+  const blob=new Blob([JSON.stringify(S)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  const d=new Date();a.download=`照片撥號備份_${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}.json`;
+  a.click();setTimeout(()=>URL.revokeObjectURL(a.href),2000);
+};
+$('impBtn').onclick=()=>{$('impFile').value='';$('impFile').click();};
+$('impFile').onchange=e=>{
+  const f=e.target.files[0];if(!f)return;const fr=new FileReader();
+  fr.onload=()=>{try{const s=JSON.parse(fr.result);if(!s.slots)throw 0;S=fill(s);save();renderSetup();alert('匯入完成');}
+    catch(err){alert('這不是照片撥號的設定檔');}};
+  fr.readAsText(f);
+};
+
+addEventListener('resize',()=>{if($('home').classList.contains('on'))renderHome();});
+tick();setInterval(tick,15000);renderHome();
+if('serviceWorker' in navigator&&location.protocol==='https:')navigator.serviceWorker.register('sw.js').catch(()=>{});
+})();
+</script>
+<script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "3df68cf5d6bd4975b97a157f7ff3cafb"}'></script>
+</body>
+</html>
