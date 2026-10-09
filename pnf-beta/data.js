@@ -189,7 +189,7 @@ window.PNF_COURSE = {
       videos:[
         {yt:"t7-tFuDVKHc", title:"One Leg Standing with Irradiation", channel:"IPNF Association 官方頻道", dur:"19 秒", lang:"無旁白", cc:"無字幕", note:"先看這 19 秒：單腳站時對上肢或軀幹給阻力，站立腳的穩定肌被帶動。長輩操作前要先評估平衡與跌倒風險，並有扶手。"},
         {yt:"FZLXEEiJjbs", title:"Irradiation – The Tool for a Targeted Indirect Treatment (Marcel Grzebellus, IPNFA Online Congress)", channel:"PNF チャンネル（轉載 IPNFA 研討會）", dur:"47 分", lang:"英文", cc:"自動字幕", note:"本課主片。IPNFA 講師講擴散的方向規則、擺位與阻力量，以及用健側誘發患側的臨床範例。依時間軸挑段落。"},
-        {yt:"mJiqKQ3bJeQ", title:"PNF Irradiation（放散）とは何か（Marcel Grzebellus）", channel:"セラピストえぐやす（江口泰弘，IPNFA Instructor；日譯版）", dur:"47 分", lang:"英語原音＋日文字幕", cc:"自動字幕", note:"IPNFA Senior Instructor Grzebellus 講 irradiation 在促進、動作控制、運動學習的應用。與上方英文版同一位講者，這版有日文字幕，看不懂英文口音時可改看這支。"},
+        {yt:"mJiqKQ3bJeQ", title:"PNF Irradiation（放散）とは何か（Marcel Grzebellus）", channel:"セラピストえぐやす（江口泰弘，IPNFA Instructor；日譯版）", dur:"47 分", lang:"英語原音＋日文字幕", cc:"自動字幕", start:85, note:"IPNFA Senior Instructor Grzebellus 講 irradiation 在促進、動作控制、運動學習的應用。與上方英文版同一位講者，這版有日文字幕，看不懂英文口音時可改看這支。"},
         {yt:"-Gg89mWMh8w", title:"PNF Grundprinzip: Irradiation", channel:"PNF Fachgesellschaft（德國 PNF 學會）", dur:"48 分", lang:"英文（歐陸口音）", cc:"自動字幕", note:"補充：另一位講者對同一概念的詮釋，想加深理解再看。"},
         {yt:"sYQmJavIx8o", title:"PNF Approach – Indirect Treatment with UE Flex-Abd-ER", channel:"Damian Kapturski（IPNFA Instructor，波蘭）", dur:"6 分", lang:"英文", cc:"人工英文字幕", note:"用上肢型態做「間接治療」：阻力加在強的部位，把活化擴散到目標部位，irradiation 的臨床示範。"}
       ],
@@ -402,7 +402,7 @@ window.PNF_COURSE = {
       goals:["說出節律啟動的四階段（被動→輔助→主動→抗阻）","判斷哪些病人適合（啟動困難、僵硬、認知或緊張）","在型態中示範並調整節奏"],
       videos:[
         {yt:"LOQJ90JpyFg", title:"リズミックイニシエーション（節律啟動）", channel:"PNF チャンネル（日本 IPNFA 認證講師群）", dur:"5 分", lang:"日語", cc:"自動英文字幕", note:"模組 3 主要用這個日本頻道的成套手法影片（一手法一支、依 IPNFA 清單編號）。字幕可在播放器設定選「自動翻譯 → 中文（繁體）」，重點看手位與節奏。"},
-        {yt:"2y4L8gj9pZc", title:"PNF とは何か ③PNF のテクニック／臨床推論（Fred Smedes）", channel:"セラピストえぐやす（江口泰弘，IPNFA Instructor；IPNFA 2020 線上研討會日譯版）", dur:"36 分", lang:"日語（江口泰弘翻譯旁白）", cc:"自動字幕", note:"模組 3 總覽：Smedes 前半段逐一介紹 PNF 技術、後半講臨床推理。先看這支建立全貌，再看下方各技術示範。"},
+        {yt:"2y4L8gj9pZc", title:"PNF とは何か ③PNF のテクニック／臨床推論（Fred Smedes）", channel:"セラピストえぐやす（江口泰弘，IPNFA Instructor；IPNFA 2020 線上研討會日譯版）", dur:"36 分", lang:"日語（江口泰弘翻譯旁白）", cc:"自動字幕", start:40, note:"模組 3 總覽：Smedes 前半段逐一介紹 PNF 技術、後半講臨床推理。先看這支建立全貌，再看下方各技術示範。"},
         {yt:"Su_Dp--rPyM", title:"Technik Rhythmische Bewegungseinleitung", channel:"PNF Fachgesellschaft（德國 PNF 學會，IPNFA 會員學會）", dur:"1 分", lang:"德語", cc:"自動字幕", note:"德國學會官方示範節律啟動，含臨床例（Anke Müßigbrod，IPNFA Advanced Instructor）。"},
         {yt:"UY_U-3IdS1g", title:"Rhythmische Bewegungseinleitung（Arm Flex/Abd/AR）", channel:"Thieme（德國醫學出版社；IPNFA 講師示範）", dur:"2 分", lang:"德語", cc:"自動字幕", note:"IPNFA 講師 Nicola Fischer 在上肢型態示範節律啟動：被動→主動輔助→主動→阻力。"}
       ],
@@ -591,7 +591,7 @@ window.PNF_COURSE = {
     { id:"4-4", title:"中風／偏癱個案：整合示範", en:"PNF for hemiplegia: integrated case", minutes:30,
       goals:["依 ICF 為一位偏癱長輩設定功能目標並挑選型態與技術","示範一次 20 分鐘的 PNF 療程流程（啟動→誘發→功能）","說出何時該停下來調整"],
       videos:[
-        {yt:"2y4L8gj9pZc", title:"PNF とは何か ③PNF のテクニック／臨床推論（Fred Smedes）", channel:"セラピストえぐやす（江口泰弘，IPNFA Instructor；IPNFA 2020 線上研討會日譯版）", dur:"36 分", lang:"日語（江口泰弘翻譯旁白）", cc:"自動字幕", note:"後半段臨床推理：從評估、ICF 到擬定治療計畫，示範怎麼決定用哪個技術。可直接從時間軸的臨床推理段開始看。"},
+        {yt:"2y4L8gj9pZc", title:"PNF とは何か ③PNF のテクニック／臨床推論（Fred Smedes）", channel:"セラピストえぐやす（江口泰弘，IPNFA Instructor；IPNFA 2020 線上研討會日譯版）", dur:"36 分", lang:"日語（江口泰弘翻譯旁白）", cc:"自動字幕", start:1424, note:"後半段臨床推理：從評估、ICF 到擬定治療計畫，示範怎麼決定用哪個技術。本課直接從 23:44 臨床推理段開始播；前半段的技術示範見 3-1。"},
         {yt:"R057s9Z8Fb4", title:"Upper Extremity for ADL use – 2 Tx from PNF", channel:"IPNF Association 官方頻道", dur:"3 分", lang:"英文", cc:"自動字幕", note:"官方示範：把兩個手法接進上肢 ADL 任務，是「手法→功能」的轉譯範例。"},
         {yt:"ROCrBolZd8o", title:"IPNFA President Benedikt Bömer – personal highlight 2025", channel:"IPNF Association 官方頻道", dur:"1 分", lang:"無旁白", cc:"無字幕", note:"重度受損病人 4 天內的治療進程（無旁白），看 PNF 如何嵌進功能任務。"},
         {yt:"R-vG_CiFJmI", title:"Facilitation of Swing Phase after a Stroke", channel:"Benedikt Bömer（IPNFA 會長）", dur:"4 分", lang:"英文", cc:"自動字幕", note:"中風擺盪期促進，與 4-3 共用。"},
