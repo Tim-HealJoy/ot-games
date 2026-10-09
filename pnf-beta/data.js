@@ -23,7 +23,7 @@ window.PNF_COURSE = {
       pre:`<p>PNF 在 1940 年代由神經科醫師 Herman Kabat 與物理治療師 Margaret Knott 在美國 Kaiser 基金會發展，後由 Dorothy Voss 系統化成教科書。它原本是為小兒麻痺與多發性硬化症病人設計，後來擴展到骨科、神經與高齡族群。今天的國際標準由 IPNFA（International PNF Association）維護，教材以 Adler、Beckers 與 Buck 的《PNF in Practice》為主。</p>`,
       videos:[
         {yt:"qCpm2UJrX_Q", title:"Lecture 1 – The PNF Concept (Fred Smedes)", channel:"IPNF Association 官方頻道", dur:"99 分", lang:"英文", cc:"自動字幕", note:"IPNFA 進階講師 Fred Smedes 的第一講：哲學、原則、技術三支柱與動作學習。不必整支看完，依時間軸挑段落。"},
-        {yt:"2PmNrnRNsMA", title:"PNF とは何か ①PNF の哲学（Fred Smedes）", channel:"セラピストえぐやす（江口泰弘，IPNFA Instructor；IPNFA 2020 線上研討會日譯版）", dur:"24 分", lang:"日語", cc:"自動字幕", note:"IPNFA 2020 線上研討會 Fred Smedes 講 PNF 哲學（日文字幕版）。與上一支內容互補，聚焦正向取向與功能導向。"},
+        {yt:"2PmNrnRNsMA", title:"PNF とは何か ①PNF の哲学（Fred Smedes）", channel:"セラピストえぐやす（江口泰弘，IPNFA Instructor；IPNFA 2020 線上研討會日譯版）", dur:"24 分", lang:"日語（江口泰弘翻譯旁白）", cc:"自動字幕", note:"IPNFA 2020 線上研討會 Fred Smedes 講 PNF 哲學（江口泰弘日語翻譯旁白，請搭配中文時間軸）。與上一支內容互補，聚焦正向取向與功能導向。"},
         {yt:"cCkvdPYc13Y", title:"Maggie Knott Chopping", channel:"IPNF Association 官方頻道", dur:"2 分", lang:"英文", cc:"自動字幕", note:"PNF 創始人之一 Maggie Knott 本人在瑞士 Bad Ragaz 的教學歷史影像，看原汁原味的 chopping 與口令。"},
         {yt:"RSXPNm1olvE", title:"The History of Kaiser Foundation Rehabilitation Center", channel:"Kaiser Permanente（美國，PNF 發源地母機構）", dur:"12 分", lang:"英文", cc:"人工英文字幕", note:"PNF 發源地 Kaiser Vallejo 復健中心的歷史紀錄片（Kabat、Knott、Voss 的年代）。"},
         {yt:"2Z_IgekALVc", title:"PNF Approach and PNF Pattern is not the same", channel:"Damian Kapturski（IPNFA Instructor，波蘭）", dur:"2 分", lang:"英文", cc:"人工英文字幕", note:"2 分鐘釐清「PNF 取向」不等於「做對角線型態」，呼應 concept 而非 method。"}
@@ -114,7 +114,7 @@ window.PNF_COURSE = {
     { id:"1-1", title:"徒手接觸與身體力學", en:"Manual contact & body mechanics", minutes:25,
       goals:["示範 lumbrical grip 並說出為什麼不用整個手掌抓","站在動作的對角線上，用身體重心而不是手臂給阻力","說出治療師姿勢與病人安全的關係"],
       videos:[
-        {yt:"9GBd8fuTG7w", title:"PNF とは何か ②PNF の基本原理と手段（Fred Smedes）", channel:"セラピストえぐやす（江口泰弘，IPNFA Instructor；IPNFA 2020 線上研討會日譯版）", dur:"39 分", lang:"日語", cc:"自動字幕", note:"IPNFA 講師 Fred Smedes 系統講解 12 項基本程序（日文字幕版）。1-1～1-6 共用這支，點時間軸跳到本課段落：徒手接觸與身體力學。"},
+        {yt:"9GBd8fuTG7w", title:"PNF とは何か ②PNF の基本原理と手段（Fred Smedes）", channel:"セラピストえぐやす（江口泰弘，IPNFA Instructor；IPNFA 2020 線上研討會日譯版）", dur:"39 分", lang:"日語（江口泰弘翻譯旁白）", cc:"自動字幕", start:123, note:"IPNFA 講師 Fred Smedes 系統講解 12 項基本程序（IPNFA 2020 線上研討會，江口泰弘日語翻譯旁白）。1-1～1-5 共用這支，請搭配下方中文時間軸。本課從 02:03 的口頭定義開始播；lumbrical grip 實際示範在 16:31。"},
         {yt:"gK3k0C9orbw", title:"How important touch is for all patients", channel:"IPNF Association 官方頻道", dur:"2 分", lang:"英文", cc:"自動字幕", note:"IPNFA 講師談徒手接觸對每位病人的意義。"},
         {yt:"D8JqO56xJKg", title:"Common problems in beginners", channel:"IPNF Association 官方頻道", dur:"4 分", lang:"英文", cc:"自動字幕", note:"IPNFA 講師 Kitty Hartmann 談初學者最常犯的錯，練手感前先看。"}
       ],
@@ -140,7 +140,7 @@ window.PNF_COURSE = {
     { id:"1-2", title:"口令與視覺回饋", en:"Verbal & visual stimulation", minutes:15,
       goals:["說出三段式口令的結構並示範","調整口令的音量與語氣以促進或放鬆","把視覺引導加進動作型態"],
       videos:[
-        {yt:"9GBd8fuTG7w", title:"PNF とは何か ②PNF の基本原理と手段（Fred Smedes）", channel:"セラピストえぐやす（江口泰弘，IPNFA Instructor；IPNFA 2020 線上研討會日譯版）", dur:"39 分", lang:"日語", cc:"自動字幕", note:"同 1-1，跳到口令（verbal）與視覺（visual）段落。"},
+        {yt:"9GBd8fuTG7w", title:"PNF とは何か ②PNF の基本原理と手段（Fred Smedes）", channel:"セラピストえぐやす（江口泰弘，IPNFA Instructor；IPNFA 2020 線上研討會日譯版）", dur:"39 分", lang:"日語（江口泰弘翻譯旁白）", cc:"自動字幕", start:146, note:"同 1-1 的 Smedes 講座，從 02:26 口令與視覺的定義開始播；「手張開」口令的示範在 16:09。"},
         {yt:"xWP5FGst2ig", title:"Use special auditory stimulation from PNF", channel:"IPNF Association 官方頻道", dur:"47 秒", lang:"英文", cc:"自動字幕", note:"IPNFA 講師 Soonhyun Lee 片段：中風病人步態訓練中如何下口令。"}
       ],
       summary:{
@@ -163,7 +163,7 @@ window.PNF_COURSE = {
     { id:"1-3", title:"最適阻力", en:"Optimal resistance", minutes:20,
       goals:["說出「最適阻力」的定義與判斷方式","分辨等張與等長情境下阻力該怎麼給","依病人目標（啟動／肌力／穩定／放鬆）調整阻力"],
       videos:[
-        {yt:"9GBd8fuTG7w", title:"PNF とは何か ②PNF の基本原理と手段（Fred Smedes）", channel:"セラピストえぐやす（江口泰弘，IPNFA Instructor；IPNFA 2020 線上研討會日譯版）", dur:"39 分", lang:"日語", cc:"自動字幕", note:"同 1-1，跳到最適阻力（optimal resistance）段落。"}
+        {yt:"9GBd8fuTG7w", title:"PNF とは何か ②PNF の基本原理と手段（Fred Smedes）", channel:"セラピストえぐやす（江口泰弘，IPNFA Instructor；IPNFA 2020 線上研討會日譯版）", dur:"39 分", lang:"日語（江口泰弘翻譯旁白）", cc:"自動字幕", start:166, note:"同 1-1 的 Smedes 講座，從 02:46 阻力的定義開始播（03:41 講「最適阻力」）；用軀幹旋轉給阻力的示範在 17:47。"}
       ],
       summary:{
         keypoints:[
@@ -221,7 +221,7 @@ window.PNF_COURSE = {
     { id:"1-5", title:"牽引、擠壓與牽拉刺激", en:"Traction, approximation & stretch", minutes:20,
       goals:["分辨牽引與擠壓的適用時機","示範型態起始的牽拉刺激（stretch stimulus）","說出牽拉刺激與牽拉反射的差別"],
       videos:[
-        {yt:"9GBd8fuTG7w", title:"PNF とは何か ②PNF の基本原理と手段（Fred Smedes）", channel:"セラピストえぐやす（江口泰弘，IPNFA Instructor；IPNFA 2020 線上研討會日譯版）", dur:"39 分", lang:"日語", cc:"自動字幕", note:"同 1-1，跳到牽引（traction）、擠壓（approximation）、牽拉（stretch）段落。"},
+        {yt:"9GBd8fuTG7w", title:"PNF とは何か ②PNF の基本原理と手段（Fred Smedes）", channel:"セラピストえぐやす（江口泰弘，IPNFA Instructor；IPNFA 2020 線上研討會日譯版）", dur:"39 分", lang:"日語（江口泰弘翻譯旁白）", cc:"自動字幕", start:174, note:"同 1-1 的 Smedes 講座，從 02:54 開始播（牽引細節在 04:12）；牽引示範在 16:46，擠壓個案在 22:38。"},
         {yt:"HmxDJRgFzDM", title:"Quick approximation", channel:"PNF チャンネル（松田現，IPNFA Advanced Instructor）", dur:"15 秒", lang:"日語", cc:"自動字幕", note:"15 秒直式短片：快速擠壓的手法與時機。"},
         {yt:"GNlI4DKpn5E", title:"Scapula anterior elevation – stretch at beginning of range", channel:"Kuba Marciński（IPNFA Instructor，波蘭）", dur:"2 分", lang:"英文", cc:"自動字幕", note:"側臥肩胛型態加起始範圍牽拉；說明欄提醒骨質疏鬆為禁忌（直式短片）。"}
       ],
@@ -549,7 +549,7 @@ window.PNF_COURSE = {
     { id:"4-2", title:"坐姿平衡與坐站", en:"Sitting balance & sit-to-stand", minutes:30,
       goals:["用穩定反轉與節律穩定訓練坐姿平衡","把坐站拆成前傾、離座、伸直三階段並各配一個 PNF 技術","說出長輩坐站訓練的安全與劑量"],
       videos:[
-        {yt:"223RaT_b73Q", title:"立ち上がりへのアプローチ（Kaiser Rehabilitation Center 物理治療部）", channel:"セラピストえぐやす（江口泰弘，IPNFA Instructor；IPNFA 2020 線上研討會日譯版）", dur:"55 分", lang:"英文", cc:"自動字幕", note:"PNF 發源地 Kaiser Vallejo 講師群（Reba Butler、Terry Grzybowski，IPNFA 講師）在 2020 IPNFA 線上研討會講坐站與坐下的 PNF 取向。英語原音＋日文字幕。"},
+        {yt:"223RaT_b73Q", title:"立ち上がりへのアプローチ（Kaiser Rehabilitation Center 物理治療部）", channel:"セラピストえぐやす（江口泰弘，IPNFA Instructor；IPNFA 2020 線上研討會日譯版）", dur:"55 分", lang:"英語原音＋日文字幕", cc:"自動字幕", start:103, note:"PNF 發源地 Kaiser Vallejo 講師群（Reba Butler、Terry Grzybowski，IPNFA 講師）在 2020 IPNFA 線上研討會講坐站與坐下的 PNF 取向。英語原音＋日文字幕。"},
         {yt:"aWZuufnN4u0", title:"Combination of Isotonics – sitting / standing functional", channel:"IPNF Association 官方頻道", dur:"47 秒", lang:"英文", cc:"自動字幕", note:"官方 47 秒功能情境版：坐姿與站姿的等張組合，直接對接坐站。"},
         {yt:"EQmVJB4Qnf4", title:"Byungki Lee – treatment example", channel:"IPNF Association 官方頻道", dur:"2 分", lang:"無旁白", cc:"無字幕", note:"用上肢做穩定反轉，增加患側下肢承重（直式短片、無旁白），坐站前的承重準備。"},
         {yt:"ut7u17AZPos", title:"From half kneeling to standing", channel:"Kuba Marciński（IPNFA Instructor，波蘭）", dur:"4 分", lang:"英文", cc:"自動字幕", note:"單膝跪到站，搭配上肢型態，說明如何調整難度。"},
@@ -589,7 +589,7 @@ window.PNF_COURSE = {
         {yt:"R057s9Z8Fb4", title:"Upper Extremity for ADL use – 2 Tx from PNF", channel:"IPNF Association 官方頻道", dur:"3 分", lang:"英文", cc:"自動字幕", note:"官方示範：把兩個手法接進上肢 ADL 任務，是「手法→功能」的轉譯範例。"},
         {yt:"ROCrBolZd8o", title:"IPNFA President Benedikt Bömer – personal highlight 2025", channel:"IPNF Association 官方頻道", dur:"1 分", lang:"無旁白", cc:"無字幕", note:"重度受損病人 4 天內的治療進程（無旁白），看 PNF 如何嵌進功能任務。"},
         {yt:"R-vG_CiFJmI", title:"Facilitation of Swing Phase after a Stroke", channel:"Benedikt Bömer（IPNFA 會長）", dur:"4 分", lang:"英文", cc:"自動字幕", note:"中風擺盪期促進，與 4-3 共用。"},
-        {yt:"8oV61w-Rqsk", title:"上肢機能障害へのアプローチ（José Vicente Martins）", channel:"セラピストえぐやす（江口泰弘，IPNFA Instructor；IPNFA 2020 線上研討會日譯版）", dur:"52 分", lang:"英文", cc:"自動字幕", note:"IPNFA Senior Instructor 講神經與骨科肩關節問題的評估與 PNF 治療，含臨床推理。英語原音＋日文字幕。"},
+        {yt:"8oV61w-Rqsk", title:"上肢機能障害へのアプローチ（José Vicente Martins）", channel:"セラピストえぐやす（江口泰弘，IPNFA Instructor；IPNFA 2020 線上研討會日譯版）", dur:"52 分", lang:"英語原音＋日文字幕", cc:"自動字幕", start:62, note:"IPNFA Senior Instructor 講神經與骨科肩關節問題的評估與 PNF 治療，含臨床推理。英語原音＋日文字幕。"},
         {yt:"bS_Zjgg3Lg0", title:"Carsten Schäfer – patient demo during teaching", channel:"IPNF Association 官方頻道", dur:"54 秒", lang:"無旁白", cc:"無字幕", note:"上肢型態＋強調時序提升肩穩定（直式短片、無旁白）。"}
       ],
       summary:{
