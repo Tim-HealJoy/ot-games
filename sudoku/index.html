@@ -1,0 +1,638 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>數獨大挑戰 — 從 2×2 一路玩到 9×9</title>
+<meta name="description" content="給長輩的漸進式數獨：8 個關卡從 2×2 暖身一路到 9×9 入門，每題都只有一種答案、不用猜。投影帶團體或手機都能玩，另附紙本 PDF。教案設計：施昱廷 職能治療師。">
+<meta name="theme-color" content="#3F6293">
+<link rel="icon" href="../favicon.png">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="復能小遊戲">
+<meta property="og:title" content="數獨大挑戰 · 從 2×2 一路玩到 9×9">
+<meta property="og:description" content="8 個關卡、78 題，每題只有一種答案、不用猜。投影帶團體、手機也能玩，另附紙本 PDF。免費開放。">
+<meta property="og:url" content="https://games.otshih.com/sudoku/">
+<meta property="og:image" content="https://games.otshih.com/sudoku/share.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:locale" content="zh_TW">
+<meta name="twitter:card" content="summary_large_image">
+<script src="/open-in-browser.js"></script>
+<style>
+:root{
+  --cream:#F4EFE3; --cream-deep:#EBE2CE; --card:#FFFDF8;
+  --ink:#1c1c1a; --ink-soft:#5a564d;
+  --indigo:#3F6293; --indigo-dark:#2b4568; --indigo-soft:#e3eaf5;
+  --amber:#E8A23A; --amber-soft:#fbe9c9;
+  --orange:#C4622F; --orange-soft:#f8ddd0; --green:#5E7A32;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none}
+html,body{height:100%;margin:0;background:#1a1916;overflow:hidden;
+  font-family:"PingFang TC","Noto Sans TC","Microsoft JhengHei",system-ui,sans-serif;color:var(--ink);
+  touch-action:manipulation}
+button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+[hidden]{display:none !important}
+
+#viewport{position:fixed;inset:0;display:flex;align-items:center;justify-content:center}
+#stage{width:1920px;height:1080px;background:var(--cream);position:relative;overflow:hidden;
+  transform-origin:top left;flex:none}
+#stage.portrait{width:1080px;height:1920px}
+.screen{position:absolute;inset:0}
+.screen:not(.on){display:none !important}
+
+#credit{position:absolute;right:56px;bottom:30px;font-size:24px;color:var(--ink-soft)}
+.portrait #credit{right:40px;bottom:36px;font-size:26px}
+
+/* ---------- 首頁 ---------- */
+#home{padding:60px 110px 34px;display:flex;flex-direction:column}
+.hero{display:flex;align-items:flex-end;justify-content:space-between;gap:40px}
+.hero .pre{font-size:36px;color:var(--orange);font-weight:800;letter-spacing:2px}
+.hero h1{font-size:120px;margin:6px 0 0;color:var(--indigo-dark);font-weight:900;line-height:1.05}
+.hero .sub{font-size:44px;color:var(--ink-soft);font-weight:600;margin-top:12px}
+.hero .acts{display:flex;gap:20px}
+.pill{font-size:34px;font-weight:700;padding:18px 34px;border-radius:999px;background:var(--card);
+  box-shadow:0 3px 0 var(--cream-deep);color:var(--indigo-dark);text-decoration:none;display:inline-block}
+.levels{flex:1;display:grid;grid-template-columns:repeat(4,1fr);gap:28px;margin-top:36px;min-height:0;grid-auto-rows:minmax(0,1fr)}
+.homefoot{text-align:right;font-size:26px;color:var(--ink-soft);margin-top:20px;flex:none}
+.lvcard{background:var(--card);border-radius:28px;padding:20px 30px;overflow:hidden;min-height:0;text-align:left;display:flex;
+  flex-direction:column;justify-content:space-between;box-shadow:0 6px 0 var(--cream-deep);
+  border:4px solid transparent;transition:transform .12s}
+.lvcard:active{transform:translateY(4px);box-shadow:0 2px 0 var(--cream-deep)}
+.lvcard .no{font-size:28px;font-weight:800;color:var(--orange);display:flex;justify-content:space-between;align-items:baseline}
+.lvcard .nm{font-size:54px;font-weight:900;color:var(--indigo-dark);margin:2px 0;line-height:1.2}
+.lvcard .sz{font-size:30px;color:var(--ink-soft);font-weight:600}
+.lvcard .bar{height:14px;border-radius:7px;background:var(--cream-deep);overflow:hidden;margin-top:12px}
+.lvcard .bar i{display:block;height:100%;background:var(--green);border-radius:8px}
+.lvcard .cnt{font-size:26px;color:var(--ink-soft);margin-top:8px;white-space:nowrap}
+.lvcard.done{border-color:var(--green)}
+.lvcard.done .cnt{color:var(--green);font-weight:700}
+.portrait #home{padding:90px 50px 50px}
+.portrait .hero{flex-direction:column;align-items:flex-start;gap:30px}
+.portrait .hero h1{font-size:130px}
+.portrait .levels{grid-template-columns:repeat(2,1fr);gap:22px;margin-top:36px}
+.portrait .lvcard .nm{font-size:58px}
+
+/* ---------- 遊戲畫面 ---------- */
+#play{display:flex;flex-direction:column;padding:34px 70px 70px}
+.topbar{display:flex;align-items:center;gap:18px}
+.topbar .title{flex:1;text-align:center;font-size:48px;font-weight:900;color:var(--indigo-dark)}
+.topbar .title small{display:block;font-size:30px;color:var(--ink-soft);font-weight:600}
+.tbtn{font-size:32px;font-weight:700;padding:16px 28px;border-radius:999px;background:var(--card);
+  box-shadow:0 3px 0 var(--cream-deep);white-space:nowrap}
+.tbtn:active{transform:translateY(2px);box-shadow:none}
+.tbtn.hint{background:var(--amber-soft)}
+.board{flex:1;display:flex;align-items:center;justify-content:center;gap:90px;min-height:0}
+.portrait #play{padding:60px 40px 90px}
+.portrait .topbar{flex-wrap:wrap;justify-content:center}
+.portrait .topbar .title{order:-1;flex-basis:100%;margin-bottom:14px;font-size:56px}
+.portrait .board{flex-direction:column;gap:36px}
+
+.grid{display:grid;background:var(--ink);border:8px solid var(--ink);border-radius:14px;gap:0;
+  width:880px;height:880px;flex:none}
+.portrait .grid{width:1000px;height:1000px}
+.cell{background:#fff;display:flex;align-items:center;justify-content:center;font-weight:600;
+  color:var(--indigo);border-right:2px solid #9a968c;border-bottom:2px solid #9a968c;position:relative;
+  font-variant-numeric:tabular-nums}
+.cell.given{background:#e7e4dc;color:var(--ink);font-weight:800}
+.cell.peer{background:var(--indigo-soft)}
+.cell.given.peer{background:#d6dbe3}
+.cell.same{box-shadow:inset 0 0 0 5px var(--amber)}
+.cell.sel{background:var(--amber-soft) !important;box-shadow:inset 0 0 0 7px var(--amber)}
+.cell.bad{color:var(--orange) !important;background:var(--orange-soft) !important}
+.cell.hinted{color:var(--green)}
+.cell.br{border-right:6px solid var(--ink)}
+.cell.bb{border-bottom:6px solid var(--ink)}
+.cell.lastc{border-right:none}.cell.lastr{border-bottom:none}
+.cell.pop{animation:pop .25s}
+@keyframes pop{50%{transform:scale(1.12)}}
+.grid.win .cell{animation:wave .6s both}
+.cell.flash{animation:flash .8s}
+@keyframes flash{0%,100%{}35%{background:#d4e8b8;transform:scale(1.06)}}
+.stars{font-size:120px;letter-spacing:20px;margin:0 0 10px;height:150px}
+.stars span{display:inline-block;color:#ddd5c2;transform:scale(.6);transition:transform .3s,color .3s}
+.stars span.on{color:var(--amber);transform:scale(1.15)}
+.dlg.level h2{color:var(--orange)}
+.lvcard .st{font-size:28px;color:var(--amber);font-weight:800;white-space:nowrap}
+@keyframes wave{40%{background:#dfeccc}}
+
+.side{width:700px;display:flex;flex-direction:column;gap:30px}
+.portrait .side{width:1000px;gap:26px}
+.rule{font-size:34px;line-height:1.5;background:var(--card);border-radius:22px;padding:22px 30px;color:var(--ink-soft)}
+.rule b{color:var(--indigo-dark)}
+.msg{font-size:38px;line-height:1.5;min-height:120px;font-weight:700;color:var(--indigo-dark);padding:0 6px}
+.msg.warn{color:var(--orange)}.msg.good{color:var(--green)}
+.portrait .msg{min-height:110px;font-size:40px;text-align:center}
+.portrait .rule{display:none}
+.pad{display:grid;gap:20px}
+.key{font-size:84px;font-weight:800;background:var(--card);border-radius:24px;height:150px;color:var(--indigo-dark);
+  box-shadow:0 6px 0 var(--cream-deep);display:flex;align-items:center;justify-content:center}
+.key:active{transform:translateY(4px);box-shadow:0 2px 0 var(--cream-deep)}
+.key.erase{font-size:34px;color:var(--ink-soft);white-space:nowrap}
+.key.full{opacity:.35}
+.pad.n9 .key{height:118px;font-size:66px}
+.portrait .pad.n9 .key{height:120px}
+.portrait .key{height:150px}
+
+/* ---------- 對話框 ---------- */
+.overlay{position:absolute;inset:0;background:rgba(28,28,26,.55);display:flex;align-items:center;justify-content:center;z-index:5}
+.dlg{background:var(--card);border-radius:36px;padding:60px 80px;width:1200px;max-width:94%;text-align:center}
+.dlg h2{font-size:84px;margin:0 0 20px;color:var(--indigo-dark)}
+.dlg p{font-size:40px;line-height:1.6;margin:0 0 20px;color:var(--ink-soft)}
+.dlg .row{display:flex;gap:30px;justify-content:center;margin-top:40px;flex-wrap:wrap}
+.big{font-size:44px;font-weight:800;padding:26px 56px;border-radius:999px;background:var(--indigo);color:#fff;box-shadow:0 5px 0 var(--indigo-dark)}
+.big.alt{background:var(--card);color:var(--indigo-dark);box-shadow:0 5px 0 var(--cream-deep);border:3px solid var(--cream-deep)}
+.howto{text-align:left}
+.howto ol{font-size:40px;line-height:1.7;margin:0;padding-left:56px}
+.howto ol b{color:var(--indigo-dark)}
+.portrait .dlg{padding:56px 50px}
+.confetti{position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:6}
+.confetti i{position:absolute;top:-40px;width:22px;height:34px;border-radius:4px;animation:fall 2.2s ease-in forwards}
+@keyframes fall{to{transform:translateY(2100px) rotate(600deg)}}
+</style>
+</head>
+<body>
+<div id="viewport"><div id="stage">
+
+  <!-- 首頁：選關卡 -->
+  <section class="screen on" id="home">
+    <div class="hero">
+      <div>
+        <div class="pre">想一想・練頭腦</div>
+        <h1>數獨大挑戰</h1>
+        <div class="sub">從 2×2 一路玩到 9×9，一關一關往上爬</div>
+      </div>
+      <div class="acts">
+        <button class="pill fsbtn" data-fs>⛶ 全螢幕</button>
+        <button class="pill" id="btnHow">📖 怎麼玩</button>
+        <a class="pill" href="sudoku.pdf" target="_blank" rel="noopener">🖨 紙本 PDF</a>
+      </div>
+    </div>
+    <div class="levels" id="levels"></div>
+    <div class="homefoot">教案設計：施昱廷 職能治療師</div>
+  </section>
+
+  <!-- 遊戲 -->
+  <section class="screen" id="play">
+    <div class="topbar">
+      <button class="tbtn" id="btnBack">← 選關卡</button>
+      <div class="title" id="ptitle"></div>
+      <button class="tbtn hint" id="btnHint">💡 提示</button>
+      <button class="tbtn" id="btnReset">↺ 重來</button>
+      <button class="tbtn" id="btnNext">換一題 ▶</button>
+      <button class="tbtn fsbtn" data-fs>⛶ 全螢幕</button>
+      <button class="tbtn" id="btnSfx">🔔 音效</button>
+      <button class="tbtn" id="btnMusic">🎵 音樂</button>
+    </div>
+    <div class="board">
+      <div class="grid" id="grid"></div>
+      <div class="side">
+        <div class="rule" id="rule"></div>
+        <div class="msg" id="msg"></div>
+        <div class="pad" id="pad"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 怎麼玩 -->
+  <div class="overlay" id="howDlg" hidden>
+    <div class="dlg howto">
+      <h2 style="text-align:center">怎麼玩？</h2>
+      <ol>
+        <li>每一<b>橫排</b>，數字都只出現一次。</li>
+        <li>每一<b>直排</b>，數字都只出現一次。</li>
+        <li>每一個<b>粗框方塊</b>，數字也只出現一次。</li>
+        <li>先<b>點空格</b>，再<b>點下面的數字</b>填進去。</li>
+        <li>卡住了就按 <b>💡 提示</b>，會告訴你為什麼。</li>
+      </ol>
+      <p style="margin-top:24px">每一題都只有一種答案，<b>不用猜</b>，一步一步推就解得出來。</p>
+      <div class="row"><button class="big" data-close>知道了，開始玩</button></div>
+    </div>
+  </div>
+
+  <!-- 完成 -->
+  <div class="overlay" id="winDlg" hidden>
+    <div class="dlg">
+      <h2 id="winTitle">🎉 完成了！</h2>
+      <div class="stars" id="stars"><span>★</span><span>★</span><span>★</span></div>
+      <p id="winText"></p>
+      <div class="row">
+        <button class="big alt" id="winHome">回選關卡</button>
+        <button class="big" id="winNext">下一題 ▶</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="confetti" id="confetti"></div>
+  <div id="credit" hidden>教案設計：施昱廷 職能治療師</div>
+</div></div>
+
+<script src="puzzles.js"></script>
+<script>
+const L = window.PUZZLES;
+const $ = s => document.querySelector(s);
+const stage = $('#stage');
+
+/* ---------- 雙舞台等比縮放 ---------- */
+function fit(){
+  const p = innerHeight > innerWidth;
+  stage.classList.toggle('portrait', p);
+  const W = p ? 1080 : 1920, H = p ? 1920 : 1080;
+  const s = Math.min(innerWidth / W, innerHeight / H);
+  stage.style.transform = `scale(${s})`;
+  stage.style.marginRight = (W * s - W) + 'px';
+  stage.style.marginBottom = (H * s - H) + 'px';
+}
+addEventListener('resize', fit); fit();
+
+/* ---------- 進度（只存在這台裝置） ---------- */
+let prog = {};
+try { prog = JSON.parse(localStorage.getItem('sudoku-progress') || '{}'); } catch (e) {}
+function saveProg(){ try { localStorage.setItem('sudoku-progress', JSON.stringify(prog)); } catch (e) {} }
+const doneList = lv => prog[lv] || (prog[lv] = []);
+const starMap = () => prog.s || (prog.s = {});
+const starsOf = lv => Object.entries(starMap()).filter(([k]) => k.startsWith(lv + '-')).reduce((a, [, v]) => a + v, 0);
+
+/* ---------- 首頁 ---------- */
+function renderHome(){
+  $('#levels').innerHTML = L.map(lv => {
+    const d = doneList(lv.lv).length, n = lv.puzzles.length;
+    return `<button class="lvcard ${d >= n ? 'done' : ''}" data-lv="${lv.lv}">
+      <div><div class="no"><span>第 ${lv.lv} 級</span><span class="st">${starsOf(lv.lv) ? '★ ' + starsOf(lv.lv) + '／' + n * 3 : ''}</span></div><div class="nm">${lv.name}</div>
+      <div class="sz">${lv.size}×${lv.size}　空 ${range(lv)} 格</div></div>
+      <div><div class="bar"><i style="width:${d / n * 100}%"></i></div>
+      <div class="cnt">${d >= n ? '✔ 全部完成' : `已完成 ${d}／${n} 題`}</div></div></button>`;
+  }).join('');
+}
+function range(lv){
+  const b = lv.puzzles.map(p => p.blanks), lo = Math.min(...b), hi = Math.max(...b);
+  return lo === hi ? lo : `${lo}～${hi}`;
+}
+$('#levels').addEventListener('click', e => {
+  const c = e.target.closest('.lvcard'); if (!c) return;
+  const lv = L.find(x => x.lv == c.dataset.lv);
+  const done = doneList(lv.lv);
+  let idx = lv.puzzles.findIndex((_, i) => !done.includes(i));
+  if (idx < 0) idx = 0;
+  startMusic();
+  openPuzzle(lv, idx);
+});
+function show(id){
+  document.querySelectorAll('.screen').forEach(s => s.classList.toggle('on', s.id === id));
+  $('#credit').hidden = id === 'home'; // 首頁的署名改放在卡片下方，不浮在卡片上
+}
+
+/* ---------- 遊戲狀態 ---------- */
+let cur = null; // {lv, idx, n, br, bc, q, a, g, sel, peers, units}
+function buildPeers(n, box){
+  const units = [];
+  for (let r = 0; r < n; r++) units.push([...Array(n)].map((_, c) => r * n + c));
+  for (let c = 0; c < n; c++) units.push([...Array(n)].map((_, r) => r * n + c));
+  if (box){
+    const [br, bc] = box;
+    for (let R = 0; R < n; R += br) for (let C = 0; C < n; C += bc){
+      const u = []; for (let i = 0; i < br; i++) for (let j = 0; j < bc; j++) u.push((R + i) * n + C + j);
+      units.push(u);
+    }
+  }
+  const peers = [...Array(n * n)].map((_, i) => {
+    const s = new Set(); units.forEach(u => { if (u.includes(i)) u.forEach(x => s.add(x)); }); s.delete(i); return [...s];
+  });
+  return { units, peers };
+}
+
+const RULE = {
+  2: '每一<b>橫排</b>、每一<b>直排</b>，1 和 2 都只出現一次。',
+  4: '每一<b>橫排</b>、每一<b>直排</b>、每一個<b>粗框小方塊</b>，1～4 都只出現一次。',
+  6: '每一<b>橫排</b>、每一<b>直排</b>、每一個<b>粗框長方塊</b>，1～6 都只出現一次。',
+  9: '每一<b>橫排</b>、每一<b>直排</b>、每一個<b>粗框方塊</b>，1～9 都只出現一次。',
+};
+
+function openPuzzle(lv, idx){
+  const p = lv.puzzles[idx], n = lv.size;
+  const lvWasDone = doneList(lv.lv).length >= lv.puzzles.length;
+  const { units, peers } = buildPeers(n, lv.box);
+  cur = { lv, idx, n, box: lv.box, q: p.q, a: p.a, g: p.q.slice(), hinted: new Set(), hints: 0, lvWasDone, sel: -1, units, peers };
+  $('#ptitle').innerHTML = `第 ${lv.lv} 級・${lv.name}<small>第 ${idx + 1}／${lv.puzzles.length} 題</small>`;
+  $('#rule').innerHTML = RULE[n];
+  // 格子
+  const grid = $('#grid');
+  grid.className = 'grid';
+  grid.style.gridTemplateColumns = `repeat(${n},1fr)`;
+  grid.style.gridTemplateRows = `repeat(${n},1fr)`;
+  const size = stage.classList.contains('portrait') ? 1000 : 880;
+  const fs = Math.round(size / n * 0.6);
+  const [br, bc] = lv.box || [n, n];
+  grid.innerHTML = p.q.map((v, i) => {
+    const r = Math.floor(i / n), c = i % n, cls = ['cell'];
+    if (v) cls.push('given');
+    if (lv.box && c % bc === bc - 1 && c !== n - 1) cls.push('br');
+    if (lv.box && r % br === br - 1 && r !== n - 1) cls.push('bb');
+    if (c === n - 1) cls.push('lastc');
+    if (r === n - 1) cls.push('lastr');
+    return `<div class="${cls.join(' ')}" data-i="${i}" style="font-size:${fs}px">${v || ''}</div>`;
+  }).join('');
+  // 數字鍵
+  const pad = $('#pad');
+  pad.className = 'pad n' + n;
+  const cols = n === 9 ? 5 : n === 6 ? 4 : n === 4 ? 5 : 3;
+  pad.style.gridTemplateColumns = `repeat(${cols},1fr)`;
+  pad.innerHTML = [...Array(n)].map((_, k) => `<button class="key" data-v="${k + 1}">${k + 1}</button>`).join('')
+    + `<button class="key erase" data-v="0">⌫ 擦掉</button>`;
+  // 預設選第一個空格
+  const first = cur.g.indexOf(0);
+  select(first);
+  say(n === 2 ? '先點空格，再點下面的數字。' : '點一個空格，再點下面的數字填進去。');
+  show('play');
+}
+
+function select(i){
+  if (!cur) return;
+  cur.sel = i;
+  refresh();
+}
+
+function conflicts(){
+  const bad = new Set();
+  cur.g.forEach((v, i) => { if (v) cur.peers[i].forEach(j => { if (cur.g[j] === v){ bad.add(i); bad.add(j); } }); });
+  // 題目給的數字不標錯，只標玩家填的
+  return new Set([...bad].filter(i => !cur.q[i]));
+}
+
+function refresh(){
+  const cells = $('#grid').children, bad = conflicts();
+  const sel = cur.sel, sv = sel >= 0 ? cur.g[sel] : 0;
+  const peerSet = new Set(sel >= 0 ? cur.peers[sel] : []);
+  for (let i = 0; i < cells.length; i++){
+    const c = cells[i], v = cur.g[i];
+    if (!cur.q[i]) c.textContent = v || '';
+    c.classList.toggle('sel', i === sel);
+    c.classList.toggle('peer', peerSet.has(i));
+    c.classList.toggle('same', !!sv && v === sv && i !== sel);
+    c.classList.toggle('bad', bad.has(i));
+    c.classList.toggle('hinted', cur.hinted.has(i));
+  }
+  // 某數字已填滿就把按鍵變淡
+  document.querySelectorAll('#pad .key[data-v]').forEach(k => {
+    const v = +k.dataset.v; if (!v) return;
+    k.classList.toggle('full', cur.g.filter(x => x === v).length >= cur.n);
+  });
+}
+
+function say(t, cls = ''){ const m = $('#msg'); m.textContent = t; m.className = 'msg ' + cls; }
+
+function place(v){
+  const i = cur.sel;
+  if (i < 0) { say('先點一個空格喔。'); return; }
+  if (cur.q[i]) { say('灰色的數字是題目給的，不能改喔。'); return; }
+  cur.g[i] = v;
+  cur.hinted.delete(i);
+  refresh();
+  if (v){
+    const c = $('#grid').children[i]; c.classList.remove('pop'); void c.offsetWidth; c.classList.add('pop');
+    const clash = cur.peers[i].find(j => cur.g[j] === v);
+    if (clash !== undefined){
+      const where = sameRow(i, clash) ? '這一橫排' : sameCol(i, clash) ? '這一直排' : '這個方塊';
+      say(`${where}已經有 ${v} 了，再想想看。`, 'warn'); sfx('clash');
+    } else { say(''); sfx('place'); checkUnits(i); }
+    if (!cur.g.includes(0) && cur.g.every((x, k) => x === cur.a[k])) return win();
+    if (!cur.g.includes(0)) say('都填滿了，但有幾格不對，找找看橘色的格子。', 'warn');
+    // 自動跳到同一排下一個空格（減少點擊）
+  } else { say(''); sfx('erase'); }
+}
+// 填好一整排／一直排／一個方塊（而且都對）→ 亮綠光＋叮咚
+function checkUnits(i){
+  const doneU = cur.units.filter(u => u.includes(i) && u.every(k => cur.g[k] && cur.g[k] === cur.a[k]) && u.some(k => !cur.q[k]));
+  if (!doneU.length || !cur.g.includes(0)) {} else {
+    const cells = $('#grid').children;
+    doneU.forEach(u => u.forEach((k, j) => { const c = cells[k]; c.classList.remove('flash'); void c.offsetWidth; c.style.animationDelay = j * 50 + 'ms'; c.classList.add('flash'); }));
+    setTimeout(() => sfx('unit', doneU.length), 120);
+    if (cur.n > 2) say(doneU.length > 1 ? `一次完成 ${doneU.length} 條，太厲害了！` : pick(['這一排完成了！', '漂亮，又完成一塊！', '做得好！']), 'good');
+  }
+}
+const pick = a => a[Math.random() * a.length | 0];
+const sameRow = (i, j) => Math.floor(i / cur.n) === Math.floor(j / cur.n);
+const sameCol = (i, j) => i % cur.n === j % cur.n;
+
+$('#grid').addEventListener('pointerdown', e => {
+  const c = e.target.closest('.cell'); if (!c) return;
+  select(+c.dataset.i);
+  sfx('tap');
+  if (!cur.q[cur.sel] && !cur.g[cur.sel]) say('');
+});
+$('#pad').addEventListener('click', e => {
+  const k = e.target.closest('.key'); if (!k) return;
+  place(+k.dataset.v);
+});
+addEventListener('keydown', e => {
+  if (!$('#play').classList.contains('on') || !cur) return;
+  const n = cur.n;
+  if (/^[1-9]$/.test(e.key) && +e.key <= n) place(+e.key);
+  else if (e.key === 'Backspace' || e.key === 'Delete' || e.key === '0') place(0);
+  else if (e.key.startsWith('Arrow')){
+    let i = Math.max(cur.sel, 0), r = Math.floor(i / n), c = i % n;
+    if (e.key === 'ArrowUp') r = (r + n - 1) % n;
+    if (e.key === 'ArrowDown') r = (r + 1) % n;
+    if (e.key === 'ArrowLeft') c = (c + n - 1) % n;
+    if (e.key === 'ArrowRight') c = (c + 1) % n;
+    select(r * n + c); e.preventDefault();
+  }
+});
+
+/* ---------- 提示：告訴長輩「為什麼」 ---------- */
+function cands(i){
+  const used = new Set(cur.peers[i].map(j => cur.g[j]));
+  return [...Array(cur.n)].map((_, k) => k + 1).filter(v => !used.has(v));
+}
+function hint(){
+  // 1. 先抓填錯的格子
+  const wrong = cur.g.findIndex((v, i) => v && !cur.q[i] && v !== cur.a[i]);
+  if (wrong >= 0){
+    select(wrong);
+    say('黃框這一格好像不對，先擦掉再想想看。', 'warn'); return;
+  }
+  // 2. 只剩一個數字能填的格子（優先選目前選取的那格）
+  const order = [cur.sel, ...cur.g.map((_, i) => i)].filter(i => i >= 0 && !cur.g[i]);
+  for (const i of order){
+    const c = cands(i);
+    if (c.length === 1){
+      const used = [...new Set(cur.peers[i].map(j => cur.g[j]).filter(Boolean))].sort((a, b) => a - b);
+      fillHint(i, c[0]);
+      say(used.length >= 5 ? `這一格的橫排、直排、方塊裡，1～${cur.n} 只剩 ${c[0]} 還沒出現，就是它！` : `這一格的橫排、直排、方塊裡已經有 ${used.join('、')}，只剩 ${c[0]} 能填！`, 'good');
+      return;
+    }
+  }
+  // 3. 某個數字在一排／方塊裡只剩一格能放
+  for (const u of cur.units){
+    for (let v = 1; v <= cur.n; v++){
+      if (u.some(i => cur.g[i] === v)) continue;
+      const spots = u.filter(i => !cur.g[i] && cands(i).includes(v));
+      if (spots.length === 1){
+        const kind = u.every(i => sameRow(i, u[0])) ? '這一橫排' : u.every(i => sameCol(i, u[0])) ? '這一直排' : '這個方塊';
+        fillHint(spots[0], v);
+        say(`${kind}還缺 ${v}，而 ${v} 只剩這一格能放！`, 'good');
+        return;
+      }
+    }
+  }
+  const i = cur.g.indexOf(0);
+  if (i >= 0){ fillHint(i, cur.a[i]); say(`這一格是 ${cur.a[i]}。`, 'good'); }
+}
+function fillHint(i, v){
+  cur.sel = i; cur.g[i] = v; cur.hinted.add(i); cur.hints++; refresh();
+  const c = $('#grid').children[i]; c.classList.remove('pop'); void c.offsetWidth; c.classList.add('pop');
+  sfx('hint');
+  if (!cur.g.includes(0) && cur.g.every((x, k) => x === cur.a[k])) setTimeout(win, 500);
+}
+$('#btnHint').onclick = hint;
+$('#btnReset').onclick = () => openPuzzle(cur.lv, cur.idx);
+$('#btnNext').onclick = () => nextPuzzle();
+$('#btnBack').onclick = () => { renderHome(); show('home'); };
+
+function nextPuzzle(){
+  const lv = cur.lv;
+  if (cur.idx + 1 < lv.puzzles.length) openPuzzle(lv, cur.idx + 1);
+  else {
+    const nx = L.find(x => x.lv === lv.lv + 1);
+    nx ? openPuzzle(nx, 0) : (renderHome(), show('home'));
+  }
+}
+
+/* ---------- 完成 ---------- */
+function win(){
+  const d = doneList(cur.lv.lv);
+  if (!d.includes(cur.idx)) { d.push(cur.idx); saveProg(); }
+  $('#grid').classList.add('win');
+  [...$('#grid').children].forEach((c, k) => c.style.animationDelay = (k % cur.n + Math.floor(k / cur.n)) * 40 + 'ms');
+  const stars = cur.hints === 0 ? 3 : cur.hints <= 2 ? 2 : 1;
+  const key = cur.lv.lv + '-' + cur.idx;
+  starMap()[key] = Math.max(starMap()[key] || 0, stars); saveProg();
+  const lv = cur.lv, last = cur.idx + 1 >= lv.puzzles.length, nx = L.find(x => x.lv === lv.lv + 1);
+  const all = d.length >= lv.puzzles.length;
+  const levelUp = all && !cur.lvWasDone;
+  sfx(levelUp ? 'level' : 'win'); confetti(levelUp ? 140 : 70);
+  $('#winTitle').textContent = levelUp ? `🏆 第 ${lv.lv} 級全部過關！` : pick(['🎉 完成了！', '🎉 太棒了！', '🎉 過關！']);
+  $('#winDlg').querySelector('.dlg').classList.toggle('level', levelUp);
+  const st = [...$('#stars').children]; st.forEach(s => s.classList.remove('on'));
+  setTimeout(() => st.forEach((s, k) => k < stars && setTimeout(() => { s.classList.add('on'); sfx('star', k); }, k * 380)), 1300);
+  $('#winText').textContent = (stars === 3 ? '沒用提示就完成，三顆星！' : stars === 2 ? '用了一點提示，兩顆星。' : '靠提示幫忙也完成了，一顆星。') + (all
+    ? `第 ${lv.lv} 級全部 ${lv.puzzles.length} 題都完成了，好厲害！` + (nx ? `要不要挑戰第 ${nx.lv} 級「${nx.name}」？` : '九宮格都難不倒你！')
+    : `第 ${lv.lv} 級完成 ${d.length}／${lv.puzzles.length} 題。` + (d.length >= 2 && nx ? `做得很順的話，也可以跳到第 ${nx.lv} 級。` : ''));
+  $('#winNext').textContent = last ? (nx ? `挑戰第 ${nx.lv} 級 ▶` : '回選關卡') : '下一題 ▶';
+  setTimeout(() => $('#winDlg').hidden = false, 900);
+}
+$('#winNext').onclick = () => { $('#winDlg').hidden = true; nextPuzzle(); };
+$('#winHome').onclick = () => { $('#winDlg').hidden = true; renderHome(); show('home'); };
+function confetti(num = 70){
+  const box = $('#confetti'), cols = ['#E8A23A', '#C4622F', '#3F6293', '#5E7A32', '#e3c9a0'];
+  const W = stage.classList.contains('portrait') ? 1080 : 1920;
+  box.innerHTML = [...Array(num)].map(() =>
+    `<i style="left:${Math.random() * W}px;background:${cols[Math.random() * 5 | 0]};animation-delay:${Math.random() * .8}s"></i>`).join('');
+  setTimeout(() => box.innerHTML = '', 3200);
+}
+
+/* ---------- 怎麼玩 ---------- */
+$('#btnHow').onclick = () => $('#howDlg').hidden = false;
+document.querySelectorAll('[data-close]').forEach(b => b.onclick = () => b.closest('.overlay').hidden = true);
+
+/* ---------- 聲音：全部 WebAudio 合成（不用下載音檔），音效與音樂可分開關 ---------- */
+let ac = null, master = null, musicTimer = null;
+let musicOn = true, sfxOn = true;
+try { musicOn = localStorage.getItem('sudoku-music') !== 'off'; sfxOn = localStorage.getItem('sudoku-sfx') !== 'off'; } catch (e) {}
+function audio(){
+  if (!ac){
+    const A = window.AudioContext || window.webkitAudioContext; if (!A) return null;
+    ac = new A(); master = ac.createGain(); master.gain.value = 1; master.connect(ac.destination);
+  }
+  if (ac.state === 'suspended') ac.resume();
+  return ac;
+}
+function note(freq, dur, vol, type = 'sine', when = 0){
+  const a = audio(); if (!a) return;
+  const t = a.currentTime + when, o = a.createOscillator(), g = a.createGain();
+  o.type = type; o.frequency.value = freq;
+  g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol, t + .015);
+  g.gain.exponentialRampToValueAtTime(.0001, t + dur);
+  o.connect(g); g.connect(master); o.start(t); o.stop(t + dur + .05);
+}
+// 木琴音色：基音＋高八度泛音、快速衰減
+function marimba(f, when = 0, vol = .16){ note(f, .55, vol, 'sine', when); note(f * 4, .12, vol * .18, 'sine', when); }
+const PENTA = [523, 587, 659, 784, 880, 1047, 1175, 1319, 1568, 1760];
+function sfx(name, k = 0){
+  if (!sfxOn) return;
+  switch (name){
+    case 'tap':   note(1400, .05, .03, 'sine'); break;
+    case 'place': { // 填得越多，音越往上爬，像在爬樓梯
+      const blanks = cur.q.filter(x => !x).length, filled = cur.g.filter((x, i) => x && !cur.q[i]).length;
+      marimba(PENTA[Math.min(PENTA.length - 1, Math.floor(filled / Math.max(blanks, 1) * PENTA.length))]); break; }
+    case 'clash': marimba(392, 0, .12); marimba(330, .14, .12); break;   // 溫和的「嗯～」，不是錯誤警報
+    case 'erase': note(700, .12, .05, 'triangle'); note(500, .14, .04, 'triangle', .05); break;
+    case 'hint':  [1319, 1568, 1760, 2093, 2637].forEach((f, j) => note(f, .5, .05, 'sine', j * .05)); break;
+    case 'unit':  [784, 988, 1175, 1568].forEach((f, j) => marimba(f, j * .08, .12)); if (k > 1) [1568, 1976, 2349].forEach((f, j) => marimba(f, .35 + j * .08, .1)); break;
+    case 'star':  marimba(1047 * Math.pow(1.26, k), 0, .18); note(2093 * Math.pow(1.26, k), .6, .04, 'sine'); break;
+    case 'win':   // 小號角：上行琶音＋和弦
+      [523, 659, 784, 1047].forEach((f, j) => marimba(f, j * .11, .16));
+      [523, 659, 784, 1047].forEach(f => note(f, 1.6, .06, 'triangle', .5)); break;
+    case 'level': // 整級破關：更長的凱旋樂句
+      [[523,0],[523,.15],[523,.3],[659,.45],[784,.75],[659,.95],[784,1.1],[1047,1.3]].forEach(([f, t]) => marimba(f, t, .17));
+      [523, 659, 784, 1047, 1319].forEach(f => note(f, 2.4, .05, 'triangle', 1.3)); break;
+  }
+}
+// 背景音樂：五聲音階慢板，像音樂盒，治療師在旁邊講話也不吵
+const SCALE = [262, 294, 330, 392, 440, 523, 587, 659];
+let step = 0;
+function musicTick(){
+  if (!musicOn) return;
+  const f = SCALE[(step * 3 + (Math.random() * 3 | 0)) % SCALE.length];
+  note(f, 2.6, .03, 'sine');
+  if (step % 4 === 0) note(f / 2, 3.5, .022, 'sine');
+  step++;
+  musicTimer = setTimeout(musicTick, 900 + Math.random() * 700);
+}
+function startMusic(){
+  if (!musicOn || musicTimer) return;
+  if (!audio()) return;
+  musicTick();
+}
+function paintSoundBtns(){
+  $('#btnMusic').textContent = musicOn ? '🎵 音樂' : '🎵 關';
+  $('#btnSfx').textContent = sfxOn ? '🔔 音效' : '🔕 關';
+  $('#btnMusic').style.opacity = musicOn ? 1 : .55;
+  $('#btnSfx').style.opacity = sfxOn ? 1 : .55;
+}
+$('#btnMusic').onclick = () => {
+  musicOn = !musicOn;
+  try { localStorage.setItem('sudoku-music', musicOn ? 'on' : 'off'); } catch (e) {}
+  if (musicOn) startMusic(); else { clearTimeout(musicTimer); musicTimer = null; }
+  paintSoundBtns();
+};
+$('#btnSfx').onclick = () => {
+  sfxOn = !sfxOn;
+  try { localStorage.setItem('sudoku-sfx', sfxOn ? 'on' : 'off'); } catch (e) {}
+  paintSoundBtns(); sfx('tap');
+};
+paintSoundBtns();
+
+/* ---------- 全螢幕（投影時用；iPhone Safari 不支援就隱藏按鈕） ---------- */
+const fsOK = !!(document.documentElement.requestFullscreen || document.documentElement.webkitRequestFullscreen);
+const isFS = () => !!(document.fullscreenElement || document.webkitFullscreenElement);
+function toggleFS(){
+  const d = document.documentElement;
+  if (!isFS()) (d.requestFullscreen || d.webkitRequestFullscreen).call(d);
+  else (document.exitFullscreen || document.webkitExitFullscreen).call(document);
+}
+function paintFS(){ document.querySelectorAll('[data-fs]').forEach(b => { b.hidden = !fsOK; b.textContent = isFS() ? '⛶ 離開全螢幕' : '⛶ 全螢幕'; }); }
+document.querySelectorAll('[data-fs]').forEach(b => b.onclick = () => { toggleFS(); startMusic(); });
+['fullscreenchange', 'webkitfullscreenchange'].forEach(ev => document.addEventListener(ev, () => { paintFS(); fit(); }));
+addEventListener('keydown', e => { if ((e.key === 'f' || e.key === 'F') && !e.metaKey && !e.ctrlKey) toggleFS(); });
+paintFS();
+
+renderHome();
+addEventListener('resize', () => { if (cur && $('#play').classList.contains('on')) {
+  const size = stage.classList.contains('portrait') ? 1000 : 880;
+  [...$('#grid').children].forEach(c => c.style.fontSize = Math.round(size / cur.n * .6) + 'px');
+}});
+</script>
+<!-- Cloudflare Web Analytics：無 cookie、不追蹤個人，只統計造訪量 -->
+<script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "3df68cf5d6bd4975b97a157f7ff3cafb"}'></script>
+</body>
+</html>
