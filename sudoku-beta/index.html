@@ -161,6 +161,7 @@ button{font-family:inherit;cursor:pointer;border:none;background:none;color:inhe
         <div class="sub">從 2×2 一路玩到 9×9，一關一關往上爬</div>
       </div>
       <div class="acts">
+        <button class="pill fsbtn" data-fs>⛶ 全螢幕</button>
         <button class="pill" id="btnHow">📖 怎麼玩</button>
         <a class="pill" href="sudoku.pdf" target="_blank" rel="noopener">🖨 紙本 PDF</a>
       </div>
@@ -176,6 +177,7 @@ button{font-family:inherit;cursor:pointer;border:none;background:none;color:inhe
       <button class="tbtn hint" id="btnHint">💡 提示</button>
       <button class="tbtn" id="btnReset">↺ 重來</button>
       <button class="tbtn" id="btnNext">換一題 ▶</button>
+      <button class="tbtn fsbtn" data-fs>⛶ 全螢幕</button>
       <button class="tbtn" id="btnSfx">🔔 音效</button>
       <button class="tbtn" id="btnMusic">🎵 音樂</button>
     </div>
@@ -604,6 +606,20 @@ $('#btnSfx').onclick = () => {
   paintSoundBtns(); sfx('tap');
 };
 paintSoundBtns();
+
+/* ---------- 全螢幕（投影時用；iPhone Safari 不支援就隱藏按鈕） ---------- */
+const fsOK = !!(document.documentElement.requestFullscreen || document.documentElement.webkitRequestFullscreen);
+const isFS = () => !!(document.fullscreenElement || document.webkitFullscreenElement);
+function toggleFS(){
+  const d = document.documentElement;
+  if (!isFS()) (d.requestFullscreen || d.webkitRequestFullscreen).call(d);
+  else (document.exitFullscreen || document.webkitExitFullscreen).call(document);
+}
+function paintFS(){ document.querySelectorAll('[data-fs]').forEach(b => { b.hidden = !fsOK; b.textContent = isFS() ? '⛶ 離開全螢幕' : '⛶ 全螢幕'; }); }
+document.querySelectorAll('[data-fs]').forEach(b => b.onclick = () => { toggleFS(); startMusic(); });
+['fullscreenchange', 'webkitfullscreenchange'].forEach(ev => document.addEventListener(ev, () => { paintFS(); fit(); }));
+addEventListener('keydown', e => { if ((e.key === 'f' || e.key === 'F') && !e.metaKey && !e.ctrlKey) toggleFS(); });
+paintFS();
 
 renderHome();
 addEventListener('resize', () => { if (cur && $('#play').classList.contains('on')) {
