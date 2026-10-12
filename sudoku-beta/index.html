@@ -44,7 +44,7 @@ button{font-family:inherit;cursor:pointer;border:none;background:none;color:inhe
 .portrait #credit{right:40px;bottom:36px;font-size:26px}
 
 /* ---------- 首頁 ---------- */
-#home{padding:60px 110px 100px;display:flex;flex-direction:column}
+#home{padding:60px 110px 34px;display:flex;flex-direction:column}
 .hero{display:flex;align-items:flex-end;justify-content:space-between;gap:40px}
 .hero .pre{font-size:36px;color:var(--orange);font-weight:800;letter-spacing:2px}
 .hero h1{font-size:120px;margin:6px 0 0;color:var(--indigo-dark);font-weight:900;line-height:1.05}
@@ -52,24 +52,25 @@ button{font-family:inherit;cursor:pointer;border:none;background:none;color:inhe
 .hero .acts{display:flex;gap:20px}
 .pill{font-size:34px;font-weight:700;padding:18px 34px;border-radius:999px;background:var(--card);
   box-shadow:0 3px 0 var(--cream-deep);color:var(--indigo-dark);text-decoration:none;display:inline-block}
-.levels{flex:1;display:grid;grid-template-columns:repeat(4,1fr);gap:28px;margin-top:44px;min-height:0}
-.lvcard{background:var(--card);border-radius:28px;padding:26px 34px;text-align:left;display:flex;
+.levels{flex:1;display:grid;grid-template-columns:repeat(4,1fr);gap:28px;margin-top:36px;min-height:0;grid-auto-rows:minmax(0,1fr)}
+.homefoot{text-align:right;font-size:26px;color:var(--ink-soft);margin-top:20px;flex:none}
+.lvcard{background:var(--card);border-radius:28px;padding:20px 30px;overflow:hidden;min-height:0;text-align:left;display:flex;
   flex-direction:column;justify-content:space-between;box-shadow:0 6px 0 var(--cream-deep);
   border:4px solid transparent;transition:transform .12s}
 .lvcard:active{transform:translateY(4px);box-shadow:0 2px 0 var(--cream-deep)}
-.lvcard .no{font-size:30px;font-weight:800;color:var(--orange)}
-.lvcard .nm{font-size:60px;font-weight:900;color:var(--indigo-dark);margin:4px 0}
-.lvcard .sz{font-size:34px;color:var(--ink-soft);font-weight:600}
-.lvcard .bar{height:16px;border-radius:8px;background:var(--cream-deep);overflow:hidden;margin-top:18px}
+.lvcard .no{font-size:28px;font-weight:800;color:var(--orange);display:flex;justify-content:space-between;align-items:baseline}
+.lvcard .nm{font-size:54px;font-weight:900;color:var(--indigo-dark);margin:2px 0;line-height:1.2}
+.lvcard .sz{font-size:30px;color:var(--ink-soft);font-weight:600}
+.lvcard .bar{height:14px;border-radius:7px;background:var(--cream-deep);overflow:hidden;margin-top:12px}
 .lvcard .bar i{display:block;height:100%;background:var(--green);border-radius:8px}
-.lvcard .cnt{font-size:28px;color:var(--ink-soft);margin-top:10px}
+.lvcard .cnt{font-size:26px;color:var(--ink-soft);margin-top:8px;white-space:nowrap}
 .lvcard.done{border-color:var(--green)}
 .lvcard.done .cnt{color:var(--green);font-weight:700}
-.portrait #home{padding:90px 50px 120px}
+.portrait #home{padding:90px 50px 50px}
 .portrait .hero{flex-direction:column;align-items:flex-start;gap:30px}
 .portrait .hero h1{font-size:130px}
 .portrait .levels{grid-template-columns:repeat(2,1fr);gap:22px;margin-top:36px}
-.portrait .lvcard .nm{font-size:62px}
+.portrait .lvcard .nm{font-size:58px}
 
 /* ---------- 遊戲畫面 ---------- */
 #play{display:flex;flex-direction:column;padding:34px 70px 70px}
@@ -111,7 +112,7 @@ button{font-family:inherit;cursor:pointer;border:none;background:none;color:inhe
 .stars span{display:inline-block;color:#ddd5c2;transform:scale(.6);transition:transform .3s,color .3s}
 .stars span.on{color:var(--amber);transform:scale(1.15)}
 .dlg.level h2{color:var(--orange)}
-.lvcard .st{font-size:28px;color:var(--amber);font-weight:800;margin-left:10px}
+.lvcard .st{font-size:28px;color:var(--amber);font-weight:800;white-space:nowrap}
 @keyframes wave{40%{background:#dfeccc}}
 
 .side{width:700px;display:flex;flex-direction:column;gap:30px}
@@ -167,6 +168,7 @@ button{font-family:inherit;cursor:pointer;border:none;background:none;color:inhe
       </div>
     </div>
     <div class="levels" id="levels"></div>
+    <div class="homefoot">教案設計：施昱廷 職能治療師</div>
   </section>
 
   <!-- 遊戲 -->
@@ -221,7 +223,7 @@ button{font-family:inherit;cursor:pointer;border:none;background:none;color:inhe
   </div>
 
   <div class="confetti" id="confetti"></div>
-  <div id="credit">教案設計：施昱廷 職能治療師</div>
+  <div id="credit" hidden>教案設計：施昱廷 職能治療師</div>
 </div></div>
 
 <script src="puzzles.js"></script>
@@ -255,10 +257,10 @@ function renderHome(){
   $('#levels').innerHTML = L.map(lv => {
     const d = doneList(lv.lv).length, n = lv.puzzles.length;
     return `<button class="lvcard ${d >= n ? 'done' : ''}" data-lv="${lv.lv}">
-      <div><div class="no">第 ${lv.lv} 級</div><div class="nm">${lv.name}</div>
+      <div><div class="no"><span>第 ${lv.lv} 級</span><span class="st">${starsOf(lv.lv) ? '★ ' + starsOf(lv.lv) + '／' + n * 3 : ''}</span></div><div class="nm">${lv.name}</div>
       <div class="sz">${lv.size}×${lv.size}　空 ${range(lv)} 格</div></div>
       <div><div class="bar"><i style="width:${d / n * 100}%"></i></div>
-      <div class="cnt">${d >= n ? '✔ 全部完成' : `已完成 ${d}／${n} 題`}<span class="st">${starsOf(lv.lv) ? '★ ' + starsOf(lv.lv) + '／' + n * 3 : ''}</span></div></div></button>`;
+      <div class="cnt">${d >= n ? '✔ 全部完成' : `已完成 ${d}／${n} 題`}</div></div></button>`;
   }).join('');
 }
 function range(lv){
@@ -274,7 +276,10 @@ $('#levels').addEventListener('click', e => {
   startMusic();
   openPuzzle(lv, idx);
 });
-function show(id){ document.querySelectorAll('.screen').forEach(s => s.classList.toggle('on', s.id === id)); }
+function show(id){
+  document.querySelectorAll('.screen').forEach(s => s.classList.toggle('on', s.id === id));
+  $('#credit').hidden = id === 'home'; // 首頁的署名改放在卡片下方，不浮在卡片上
+}
 
 /* ---------- 遊戲狀態 ---------- */
 let cur = null; // {lv, idx, n, br, bc, q, a, g, sel, peers, units}
