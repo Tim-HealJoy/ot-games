@@ -542,6 +542,86 @@ window.PNF_COURSE = {
      "pre": "<p>這門課用「<b>停・看・聽</b>」記住 PNF 的基本要素：<b>停＝手</b>（徒手接觸），<b>看＝視覺</b>，<b>聽＝口令</b>。三者同時使用，效果會累加（空間加成，見 0-3）。這一課先學「停」：治療師的手與身體如何配合。</p>\n<p>手在 PNF 中有五項作用：①引導正確的動作時序；②提供阻力；③給予牽拉、牽引或擠壓；④藉由阻力產生擴散效應；⑤在動作過程中修正時序與方向。</p>",
      "videos": [
       {
+       "yt": "AXvWDVuHOv4",
+       "title": "ハンドリングの基本！虫様筋握りをマスターしよう！",
+       "channel": "かなえるリハビリチャンネル（日本復健治療師教學頻道；非 IPNFA）",
+       "dur": "4 分 28 秒",
+       "lang": "日語",
+       "cc": "自動字幕",
+       "note": "先用手部特寫拆解 lumbrical grip（掌指關節屈、指間關節伸直、用掌面而不是指尖），再用下肢與肩關節的「壞例／好例」對照。看手掌有沒有離開個案的肢體。",
+       "start": 10,
+       "timeline": [
+        {
+         "t": "0:10",
+         "text": "手型特寫：掌指關節屈曲、指間關節伸直"
+        },
+        {
+         "t": "0:40",
+         "text": "接觸面：大小魚際與掌紋處貼住肢體"
+        },
+        {
+         "t": "1:10",
+         "text": "手腕位置：維持中間位，不用指尖用力"
+        },
+        {
+         "t": "1:40",
+         "text": "髖屈曲活動壞例：手掌離開足底、只剩指尖"
+        },
+        {
+         "t": "2:10",
+         "text": "好例：手掌全程貼住，不離開足底"
+        },
+        {
+         "t": "2:40",
+         "text": "下肢好例：治療師跪姿、身體跟著動作走"
+        },
+        {
+         "t": "3:20",
+         "text": "肩外轉壞例：指尖壓上臂"
+        },
+        {
+         "t": "4:00",
+         "text": "好例：全程托住上臂到最後"
+        }
+       ]
+      },
+      {
+       "yt": "6poAea19WQw",
+       "title": "Principio 1 contacto manual",
+       "channel": "Extension Kinesiologia（智利 Universidad de Valparaíso 物理治療學系官方教學頻道）",
+       "dur": "5 分 33 秒",
+       "lang": "西班牙語",
+       "cc": "自動字幕",
+       "note": "PNF 基本原則系列第 1 集。從 2:08 直接看上肢與下肢對角線型態的手放位置：手放在要出力的那一面、施力方向與動作相反。",
+       "start": 128,
+       "timeline": [
+        {
+         "t": "2:08",
+         "text": "上肢對角線：一手在手掌、一手在前臂，治療師站在對角線上"
+        },
+        {
+         "t": "2:40",
+         "text": "手臂上舉過程中，接觸面跟著旋轉調整"
+        },
+        {
+         "t": "3:20",
+         "text": "換下肢：一手在足背、一手在大腿"
+        },
+        {
+         "t": "3:52",
+         "text": "近看足部抓握，說明施力面與動作方向"
+        },
+        {
+         "t": "4:40",
+         "text": "換成伸肌型態，手改放足底"
+        },
+        {
+         "t": "5:04",
+         "text": "完整做一次下肢型態"
+        }
+       ]
+      },
+      {
        "yt": "gK3k0C9orbw",
        "title": "How important touch is for all patients",
        "channel": "IPNF Association 官方頻道",
@@ -689,6 +769,65 @@ window.PNF_COURSE = {
      "pre": "<p>「停・看・聽」的後兩項是：<b>看＝視覺</b>，<b>聽＝口令</b>。</p>\n<p><b>看</b>能幫助穩定發力、修正動作時序。眼睛帶動頭，頭再帶動軀幹（Beckers & Buck, 2021, p. 27）。臨床上常把視覺引導安排成先帶<b>核心</b>，再到<b>肩胛／骨盆</b>，最後到<b>上下肢</b>（臨床推論）。例如坐站時請病人看前方目標，身體自然會往前；伸手時看著要拿的物品，手的方向會更準。</p>\n<p><b>聽</b>可以增強，也可以抑制。要誘發用力時，聲音大而短；要放鬆或處理疼痛時，語氣溫柔、冷靜，語速放慢。口令的<b>時間點</b>最重要，也可以與阻力、牽張同時給予。</p>",
      "videos": [
       {
+       "yt": "tnUq2q4i77o",
+       "title": "Principio 9-10 visual auditivo verbal",
+       "channel": "Extension Kinesiologia（智利 Universidad de Valparaíso 物理治療學系官方教學頻道）",
+       "dur": "3 分 57 秒",
+       "lang": "西班牙語",
+       "cc": "自動字幕",
+       "note": "同系列第 9–10 集：視覺與聽覺（口令）刺激。看治療師怎麼讓個案「眼睛跟著手」，以及口令節奏如何配合動作。",
+       "start": 45,
+       "timeline": [
+        {
+         "t": "0:48",
+         "text": "仰臥上肢型態：請個案眼睛看著自己的手"
+        },
+        {
+         "t": "1:12",
+         "text": "治療師邊做邊下口令，注意口令時機與動作同步"
+        },
+        {
+         "t": "1:52",
+         "text": "頭頸型態：先用眼睛帶頭轉"
+        },
+        {
+         "t": "2:16",
+         "text": "手放下巴與枕骨，配合口令給阻力"
+        },
+        {
+         "t": "2:48",
+         "text": "長坐姿軀幹活動，用視線引導方向"
+        },
+        {
+         "t": "3:20",
+         "text": "坐姿頭頸＋軀幹，口令與阻力配合"
+        }
+       ]
+      },
+      {
+       "yt": "L_lvO-aibxA",
+       "title": "Standing Balance After Stroke: Dynamic Reversals",
+       "channel": "Yun PNF（尹正鉉 Jeunghyun Yun，韓國，IPNFA Basic Instructor，頻道自述）",
+       "dur": "17 秒",
+       "lang": "無旁白（英文字卡）",
+       "cc": "無",
+       "note": "中風個案坐姿，頸部型態結合軀幹屈伸做動態反轉。說明欄強調「眼睛 → 頭 → 軀幹」的順序，正好示範視覺刺激帶動軀幹。",
+       "timeline": [
+        {
+         "t": "0:00",
+         "text": "中風個案坐床緣，治療師一手在頭、一手在肩胸"
+        },
+        {
+         "t": "0:04",
+         "text": "個案眼睛與頭先轉，軀幹跟著屈曲"
+        },
+        {
+         "t": "0:10",
+         "text": "換方向伸展，治療師換手給阻力"
+        }
+       ]
+      },
+      {
        "yt": "xWP5FGst2ig",
        "title": "Use special auditory stimulation from PNF",
        "channel": "IPNF Association 官方頻道",
@@ -824,6 +963,42 @@ window.PNF_COURSE = {
      },
      "videos": [
       {
+       "yt": "b-Ka7EH5fmo",
+       "title": "Principio 8 aplicación de resistencias",
+       "channel": "Extension Kinesiologia（智利 Universidad de Valparaíso 物理治療學系官方教學頻道）",
+       "dur": "4 分 36 秒",
+       "lang": "西班牙語",
+       "cc": "自動字幕",
+       "note": "同系列第 8 集「阻力的給法」。治療師坐在床尾對足踝給阻力，看手放哪裡、阻力怎麼隨動作漸進增加與減少。",
+       "start": 64,
+       "timeline": [
+        {
+         "t": "1:04",
+         "text": "治療師坐到床尾，手放足背準備"
+        },
+        {
+         "t": "1:28",
+         "text": "背屈方向給阻力：阻力方向與動作相反"
+        },
+        {
+         "t": "2:04",
+         "text": "邊做邊說明阻力大小如何讓動作仍保持平順"
+        },
+        {
+         "t": "2:40",
+         "text": "換足底，改練蹠屈方向"
+        },
+        {
+         "t": "3:16",
+         "text": "近看雙手位置與旋轉成分"
+        },
+        {
+         "t": "3:52",
+         "text": "整合示範並總結"
+        }
+       ]
+      },
+      {
        "yt": "9GBd8fuTG7w",
        "title": "PNF とは何か ②PNF の基本原理と手段（Fred Smedes）",
        "channel": "セラピストえぐやす（江口泰弘，IPNFA Instructor；IPNFA 2020 線上研討會日譯版）",
@@ -942,6 +1117,48 @@ window.PNF_COURSE = {
      },
      "pre": "<p>這是整門課最重要的一課。病人某個部位無法啟動時，反覆直接練習常帶來挫折。PNF 會對<b>強的部位</b>給阻力，讓興奮擴散到弱的部位，稱為 irradiation（擴散），也叫 indirect treatment（間接治療）。中風後偏癱個案的健側與軀幹功能常保留良好，因此擴散是最常用的工具。</p>",
      "videos": [
+      {
+       "yt": "_ff_5tNSaRU",
+       "title": "PNF 3 OE Irradiation Scapula Hände",
+       "channel": "Fortbildungszentrum Klagenfurt（奧地利物理治療進修中心，PNF 3 進階課實錄）",
+       "dur": "29 秒",
+       "lang": "德語（課堂現場收音）",
+       "cc": "無",
+       "note": "坐姿、前臂平放桌面，治療師在背後對肩胛給阻力；看手指與手腕如何「自己」伸展離開桌面——近端阻力擴散到遠端手部。",
+       "timeline": [
+        {
+         "t": "0:00",
+         "text": "坐姿前臂平放，治療師雙手放肩胛"
+        },
+        {
+         "t": "0:09",
+         "text": "對肩胛給阻力，手指開始伸展抬起"
+        },
+        {
+         "t": "0:21",
+         "text": "持續阻力，手部伸展維持"
+        }
+       ]
+      },
+      {
+       "yt": "8wNAjZIwlqY",
+       "title": "Weak Muscle? Use a Strong One: PNF Irradiation",
+       "channel": "Yun PNF（尹正鉉 Jeunghyun Yun，韓國，IPNFA Basic Instructor，頻道自述）",
+       "dur": "15 秒",
+       "lang": "無旁白（英文字卡）",
+       "cc": "無",
+       "note": "對上肢型態給阻力（畫面藍線），擴散到下肢承重（紅線），先坐姿再站姿。看阻力在手臂、反應在腿。",
+       "timeline": [
+        {
+         "t": "0:00",
+         "text": "坐姿：治療師對上肢對角線給阻力，標示上肢→下肢的擴散路徑"
+        },
+        {
+         "t": "0:09",
+         "text": "換站姿：同樣用上肢阻力促進站立腳承重"
+        }
+       ]
+      },
       {
        "yt": "t7-tFuDVKHc",
        "title": "One Leg Standing with Irradiation",
@@ -1135,6 +1352,72 @@ window.PNF_COURSE = {
       ]
      },
      "videos": [
+      {
+       "yt": "9V4aJK5GmbU",
+       "title": "Traccion y coaptacion",
+       "channel": "Extension Kinesiologia（智利 Universidad de Valparaíso 物理治療學系官方教學頻道）",
+       "dur": "3 分 23 秒",
+       "lang": "西班牙語",
+       "cc": "自動字幕（有人工西文字幕軌）",
+       "note": "牽引（tracción）與擠壓（coaptación）在上肢、下肢型態中的實作：看治療師沿肢體長軸拉開或推向關節的時機。",
+       "timeline": [
+        {
+         "t": "0:08",
+         "text": "上肢屈曲型態起始：沿肢體長軸給牽引"
+        },
+        {
+         "t": "0:32",
+         "text": "手臂往上時維持牽引"
+        },
+        {
+         "t": "1:04",
+         "text": "伸展型態回程：改為往肩關節擠壓"
+        },
+        {
+         "t": "1:52",
+         "text": "換下肢屈曲型態：牽引"
+        },
+        {
+         "t": "2:24",
+         "text": "抬腿過程手位與方向"
+        },
+        {
+         "t": "2:48",
+         "text": "伸展回床面時改為擠壓"
+        },
+        {
+         "t": "3:12",
+         "text": "結語"
+        }
+       ]
+      },
+      {
+       "yt": "KlJnr9h8UyQ",
+       "title": "Learning Snack Barbara",
+       "channel": "PNF Fachgesellschaft（德國 IPNFA 會員學會官方頻道）",
+       "dur": "1 分 51 秒",
+       "lang": "德語（畫面有德文說明字卡）",
+       "cc": "自動字幕",
+       "note": "神經個案坐姿上肢治療：先降低屈肘肌張力，再用「手撐床面＋往手腕擠壓」活化三頭肌，最後接到桌面推杯的功能動作。看 0:48 起擠壓的手位。",
+       "timeline": [
+        {
+         "t": "0:00",
+         "text": "字卡：降低屈肘肌僵硬，增加肘伸"
+        },
+        {
+         "t": "0:12",
+         "text": "Flex-Add-ER 型態＋肘屈，用等張組合強調離心"
+        },
+        {
+         "t": "0:48",
+         "text": "手撐床面，治療師由肩往手腕方向擠壓，活化三頭肌"
+        },
+        {
+         "t": "1:24",
+         "text": "桌面推杯（外在焦點），把支撐活化帶進功能"
+        }
+       ]
+      },
       {
        "yt": "HmxDJRgFzDM",
        "title": "Quick approximation",
@@ -1404,6 +1687,33 @@ window.PNF_COURSE = {
      },
      "pre": "<p>肩胛和骨盆一樣，有兩條對角線、四個方向，可想成近端的<b>四個象限</b>：<b>前上提</b>（往鼻子方向）、<b>後下壓</b>（往下、往後，朝下胸椎）、<b>後上提</b>（往上、往後，朝頭頂中央）、<b>前下壓</b>（往下、往前，朝對側髂嵴前方）（Beckers & Buck, 2021, pp. 83–87）。</p>\n<p>依 PNF 由近端到遠端的原則，本課程先教肩胛，再教上肢對角線。肩胛能動、能穩，手臂才有穩定的基座。</p>",
      "videos": [
+      {
+       "yt": "KXrvADMSdx0",
+       "title": "Mobilizacja łopatki po udarze",
+       "channel": "TerapiaFunkcjonalna（Damian Kapturski，波蘭，IPNFA Basic Instructor；臨床中風個案、臉部已打馬賽克）",
+       "dur": "1 分 13 秒",
+       "lang": "波蘭語（燒入波蘭文字幕）",
+       "cc": "自動字幕",
+       "note": "【額外發現】中風個案側躺，治療師雙手包住肩胛，帶肩胛往前上旋——對應中風肩的後縮下壓。",
+       "timeline": [
+        {
+         "t": "0:04",
+         "text": "側躺，治療師雙手放肩胛"
+        },
+        {
+         "t": "0:20",
+         "text": "帶肩胛往前上方移動"
+        },
+        {
+         "t": "0:52",
+         "text": "說明下角外旋與上旋的方向"
+        },
+        {
+         "t": "1:04",
+         "text": "往前、往上持續移動"
+        }
+       ]
+      },
       {
        "yt": "QkpndWyaYOc",
        "title": "Skapula-Pattern – posteriore Depression",
@@ -3265,6 +3575,64 @@ window.PNF_COURSE = {
      },
      "videos": [
       {
+       "yt": "KwQJYagevHg",
+       "title": "PNF 3 Irradiation OE im 4 Füssler",
+       "channel": "Fortbildungszentrum Klagenfurt（奧地利物理治療進修中心，PNF 3 進階課實錄）",
+       "dur": "56 秒",
+       "lang": "德語（課堂現場收音）",
+       "cc": "無",
+       "note": "四足跪姿（四點跪）下，治療師對肩胛／上肢與骨盆給阻力，把擴散用在穩定訓練中。看治療師換位置後，個案軀幹與下肢怎麼一起被帶動。",
+       "timeline": [
+        {
+         "t": "0:00",
+         "text": "四點跪，治療師跪在前方對肩胛與上肢給阻力"
+        },
+        {
+         "t": "0:16",
+         "text": "治療師移到骨盆處給阻力"
+        },
+        {
+         "t": "0:32",
+         "text": "從側面同時控制肩與骨盆"
+        },
+        {
+         "t": "0:44",
+         "text": "持續阻力，觀察軀幹穩定"
+        }
+       ]
+      },
+      {
+       "yt": "mv2czY4EaJc",
+       "title": "Stabilizing Reversals with Irradiation to the core",
+       "channel": "Dominican College（美國大學物理治療系課堂示範）",
+       "dur": "3 分 1 秒",
+       "lang": "英文",
+       "cc": "自動字幕",
+       "note": "坐姿，用雙上肢（chop/lift 方向）做穩定反轉，目的是把擴散帶到軀幹核心。看治療師的手在手臂上、要求的卻是軀幹穩住。",
+       "timeline": [
+        {
+         "t": "0:10",
+         "text": "講者說明：用上肢阻力讓擴散進到軀幹"
+        },
+        {
+         "t": "0:20",
+         "text": "站在個案後方，雙手握個案雙手做穩定反轉"
+        },
+        {
+         "t": "1:10",
+         "text": "換方向給阻力，個案軀幹保持不動"
+        },
+        {
+         "t": "1:40",
+         "text": "改從側面給阻力"
+        },
+        {
+         "t": "2:50",
+         "text": "跪到個案前方示範另一種手位"
+        }
+       ]
+      },
+      {
        "yt": "t7-tFuDVKHc",
        "title": "One Leg Standing with Irradiation",
        "channel": "IPNF Association 官方頻道",
@@ -3388,6 +3756,60 @@ window.PNF_COURSE = {
      },
      "pre": "<p>這一課介紹將 PNF 技巧用於功能訓練的架構：<b>四層動作控制</b>。它來自以 PNF 為基礎發展的步行協調訓練（Coordinative Locomotor Training，CLT），屬於<b>臨床推理架構，實證仍屬初步</b>。目前只有韓國的小樣本研究與尚在執行的臨床試驗，還不能說它比其他排序方式更有效。本課採用這套架構，是因為它有助於判斷「這位病人現在該練什麼、該用哪個技巧」。</p>\n<div class=\"tblwrap\"><table><thead><tr><th>層級</th><th>目標</th><th>適用 PNF 技巧</th><th>常用擺位</th></tr></thead><tbody>\n<tr><td><b>Security</b>（安全、穩定）</td><td>建立安全基礎：能在一個姿勢中維持穩定</td><td>穩定反轉（SR）、節律穩定（RS）</td><td>hook lying（屈膝仰臥）、仰臥 sprinting、側臥</td></tr>\n<tr><td><b>Linking</b>（連結）</td><td>連結身體各部位，協調各結構之間的配合</td><td>複製（Repetition／Replication）、節律啟動（RI）、起始牽拉、重複牽拉、等張組合（CoI）、收縮放鬆、維持放鬆</td><td>仰臥、hook lying 上的 sprinting、四點跪（all fours）、坐、坐在球上、站</td></tr>\n<tr><td><b>Controlling</b>（控制）</td><td>在穩定的基礎上控制活動：一邊穩住、一邊動</td><td>等張組合（CoI）</td><td>在已穩定的姿勢上做控制性活動（坐、站皆可）</td></tr>\n<tr><td><b>Integrating</b>（整合）</td><td>將動作整合成技能，在真實任務中練習</td><td>依需要組合各種技巧</td><td>站姿、步態、日常任務</td></tr>\n</tbody></table></div>\n<p>同一個擺位可出現在不同層級，差別在練的是穩定、連結還是控制。表中擺位依原始課程講義整理，Controlling 層講義只以圖示呈現，屬本站整理。</p>\n<p><b>擺位進程</b>：hook lying（屈膝仰臥）→ supine sprinting（仰臥 Sprinter 型態，見 4-4）→ side lying（側臥）→ all fours（四點跪）→ sitting（坐）→ sitting on the ball（坐在球上）→ standing（站）→ gait（步態）。支撐面逐漸縮小、重心逐漸升高，難度也隨之增加。</p>\n<p>下方影片未直接講解四層架構，而是借用其他課的三支示範，說明姿勢控制的重要性，以及如何逐步調整擺位、提高難度。</p>",
      "videos": [
+      {
+       "yt": "DENBAw2jxpM",
+       "title": "Hooklying Stabilizing Reversals: Building Lower Trunk Stability",
+       "channel": "Yun PNF（尹正鉉 Jeunghyun Yun，韓國，IPNFA Basic Instructor，頻道自述）",
+       "dur": "22 秒",
+       "lang": "無旁白（英文字卡）",
+       "cc": "自動字幕",
+       "note": "屈膝仰臥（hook lying）下對雙膝交替給阻力，阻力剛好讓個案幾乎不動——就是四層架構第一層 Security 的典型練法。",
+       "timeline": [
+        {
+         "t": "0:00",
+         "text": "字卡「Stability without movement」，治療師雙手在雙膝外側"
+        },
+        {
+         "t": "0:06",
+         "text": "左右交替給阻力，個案下軀幹保持不動"
+        },
+        {
+         "t": "0:14",
+         "text": "換手位到膝內外側，持續穩定反轉"
+        }
+       ]
+      },
+      {
+       "yt": "47-QHjDM6vM",
+       "title": "Techniki stabilizacyjne PNF",
+       "channel": "TerapiaFunkcjonalna（Damian Kapturski，波蘭，IPNFA Basic Instructor；臨床中風個案、臉部已打馬賽克）",
+       "dur": "2 分 2 秒",
+       "lang": "波蘭語（燒入波蘭文字幕）",
+       "cc": "自動字幕",
+       "note": "中風個案坐姿，治療師在後方手放雙肩，從穩定反轉進到節律穩定，最後說明如何加難度。看「坐姿穩住」這一層怎麼練。",
+       "timeline": [
+        {
+         "t": "0:06",
+         "text": "個案坐椅，治療師雙手放肩，口令「穩住」"
+        },
+        {
+         "t": "0:30",
+         "text": "穩定反轉：交替方向給阻力"
+        },
+        {
+         "t": "1:00",
+         "text": "換手位，進到節律穩定（不讓個案動）"
+        },
+        {
+         "t": "1:36",
+         "text": "說明節律穩定過程中如何轉換"
+        },
+        {
+         "t": "1:54",
+         "text": "加難度的做法"
+        }
+       ]
+      },
       {
        "yt": "qyalADDW6Uo",
        "title": "Posture control – why so important",
@@ -3668,6 +4090,29 @@ window.PNF_COURSE = {
      },
      "videos": [
       {
+       "yt": "jISXoDSkPFM",
+       "title": "Hard to Stand Up from a Chair? Sit to Stand with Manual Guidance",
+       "channel": "Yun PNF（尹正鉉 Jeunghyun Yun，韓國，IPNFA Basic Instructor，頻道自述）",
+       "dur": "18 秒",
+       "lang": "英文字卡（可能有韓語口白）",
+       "cc": "自動字幕（韓語）",
+       "note": "【額外發現】坐到站的徒手引導：治療師在前方，手放個案肩胛／軀幹，引導身體前傾再站起。",
+       "timeline": [
+        {
+         "t": "0:00",
+         "text": "字卡：站不起來？"
+        },
+        {
+         "t": "0:04",
+         "text": "治療師在前方，手放上背引導前傾"
+        },
+        {
+         "t": "0:12",
+         "text": "引導站起並站直"
+        }
+       ]
+      },
+      {
        "yt": "aWZuufnN4u0",
        "title": "Combination of Isotonics – sitting / standing functional",
        "channel": "IPNF Association 官方頻道",
@@ -3828,6 +4273,29 @@ window.PNF_COURSE = {
      },
      "pre": "<p>這一課分成兩部分。第一部分是 PNF 經典的步態促進：骨盆前上提協助擺盪，骨盆後下壓與擠壓協助站立。第二部分是 <b>Sprinter 與 Skater</b>，來自以 PNF 為基礎發展的步行協調訓練（CLT），屬於<b>臨床推理架構，實證仍屬初步</b>（目前只有韓國小樣本研究與尚在執行的臨床試驗）。</p>\n<p><b>Sprinter（短跑者）</b>：類似短跑起跑姿勢，<b>支撐手在對側</b>。協同分三層：<b>頭轉向支撐腳</b>、<b>肩胛轉向擺盪腳側</b>、<b>骨盆轉向支撐腳側</b>，形成接近正常步態的軀幹反向旋轉。</p>\n<p><b>Skater（滑冰者）</b>：類似滑冰側推姿勢，<b>支撐手在同側</b>，重心偏向側方，常用於側向重心轉移與單側承重練習。</p>\n<p><b>Chopping</b> 也可用於站姿，練軀幹屈曲旋轉，以及重心向下、向側方轉移。</p>\n<p>選擇步態相關練習時，可用 <b>5E</b> 檢查：Easy to control trunk（容易控制軀幹）、Easy to control resistance（容易控制阻力）、Easy to handle for therapist（治療師容易操作）、Easy to learn for the patients（病人容易學）、Easy to WALK（容易接回走路）。</p>",
      "videos": [
+      {
+       "yt": "Jpj3bpHZCMQ",
+       "title": "Can't Take the First Step? Start at the Pelvis, Not the Foot",
+       "channel": "Yun PNF（尹正鉉 Jeunghyun Yun，韓國，IPNFA Basic Instructor，頻道自述）",
+       "dur": "21 秒",
+       "lang": "英文字卡（可能有韓語口白）",
+       "cc": "自動字幕（韓語）",
+       "note": "【額外發現】跨不出第一步時，治療師從骨盆起始（骨盆前上提）帶出擺盪，不去拉腳。",
+       "timeline": [
+        {
+         "t": "0:00",
+         "text": "字卡：跨不出第一步？"
+        },
+        {
+         "t": "0:06",
+         "text": "治療師手放骨盆，給前上方向的引導"
+        },
+        {
+         "t": "0:12",
+         "text": "個案跨步，治療師跟著移動"
+        }
+       ]
+      },
       {
        "yt": "t7-tFuDVKHc",
        "title": "One Leg Standing with Irradiation",
