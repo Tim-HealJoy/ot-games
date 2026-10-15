@@ -40,7 +40,7 @@ button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
 .screen.on{display:flex}
 
 /* ---------- 長輩主畫面 ---------- */
-#clock{display:flex;padding-right:40px!important;padding-left:40px!important;align-items:baseline;justify-content:center;gap:10px;padding:4px 0 10px;flex:none;white-space:nowrap}
+#clock{display:flex;flex-wrap:wrap;row-gap:0;padding-right:78px!important;padding-left:78px!important;align-items:baseline;justify-content:center;column-gap:10px;padding:4px 0 10px;flex:none;white-space:nowrap;min-height:64px;align-content:center}
 #clock .d{font-size:clamp(18px,4.8vw,30px);font-weight:600}
 #clock .t{font-size:clamp(18px,4.8vw,30px);color:var(--ink2)}
 #grid{flex:1;display:grid;gap:10px;min-height:0}
@@ -58,13 +58,24 @@ button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
 .tile.sos .nm{background:var(--red);color:#fff}
 .tile.sos .rel{color:#FFE3E3}
 .tile.empty{opacity:.45;border-style:dashed;border-color:var(--line);box-shadow:none}
-#gear{position:absolute;right:4px;top:calc(var(--safe-t) + 4px);width:44px;height:44px;border-radius:50%;
-  display:flex;align-items:center;justify-content:center;color:#A99F8D;opacity:.7}
-#gear svg{width:20px;height:20px}
-#gear .ring{position:absolute;inset:-4px;border-radius:50%;border:3px solid var(--accent);
-  clip-path:inset(0 0 0 0);opacity:0}
-#hint{position:absolute;left:10px;right:10px;bottom:calc(var(--safe-b) + 10px);font-size:14px;color:var(--ink2);
-  background:#fff;border-radius:10px;padding:8px 10px;display:none}
+/* 齒輪：實心深色＋「設定」字，照顧者一眼找得到 */
+#gear{position:absolute;right:8px;top:calc(var(--safe-t) + 8px);width:64px;height:60px;border-radius:16px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;
+  background:var(--accent);color:#fff;box-shadow:0 3px 0 #8A3E14;z-index:3}
+#gear:active{transform:translateY(2px);box-shadow:0 1px 0 #8A3E14}
+#gear svg{width:30px;height:30px}
+#gear .lb{font-size:14px;font-weight:700;line-height:1;letter-spacing:1px}
+#gear .ring{position:absolute;inset:-6px;border-radius:20px;border:3px solid var(--accent);opacity:0;pointer-events:none}
+#gear.pulse .ring{animation:ring 1.6s ease-out infinite}
+@keyframes ring{0%{opacity:.9;transform:scale(.92)}100%{opacity:0;transform:scale(1.25)}}
+/* 尚未設定時：齒輪下方的提示泡泡 */
+#hint{position:absolute;right:8px;top:calc(var(--safe-t) + 80px);width:min(270px,78vw);font-size:17px;line-height:1.5;color:var(--ink);
+  background:#fff;border:2px solid var(--accent);border-radius:14px;padding:10px 14px;display:none;z-index:3;
+  box-shadow:0 4px 14px rgba(0,0,0,.15)}
+#hint::before{content:"";position:absolute;right:24px;top:-11px;width:18px;height:18px;background:#fff;
+  border-left:2px solid var(--accent);border-top:2px solid var(--accent);transform:rotate(45deg)}
+#hint b{color:var(--accent)}
+#hint button{display:block;margin-top:6px;color:var(--accent);font-size:15px;text-decoration:underline;padding:0}
 
 /* ---------- 確認畫面 ---------- */
 #confirm{align-items:center;justify-content:space-between;text-align:center;padding-top:calc(var(--safe-t) + 24px)}
@@ -145,6 +156,43 @@ button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
 #installDone{width:100%;background:var(--ink);color:#fff;font-size:18px;font-weight:700;border-radius:12px;padding:14px;margin-top:6px}
 #installSkip{width:100%;color:var(--ink2);font-size:15px;padding:12px;margin-top:4px;text-decoration:underline}
 
+/* ---------- 照顧者使用說明 ---------- */
+#guide{background:#FBF8F2;overflow:auto;display:none;padding:calc(var(--safe-t) + 16px) 16px calc(var(--safe-b) + 24px);-webkit-user-select:text;user-select:text}
+#guide.on{display:block}
+#guide .who{display:inline-block;background:var(--accent);color:#fff;font-size:14px;font-weight:700;border-radius:99px;padding:3px 12px}
+#guide h1{font-size:25px;line-height:1.35;margin:10px 0 6px}
+#guide .lead{font-size:16px;color:var(--ink2);margin:0 0 14px;line-height:1.6}
+.gstep{background:#fff;border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:12px}
+.gstep .hd{display:flex;gap:10px;align-items:center;font-size:19px;font-weight:700;line-height:1.4}
+.gstep .hd .no{flex:none;width:34px;height:34px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:18px}
+.gstep p{font-size:16px;line-height:1.65;margin:8px 0 0;color:var(--ink)}
+.gstep p small{color:var(--ink2);font-size:14px}
+.gstep.elder{border:2px solid var(--green)}
+.gstep.elder .hd .no{background:var(--green)}
+/* 說明裡的「實物樣子」小圖 */
+.mock{margin-top:10px;background:var(--bg);border-radius:12px;padding:10px;display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap}
+.mock .mg{width:56px;height:52px;border-radius:14px;background:var(--accent);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:0 3px 0 #8A3E14;font-size:13px;font-weight:700;gap:1px}
+.mock .mg svg{width:24px;height:24px}
+.mock .phone{position:relative;width:150px;height:96px;border-radius:12px;background:#fff;border:2px solid var(--line);padding:6px;display:grid;grid-template-columns:repeat(3,1fr);gap:4px;padding-top:26px}
+.mock .phone i{background:#E3DCCD;border-radius:4px}
+.mock .phone .mg{position:absolute;right:4px;top:3px;width:30px;height:20px;border-radius:6px;box-shadow:none;font-size:10px}
+.mock .phone .tap{position:absolute;right:-6px;top:-8px;font-size:22px}
+.mock .slotm{display:flex;gap:8px;align-items:center;background:#fff;border:1px solid var(--line);border-radius:10px;padding:6px 10px 6px 6px;font-size:14px;text-align:left}
+.mock .slotm .p{width:46px;height:46px;border-radius:8px;background:#3F6293;color:#fff;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700}
+.mock .slotm b{display:block;font-size:16px}
+.mock .slotm span{color:var(--ink2)}
+.mock .arrow{font-size:22px;color:var(--ink2)}
+.mock .tilem{width:70px;border-radius:10px;overflow:hidden;background:#fff;border:2px solid #fff;box-shadow:0 2px 0 var(--line);text-align:center;font-size:14px;font-weight:700}
+.mock .tilem .p{height:52px;background:#3F6293;color:#fff;display:flex;align-items:center;justify-content:center;font-size:24px}
+.mock .callm{background:var(--green);color:#fff;font-weight:700;font-size:17px;border-radius:12px;padding:10px 16px;box-shadow:0 3px 0 var(--green-d)}
+.mock .chip{background:#fff;border:1px solid var(--line);border-radius:8px;padding:4px 10px;font-size:14px}
+.mock .chip.on{border:2px solid var(--ink);font-weight:700}
+.mock .donem{background:var(--ink);color:#fff;border-radius:8px;padding:5px 14px;font-size:14px;font-weight:600}
+#guideNext{width:100%;background:var(--ink);color:#fff;font-size:20px;font-weight:700;border-radius:14px;padding:16px;margin-top:6px}
+#guideSkip{width:100%;color:var(--ink2);font-size:15px;padding:12px;margin-top:4px;text-decoration:underline}
+.flow{display:flex;gap:6px;align-items:center;justify-content:center;font-size:13px;color:var(--ink2);margin:0 0 12px;flex-wrap:wrap}
+.flow b{color:var(--accent)}
+
 /* ---------- PIN ---------- */
 #pin{align-items:center;justify-content:center;gap:16px;background:rgba(31,27,22,.6)}
 #pin .box{background:#fff;border-radius:18px;padding:20px;width:min(320px,90vw);text-align:center}
@@ -161,9 +209,10 @@ button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
 <section id="home" class="screen on" aria-label="打電話">
   <div id="clock"><span class="d" id="cD"></span><span class="t" id="cT"></span></div>
   <div id="grid"></div>
-  <div id="hint">家人請<b>點右上角齒輪</b>，放上照片與電話</div>
+  <div id="hint"><b>照顧者</b>請點上面的「設定」，放上家人的照片和電話。<button id="hintHelp">看使用說明</button></div>
   <button id="gear" aria-label="家人設定">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
+    <span class="lb">設定</span>
     <span class="ring" id="ring"></span>
   </button>
 </section>
@@ -192,6 +241,11 @@ button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
 <!-- 家人設定 -->
 <section id="setup" class="screen" aria-label="家人設定">
   <div class="bar"><h1>家人設定</h1><button class="done" id="doneBtn">完成</button></div>
+
+  <div class="sec">
+    <div class="howto" style="font-size:15px">每一格＝一位家人：<b>點照片框</b>放大頭照，填稱呼和電話。設定完按右上角<b>「完成」</b>回到長輩畫面。
+      <button id="setupGuide" style="display:block;color:var(--accent);text-decoration:underline;font-size:15px;padding:4px 0 0">看完整使用說明</button></div>
+  </div>
 
   <div class="sec">
     <h2>畫面要幾格？</h2>
@@ -241,9 +295,53 @@ button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
   <input type="file" id="picFile" accept="image/*" hidden>
 </section>
 
+<!-- 照顧者使用說明（第一次打開先看這頁） -->
+<section id="guide" class="screen" aria-label="使用說明">
+  <span class="who">給照顧者看的</span>
+  <h1>3 分鐘設定好，<br>長輩點照片就能打電話</h1>
+  <p class="lead">這個畫面要先由家人或照顧者設定。設定完，長輩不用記號碼，點家人的照片就能撥出。</p>
+  <div class="flow"><b>① 看說明</b>→<span id="flowInstall">② 放到主畫面 →</span><span id="flowSetup">③ 設定家人</span></div>
+
+  <div class="gstep">
+    <div class="hd"><span class="no">1</span>點右上角的「設定」</div>
+    <div class="mock">
+      <div class="phone"><i></i><i></i><i></i><i></i><i></i><i></i><span class="mg">設定</span><span class="tap">👆</span></div>
+    </div>
+    <p>主畫面右上角橘色的按鈕，就是設定入口。<small>擔心長輩誤按進去，可以在設定裡加 4 碼密碼。</small></p>
+  </div>
+
+  <div class="gstep">
+    <div class="hd"><span class="no">2</span>每一格放一位家人</div>
+    <div class="mock">
+      <div class="slotm"><div class="p">📷</div><div><b>小女兒</b><span>小慧</span><br><span>0912-345-678</span></div></div>
+    </div>
+    <p>點照片框換成家人的大頭照，再填三樣：<br>大字＝長輩習慣的叫法（例：小女兒）<br>小字＝本名（例：小慧）<br>電話號碼</p>
+  </div>
+
+  <div class="gstep">
+    <div class="hd"><span class="no">3</span>選格數和撥打方式，按「完成」</div>
+    <div class="mock">
+      <span class="chip">9 格</span><span class="chip on">4 格</span><span class="chip">1 格</span><span class="arrow">→</span><span class="donem">完成</span>
+    </div>
+    <p>格子越少，照片越大。長輩認不太出照片或常按錯，就改成 4 格或 2 格。<small>撥打方式建議先用「先確認」，最不容易打錯人。</small></p>
+  </div>
+
+  <div class="gstep elder">
+    <div class="hd"><span class="no">✓</span>交給長輩：這樣打電話</div>
+    <div class="mock">
+      <div class="tilem"><div class="p">慧</div>小女兒</div><span class="arrow">→</span><div class="callm">📞 打電話</div>
+    </div>
+    <p>點家人的照片 → 出現大照片 → 按綠色「打電話」。<small>建議陪長輩實際打 2～3 次，確認長輩會用。</small></p>
+  </div>
+
+  <button id="guideNext">下一步：放到手機主畫面</button>
+  <button id="guideSkip">先看看長輩看到的畫面</button>
+</section>
+
 <!-- 加到主畫面教學 -->
 <section id="install" class="screen" aria-label="放到主畫面">
-  <h1>第一次使用：先放到主畫面</h1>
+  <div class="flow"><span>① 看說明 →</span><b>② 放到主畫面</b>→<span>③ 設定家人</span></div>
+  <h1>放到長輩手機的主畫面</h1>
   <p class="lead">放好之後，長輩只要點主畫面上的「打電話」圖示就能用，不用再找網址。照片和電話也比較不會被手機清掉。</p>
   <div id="tutBox"><video id="tutVid" src="tutorial.mp4" poster="tutorial_poster.jpg" controls playsinline preload="none"></video><p>先看 1 分鐘教學影片，再照下面的步驟做</p></div>
   <div class="seg" id="segOS"></div>
@@ -323,7 +421,9 @@ function renderHome(){
     g.appendChild(b);
   });
   $('clock').style.display=S.clock?'flex':'none';
+  g.style.marginTop=S.clock?'0':'68px'; // 沒時鐘時讓出齒輪位置
   $('hint').style.display=anyTel?'none':'block';
+  $('gear').classList.toggle('pulse',!anyTel);
 }
 function tick(){
   const d=new Date(),w='日一二三四五六'[d.getDay()];
@@ -521,10 +621,25 @@ $('installDone').onclick=()=>{try{localStorage.setItem(KEY+'.guided','1');}catch
 $('installSkip').onclick=()=>{try{localStorage.setItem(KEY+'.guided','1');}catch(e){}goHome();};
 $('howBtn').onclick=openInstall;
 
+/* ---------- 照顧者使用說明 ---------- */
+function markGuided(){try{localStorage.setItem(KEY+'.guided','1');}catch(e){}}
+function openGuide(){
+  // 已經從主畫面圖示打開＝不用再教「放到主畫面」
+  $('flowInstall').style.display=STANDALONE?'none':'';
+  $('flowSetup').textContent=STANDALONE?'② 設定家人':'③ 設定家人';
+  $('guideNext').textContent=STANDALONE?'開始設定家人':'下一步：放到手機主畫面';
+  show('guide');$('guide').scrollTop=0;
+}
+$('guideNext').onclick=()=>{markGuided();STANDALONE?openSetup():openInstall();};
+$('guideSkip').onclick=()=>{markGuided();goHome();};
+$('hintHelp').onclick=openGuide;
+$('setupGuide').onclick=openGuide;
+
 addEventListener('resize',()=>{if($('home').classList.contains('on'))renderHome();});
 tick();setInterval(tick,15000);renderHome();
 let guided=false;try{guided=!!localStorage.getItem(KEY+'.guided');}catch(e){}
-if(!STANDALONE&&!guided&&!new URLSearchParams(location.search).has('skip'))openInstall();
+const hasTel=S.slots.some(s=>s.tel.trim()&&!s.sos);
+if(!guided&&!hasTel&&!new URLSearchParams(location.search).has('skip'))openGuide();
 if('serviceWorker' in navigator&&location.protocol==='https:')navigator.serviceWorker.register('sw.js').catch(()=>{});
 })();
 </script>
