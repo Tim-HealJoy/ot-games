@@ -21,50 +21,50 @@ window.PNF_COURSE = {
    "id": "m0",
    "title": "前導：PNF 是什麼，為什麼適合用在中風復健",
    "color": "#8A6A3B",
-   "intro": "先看 2026 中風復健指引如何定位 PNF，再釐清對 PNF 的三個常見印象，最後了解「用強帶弱」的神經生理基礎。",
+   "intro": "先看 2026 中風復健指引的重點，再釐清對 PNF 的三個常見印象，最後了解「用強帶弱」的神經生理基礎。",
    "lessons": [
     {
      "id": "0-0",
-     "title": "先看指引：2026 中風復健指引怎麼說？",
-     "en": "What the 2026 AHA/ASA stroke rehabilitation guideline says",
-     "minutes": 15,
+     "title": "先看指引：2026 AHA／ASA 成人中風復健與恢復指引",
+     "en": "2026 AHA/ASA guideline for adult stroke rehabilitation and recovery",
+     "minutes": 20,
      "goals": [
-      "看懂 COR／LOE，知道「1｜A」和「3：無益處」的差別。",
-      "說出指引對步態、平衡、上肢與 ADL 的主要建議。",
-      "說出指引如何定位 PNF，以及這門課「工具不是療法」的立場。"
+      "看得懂建議等級 COR／LOE，分得出「1｜A」、「3：無益處」與「3：有害」",
+      "說出指引的 6 個大原則，以及「任務導向、夠量、夠強度」的主軸",
+      "依中風問題（步態、平衡、上肢與 ADL、偏癱肩、輔具、體能、認知、照顧者）查到對應建議與等級",
+      "說出「不建議／不要做」清單，並知道該改做什麼"
      ],
-     "stroke": {
-      "problem": "同事知道你在學 PNF，傳來一則訊息：「2026 年美國中風復健指引不是說不建議用 PNF 嗎？為什麼還要學？」",
-      "why": "這句話只說對了一半。指引不建議把 NDT 取向（包含 PNF）當成整套療法，取代任務訓練。但指引最推薦的地面行走、坐站與功能任務練習，中風個案常無法順利完成；PNF 的徒手阻力、擴散、時序與口令，可以在這時提供協助。",
-      "look": [
-       "本課沒有影片，請留意下方兩張表：建議等級怎麼讀，以及指引推薦的訓練 × PNF 怎麼幫忙。"
-      ]
-     },
-     "pre": "<p>這門課從一份 2026 年的指引開始：美國心臟協會與美國中風協會（AHA／ASA）在 <i>Stroke</i> 期刊發表的《2026 成人中風復健與恢復指引》（Richards et al., 2026），取代 2016 年版。頁面以兩個標籤區分來源：<b>〔指引〕</b>＝指引原文的建議（中文意譯，附等級）；<b>〔本站轉譯〕</b>＝本站依指引推論的臨床做法，並非指引原文。</p>\n<p><b>先看結論（3 句話）</b></p>\n<ol>\n<li>〔指引〕<b>指引的主軸是「任務導向、足夠練習量與強度」</b>：地面行走、跨步、平衡與功能性任務的反覆分級練習，都屬最高等級（1｜A）的建議。</li>\n<li>〔指引〕<b>指引不建議把 NDT 取向當成整套療法，補充說明也將 PNF 歸在 NDT 之下</b>（步態第 18 條，3：無益處｜B-R），理由是 PNF 用於中風的證據「有限且品質低」。</li>\n<li>〔本站轉譯〕<b>這門課的立場是：PNF 不是療法，是協助個案完成任務練習的工具。</b> 徒手阻力、擴散（irradiation）、時序與口令，用來協助長輩啟動動作、維持支撐、掌握動作，接著盡快撤手，讓長輩自己完成足夠的練習量。</li>\n</ol>\n<p><b>建議等級怎麼讀</b>：每條建議都有兩個標籤：COR（建議強度）和 LOE（證據等級）。</p>\n<div class=\"tblwrap\"><table><thead><tr><th>COR</th><th>意義</th><th>臨床判讀</th></tr></thead><tbody>\n<tr><td><b>1</b> 強</td><td>益處遠大於風險</td><td>應該採用，未採用需有理由</td></tr>\n<tr><td><b>2a</b> 中</td><td>益處大於風險</td><td>合理，可優先考慮</td></tr>\n<tr><td><b>2b</b> 弱</td><td>益處可能大於或等於風險</td><td>可以嘗試，但需監測效果</td></tr>\n<tr><td><b>3：無益處</b></td><td>益處等於風險</td><td>不建議採用，應把時間用在更有效的介入</td></tr>\n<tr><td><b>3：有害</b></td><td>風險大於益處</td><td>不要採用</td></tr>\n</tbody></table></div>\n<div class=\"tblwrap\"><table><thead><tr><th>LOE</th><th>證據來源</th></tr></thead><tbody>\n<tr><td><b>A</b></td><td>多篇高品質 RCT 或其統合分析</td></tr>\n<tr><td><b>B-R</b></td><td>1 篇以上中等品質 RCT</td></tr>\n<tr><td><b>B-NR</b></td><td>非隨機、觀察性研究</td></tr>\n<tr><td><b>C-LD</b></td><td>資料有限</td></tr>\n<tr><td><b>C-EO</b></td><td>專家共識</td></tr>\n</tbody></table></div>\n<p>「3：無益處」不等於「有害」。與其他有證據支持的介入相比，未見額外益處，因此不值得占用治療時間。</p>",
+     "pre": "<p>〔指引〕2026 年 8 月，美國心臟協會／美國中風協會（AHA／ASA）發表新版《成人中風復健與恢復指引》（Richards et al., 2026），取代 2016 年版。這門課從這份指引開始：先知道目前中風復健的主流建議是什麼，後面學到的每一項工具，才知道要放在哪裡用。</p>\n<div class=\"tblwrap\"><table><tr><th>項目</th><th>內容</th></tr><tr><td>誰發的</td><td>美國心臟協會（AHA）、美國中風協會（ASA）</td></tr><tr><td>刊登</td><td><i>Stroke</i>，2026 年 8 月 27 日線上刊登，第 57 卷第 10 期</td></tr><tr><td>取代</td><td>2016 年版成人中風復健指引</td></tr><tr><td>誰寫的</td><td>召集人 Lorie G. Richards（OT 博士）；成員包括醫師、PT、OT、語言治療師、休閒治療師、護理師與病人代表</td></tr><tr><td>背書學會</td><td>AAPM&R、ACRM、ASNR、APTA、ATRA、ARN</td></tr><tr><td>肯定其價值</td><td>AAN、AOTA、ASHA</td></tr><tr><td>規模</td><td>約 248 條建議，涵蓋急性期到社區、評估到介入、身心與參與</td></tr><tr><td>新增重點</td><td>睡眠與中風後疲勞、中樞性中風後疼痛擴充、任務練習類型、輔具與副木</td></tr></table></div>\n<p class=\"sub\" style=\"margin-top:14px\">怎麼讀建議等級：每條建議有兩個標籤</p>\n<p>每條建議都有兩個標籤：<b>COR（建議強度）</b>和 <b>LOE（證據等級）</b>。</p>\n<div class=\"tblwrap\"><table><tr><th>COR</th><th>意思</th><th>指引常用字眼</th><th>臨床怎麼看</th></tr><tr><td><b>1</b> 強</td><td>益處遠大於風險</td><td>is recommended／should</td><td>應該做，沒做要有理由</td></tr><tr><td><b>2a</b> 中</td><td>益處大於風險</td><td>is reasonable／can be useful</td><td>合理，可以優先考慮</td></tr><tr><td><b>2b</b> 弱</td><td>益處可能大於或等於風險</td><td>may be considered</td><td>可以試，但要監測效果</td></tr><tr><td><b>3：無益處</b></td><td>益處等於風險</td><td>is not recommended</td><td>不建議，把時間花在更有效的介入上</td></tr><tr><td><b>3：有害</b></td><td>風險大於益處</td><td>should not be performed</td><td>不要做</td></tr></table></div>\n<div class=\"tblwrap\"><table><tr><th>LOE</th><th>證據來源</th></tr><tr><td><b>A</b></td><td>多篇高品質 RCT 或其統合分析</td></tr><tr><td><b>B-R</b></td><td>1 篇以上中等品質 RCT</td></tr><tr><td><b>B-NR</b></td><td>非隨機、觀察性研究</td></tr><tr><td><b>C-LD</b></td><td>資料有限</td></tr><tr><td><b>C-EO</b></td><td>專家共識</td></tr></table></div>\n<div class=\"callout\">「3：無益處」不等於「有害」。它的意思是：跟其他有證據的介入比，沒有看到額外好處，所以不值得占用治療時間。</div>",
      "videos": [],
-     "videoNote": "本課以閱讀為主。請讀完上方的等級說明，以及下方的摘要與對照表，再完成自我檢核。",
+     "videoNote": "本課以閱讀為主。指引原文有版權，請由 DOI 連結閱讀：https://doi.org/10.1161/STR.0000000000000536",
      "summary": {
       "keypoints": [
-       "〔指引〕<b>指引如何描述 PNF</b>：步態第 18 條寫明「NDT 取向，如 Bobath，不建議用於改善行走與移動」（3：無益處｜B-R），上肢第 15 條也不建議 Bobath。補充說明將 NDT 描述為「包括 Bobath 和 PNF 等取向」，以徒手引導與姿勢控制促進正常動作型態；同時指出，PNF 用於中風的證據有限且品質低，難以判斷實際效果。Bobath 則沒有證據顯示優於任務導向步態訓練。這也呼應 APTA 神經物理治療學會建議臨床逐步淘汰 NDT 的立場（Scheets et al., 2021）。",
-       "〔本站轉譯〕<b>我們的解讀</b>：<div class=\"tblwrap\"><table><thead><tr><th>指引說法</th><th>不等於</th><th>臨床意義</th></tr></thead><tbody>\n<tr><td>PNF 證據「有限、品質低」</td><td>「PNF 已證實無效」</td><td>缺乏足夠且品質良好的中風 RCT，不能宣稱 PNF 本身能改善步態</td></tr>\n<tr><td>NDT 取向「不建議」</td><td>「徒手技術都不能用」</td><td>不要把「流派」當成整套療法，治療時間應以任務練習為主</td></tr>\n<tr><td>任務導向訓練 1｜A</td><td>「只能讓病人自己練」</td><td>長輩無法完成任務時，需要治療師先以徒手協助與口令引導動作</td></tr>\n</tbody></table></div>",
-       "〔本站轉譯〕補充兩個事實：① 指引在 PNF 段落引用的文獻（Hindle et al., 2012），探討 PNF 牽拉對關節活動度與肌肉功能的機制，<b>不是中風族群的 RCT</b>，這也是「證據有限」的原因之一；② 本站文獻回顧得到相同結論：Cochrane 2025 顯示，把神經生理學取向當成整套療法，效果不如任務導向訓練；PNF 的正向證據幾乎都來自「加在常規訓練上」的研究設計（見 5-1）。",
-       "〔本站轉譯〕<b>課程立場</b>：PNF 是工具，不是療法。它用來協助中風長輩完成指引推薦的練習，掌握動作並累積足夠的練習量。",
-       "〔本站轉譯〕<b>指引推薦的訓練 × PNF 怎麼幫忙</b>（以下 PNF 搭配方式屬臨床推論，並非指引原文，也沒有直接比較這些組合的 RCT；使用時請記錄右欄的成效指標，確認效果）：<div class=\"tblwrap\"><table><thead><tr><th>指引推薦（等級）</th><th>長輩常見困難</th><th>PNF 如何協助</th><th>撤手目標</th><th>成效指標</th></tr></thead><tbody>\n<tr><td>地面行走、跨步、平衡任務訓練（1｜A）</td><td>患側站立期支撐不足、跨步啟動慢</td><td>在骨盆前提／後壓型態給予阻力；站立期在骨盆給予擠壓（approximation）；以節律性啟動（rhythmic initiation）教跨步時序</td><td>徒手阻力 → 口令 → 自己走</td><td>10 公尺步速、6 分鐘行走、TUG</td></tr>\n<tr><td>坐站（屬任務訓練與 ADL）</td><td>重心前移不足、起身時序不佳、坐下過快</td><td>骨盆前傾抗阻引導重心前移；以等張組合（combination of isotonics）練習慢慢坐下的離心控制</td><td>治療師徒手協助 → 椅子扶手 → 獨立</td><td>30 秒坐站、5 次坐站</td></tr>\n<tr><td>雙側下肢阻力訓練（2a｜A）</td><td>患側力量太弱，機器無法提供合適阻力</td><td>徒手阻力可隨力量即時調整；雙側都練下肢對角線型態；健側出力引出患側擴散，<b>作為暖身銜接，接著一定要直接練患側</b>（指引明確指出只練健側無效）</td><td>徒手 → 彈力帶 → 器械</td><td>手持肌力計（1｜B-NR）</td></tr>\n<tr><td>核心穩定（2a｜B-R）、平衡運動（2a｜B-R）</td><td>坐姿軀幹塌陷、站立不穩</td><td>坐姿與站姿的穩定反轉（stabilizing reversals）、節律性穩定；肩胛與骨盆型態</td><td>徒手 → 口令擾動 → 加入雙重任務</td><td>Berg、坐姿平衡、跌倒紀錄</td></tr>\n<tr><td>功能任務漸進分級練習（1｜A）</td><td>手伸不出去、抓握不穩</td><td>以上肢型態引導伸取方向；以抓握與徒手接觸引導近端穩定，再讓遠端完成動作</td><td>型態練習 → 真實物品任務</td><td>FMA-UE、ARAT、ADL 量表</td></tr>\n</tbody></table></div>其餘對照（雙側上肢、肌力訓練、拉筋、節拍提示、照顧者 teach-back）列在對應課程的「指引對照」。",
-       "〔指引〕<b>後續課程會反覆提到的建議</b>：發病 24～48 小時開始分級早期活動（1｜A），發病 24 小時內不可做高劑量活動（3：有害｜A）；雙側下肢阻力訓練（2a｜A），只練健側無效；半脫位、肩無力或肩痛者不可做頭頂滑輪運動（3：有害｜C-EO）。"
-      ],
-      "elder": [
-       "〔本站轉譯〕每次使用 PNF 前，先問自己：「這項技術是在協助完成哪一個指引推薦的任務？」若答不出來，就先回到任務本身。",
-       "〔本站轉譯〕PNF 占用的時間應逐漸減少，任務練習次數則逐漸增加；若 3～4 週後，治療時間仍以徒手技術為主，就需要檢討。",
-       "〔本站轉譯〕每項 PNF 搭配都要記錄撤手目標與成效指標（例如 5 次坐站、10 公尺步速），用數據確認是否有效。"
-      ],
-      "safety": [
-       "〔指引〕發病 24 小時內不可做高劑量下床活動（3：有害｜A）。",
-       "〔指引〕半脫位、肩無力或肩痛者，不可做頭頂滑輪運動（3：有害｜C-EO）。"
+       "<b>先講結論</b>：指引的主軸是「任務導向、夠量、夠強度」。地面行走、跨步、平衡與功能性任務的反覆分級練習，都是最高等級（1｜A）的建議。",
+       "<b>指引的 6 個大原則</b>（整理自 Top Take-Home Messages，意譯）：<ol><li><b>復健從急性期就開始</b>，而且需要跨專業持續協調，避免照護斷層。</li><li><b>恢復與代償並用</b>：功能進步需要同時練「恢復身體功能」和「學會代償策略」。</li><li><b>練習量與強度要夠</b>：中風 24 小時後，就應該進行中至高強度的運動與任務練習。</li><li><b>定期重評、需要時重新介入</b>，以找出新目標，並預防功能退化。</li><li><b>照顧者要被教、被訓練</b>，這同時保護照顧者，也決定病人在家的復健成效。</li><li><b>標準化評估貫穿全程</b>：涵蓋身體功能、活動、參與三個層次，出院後也要追蹤。</li></ol>另外，心理健康（憂鬱、焦慮的篩檢與治療）和遠距復健，也被列為核心原則。",
+       "<b>劑量參考（步態）</b>：至少 4～8 週，每次 1～2 小時、每週 5 次，中至高心肺強度，並增加跨步次數（2a｜B-R）。<b>體能活動</b>：每週 150～300 分鐘中強度活動；有氧 3～5 天，肌力與平衡 2～3 天（1｜A）。",
+       "<b>「3：無益處」不等於「有害」</b>：它的意思是跟其他有證據的介入比，沒有看到額外好處，所以不值得占用治療時間；真正「不要做」的是「3：有害」的項目。"
       ]
      },
+     "sections": [
+      {
+       "tag": "速查",
+       "title": "臨床依循：依中風問題查",
+       "html": "<p>以下只收 PT／OT 日常最常碰到的章節。藥物、膀胱腸道、吞嚥、溝通等章節請看原文。</p>\n<div class=\"callout\">以下只收 PT／OT 日常最常碰到的章節。藥物、膀胱腸道、吞嚥、溝通等章節請看原文。</div>\n<p class=\"sub\" style=\"margin-top:14px\">急性期下床</p>\n<div class=\"tblwrap\"><table><tr><th>指引建議</th><th>等級</th></tr><tr><td>發病後 <b>24～48 小時</b>開始，依分級早期活動計畫下床</td><td>1｜A</td></tr><tr><td><b>發病 24 小時內不可做高劑量活動</b>（神經惡化、預後變差的風險）</td><td><b>3：有害｜A</b></td></tr></table></div>\n<p class=\"sub\" style=\"margin-top:14px\">評估（每個問題都要先量）</p>\n<div class=\"tblwrap\"><table><tr><th>指引建議</th><th>等級</th></tr><tr><td>用 ICF 架構完整評估：身體功能、活動、參與、個人與環境因素</td><td>1｜B-NR</td></tr><tr><td>從急性期起持續使用有效量表記錄嚴重度與失能</td><td>1｜B-NR</td></tr><tr><td>用手持或等速肌力計量化上下肢肌力</td><td>1｜B-NR</td></tr><tr><td>上下肢動作功能、行走、上肢功能都要用標準化工具評估</td><td>1｜B-NR</td></tr><tr><td>張力用有效工具評估</td><td>2a｜B-NR</td></tr><tr><td>穿戴裝置（加速度計、計步器）量真實生活活動量</td><td>2a｜B-NR</td></tr><tr><td>病人自評量表（PROMs）</td><td>2a｜B-NR</td></tr><tr><td>平衡用有效工具評估</td><td>2b｜B-NR</td></tr><tr><td>出院後至少追蹤 1 年，依需要重評</td><td>2a｜B-NR</td></tr><tr><td>認知與知覺：先用多面向表現型篩檢工具篩，懷疑有問題再做完整評估（含真實生活活動）</td><td>1｜B-NR</td></tr><tr><td>視覺用表現型篩檢，不要只靠自述</td><td>1｜B-NR</td></tr></table></div>\n<p class=\"sub\" style=\"margin-top:14px\">步態與移動（PT 主場）</p>\n<div class=\"tblwrap\"><table><tr><th>指引建議</th><th>等級</th></tr><tr><td>以目標導向、跨專業的復健計畫改善步態</td><td>1｜A</td></tr><tr><td><b>地面行走、跨步、平衡的任務導向訓練</b></td><td><b>1｜A</b></td></tr><tr><td>中至高強度跨步訓練或高強度間歇訓練（亞急性、慢性）</td><td>2a｜B-R</td></tr><tr><td><b>雙側下肢阻力訓練</b>（只練健側無效）</td><td><b>2a｜A</b></td></tr><tr><td>節律聽覺刺激／節拍提示</td><td>2a｜B-R</td></tr><tr><td>下肢 CIMT</td><td>2a｜B-R</td></tr><tr><td>動作想像，或雙側動作的鏡像治療</td><td>2a｜B-R</td></tr><tr><td>互動式步態訓練（運動遊戲／VR）</td><td>2a｜B-R</td></tr><tr><td><b>劑量參考：至少 4～8 週，每次 1～2 小時、每週 5 次，中至高心肺強度，增加跨步次數</b></td><td>2a｜B-R</td></tr><tr><td>患側 FES 加運動、水中運動、步態視覺回饋</td><td>2b</td></tr><tr><td>可行走者，機器人步態訓練<b>不優於</b>地面任務訓練</td><td>3：無益處｜A</td></tr><tr><td>可行走者，輕中強度跑步機（含減重）<b>不優於</b>地面任務訓練</td><td>3：無益處｜A</td></tr><tr><td><b>NDT 取向（如 Bobath）不建議用於改善行走與移動</b></td><td><b>3：無益處｜B-R</b></td></tr></table></div>\n<p class=\"sub\" style=\"margin-top:14px\">平衡與跌倒</p>\n<div class=\"tblwrap\"><table><tr><th>指引建議</th><th>等級</th></tr><tr><td>適當時開立並調整輔具或矯具，以改善平衡、降低跌倒</td><td>1｜A</td></tr><tr><td>評估平衡、平衡信心與跌倒風險</td><td>1｜C-EO</td></tr><tr><td>正式的跌倒預防計畫</td><td>1｜B-NR</td></tr><tr><td>給病人與照顧者居家環境改善資訊</td><td>1｜C-EO</td></tr><tr><td>平衡運動</td><td>2a｜B-R</td></tr><tr><td>太極</td><td>2a</td></tr><tr><td>雙重任務訓練（動作＋認知）</td><td>2a｜B-R</td></tr><tr><td><b>核心穩定運動</b></td><td><b>2a｜B-R</b></td></tr><tr><td>VR／遊戲化平衡訓練</td><td>2a｜B-NR</td></tr><tr><td>每年做一次跌倒風險評估</td><td>2a｜B-NR</td></tr><tr><td>運動遊戲降低跌倒風險</td><td>2b｜B-R</td></tr></table></div>\n<p class=\"sub\" style=\"margin-top:14px\">上肢與 ADL（OT 主場）</p>\n<div class=\"tblwrap\"><table><tr><th>指引建議</th><th>等級</th></tr><tr><td>依個人需求與出院去處做 ADL 訓練</td><td>1｜B-R</td></tr><tr><td>依個人需求與出院去處做 IADL 訓練</td><td>1｜B-NR</td></tr><tr><td><b>功能任務的反覆、漸進分級練習</b>（含 CIMT 與改良版）</td><td><b>1｜A</b></td></tr><tr><td>中重度偏癱可加機器人輔助以提高練習量</td><td>2a｜A</td></tr><tr><td>早期無自主動作或肩關節半脫位：NMES 減少半脫位</td><td>2a｜A</td></tr><tr><td>動作想像（心智練習）當輔助</td><td>2a｜B-R</td></tr><tr><td><b>肌力訓練當功能任務練習的輔助</b></td><td><b>2a｜B-R</b></td></tr><tr><td>VR 增加上肢練習量</td><td>2a｜B-R</td></tr><tr><td>主動感覺辨識訓練（發病 6 週以上）</td><td>2a｜B-R</td></tr><tr><td>中重度偏癱：鏡像治療</td><td>2a｜B-R</td></tr><tr><td><b>中重度偏癱：雙側訓練</b></td><td><b>2a｜B-R</b></td></tr><tr><td>感覺刺激或促發（priming）搭配任務訓練</td><td>2b｜B-R</td></tr><tr><td><b>NDT（Bobath）不建議用於改善上肢動作與肌力</b></td><td><b>3：無益處｜B-R</b></td></tr></table></div>\n<p class=\"sub\" style=\"margin-top:14px\">痙攣、攣縮與偏癱肩</p>\n<div class=\"tblwrap\"><table><tr><th>指引建議</th><th>等級</th></tr><tr><td>痙攣者以拉筋計畫預防攣縮</td><td>2a｜B-NR</td></tr><tr><td>偏癱肩擺位：外轉＋無痛外展＋手肘伸直，每天 2 次、每次 30 分鐘</td><td>2b｜C-LD</td></tr><tr><td>臥床時穿踝部休息副木預防攣縮</td><td>2b｜B-NR</td></tr><tr><td>局部肉毒桿菌注射（上肢、下肢）</td><td>1｜A</td></tr><tr><td>NMES、振動暫時降低痙攣（輔助）</td><td>2b｜A</td></tr><tr><td>副木與貼紮<b>不建議</b>用來預防手腕手指痙攣</td><td>3：無益處｜B-NR</td></tr><tr><td>慢性中重度上肢：靜態副木降痙攣或改善手功能的效果未確立</td><td>2b｜B-NR</td></tr><tr><td>偏癱肩：評估半脫位、痙攣、ROM、感覺與忽略</td><td>1｜B-NR</td></tr><tr><td>偏癱肩：教病人與照顧者 ROM 與擺位（尤其出院前）</td><td>1｜B-NR</td></tr><tr><td>半脫位：擺位輔具與吊帶</td><td>2a｜B-R</td></tr><tr><td><b>⛔ 半脫位、肩無力或肩痛者，不可做頭頂滑輪運動</b></td><td><b>3：有害｜C-EO</b></td></tr></table></div>\n<p class=\"sub\" style=\"margin-top:14px\">輔具與副木</p>\n<div class=\"tblwrap\"><table><tr><th>指引建議</th><th>等級</th></tr><tr><td>有活動受限者使用適應性輔具</td><td>1｜B-NR</td></tr><tr><td>步態或平衡障礙者使用助行器具（拐杖、助行器）</td><td>1｜B-NR</td></tr><tr><td>無法或有限行走者使用輪椅</td><td>1｜C-LD</td></tr><tr><td><b>偏癱者使用 AFO 或 FES 改善平衡與移動</b></td><td><b>1｜A</b></td></tr></table></div>\n<p class=\"sub\" style=\"margin-top:14px\">體能活動</p>\n<div class=\"tblwrap\"><table><tr><th>指引建議</th><th>等級</th></tr><tr><td>個別化運動計畫（心肺、移動、預防再中風）</td><td>1｜A</td></tr><tr><td>從復健期開始、延續到居家社區的運動，以維護認知健康</td><td>1｜A</td></tr><tr><td><b>每週 150～300 分鐘中強度活動；有氧 3～5 天、肌力與平衡 2～3 天</b></td><td><b>1｜A</b></td></tr><tr><td>和病人一起依指引與個人偏好訂可達成的計畫</td><td>1｜C-EO</td></tr><tr><td>運動加上行為改變技巧，增加日常活動量</td><td>2a｜B-R</td></tr></table></div>\n<p class=\"sub\" style=\"margin-top:14px\">認知、知覺、失用、忽略</p>\n<div class=\"tblwrap\"><table><tr><th>指引建議</th><th>等級</th></tr><tr><td>認知障礙：有督導、中高強度、可自適應的科技輔助認知訓練</td><td>1｜B-R</td></tr><tr><td>認知訓練＋體能活動</td><td>2a｜B-R</td></tr><tr><td>融入情境化日常活動的認知復健</td><td>2a｜C-LD</td></tr><tr><td>認知－動作整合訓練</td><td>2b｜B-R</td></tr><tr><td>肢體失用：策略訓練或手勢訓練</td><td>2a｜B-R</td></tr><tr><td>肢體失用：任務練習</td><td>2a｜C-LD</td></tr><tr><td>忽略症：眼動訓練（視動刺激、掃視／追視）</td><td>2a｜A</td></tr><tr><td>忽略症：鏡像治療＋傳統治療</td><td>2a｜B-R</td></tr><tr><td>忽略症：稜鏡適應</td><td>2b｜B-R</td></tr></table></div>\n<p class=\"sub\" style=\"margin-top:14px\">照顧者、社區、參與</p>\n<div class=\"tblwrap\"><table><tr><th>指引建議</th><th>等級</th></tr><tr><td>出院後持續社區或居家復健</td><td>1｜A</td></tr><tr><td>居家跨專業復健可替代門診復健</td><td>2a｜B-R</td></tr><tr><td>輕中度中風、到院不便：遠距復健可替代面對面</td><td>2a｜B-R</td></tr><tr><td>社區運動計畫</td><td>2a｜C-LD</td></tr><tr><td>及早、持續讓照顧者參與</td><td>2a｜B-R</td></tr><tr><td><b>用 teach-back（請照顧者講回來或做回來）教照顧與復健活動</b></td><td><b>2a｜B-R</b></td></tr><tr><td>個別評估並處理休閒與社交參與的改變</td><td>1｜B-NR</td></tr><tr><td>篩檢社交孤立與孤單</td><td>1｜B-NR</td></tr><tr><td>促進有意義的休閒體能活動</td><td>1｜B-NR</td></tr><tr><td>早期、量身打造的職業復健（OT＋職業服務）</td><td>2a｜B-R</td></tr></table></div>"
+      },
+      {
+       "tag": "注意",
+       "title": "不建議／不要做清單（可貼在治療室）",
+       "html": "<div class=\"tblwrap\"><table><tr><th>不要做</th><th>等級</th><th>改做什麼</th></tr><tr><td>發病 24 小時內高劑量下床</td><td>3：有害｜A</td><td>24～48 小時後分級早期活動</td></tr><tr><td>半脫位或肩痛者做頭頂滑輪</td><td>3：有害｜C-EO</td><td>擺位、吊帶、教照顧者正確 ROM</td></tr><tr><td>把 NDT（Bobath）當成步態或上肢的主要治療</td><td>3：無益處｜B-R</td><td>任務導向訓練、漸進分級練習</td></tr><tr><td>可行走者用機器人或輕中強度跑步機取代地面行走</td><td>3：無益處｜A</td><td>地面任務訓練</td></tr><tr><td>用副木或貼紮「預防」手腕手指痙攣</td><td>3：無益處｜B-NR</td><td>拉筋計畫、主動任務練習</td></tr><tr><td>只練健側下肢的阻力訓練</td><td>2a 條文中排除</td><td>雙側都練</td></tr></table></div>"
+      },
+      {
+       "tag": "限制",
+       "title": "用在台灣時要注意",
+       "html": "<ol><li><b>美國醫療脈絡</b>：指引中 IRF／SNF 等分流和美國給付制度有關，台灣要對應到急性後期照護（PAC）、日照、居家復能等。</li><li><b>台灣的劑量落差</b>：指引建議每次 1～2 小時、每週 5 次，台灣健保門診常是一次 20～30 分鐘。〔本站轉譯〕要靠居家作業、照顧者參與與社區運動補足量。</li><li><b>證據等級 ≠ 個案適用</b>：指引明寫它不取代臨床判斷，要考量病人的價值觀、偏好與共病。</li><li>本文為中文意譯與臨床轉譯；如需逐條引用，請以原文為準。</li></ol>"
+      }
+     ],
      "quiz": [
       {
-       "q": "指引中的「3：無益處」代表什麼？",
+       "q": "指引中「3：無益處」的意思是？",
        "options": [
         "會傷害病人",
         "跟其他有證據的介入比，沒有額外好處",
@@ -72,10 +72,10 @@ window.PNF_COURSE = {
         "只適用於急性期"
        ],
        "a": 1,
-       "why": "「有害」屬另一個等級（3：有害）。"
+       "why": "「有害」是另一個等級（3：有害）。"
       },
       {
-       "q": "中風發病後多久內不可做高劑量下床活動？",
+       "q": "中風發病多久內<b>不可</b>做高劑量下床活動？",
        "options": [
         "24 小時",
         "48 小時",
@@ -83,10 +83,10 @@ window.PNF_COURSE = {
         "1 個月"
        ],
        "a": 0,
-       "why": "〔指引〕發病 24 小時內不可做高劑量活動（3：有害｜A），應在 24～48 小時後，依分級早期活動計畫下床（1｜A）。"
+       "why": "〔指引〕發病 24 小時內做高劑量活動列為 3：有害｜A；24～48 小時後開始分級早期活動。"
       },
       {
-       "q": "指引對下肢阻力訓練有什麼建議？",
+       "q": "指引對下肢阻力訓練的建議是？",
        "options": [
         "只練健側即可",
         "雙側都練，只練健側無效",
@@ -94,10 +94,10 @@ window.PNF_COURSE = {
         "不建議阻力訓練"
        ],
        "a": 1,
-       "why": "〔指引〕雙側下肢阻力訓練為 2a｜A，指引明確指出只練健側無效。"
+       "why": "〔指引〕雙側下肢阻力訓練（2a｜A），只練健側無效。"
       },
       {
-       "q": "偏癱肩有半脫位時，下列哪項列為「有害」？",
+       "q": "半脫位的偏癱肩，下列何者被列為「有害」？",
        "options": [
         "吊帶",
         "擺位輔具",
@@ -105,25 +105,34 @@ window.PNF_COURSE = {
         "教家屬擺位"
        ],
        "a": 2,
-       "why": "〔指引〕半脫位、肩無力或肩痛者，不可做頭頂滑輪運動（3：有害｜C-EO）；擺位輔具與吊帶則為 2a｜B-R。"
+       "why": "〔指引〕半脫位、肩無力或肩痛者做頭頂滑輪運動，列為 3：有害｜C-EO。"
       },
       {
-       "q": "這門課如何定位 PNF？",
+       "q": "一位可以自己走的中風個案，下列何者是指引的建議？",
        "options": [
-        "取代任務訓練的整套療法",
-        "讓任務練習做得起來的工具，做到就撤手",
-        "只用於急性期",
-        "只用於上肢"
+        "改用機器人步態訓練取代地面行走",
+        "改用輕中強度跑步機取代地面行走",
+        "以地面行走、跨步、平衡的任務導向訓練為主",
+        "以 Bobath 取向為主要步態治療"
+       ],
+       "a": 2,
+       "why": "〔指引〕地面任務訓練 1｜A；可行走者用機器人或輕中強度跑步機都不優於地面訓練（3：無益處｜A），NDT（Bobath）也列為 3：無益處｜B-R。"
+      },
+      {
+       "q": "指引建議怎麼教照顧者？",
+       "options": [
+        "給一張衛教單就好",
+        "用 teach-back，請照顧者講回來或做回來",
+        "等出院前一天再教",
+        "只教病人本人"
        ],
        "a": 1,
-       "why": "〔本站轉譯〕PNF 是工具，不是療法：協助個案完成指引推薦的練習，掌握動作並累積足夠的練習量，接著盡快撤手。"
+       "why": "〔指引〕teach-back 2a｜B-R，並且要及早、持續讓照顧者參與。"
       }
      ],
-     "practice": "<p>挑一位你目前正在治療的中風個案，填寫一列：「指引推薦的任務 → 個案的困難 → 我用哪項 PNF 技術協助 → 何時撤手 → 用哪個量表驗證」。</p>",
+     "practice": "<p>挑你目前一位中風個案，對照上方「依中風問題查」，填一列：「他目前最卡的問題 → 指引推薦的介入（等級）→ 我現在有沒有做、做的量夠不夠 → 用什麼量表追蹤」。再檢查一次「不要做清單」，確認目前的治療計畫沒有踩到。</p>",
      "refs": [
-      "Richards, L. G., Ifejika, N. L., Stein, J., Bahouth, M. N., Abshire Saylor, M., Barrett, A. M., Chen, P., et al. (2026). 2026 guideline for adult stroke rehabilitation and recovery: A guideline from the American Heart Association and American Stroke Association. <i>Stroke, 57</i>(10). https://doi.org/10.1161/STR.0000000000000536",
-      "Hindle, K. B., Whitcomb, T. J., Briggs, W. O., & Hong, J. (2012). Proprioceptive neuromuscular facilitation (PNF): Its mechanisms and effects on range of motion and muscular function. <i>Journal of Human Kinetics, 31</i>, 105–113. https://doi.org/10.2478/v10078-012-0011-y",
-      "Scheets, P. L., Hornby, T. G., Perry, S. B., Sparto, P., Riley, N., Romney, W., Fell, D., Kugler, K., & Nordahl, T. (2021). Moving forward. <i>Journal of Neurologic Physical Therapy, 45</i>(1), 46–49. https://doi.org/10.1097/NPT.0000000000000337"
+      "Richards, L. G., Ifejika, N. L., Stein, J., Bahouth, M. N., Abshire Saylor, M., Barrett, A. M., Chen, P., et al. (2026). 2026 guideline for adult stroke rehabilitation and recovery: A guideline from the American Heart Association and American Stroke Association. <i>Stroke, 57</i>(10). https://doi.org/10.1161/STR.0000000000000536"
      ]
     },
     {
