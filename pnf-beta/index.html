@@ -267,10 +267,10 @@
         <p style="color:var(--muted);font-size:.95rem;margin:0 0 14px">${esc(C.meta.note)}</p>
         <a class="btn" href="#${next.id}">${n?'繼續學習：':'從第一課開始：'}${esc(next.id)} ${esc(next.title)} →</a>
         <div class="howto">
-          <div><b>1</b>先讀中風情境與看圖</div>
-          <div><b>2</b>看影片（開字幕，對照時間軸）＋讀摘要</div>
-          <div><b>3</b>做自我檢核</div>
-          <div><b>4</b>找一位夥伴做實作作業</div>
+          <div><b>1</b>讀概念與核心理論</div>
+          <div><b>2</b>看手法示範（照片＋影片，對照時間軸）</div>
+          <div><b>3</b>讀中風應用：用在偏癱個案</div>
+          <div><b>4</b>做自我檢核，找夥伴實作</div>
         </div>
       </div>
       <div class="path">
@@ -350,32 +350,28 @@
 
       <div class="sec" style="--c:${m.color}"><h3><span class="tag">目標</span>學完你會</h3>${list(L.goals)}</div>
 
-      ${L.stroke?`<div class="case" style="--c:${m.color}"><h3>🩺 中風個案情境</h3>
-        <p class="prob">${L.stroke.problem}</p>${L.stroke.why?`<p class="why"><b>PNF 怎麼幫：</b>${L.stroke.why}</p>`:''}
-        ${L.stroke.look&&L.stroke.look.length?`<div class="sub" style="margin-top:6px">看圖、看影片時注意</div>${list(L.stroke.look)}`:''}
+      ${L.pre?`<div class="sec" style="--c:${m.color}"><h3><span class="tag">概念</span>先懂這是什麼</h3>${L.pre}</div>`:''}
+
+      ${S.keypoints?`<div class="sec" style="--c:${m.color}"><h3><span class="tag">理論</span>核心觀念</h3>${list(S.keypoints)}</div>`:''}
+
+      <div class="sec" style="--c:${m.color}"><h3><span class="tag">示範</span>手法示範：手怎麼放、往哪裡動</h3>
+        ${FIG[L.id]&&FIG[L.id].length?`<div class="figs">${FIG[L.id].map((f,fi)=>{L_ID=L.id.replace('-','_')+'_'+fi;return figHTML(f,m.color)}).join('')}</div>`:''}
+        ${L.stroke&&L.stroke.look&&L.stroke.look.length?`<div class="sub">看圖、看影片時注意</div>${list(L.stroke.look)}`:''}
+        <p style="margin:12px 0;font-size:.92rem;color:var(--muted)">影片以 3 分鐘內的手法示範短片排在最前面，長片放在後面當延伸。來源以 IPNFA 官方、認證講師與大學物理治療系為主（英、日、德、西、韓、波蘭語等），看不懂語言也沒關係，請對照中文說明與時間軸看手怎麼放、往哪裡動；字幕可在播放器點 ⚙ 選「自動翻譯 → 中文（繁體）」。</p>
+        ${vids}
+        ${S.steps?`<div class="sub">操作步驟</div><ol>${S.steps.map(x=>`<li>${x}</li>`).join('')}</ol>`:''}
+        ${S.mistakes?`<div class="sub">常見錯誤</div>${list(S.mistakes)}`:''}
+      </div>
+
+      ${L.stroke||S.elder||S.irradiation||S.safety?`<div class="case" style="--c:${m.color}"><h3>🩺 中風應用：把這課用在偏癱個案</h3>
+        ${L.stroke?`<div class="sub">個案情境</div><p class="prob">${L.stroke.problem}</p>${L.stroke.why?`<p class="why"><b>PNF 怎麼幫：</b>${L.stroke.why}</p>`:''}`:''}
+        ${S.elder?`<div class="callout ok"><b>帶中風個案怎麼做</b>${list(S.elder)}</div>`:''}
+        ${S.irradiation?`<div class="callout info"><b>Irradiation 在這裡怎麼用</b>${list(S.irradiation)}</div>`:''}
+        ${S.safety?`<div class="callout"><b>安全提醒</b>${list(S.safety)}</div>`:''}
         ${G.length?`<div class="guide"><div class="sub" style="margin-top:12px">這個技巧服務哪條指引建議（2026 AHA／ASA）</div>
           ${G.map(g=>`<div class="g"><span class="grade">${esc(g.grade||'')}</span><b>〔指引〕${g.rec}</b>
             ${g.role?`<div>〔本站轉譯〕${g.role}</div>`:''}${g.measure?`<div class="ms">量成效：${g.measure}</div>`:''}</div>`).join('')}
           <div class="ms">對照為本站臨床推論，非指引原文；詳見 <a href="#0-0">0-0 開宗明義</a></div></div>`:''}</div>`:''}
-
-      ${L.pre?`<div class="sec" style="--c:${m.color}"><h3><span class="tag">先讀</span>看影片前先知道</h3>${L.pre}</div>`:''}
-
-      ${FIG[L.id]&&FIG[L.id].length?`<div class="sec" style="--c:${m.color}"><h3><span class="tag">看圖</span>先看懂手怎麼放、往哪裡動</h3>
-        <div class="figs">${FIG[L.id].map((f,fi)=>{L_ID=L.id.replace('-','_')+'_'+fi;return figHTML(f,m.color)}).join('')}</div></div>`:''}
-
-      <div class="sec" style="--c:${m.color}"><h3><span class="tag">影片</span>看示範</h3>
-        <p style="margin:0 0 12px;font-size:.92rem;color:var(--muted)">影片以 3 分鐘內的手法示範短片排在最前面，長片放在後面當延伸。來源以 IPNFA 官方、認證講師與大學物理治療系為主（英、日、德、西、韓、波蘭語等），看不懂語言也沒關係，請對照中文說明與時間軸看手怎麼放、往哪裡動；字幕可在播放器點 ⚙ 選「自動翻譯 → 中文（繁體）」。</p>
-        ${vids}
-      </div>
-
-      <div class="sec" style="--c:${m.color}"><h3><span class="tag">摘要</span>中文重點整理</h3>
-        ${S.keypoints?`<div class="sub">核心觀念</div>${list(S.keypoints)}`:''}
-        ${S.steps?`<div class="sub">操作步驟</div><ol>${S.steps.map(x=>`<li>${x}</li>`).join('')}</ol>`:''}
-        ${S.mistakes?`<div class="sub">常見錯誤</div>${list(S.mistakes)}`:''}
-        ${S.elder?`<div class="callout ok"><b>帶中風個案怎麼做</b>${list(S.elder)}</div>`:''}
-        ${S.safety?`<div class="callout"><b>安全提醒</b>${list(S.safety)}</div>`:''}
-        ${S.irradiation?`<div class="callout info"><b>Irradiation 在這裡怎麼用</b>${list(S.irradiation)}</div>`:''}
-      </div>
 
       ${quiz?`<div class="sec" style="--c:${m.color}"><h3><span class="tag">檢核</span>自我測驗</h3>
         <form id="quiz">${quiz}</form>

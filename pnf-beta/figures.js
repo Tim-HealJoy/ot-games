@@ -3,7 +3,7 @@
 // marks：{type:"arrow", x1,y1,x2,y2, label, tone} 或 {type:"ring", x,y,r, label, tone}；tone＝warn｜ok｜info｜ink
 // ⚠️ 動作示範圖上線前須經老闆確認（review:"pending" 尚未確認）
 window.PNF_FIGURES = {
- "0-3": [
+ "0-2": [
   {
    "src": "img/0-3_spindle.webp",
    "ratio": 0.5822,
@@ -125,7 +125,7 @@ window.PNF_FIGURES = {
    "credit": "本站以 AI 繪製之示意圖（非真人照片）"
   }
  ],
- "0-2": [
+ "4-0": [
   {
    "src": "img/0-2_posture.webp",
    "ratio": 0.6667,
