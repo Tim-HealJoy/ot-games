@@ -611,6 +611,8 @@ segBind('segMode',v=>{ cfg.mode=v;
   $('startBtn').textContent = v==='solo' ? '開啟鏡頭開始 ▶' : '開始播放 ▶';
   therSum();
 });
+/* 曲庫試聽頁是內部工具，只在本機顯示（線上版沒有部署那一頁） */
+if(!/^(localhost|127\.0\.0\.1)$/.test(location.hostname)) $('listenBtn').remove();
 segBind('segWarm',v=>{ cfg.warmup=(v==='on'); $('vWarm').textContent=cfg.warmup?'開啟':'跳過'; therSum(); });
 segBind('segArc',v=>{ cfg.arcade=(v==='on'); $('vArc').textContent=cfg.arcade?'開啟':'關閉'; therSum(); });
 
