@@ -30,6 +30,17 @@
       ③ 暖身校正靠事件計次＝雞生蛋（沒跨門檻就沒事件、沒事件就量不到幅度）
          → 新增 getRecentAttempts()：不論有沒有跨過門檻，都把完成的動作波形
          （峰值／擺幅）記進環形緩衝，讓上層量得到、也能回查「他其實有做」。
+
+   ⭐ v14（2026-10-19）準度三修
+      ① 拍手改看「手掌中心」（手腕＋食指根＋小指根三點平均）而非手腕。
+         前臂斜著拍的時候，手掌已經碰到、兩個手腕還隔一段 → 擺幅被低估。
+         掌心缺點時自動退回手腕，舊行為不變。
+      ② 手在肩膀以上時不判拍手。高舉到頂、兩手在頭上靠攏是長者很常見的
+         收尾動作，舊版會發一個拍手事件，遊戲端把它判成「做錯動作」，
+         真正的高舉反而沒得分。
+      ③ 手腕出框備援：高舉時手常超出畫面上緣（visibility 掉到 0.3 以下），
+         舊版這隻手直接當作不存在 → 舉到最高反而偵測不到。手腕看不到但手肘
+         看得到時，以「肩→肘」方向外推一段前臂長估計手腕位置。
    ══════════════════════════════════════════════════════════════ */
 
 /* One-Euro（pixel space；min 越大越跟手、越小越穩） */
@@ -111,7 +122,11 @@ const RAISE_ATT_MIN = 0.22;   // 峰值低於此不算一次「嘗試」
 const RAISE_ATT_FALL = 0.15;  // 從峰值掉這麼多肩寬，才算這一次動作做完了
 const CLAP_ATT_MIN = 0.03;    // 擺幅低於此不算一次「嘗試」
 
-const LM = { NOSE: 0, LEAR: 7, REAR: 8, LSH: 11, RSH: 12, LWR: 15, RWR: 16 };
+const LM = { NOSE: 0, LEAR: 7, REAR: 8, LSH: 11, RSH: 12, LEL: 13, REL: 14, LWR: 15, RWR: 16,
+             LPI: 17, RPI: 18, LIX: 19, RIX: 20 };
+/* 手腕出框備援：前臂長約為上臂的 0.95 倍（坐姿正面投影下取 0.9 偏保守，
+   寧可估低一點也不要把「舉一半」誤估成「舉到頂」） */
+const FOREARM_RATIO = 0.9;
 const visible = (lm, i) => lm[i] && (lm[i].visibility == null || lm[i].visibility > 0.3);
 
 export function createDetector() {
@@ -200,9 +215,24 @@ export function createDetector() {
     const map = i => ({ x: CW - (lm[i].x * vw * sc + ox), y: lm[i].y * vh * sc + oy });
 
     const raw = {};
-    raw.lw = visible(lm, LM.LWR) ? map(LM.LWR) : null;
-    raw.rw = visible(lm, LM.RWR) ? map(LM.RWR) : null;
     raw.ls = map(LM.LSH); raw.rs = map(LM.RSH);
+    /* 手腕：看得到就用；看不到但手肘看得到（多半是舉太高出框）→ 沿肩→肘方向外推 */
+    const wristOf = (wi, ei, sh) => {
+      if (visible(lm, wi)) return map(wi);
+      if (!visible(lm, ei)) return null;
+      const e = map(ei);
+      if (e.y > sh.y) return null;                 // 手肘在肩膀以下就不猜（垂放時手腕出框沒意義）
+      return { x: e.x + (e.x - sh.x) * FOREARM_RATIO, y: e.y + (e.y - sh.y) * FOREARM_RATIO, est: true };
+    };
+    raw.lw = wristOf(LM.LWR, LM.LEL, raw.ls);
+    raw.rw = wristOf(LM.RWR, LM.REL, raw.rs);
+    /* 手掌中心（拍手用）：手腕＋食指根＋小指根中看得到的點取平均 */
+    const palmOf = (ids) => {
+      let x = 0, y = 0, n = 0;
+      for (const i of ids) if (visible(lm, i)) { const p = map(i); x += p.x; y += p.y; n++; }
+      return n ? { x: x / n, y: y / n } : null;
+    };
+    const lp = palmOf([LM.LWR, LM.LIX, LM.LPI]), rp = palmOf([LM.RWR, LM.RIX, LM.RPI]);
     let hx = 0, hy = 0, n = 0;
     [LM.NOSE, LM.LEAR, LM.REAR].forEach(i => { if (visible(lm, i)) { const p = map(i); hx += p.x; hy += p.y; n++; } });
     raw.hd = n ? { x: hx / n, y: hy / n } : null;
@@ -213,9 +243,9 @@ export function createDetector() {
     const S = Math.max(40, sBuf.push(Math.hypot(judge.ls.x - judge.rs.x, judge.ls.y - judge.rs.y)));
     draw.S = judge.S = S;
     /* 拍手用的腕距：原始座標、不濾波（理由見上方註解） */
-    const dnRaw = (raw.lw && raw.rw)
-      ? Math.hypot(raw.lw.x - raw.rw.x, raw.lw.y - raw.rw.y) / S : null;
-    return { draw, judge, S, dnRaw };
+    const dnRaw = (lp && rp)
+      ? Math.hypot(lp.x - rp.x, lp.y - rp.y) / S : null;
+    return { draw, judge, S, dnRaw, est: !!(raw.lw?.est || raw.rw?.est) };
   }
 
   /* 主更新。回傳 {pose, drawPose, events, dbg} */
@@ -337,6 +367,15 @@ export function createDetector() {
        不用「絕對距離門檻＋要張開才重新武裝」（那會讓快速小幅連拍整串漏掉：
        手根本張不到 re-arm 的距離）。改成追蹤方向轉折，每偵測到一個谷底就
        用「這次合攏的擺幅」決定算不算一次拍手。 */
+    /* ⭐ v14 ②：任一隻手在「高舉重新武裝線」以上 → 這段期間不判拍手
+       （兩手在頭頂靠攏是高舉的收尾，不是拍手）。波形狀態照常追蹤，
+       手放下來之後才不會因為狀態斷掉而漏掉下一次真正的拍手。 */
+    /* 用「兩隻手都高」（較低的那隻也過線）：單側高舉時另一手在腿上，本來就拍不到；
+       門檻至少 0.5 肩寬（約鼻子高度），個人化把高舉門檻調很低時，
+       在下巴前拍手的長者才不會被誤吃掉。 */
+    const minUp = Math.min(arm.lw ? arm.lw.up : 9, arm.rw ? arm.rw.up : 9);
+    const handsHigh = actOn('raise') && (arm.lw || arm.rw) && minUp > Math.max(effRaiseDown(), 0.5);
+    dbg.handsHigh = handsHigh;
     if (dnRaw != null && actOn('clap')) {
       const dn = dnRaw;
       dbg.dn = dn;
@@ -345,6 +384,7 @@ export function createDetector() {
 
       const fire = () => {
         C.last = tNow; C.fired = true;
+        if (handsHigh) return;                       // 頭頂靠攏：吃掉這一次，不發事件
         events.push({ type: 'clap', t: C.tExtSong, latency: Math.max(0, tNow - C.tExtNow) });
       };
       /* 次門檻擺幅：一次合攏週期結束就記一筆（不看門檻，理由同高舉）。
@@ -354,7 +394,7 @@ export function createDetector() {
         /* ⚠️ 一定要加「谷底真的靠近了」這條（C.ext < clapClose）。
            少了它，舉手時雙手一起往內收也會產生一個很大的「擺幅」被記成拍手嘗試，
            上層的近失放寬就會被騙去調鬆拍手門檻。 */
-        if (!C.logged && sw >= CLAP_ATT_MIN && C.ext < T.clapClose * sens) {
+        if (!C.logged && !handsHigh && sw >= CLAP_ATT_MIN && C.ext < T.clapClose * sens) {
           C.logged = true;
           pushAttempt({ type: 'clap', t: C.tExtSong, swing: sw });
         }
@@ -387,6 +427,7 @@ export function createDetector() {
       dbg.clapSwing = C.peak - C.ext;
     }
 
+    dbg.est = pr.est;
     return { pose: P, drawPose: pr.draw, events, dbg };
   }
 
@@ -546,8 +587,8 @@ export function createAutoFramer(cfg = {}) {
 /* 模型載入（full 精度明顯優於 lite，手腕尤其；失敗自動退回） */
 export async function loadPose(quality = 'full') {
   const { PoseLandmarker, FilesetResolver } =
-    await import("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14");
-  const vision = await FilesetResolver.forVisionTasks("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm");
+    await import("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.35");
+  const vision = await FilesetResolver.forVisionTasks("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.35/wasm");
   const url = q => `https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_${q}/float16/latest/pose_landmarker_${q}.task`;
   const opt = (q, d) => ({
     baseOptions: { modelAssetPath: url(q), delegate: d },
