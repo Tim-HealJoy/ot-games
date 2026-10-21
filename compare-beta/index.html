@@ -1,0 +1,321 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>哪一個比較＿？｜生活比較大挑戰</title>
+<meta name="description" content="失智長者認知教案：左右二選一，判斷哪一個比較大、比較高、比較重、比較貴、比較多、比較快。">
+<script src="/open-in-browser.js" defer></script>
+<style>
+:root{
+  --bg:#f6efe3; --card:#fffaf2; --ink:#2b2420; --muted:#7a6c60;
+  --pos:#d9622b; --neg:#2f6db5; --ok:#2e9a5a; --line:#e4d6c3;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:#e9dfcf;overflow:hidden;font-family:"PingFang TC","Noto Sans TC","Microsoft JhengHei",sans-serif;color:var(--ink)}
+#wrap{position:fixed;inset:0;display:flex;align-items:center;justify-content:center}
+#stage{width:1920px;height:1080px;background:var(--bg);position:relative;transform-origin:center center;flex:none;overflow:hidden}
+.portrait #stage{width:1080px;height:1920px}
+.screen{position:absolute;inset:0;display:none;flex-direction:column;align-items:center}
+.screen.on{display:flex}
+button{font-family:inherit;cursor:pointer;border:none}
+.foot{position:absolute;bottom:22px;left:0;right:0;text-align:center;font-size:26px;color:var(--muted)}
+
+/* 首頁 */
+#home h1{font-size:120px;margin-top:110px;letter-spacing:4px}
+#home h1 span{color:var(--pos)}
+#home .sub{font-size:44px;color:var(--muted);margin-top:18px}
+.cats{display:grid;grid-template-columns:repeat(3,480px);gap:34px;margin-top:70px}
+.cat{background:var(--card);border:4px solid var(--line);border-radius:36px;height:200px;display:flex;align-items:center;justify-content:center;gap:24px;font-size:64px;font-weight:700;color:var(--ink);box-shadow:0 8px 0 var(--line)}
+.cat .em{font-size:96px}
+.cat:hover{border-color:var(--pos)}
+.allbtn{margin-top:50px;background:var(--pos);color:#fff;font-size:56px;font-weight:700;padding:26px 90px;border-radius:999px;box-shadow:0 8px 0 #a8461b}
+.portrait #home h1{font-size:110px;margin-top:180px;text-align:center;line-height:1.25}
+.portrait .cats{grid-template-columns:repeat(2,460px);gap:30px;margin-top:80px}
+.portrait .allbtn{margin-top:60px}
+
+/* 類別開場 */
+#intro .big{font-size:240px;margin-top:180px}
+#intro h2{font-size:120px;margin-top:20px}
+#intro p{font-size:52px;color:var(--muted);margin-top:30px}
+.portrait #intro .big{margin-top:420px}
+
+/* 題目 */
+.topbar{width:100%;display:flex;justify-content:space-between;align-items:center;padding:28px 60px 0;font-size:36px;color:var(--muted)}
+.topbar .tag{background:var(--card);border:3px solid var(--line);border-radius:999px;padding:8px 30px}
+#q{font-size:96px;font-weight:800;margin-top:0;text-align:center;line-height:1.2}
+#q .kw{display:inline-block;padding:0 18px;border-radius:24px;color:#fff;margin:0 6px}
+#q .kw.pos{background:var(--pos)}
+#q .kw.neg{background:var(--neg)}
+#q .kw.pulse{animation:pulse .7s ease-in-out 3}
+@keyframes pulse{50%{transform:scale(1.25)}}
+#rev{height:56px;font-size:40px;font-weight:700;color:var(--neg);margin-top:6px}
+.pair{display:flex;gap:90px;margin-top:20px;align-items:center}
+.side{display:flex;flex-direction:column;align-items:center}
+.lr{font-size:44px;font-weight:700;color:var(--muted);margin-bottom:10px}
+.card{width:700px;height:470px;background:var(--card);border:6px solid var(--line);border-radius:44px;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;transition:transform .25s,border-color .25s,opacity .3s,box-shadow .3s;cursor:pointer;box-shadow:0 10px 0 var(--line)}
+.card .pic{height:290px;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;align-content:center;gap:6px;width:90%}
+.card .pic .one{font-size:230px;line-height:1;transition:transform .8s cubic-bezier(.3,1.4,.5,1);display:inline-block}
+.card .pic.many .one{font-size:84px}
+.card .name{font-size:68px;font-weight:800;margin-top:14px}
+.card .clue{position:absolute;top:22px;left:0;right:0;text-align:center;font-size:44px;font-weight:700;color:var(--neg);opacity:0;transition:opacity .4s}
+.card.chosen{border-color:#e0a63a;transform:translateY(-8px)}
+.card.right{border-color:var(--ok);box-shadow:0 0 0 14px rgba(46,154,90,.25),0 10px 0 #9fd3b3}
+.card.right::after{content:"✔";position:absolute;top:-46px;right:-30px;width:120px;height:120px;border-radius:50%;background:var(--ok);color:#fff;font-size:80px;display:flex;align-items:center;justify-content:center}
+.card.dim{opacity:.4}
+.card.glow{animation:glow 1s ease-in-out 3}
+@keyframes glow{50%{box-shadow:0 0 0 22px rgba(217,98,43,.35)}}
+.vs{font-size:80px;font-weight:800;color:var(--muted)}
+#talk{margin-top:22px;min-height:90px;font-size:42px;background:#fff;border-radius:28px;padding:18px 40px;border:3px dashed var(--line);opacity:0;transition:opacity .4s;max-width:1600px;text-align:center}
+#talk.on{opacity:1}
+#talk b{color:var(--ok)}
+.ctrl{position:absolute;bottom:34px;left:0;right:0;display:flex;justify-content:center;gap:24px}
+.ctrl button{font-size:38px;font-weight:700;padding:16px 40px;border-radius:999px;background:var(--card);border:3px solid var(--line);color:var(--ink)}
+.ctrl button.main{background:var(--pos);color:#fff;border-color:var(--pos)}
+#count{position:absolute;inset:0;display:none;align-items:center;justify-content:center;font-size:420px;font-weight:900;color:var(--pos);background:rgba(246,239,227,.55);pointer-events:none}
+#count.on{display:flex}
+.portrait #q{font-size:96px;margin-top:80px;padding:0 30px}
+.portrait .pair{gap:30px;margin-top:60px}
+.portrait .vs{font-size:60px}
+.portrait .card{width:470px;height:640px}
+.portrait .card .pic .one{font-size:220px}
+.portrait .card .pic.many .one{font-size:72px}
+.portrait .card .name{font-size:60px}
+.portrait .card .clue{font-size:36px}
+.portrait #talk{font-size:46px;max-width:980px;margin-top:60px}
+.portrait .ctrl{flex-wrap:wrap;padding:0 30px;bottom:110px}
+.portrait .keys{display:none}
+
+/* 完成 */
+#done h2{font-size:130px;margin-top:220px}
+#done p{font-size:56px;color:var(--muted);margin-top:30px;text-align:center;line-height:1.5}
+#done .row{display:flex;gap:30px;margin-top:70px}
+#done .row button{font-size:52px;font-weight:700;padding:24px 70px;border-radius:999px;background:var(--pos);color:#fff}
+#done .row button.alt{background:var(--card);color:var(--ink);border:3px solid var(--line)}
+.portrait #done h2{margin-top:520px}
+.portrait #done .row{flex-direction:column}
+.keys{position:absolute;bottom:4px;left:0;right:0;text-align:center;font-size:22px;color:var(--muted)}
+</style>
+</head>
+<body>
+<div id="wrap"><div id="stage">
+
+  <section id="home" class="screen on">
+    <h1>哪一個比較<span>＿</span>？</h1>
+    <div class="sub">左邊還是右邊？一起來比一比</div>
+    <div class="cats" id="cats"></div>
+    <button class="allbtn" onclick="startAll()">▶ 六類一起玩</button>
+    <div class="foot">教案設計：施昱廷 職能治療師</div>
+  </section>
+
+  <section id="intro" class="screen">
+    <div class="big" id="introEm"></div>
+    <h2 id="introTitle"></h2>
+    <p id="introSub"></p>
+    <div class="ctrl"><button onclick="goHome()">⌂ 回目錄</button><button class="main" onclick="showQ()">開始 ▶</button></div>
+  </section>
+
+  <section id="play" class="screen">
+    <div class="topbar"><span class="tag" id="catTag"></span><span id="prog"></span></div>
+    <div class="keys">← → 選答案　空白鍵 揭曉／下一題　H 提示</div>
+    <div id="q"></div>
+    <div id="rev"></div>
+    <div class="pair">
+      <div class="side"><div class="lr">左邊</div><div class="card" id="cL" onclick="choose(0)"><div class="clue"></div><div class="pic"></div><div class="name"></div></div></div>
+      <div class="vs">vs</div>
+      <div class="side"><div class="lr">右邊</div><div class="card" id="cR" onclick="choose(1)"><div class="clue"></div><div class="pic"></div><div class="name"></div></div></div>
+    </div>
+    <div id="talk"></div>
+    <div class="ctrl">
+      <button onclick="goHome()">⌂ 目錄</button>
+      <button onclick="prevQ()">◀ 上一題</button>
+      <button onclick="hint()" id="hintBtn">💡 提示</button>
+      <button class="main" onclick="primary()" id="mainBtn">揭曉答案</button>
+    </div>
+    <div id="count"></div>
+  </section>
+
+  <section id="done" class="screen">
+    <h2>🎉 完成了！</h2>
+    <p id="doneSub"></p>
+    <div class="row"><button onclick="nextCat()" id="nextCatBtn">下一類 ▶</button><button class="alt" onclick="goHome()">⌂ 回目錄</button></div>
+  </section>
+
+</div></div>
+
+<script>
+// 每題：a＝正確答案、b＝另一個；e＝圖示、n＝名稱、s＝真實比例（提示用）、c＝線索文字、k＝數量（多少類）
+// side：正確答案放左(0)或右(1)，每類左右各半
+const CATS = [
+  {id:'big', em:'🍉', name:'大小', pos:'大', neg:'小', sides:[0,1,1,0,1,0], mode:'scale', qs:[
+    {a:{e:'🍉',n:'西瓜',s:1},   b:{e:'🍓',n:'草莓',s:.18}, t:'夏天吃西瓜，您喜歡紅肉還是黃肉的？'},
+    {a:{e:'🚌',n:'公車',s:1},   b:{e:'🛵',n:'機車',s:.3},  t:'以前出門都搭什麼車？'},
+    {a:{e:'☂️',n:'雨傘',s:1},  b:{e:'🪙',n:'十元硬幣',s:.15}, t:'下雨天出門，您會帶傘還是穿雨衣？'},
+    {a:{e:'🍍',n:'鳳梨',s:1},   b:{e:'🍊',n:'橘子',s:.45}, t:'鳳梨酥、鳳梨苦瓜雞，您吃過哪一種？'},
+    {neg:1, a:{e:'🥜',n:'花生',s:.2}, b:{e:'🍠',n:'地瓜',s:1}, t:'花生可以做成什麼好吃的？'},
+    {neg:1, a:{e:'🍵',n:'茶杯',s:.5}, b:{e:'🫖',n:'茶壺',s:1}, t:'您喜歡喝烏龍茶還是包種茶？'}
+  ]},
+  {id:'tall', em:'⛰️', name:'高矮', pos:'高', neg:'矮', sides:[1,0,1,0,0,1], mode:'scale', qs:[
+    {a:{e:'⛰️',n:'玉山',s:1},   b:{e:'🏠',n:'平房',s:.2}, t:'您爬過什麼山？'},
+    {a:{e:'🏢',n:'大樓',s:1},   b:{e:'🛵',n:'機車',s:.2}, t:'您以前住平房還是公寓？'},
+    {a:{e:'👴',n:'阿公',s:1},   b:{e:'👶',n:'小嬰兒',s:.4}, t:'家裡最小的孫子幾歲了？'},
+    {a:{e:'🌴',n:'椰子樹',s:1}, b:{e:'🪴',n:'盆栽',s:.25}, t:'您家裡有種花種草嗎？'},
+    {neg:1, a:{e:'🌾',n:'稻子',s:.3}, b:{e:'🌳',n:'大榕樹',s:1}, t:'以前廟口的大榕樹下，大家都在做什麼？'},
+    {neg:1, a:{e:'🐔',n:'雞',s:.35}, b:{e:'🐄',n:'牛',s:1}, t:'以前家裡有養雞養鴨嗎？'}
+  ]},
+  {id:'heavy', em:'⚖️', name:'輕重', pos:'重', neg:'輕', sides:[0,1,0,1,1,0], mode:'clue', qs:[
+    {a:{e:'🐃',n:'水牛',c:'約 500 公斤'}, b:{e:'🐔',n:'雞',c:'約 2 公斤'}, t:'以前種田，水牛幫了很多忙，您看過牛犁田嗎？'},
+    {a:{e:'🧱',n:'磚頭',c:'約 2 公斤'},   b:{e:'🪶',n:'羽毛',c:'幾乎沒重量'}, t:'以前的房子是磚造還是木造？'},
+    {a:{e:'🎃',n:'南瓜',c:'約 5 公斤'},   b:{e:'🥬',n:'一把青菜',c:'約 0.3 公斤'}, t:'南瓜可以煮成什麼菜？'},
+    {a:{e:'🍳',n:'炒菜鐵鍋',c:'約 3 公斤'}, b:{e:'🧺',n:'竹菜籃',c:'約 0.5 公斤'}, t:'您家裡誰最會煮菜？'},
+    {neg:1, a:{e:'🎈',n:'氣球',c:'很輕，會飄'}, b:{e:'🔨',n:'鐵鎚',c:'約 1 公斤'}, t:'家裡東西壞了，都是誰修理？'},
+    {neg:1, a:{e:'🧻',n:'衛生紙',c:'約 0.1 公斤'}, b:{e:'🧳',n:'行李箱',c:'約 15 公斤'}, t:'您最難忘的一次旅行去哪裡？'}
+  ]},
+  {id:'price', em:'💰', name:'貴便宜', pos:'貴', neg:'便宜', sides:[1,0,0,1,0,1], mode:'clue', qs:[
+    {a:{e:'🛵',n:'機車',c:'約 7 萬元'},   b:{e:'🍚',n:'滷肉飯',c:'約 40 元'}, t:'您第一台機車是什麼牌子？'},
+    {a:{e:'💍',n:'金戒指',c:'約 1 萬元以上'}, b:{e:'🩴',n:'藍白拖',c:'約 100 元'}, t:'藍白拖您穿過幾雙了？'},
+    {a:{e:'📺',n:'電視機',c:'約 2 萬元'}, b:{e:'🍬',n:'糖果',c:'約 5 元'}, t:'家裡第一台電視是什麼時候買的？'},
+    {a:{e:'🚗',n:'汽車',c:'約 70 萬元'}, b:{e:'🚲',n:'腳踏車',c:'約 3 千元'}, t:'以前上學是走路還是騎腳踏車？'},
+    {neg:1, a:{e:'🥚',n:'一顆雞蛋',c:'約 8 元'}, b:{e:'🐔',n:'一隻土雞',c:'約 600 元'}, t:'雞蛋您最喜歡怎麼煮？'},
+    {neg:1, a:{e:'🍜',n:'陽春麵',c:'約 50 元'}, b:{e:'🥩',n:'牛排',c:'約 300 元'}, t:'以前一碗陽春麵多少錢？'}
+  ]},
+  {id:'many', em:'🍌', name:'多少', pos:'多', neg:'少', sides:[0,1,1,0,1,0], mode:'count', qs:[
+    {a:{e:'🍌',n:'一串香蕉',k:8},  b:{e:'🍌',n:'一根香蕉',k:1}, t:'台灣香蕉以前很有名，您吃過哪裡的香蕉？'},
+    {a:{e:'🍬',n:'10 顆糖果',k:10}, b:{e:'🍬',n:'2 顆糖果',k:2}, t:'小時候最喜歡吃什麼零嘴？'},
+    {a:{e:'🪙',n:'5 個硬幣',k:5},  b:{e:'🪙',n:'1 個硬幣',k:1}, t:'小時候拿到零用錢都買什麼？'},
+    {a:{e:'🥚',n:'10 顆雞蛋',k:10}, b:{e:'🥚',n:'6 顆雞蛋',k:6}, t:'一盒雞蛋您都怎麼用完？'},
+    {neg:1, a:{e:'🍊',n:'3 顆橘子',k:3}, b:{e:'🍊',n:'8 顆橘子',k:8}, t:'過年拜拜都會準備哪些水果？'},
+    {neg:1, a:{e:'🥟',n:'5 個水餃',k:5}, b:{e:'🥟',n:'7 個水餃',k:7}, t:'您會包水餃嗎？最喜歡什麼口味？'}
+  ]},
+  {id:'fast', em:'🚄', name:'快慢', pos:'快', neg:'慢', sides:[1,0,1,0,0,1], mode:'clue', qs:[
+    {a:{e:'🚄',n:'高鐵',c:'時速約 300 公里'}, b:{e:'🐂',n:'牛車',c:'跟走路差不多'}, t:'您坐過高鐵嗎？去哪裡玩？'},
+    {a:{e:'✈️',n:'飛機',c:'時速約 800 公里'}, b:{e:'🚌',n:'公車',c:'時速約 40 公里'}, t:'您第一次坐飛機是去哪裡？'},
+    {a:{e:'🛵',n:'機車',c:'時速約 50 公里'}, b:{e:'🚲',n:'腳踏車',c:'時速約 15 公里'}, t:'年輕時騎車載誰出去玩？'},
+    {a:{e:'🐇',n:'兔子',c:'跑得很快'}, b:{e:'🐢',n:'烏龜',c:'慢慢爬'}, t:'龜兔賽跑的故事，最後是誰贏？'},
+    {neg:1, a:{e:'🐌',n:'蝸牛',c:'慢慢爬'}, b:{e:'🐕',n:'小狗',c:'跑得很快'}, t:'家裡有養過狗或貓嗎？'},
+    {neg:1, a:{e:'🚶',n:'散步的阿伯',c:'慢慢走'}, b:{e:'🏃',n:'跑步的年輕人',c:'跑得快'}, t:'您每天有出門散步嗎？都走去哪裡？'}
+  ]}
+];
+
+let queue = [], ci = 0, qi = 0, chosen = -1, revealed = false, hintLv = 0, busy = false;
+const $ = s => document.querySelector(s);
+
+function fit(){
+  const p = innerHeight > innerWidth;
+  document.body.classList.toggle('portrait', p);
+  const W = p ? 1080 : 1920, H = p ? 1920 : 1080;
+  $('#stage').style.transform = `scale(${Math.min(innerWidth/W, innerHeight/H)})`;
+}
+addEventListener('resize', fit); fit();
+
+$('#cats').innerHTML = CATS.map((c,i)=>`<button class="cat" onclick="startCats([${i}])"><span class="em">${c.em}</span>${c.name}</button>`).join('');
+
+function show(id){ document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('on', s.id===id)); }
+function goHome(){ show('home'); }
+function startAll(){ startCats(CATS.map((_,i)=>i)); }
+function startCats(list){ queue = list; ci = 0; intro(); }
+function intro(){
+  const c = CATS[queue[ci]];
+  $('#introEm').textContent = c.em;
+  $('#introTitle').textContent = `第 ${ci+1} 類：${c.name}`;
+  $('#introSub').textContent = `「哪一個比較${c.pos}？」最後兩題會反過來問「比較${c.neg}」，要聽清楚喔！`;
+  qi = 0; show('intro');
+}
+function showQ(){
+  show('play');
+  const c = CATS[queue[ci]], q = c.qs[qi];
+  const kw = q.neg ? c.neg : c.pos;
+  $('#catTag').textContent = `${c.em} ${c.name}`;
+  $('#prog').textContent = `第 ${qi+1} ／ ${c.qs.length} 題`;
+  $('#q').innerHTML = `請問哪一個比較<span class="kw ${q.neg?'neg':'pos'}">${kw}</span>？`;
+  $('#rev').textContent = q.neg ? '⚠️ 注意！這題反過來問' : '';
+  const ansSide = c.sides[qi];
+  const items = ansSide===0 ? [q.a,q.b] : [q.b,q.a];
+  ['#cL','#cR'].forEach((sel,i)=>{
+    const el = $(sel), it = items[i];
+    el.className = 'card';
+    const n = c.mode==='count' ? it.k : 1;
+    el.querySelector('.pic').className = 'pic' + (n>1 ? ' many' : '');
+    el.querySelector('.pic').innerHTML = Array.from({length:n},()=>`<span class="one">${it.e}</span>`).join('');
+    el.querySelector('.name').textContent = it.n;
+    const clue = el.querySelector('.clue');
+    clue.textContent = c.mode==='clue' ? it.c : c.mode==='count' ? `${it.k} 個` : '';
+    clue.style.opacity = 0;
+  });
+  chosen = -1; revealed = false; hintLv = 0;
+  $('#talk').classList.remove('on'); $('#talk').innerHTML = '';
+  $('#mainBtn').textContent = '揭曉答案';
+}
+function cur(){ const c = CATS[queue[ci]]; return {c, q:c.qs[qi], ans:c.sides[qi]}; }
+function choose(i){
+  if(revealed || busy) return;
+  chosen = i;
+  $('#cL').classList.toggle('chosen', i===0);
+  $('#cR').classList.toggle('chosen', i===1);
+}
+function hint(){
+  if(revealed) return;
+  const {c, q, ans} = cur();
+  hintLv++;
+  if(hintLv===1){
+    const k = $('#q .kw'); k.classList.remove('pulse'); void k.offsetWidth; k.classList.add('pulse');
+  } else if(hintLv===2){
+    const items = ans===0 ? [q.a,q.b] : [q.b,q.a];
+    ['#cL','#cR'].forEach((sel,i)=>{
+      const el = $(sel);
+      if(c.mode==='scale'){
+        const s = Math.max(items[i].s, .22);
+        el.querySelectorAll('.one').forEach(o=>o.style.transform=`scale(${s})`);
+      } else {
+        el.querySelector('.clue').style.opacity = 1;
+      }
+    });
+  } else {
+    const el = ans===0 ? $('#cL') : $('#cR');
+    el.classList.remove('glow'); void el.offsetWidth; el.classList.add('glow');
+  }
+}
+function reveal(){
+  if(busy) return; busy = true;
+  const cnt = $('#count'); let n = 3;
+  cnt.textContent = n; cnt.classList.add('on');
+  const t = setInterval(()=>{
+    n--;
+    if(n>0){ cnt.textContent = n; return; }
+    clearInterval(t); cnt.classList.remove('on'); busy = false; revealed = true;
+    const {c, q, ans} = cur();
+    const R = ans===0 ? $('#cL') : $('#cR'), W = ans===0 ? $('#cR') : $('#cL');
+    R.classList.remove('chosen','glow'); R.classList.add('right'); W.classList.remove('chosen'); W.classList.add('dim');
+    if(c.mode!=='scale') R.querySelector('.clue').style.opacity = 1, W.querySelector('.clue').style.opacity = 1;
+    const head = chosen===-1 ? '' : chosen===ans ? '<b>答對了！</b>　' : `答案是<b>${ans===0?'左邊':'右邊'}</b>的${q.a.n}。　`;
+    $('#talk').innerHTML = `${head}💬 聊聊看：${q.t}`;
+    $('#talk').classList.add('on');
+    $('#mainBtn').textContent = qi < c.qs.length-1 ? '下一題 ▶' : '完成這一類 ▶';
+  }, 800);
+}
+function primary(){ revealed ? nextQ() : reveal(); }
+function nextQ(){
+  const c = CATS[queue[ci]];
+  if(qi < c.qs.length-1){ qi++; showQ(); return; }
+  $('#doneSub').innerHTML = `「${c.name}」六題都比完了！<br>大家剛剛最有印象的是哪一題？`;
+  $('#nextCatBtn').style.display = ci < queue.length-1 ? '' : 'none';
+  show('done');
+}
+function prevQ(){ if(qi>0){ qi--; showQ(); } }
+function nextCat(){ if(ci < queue.length-1){ ci++; intro(); } }
+
+addEventListener('keydown', e=>{
+  const on = document.querySelector('.screen.on').id;
+  if(on==='play'){
+    if(e.key==='ArrowLeft') choose(0);
+    else if(e.key==='ArrowRight') choose(1);
+    else if(e.key===' '||e.key==='Enter'||e.key==='PageDown'){ e.preventDefault(); primary(); }
+    else if(e.key==='PageUp') prevQ();
+    else if(e.key==='h'||e.key==='H') hint();
+    else if(e.key==='Escape') goHome();
+  } else if(on==='intro' && (e.key===' '||e.key==='Enter'||e.key==='PageDown')){ e.preventDefault(); showQ(); }
+  else if(on==='done' && (e.key===' '||e.key==='Enter'||e.key==='PageDown')){ e.preventDefault(); ci < queue.length-1 ? nextCat() : goHome(); }
+});
+</script>
+</body>
+</html>
