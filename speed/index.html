@@ -1,0 +1,298 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>哪一個比較快？｜生活比較大挑戰</title>
+<meta name="description" content="哪一個比較快？兔子和烏龜、野狼 125 和腳踏車、自強號和區間車——18 題台灣長輩熟悉的生活畫面，左右二選一，揭曉後聊一句懷舊話題。投影帶團體、手機都能玩。教案設計：施昱廷 職能治療師。">
+<meta name="theme-color" content="#d9622b">
+<link rel="icon" href="../favicon.png">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="復能小遊戲">
+<meta property="og:title" content="哪一個比較快？· 18 題生活快慢比一比">
+<meta property="og:description" content="兔子和烏龜、野狼 125 和腳踏車、自強號和區間車……左右二選一，揭曉後聊一句懷舊話題。投影帶團體、手機也能玩。免費開放。">
+<meta property="og:url" content="https://games.otshih.com/speed/">
+<meta property="og:image" content="https://games.otshih.com/speed/share.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:locale" content="zh_TW">
+<meta name="twitter:card" content="summary_large_image">
+<script src="/open-in-browser.js" defer></script>
+<style>
+:root{
+  --bg:#f6efe3; --card:#fffaf2; --ink:#2b2420; --muted:#7a6c60;
+  --pos:#d9622b; --ok:#2e9a5a; --line:#e4d6c3; --clue:#2f6db5;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:#e9dfcf;overflow:hidden;font-family:"PingFang TC","Noto Sans TC","Microsoft JhengHei",sans-serif;color:var(--ink)}
+#wrap{position:fixed;inset:0;display:flex;align-items:center;justify-content:center}
+#stage{width:1920px;height:1080px;background:var(--bg);position:relative;transform-origin:center center;flex:none;overflow:hidden}
+.portrait #stage{width:1080px;height:1920px}
+.screen{position:absolute;inset:0;display:none;flex-direction:column;align-items:center}
+.screen.on{display:flex}
+button{font-family:inherit;cursor:pointer;border:none}
+.foot{position:absolute;bottom:22px;left:0;right:0;text-align:center;font-size:26px;color:var(--muted)}
+
+/* 首頁 */
+#home .hero{display:flex;gap:60px;margin-top:120px}
+#home .hero img{width:520px;height:347px;object-fit:cover;border-radius:36px;border:6px solid var(--line)}
+#home h1{font-size:130px;margin-top:60px;letter-spacing:4px}
+#home h1 span{color:var(--pos)}
+#home .sub{font-size:46px;color:var(--muted);margin-top:16px}
+.startbtn{margin-top:50px;background:var(--pos);color:#fff;font-size:60px;font-weight:700;padding:26px 110px;border-radius:999px;box-shadow:0 8px 0 #a8461b}
+.portrait #home .hero{flex-direction:column;gap:30px;margin-top:150px}
+.portrait #home .hero img{width:620px;height:413px}
+.portrait #home h1{font-size:110px}
+
+/* 題目 */
+.topbar{width:100%;display:flex;justify-content:space-between;align-items:center;padding:28px 60px 0;font-size:36px;color:var(--muted)}
+.topbar .tag{background:var(--card);border:3px solid var(--line);border-radius:999px;padding:8px 30px}
+#q{font-size:96px;font-weight:800;margin-top:0;text-align:center;line-height:1.2}
+#q .kw{display:inline-block;padding:0 18px;border-radius:24px;color:#fff;margin:0 6px;background:var(--pos)}
+#q .kw.pulse{animation:pulse .7s ease-in-out 3}
+@keyframes pulse{50%{transform:scale(1.25)}}
+.pair{display:flex;gap:80px;margin-top:22px;align-items:center}
+.side{display:flex;flex-direction:column;align-items:center}
+.lr{font-size:36px;font-weight:700;color:var(--muted);margin-bottom:8px}
+.card{width:700px;height:540px;background:var(--card);border:6px solid var(--line);border-radius:44px;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;transition:transform .25s,border-color .25s,opacity .3s,box-shadow .3s;cursor:pointer;box-shadow:0 10px 0 var(--line)}
+.card img{width:540px;height:360px;object-fit:contain;border-radius:28px;display:block;background:#f3ece0}
+.card .name{font-size:64px;font-weight:800;margin-top:12px}
+.card .clue{font-size:38px;font-weight:700;color:var(--clue);height:48px;opacity:0;transition:opacity .4s}
+.card.chosen{border-color:#e0a63a;transform:translateY(-8px)}
+.card.right{border-color:var(--ok);box-shadow:0 0 0 14px rgba(46,154,90,.25),0 10px 0 #9fd3b3}
+.card.right::after{content:"✔";position:absolute;top:-46px;right:-30px;width:120px;height:120px;border-radius:50%;background:var(--ok);color:#fff;font-size:80px;display:flex;align-items:center;justify-content:center}
+.card.dim{opacity:.4}
+.card.glow{animation:glow 1s ease-in-out 3}
+@keyframes glow{50%{box-shadow:0 0 0 22px rgba(217,98,43,.35)}}
+.vs{font-size:80px;font-weight:800;color:var(--muted)}
+#talk{margin-top:20px;min-height:86px;font-size:42px;background:#fff;border-radius:28px;padding:16px 40px;border:3px dashed var(--line);opacity:0;transition:opacity .4s;max-width:1600px;text-align:center}
+#talk.on{opacity:1}
+#talk b{color:var(--ok)}
+.ctrl{position:absolute;bottom:34px;left:0;right:0;display:flex;justify-content:center;gap:24px}
+.ctrl button{font-size:38px;font-weight:700;padding:16px 40px;border-radius:999px;background:var(--card);border:3px solid var(--line);color:var(--ink)}
+.ctrl button.main{background:var(--pos);color:#fff;border-color:var(--pos)}
+.keys{position:absolute;bottom:4px;left:0;right:0;text-align:center;font-size:22px;color:var(--muted)}
+.card.right{animation:pop .5s cubic-bezier(.3,1.6,.5,1)}
+@keyframes pop{0%{transform:scale(.92)}60%{transform:scale(1.06)}100%{transform:scale(1)}}
+.card.shake{animation:shake .45s ease-in-out}
+@keyframes shake{25%{transform:translateX(-14px)}75%{transform:translateX(14px)}}
+.stamp{position:absolute;left:50%;top:44%;transform:translate(-50%,-50%) scale(.3);font-size:150px;font-weight:900;color:#fff;background:var(--ok);padding:10px 60px;border-radius:40px;box-shadow:0 12px 0 #1f6e3f;opacity:0;pointer-events:none;z-index:5;white-space:nowrap}
+.stamp.on{animation:stamp 1.3s ease-out forwards}
+@keyframes stamp{0%{opacity:0;transform:translate(-50%,-50%) scale(.3)}20%{opacity:1;transform:translate(-50%,-50%) scale(1.1)}35%{transform:translate(-50%,-50%) scale(1)}75%{opacity:1}100%{opacity:0;transform:translate(-50%,-60%) scale(1)}}
+.spark{position:absolute;font-size:64px;pointer-events:none;z-index:4;animation:fly 1.1s ease-out forwards}
+@keyframes fly{to{transform:translate(var(--dx),var(--dy)) rotate(var(--rot));opacity:0}}
+.mute{background:var(--card);border:3px solid var(--line);border-radius:999px;font-size:34px;padding:6px 26px;color:var(--ink)}
+.portrait #q{font-size:96px;margin-top:80px;padding:0 30px}
+.portrait .pair{gap:20px;margin-top:70px}
+.portrait .vs{display:none}
+.portrait .lr{font-size:40px}
+.portrait .card{width:510px;height:560px;border-radius:36px}
+.portrait .card img{width:474px;height:316px;border-radius:24px}
+.portrait .card .name{font-size:56px;text-align:center;line-height:1.15;padding:0 10px}
+.portrait .card .clue{font-size:34px;height:46px}
+.portrait #talk{font-size:46px;max-width:1000px;margin-top:60px;padding:24px 36px;line-height:1.4}
+.portrait .ctrl{display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;padding:0 40px;bottom:90px}
+.portrait .ctrl button{font-size:44px;padding:26px 0}
+.portrait .ctrl button.main{grid-column:1 / -1;order:-1;font-size:56px;padding:30px 0}
+.portrait .stamp{font-size:130px}
+.portrait .topbar{padding:40px 40px 0}
+.portrait .keys{display:none}
+
+/* 完成 */
+#done h2{font-size:130px;margin-top:220px}
+#done p{font-size:56px;color:var(--muted);margin-top:30px;text-align:center;line-height:1.5}
+#done .row{display:flex;gap:30px;margin-top:70px}
+#done .row button{font-size:52px;font-weight:700;padding:24px 70px;border-radius:999px;background:var(--pos);color:#fff}
+#done .row button.alt{background:var(--card);color:var(--ink);border:3px solid var(--line)}
+.portrait #done h2{margin-top:520px}
+.portrait #done .row{flex-direction:column}
+</style>
+</head>
+<body>
+<div id="wrap"><div id="stage">
+
+  <section id="home" class="screen on">
+    <div class="hero"><img src="img/hsr.jpg" alt=""><img src="img/oxcart.jpg" alt=""></div>
+    <h1>哪一個比較<span>快</span>？</h1>
+    <div class="sub">左邊還是右邊？一起來比一比</div>
+    <button class="startbtn" onclick="start()">開始 ▶</button>
+    <div class="foot">教案設計：施昱廷 職能治療師</div>
+  </section>
+
+  <section id="play" class="screen">
+    <div class="topbar"><span class="tag">🚄 比快慢</span><span><span id="prog"></span>　<button class="mute" id="muteBtn" onclick="toggleMute()">🔊</button></span></div>
+    <div id="q">請問哪一個比較<span class="kw">快</span>？</div>
+    <div class="pair">
+      <div class="side"><div class="lr">左邊</div><div class="card" id="cL" onclick="choose(0)"><img alt=""><div class="name"></div><div class="clue"></div></div></div>
+      <div class="vs">vs</div>
+      <div class="side"><div class="lr">右邊</div><div class="card" id="cR" onclick="choose(1)"><img alt=""><div class="name"></div><div class="clue"></div></div></div>
+    </div>
+    <div id="talk"></div>
+    <div class="ctrl">
+      <button onclick="goHome()">⌂ 首頁</button>
+      <button onclick="prevQ()">◀ 上一題</button>
+      <button onclick="hint()">💡 提示</button>
+      <button class="main" onclick="primary()" id="mainBtn">揭曉答案</button>
+    </div>
+    <div class="keys">點圖片或按 ← → 直接作答　空白鍵 揭曉／下一題　H 提示　M 靜音</div>
+    <div class="stamp" id="stamp">答對了！</div>
+  </section>
+
+  <section id="done" class="screen">
+    <h2>🎉 完成了！</h2>
+    <p>18 題都比完了！<br>大家剛剛最有印象的是哪一題？</p>
+    <div class="row"><button onclick="start()">再玩一次</button><button class="alt" onclick="goHome()">⌂ 回首頁</button></div>
+  </section>
+
+</div></div>
+
+<script>
+// a＝比較快（正確答案）、b＝比較慢；i＝圖檔、n＝名稱、c＝提示線索；t＝聊聊看
+// SIDES：正確答案放左(0)或右(1)，左右各 9 題
+const QS = [
+  {a:{i:'rabbit',n:'兔子',c:'跑跑跳跳'}, b:{i:'turtle',n:'烏龜',c:'慢慢爬'}, t:'龜兔賽跑的故事，最後是誰贏？'},
+  {a:{i:'run',n:'跑步',c:'大步往前跑'}, b:{i:'walk',n:'走路',c:'慢慢散步'}, t:'您年輕時跑得快嗎？'},
+  {a:{i:'dog',n:'小狗',c:'一下就跑到'}, b:{i:'snail',n:'蝸牛',c:'慢慢爬'}, t:'家裡有養過狗嗎？叫什麼名字？'},
+  {a:{i:'tze',n:'火車',c:'時速約 100 公里'}, b:{i:'oxcart',n:'牛車',c:'跟走路差不多'}, t:'以前看過牛車載甘蔗嗎？'},
+  {a:{i:'wolf',n:'野狼 125',c:'時速約 60 公里'}, b:{i:'bike',n:'腳踏車',c:'時速約 15 公里'}, t:'您的第一台機車是什麼？載過誰？'},
+  {a:{i:'taxi',n:'計程車',c:'時速約 50 公里'}, b:{i:'pedicab',n:'三輪車',c:'靠人力踩'}, t:'您坐過三輪車嗎？'},
+  {a:{i:'pedicab',n:'三輪車',c:'時速約 10 公里'}, b:{i:'oxcart',n:'牛車',c:'時速約 3 公里'}, t:'以前街上還有三輪車嗎？'},
+  {a:{i:'elevator',n:'搭電梯',c:'10 樓約 30 秒'}, b:{i:'stairs',n:'爬樓梯',c:'10 樓要好幾分鐘'}, t:'您家住幾樓？平常搭電梯還是爬樓梯？'},
+  {a:{i:'fire',n:'消防車',c:'鳴笛趕去救火'}, b:{i:'garbage',n:'垃圾車',c:'一站一站停下來'}, t:'垃圾車的音樂，您會哼嗎？'},
+  {a:{i:'ambulance',n:'救護車',c:'鳴笛，大家要讓路'}, b:{i:'car',n:'汽車',c:'要停紅綠燈'}, t:'聽到救護車的聲音，要怎麼讓路？'},
+  {a:{i:'horse',n:'馬',c:'時速約 50 公里'}, b:{i:'buffalo',n:'水牛',c:'慢慢走'}, t:'以前家裡有養牛嗎？'},
+  {a:{i:'racingpigeon',n:'賽鴿',c:'時速約 70 公里'}, b:{i:'rooster',n:'雞',c:'不太會飛'}, t:'以前鄰居有人養鴿子嗎？'},
+  {a:{i:'plane',n:'坐飛機去澎湖',c:'約 1 小時內'}, b:{i:'ferry',n:'坐船去澎湖',c:'約 2～4 小時'}, t:'您去過哪些離島？'},
+  {a:{i:'phone',n:'打電話',c:'馬上聽到聲音'}, b:{i:'letter',n:'寫信',c:'要等好幾天'}, t:'以前打長途電話很貴嗎？'},
+  {a:{i:'downhill',n:'下山',c:'順著坡往下走'}, b:{i:'uphill',n:'上山',c:'要用力往上爬'}, t:'爬山時，上山累還是下山累？'},
+  {a:{i:'tze',n:'自強號',c:'只停大站'}, b:{i:'local',n:'區間車',c:'每一站都停'}, t:'以前坐火車都去哪裡？'},
+  {a:{i:'hsr',n:'高鐵',c:'時速約 300 公里'}, b:{i:'tze',n:'自強號',c:'時速約 130 公里'}, t:'您坐過高鐵嗎？去哪裡玩？'},
+  {a:{i:'pigeonmail',n:'飛鴿傳書',c:'當天就飛到'}, b:{i:'mailbox',n:'郵局寄信',c:'大約隔天才到'}, t:'您最後一次寄信給誰？'}
+];
+const SIDES = [1,0,0,1,0,1,1,0,1,0,0,1,0,1,1,0,1,0];
+
+let qi = 0, chosen = -1, revealed = false, hintLv = 0;
+let muted = false, actx = null;
+try { muted = localStorage.getItem('cmpMute') === '1'; } catch(e) {}
+// 答對音效：WebAudio 合成上行和弦，音量低
+function ding(){
+  if(muted) return;
+  try {
+    actx = actx || new (window.AudioContext||window.webkitAudioContext)();
+    if(actx.state==='suspended') actx.resume();
+    const t0 = actx.currentTime;
+    [523.25,659.25,783.99,1046.5].forEach((f,i)=>{
+      const o = actx.createOscillator(), g = actx.createGain();
+      o.type = 'triangle'; o.frequency.value = f;
+      const t = t0 + i*0.09;
+      g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(0.16,t+0.02); g.gain.exponentialRampToValueAtTime(0.001,t+0.6);
+      o.connect(g).connect(actx.destination); o.start(t); o.stop(t+0.65);
+    });
+  } catch(e) {}
+}
+function toggleMute(){
+  muted = !muted;
+  try { localStorage.setItem('cmpMute', muted?'1':'0'); } catch(e) {}
+  $('#muteBtn').textContent = muted ? '🔇' : '🔊';
+}
+// 答對特效：卡片周圍噴星星
+function burst(el){
+  const st = $('#stage').getBoundingClientRect(), k = st.width / $('#stage').offsetWidth, r = el.getBoundingClientRect();
+  const cx = (r.left + r.width/2 - st.left)/k, cy = (r.top + r.height/2 - st.top)/k;
+  const icons = ['⭐','✨','🎉','🌟'];
+  for(let i=0;i<18;i++){
+    const s = document.createElement('span'); s.className = 'spark';
+    s.textContent = icons[i%icons.length];
+    const a = Math.PI*2*i/18, d = 260 + Math.random()*140;
+    s.style.left = cx+'px'; s.style.top = cy+'px';
+    s.style.setProperty('--dx', Math.cos(a)*d+'px'); s.style.setProperty('--dy', Math.sin(a)*d+'px'); s.style.setProperty('--rot', (Math.random()*360-180)+'deg');
+    $('#stage').appendChild(s); setTimeout(()=>s.remove(), 1200);
+  }
+  const sp = $('#stamp'); sp.classList.remove('on'); void sp.offsetWidth; sp.classList.add('on');
+}
+const $ = s => document.querySelector(s);
+
+function fit(){
+  const p = innerHeight > innerWidth;
+  document.body.classList.toggle('portrait', p);
+  const W = p ? 1080 : 1920, H = p ? 1920 : 1080;
+  $('#stage').style.transform = `scale(${Math.min(innerWidth/W, innerHeight/H)})`;
+}
+addEventListener('resize', fit); fit();
+$('#muteBtn').textContent = muted ? '🔇' : '🔊';
+// 預載圖片，換題不閃
+QS.forEach(q => [q.a.i, q.b.i].forEach(k => { new Image().src = `img/${k}.jpg`; }));
+
+function show(id){ document.querySelectorAll('.screen').forEach(s=>s.classList.toggle('on', s.id===id)); }
+function goHome(){ show('home'); }
+function start(){ qi = 0; showQ(); }
+function showQ(){
+  show('play');
+  const q = QS[qi], ans = SIDES[qi];
+  $('#prog').textContent = `第 ${qi+1} ／ ${QS.length} 題`;
+  const items = ans===0 ? [q.a,q.b] : [q.b,q.a];
+  ['#cL','#cR'].forEach((sel,i)=>{
+    const el = $(sel), it = items[i];
+    el.className = 'card';
+    el.querySelector('img').src = `img/${it.i}.jpg`;
+    el.querySelector('.name').textContent = it.n;
+    const clue = el.querySelector('.clue');
+    clue.textContent = it.c; clue.style.opacity = 0;
+  });
+  chosen = -1; revealed = false; hintLv = 0;
+  $('#talk').classList.remove('on'); $('#talk').innerHTML = '';
+  $('#mainBtn').textContent = '揭曉答案';
+}
+function choose(i){
+  if(revealed) return;
+  chosen = i;
+  reveal();
+}
+// 提示降階：①比較詞跳動 ②兩邊出現線索 ③正確答案閃
+function hint(){
+  if(revealed) return;
+  hintLv++;
+  if(hintLv===1){
+    const k = $('#q .kw'); k.classList.remove('pulse'); void k.offsetWidth; k.classList.add('pulse');
+  } else if(hintLv===2){
+    document.querySelectorAll('.card .clue').forEach(c=>c.style.opacity = 1);
+  } else {
+    const el = SIDES[qi]===0 ? $('#cL') : $('#cR');
+    el.classList.remove('glow'); void el.offsetWidth; el.classList.add('glow');
+  }
+}
+function reveal(){
+  if(revealed) return;
+  revealed = true;
+  const q = QS[qi], ans = SIDES[qi];
+  const R = ans===0 ? $('#cL') : $('#cR'), W = ans===0 ? $('#cR') : $('#cL');
+  R.classList.remove('glow'); R.classList.add('right');
+  W.classList.add('dim');
+  document.querySelectorAll('.card .clue').forEach(c=>c.style.opacity = 1);
+  let head = '';
+  if(chosen===ans){ head = '<b>答對了！</b>　'; burst(R); ding(); }
+  else if(chosen!==-1){ head = `答案是<b>${ans===0?'左邊':'右邊'}</b>的${q.a.n}。　`; W.classList.add('shake'); }
+  $('#talk').innerHTML = `${head}💬 聊聊看：${q.t}`;
+  $('#talk').classList.add('on');
+  $('#mainBtn').textContent = qi < QS.length-1 ? '下一題 ▶' : '完成 ▶';
+}
+function primary(){ revealed ? nextQ() : reveal(); }
+function nextQ(){ if(qi < QS.length-1){ qi++; showQ(); } else show('done'); }
+function prevQ(){ if(qi>0){ qi--; showQ(); } }
+
+addEventListener('keydown', e=>{
+  const on = document.querySelector('.screen.on').id;
+  if(on==='play'){
+    if(e.key==='ArrowLeft') choose(0);
+    else if(e.key==='ArrowRight') choose(1);
+    else if(e.key===' '||e.key==='Enter'||e.key==='PageDown'){ e.preventDefault(); primary(); }
+    else if(e.key==='PageUp') prevQ();
+    else if(e.key==='h'||e.key==='H') hint();
+    else if(e.key==='Escape') goHome();
+    else if(e.key==='m'||e.key==='M') toggleMute();
+  } else if(e.key===' '||e.key==='Enter'||e.key==='PageDown'){ e.preventDefault(); start(); }
+});
+</script>
+<script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "3df68cf5d6bd4975b97a157f7ff3cafb"}'></script>
+</body>
+</html>
