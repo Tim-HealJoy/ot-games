@@ -177,6 +177,7 @@
   .sec th,.sec td{border:1px solid var(--line);padding:7px 9px;text-align:left;vertical-align:top}
   .sec th{background:rgba(34,32,28,.05)}
   .tblwrap{overflow-x:auto}
+  #nav li.part{font-size:.78rem;font-weight:700;color:var(--c);padding:10px 10px 2px;list-style:none;letter-spacing:.02em}
   tr.pnfrow td{background:#FFF3C4;border-top:2px solid #E0A100;border-bottom:2px solid #E0A100}
   .pnfmark{display:inline-block;background:#D9480F;color:#fff;font-weight:700;font-size:.8rem;padding:2px 8px;border-radius:999px;margin:0 6px 4px 0;white-space:nowrap}
   .pnfnote{border:2px solid #D9480F;background:#FFF3C4;border-radius:12px;padding:12px 14px;margin:10px 0 4px}
@@ -245,7 +246,7 @@
       const closed = openMods[m.id]===false || (openMods[m.id]===undefined && !active && mi>0);
       return `<div class="mod ${closed?'closed':''}" style="--c:${m.color}" data-m="${m.id}">
         <button type="button"><span class="n">${mi}</span>${esc(m.title)}<span class="caret">▾</span></button>
-        <ul>${m.lessons.map(l => `<li><a href="#${l.id}" class="${l.id===cur?'cur':''}">
+        <ul>${m.lessons.map(l => `${(m.parts||[]).filter(p=>p.lessons[0]===l.id).map(p=>`<li class="part">${esc(p.label)}</li>`).join('')}<li><a href="#${l.id}" class="${l.id===cur?'cur':''}">
           <span class="st ${done(l.id)?'done':''}">${done(l.id)?'✓':''}</span>${esc(l.id)}　${esc(l.title)}</a></li>`).join('')}</ul>
       </div>`;
     }).join('');
@@ -279,7 +280,7 @@
       </div>
       <div class="path">
         ${C.modules.map((m,mi) => `<a class="pcard" style="--c:${m.color}" href="#${m.lessons[0].id}">
-          <b>模組 ${mi}｜${esc(m.title)}</b><span>${esc(m.intro)}</span>
+          <b>單元 ${mi}｜${esc(m.title)}${m.book?'（'+esc(m.book)+'）':''}</b><span>${esc(m.intro)}</span>
           <em class="cnt">${m.lessons.length} 課・已完成 ${m.lessons.filter(l=>done(l.id)).length}</em></a>`).join('')}
       </div>
       <div class="sec" style="--c:var(--m5)">
@@ -348,15 +349,17 @@
       </div>`).join('');
 
     $('#main').innerHTML = `
-      <p class="crumb" style="--c:${m.color}">模組 ${mi}｜${esc(m.title)}</p>
+      <p class="crumb" style="--c:${m.color}">單元 ${mi}｜${esc(m.title)}${(m.parts||[]).filter(p=>p.lessons.includes(L.id)).map(p=>'｜'+esc(p.label)).join('')}</p>
       <h2 class="title">${esc(L.id)}　${esc(L.title)}</h2>
-      <div class="meta"><span>⏱ 約 ${L.minutes||20} 分鐘</span>${L.en?`<span>EN：${esc(L.en)}</span>`:''}${done(L.id)?'<span class="done-badge">✓ 已完成</span>':''}</div>
+      <div class="meta"><span>⏱ 約 ${L.minutes||20} 分鐘</span>${L.en?`<span>EN：${esc(L.en)}</span>`:''}${L.book?`<span>📖 ${esc(L.book)}</span>`:''}${done(L.id)?'<span class="done-badge">✓ 已完成</span>':''}</div>
 
       <div class="sec" style="--c:${m.color}"><h3><span class="tag">目標</span>學完你會</h3>${list(L.goals)}</div>
 
       ${L.pre?`<div class="sec" style="--c:${m.color}"><h3><span class="tag">概念</span>先懂這是什麼</h3>${L.pre}</div>`:''}
 
-      ${S.keypoints?`<div class="sec" style="--c:${m.color}"><h3><span class="tag">理論</span>核心觀念</h3>${list(S.keypoints)}</div>`:''}
+      ${S.keypoints||S.when||S.avoid?`<div class="sec" style="--c:${m.color}"><h3><span class="tag">理論</span>核心觀念</h3>${list(S.keypoints)}
+        ${S.when?`<div class="callout ok"><b>什麼時候用</b>${list(S.when)}</div>`:''}
+        ${S.avoid?`<div class="callout"><b>什麼時候不要用／要小心</b>${list(S.avoid)}</div>`:''}</div>`:''}
 
       ${(L.sections||[]).map(x=>`<div class="sec" style="--c:${m.color}"><h3><span class="tag">${esc(x.tag)}</span>${esc(x.title)}</h3>${x.html}</div>`).join('')}
 
@@ -365,6 +368,7 @@
         ${L.stroke&&L.stroke.look&&L.stroke.look.length?`<div class="sub">看圖、看影片時注意</div>${list(L.stroke.look)}`:''}
         <p style="margin:12px 0;font-size:.92rem;color:var(--muted)">影片以 3 分鐘內的手法示範短片排在最前面，長片放在後面當延伸。來源以 IPNFA 官方、認證講師與大學物理治療系為主（英、日、德、西、韓、波蘭語等），看不懂語言也沒關係，請對照中文說明與時間軸看手怎麼放、往哪裡動；字幕可在播放器點 ⚙ 選「自動翻譯 → 中文（繁體）」。</p>
         ${vids}
+        ${L.videoNote&&L.videos&&L.videos.length?`<div class="callout info"><b>影片說明</b>${L.videoNote}</div>`:''}
         ${S.steps?`<div class="sub">操作步驟</div><ol>${S.steps.map(x=>`<li>${x}</li>`).join('')}</ol>`:''}
         ${S.mistakes?`<div class="sub">常見錯誤</div>${list(S.mistakes)}`:''}
       </div>`:(L.videoNote?`<div class="callout info"><b>本課沒有影片</b>${L.videoNote}</div>`:'')}

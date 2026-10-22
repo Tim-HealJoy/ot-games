@@ -3,7 +3,7 @@
 // marks：{type:"arrow", x1,y1,x2,y2, label, tone} 或 {type:"ring", x,y,r, label, tone}；tone＝warn｜ok｜info｜ink
 // ⚠️ 動作示範圖上線前須經老闆確認（review:"pending" 尚未確認）
 window.PNF_FIGURES = {
- "0-2": [
+ "1-3": [
   {
    "src": "img/0-3_spindle.webp",
    "ratio": 0.5822,
@@ -23,7 +23,7 @@ window.PNF_FIGURES = {
    "credit": "Neuromechanics, Wikimedia Commons, Public domain（File:Tendon organ model.jpg）"
   }
  ],
- "2-2": [
+ "2-3": [
   {
    "src": "img/2-2_ant_elev.webp",
    "ratio": 0.6667,
@@ -39,7 +39,7 @@ window.PNF_FIGURES = {
    "credit": "本站以 AI 繪製之示意圖（非真人照片）"
   }
  ],
- "4-2": [
+ "3-1": [
   {
    "src": "img/4-2_bridge.webp",
    "ratio": 0.6667,
@@ -55,7 +55,7 @@ window.PNF_FIGURES = {
    "credit": "本站以 AI 繪製之示意圖（非真人照片）；手位依 Beckers & Buck (2021) 書頁 217–220"
   }
  ],
- "4-3": [
+ "3-4": [
   {
    "src": "img/4-3_photo_sitting.webp",
    "ratio": 1.5075,
@@ -85,7 +85,7 @@ window.PNF_FIGURES = {
    "credit": "本站以 AI 繪製之示意圖（非真人照片）"
   }
  ],
- "4-4": [
+ "3-5": [
   {
    "src": "img/4-4_sprinter_supine.webp",
    "ratio": 0.6667,
@@ -134,7 +134,7 @@ window.PNF_FIGURES = {
    "credit": "本站以 AI 繪製之示意圖（非真人照片）"
   }
  ],
- "3-2": [
+ "1-11": [
   {
    "src": "img/3-2_ri.webp",
    "ratio": 0.6667,
@@ -143,7 +143,7 @@ window.PNF_FIGURES = {
    "credit": "本站以 AI 繪製之示意圖（非真人照片）"
   }
  ],
- "3-3": [
+ "1-12": [
   {
    "src": "img/3-3_coi.webp",
    "ratio": 0.6667,
@@ -156,7 +156,7 @@ window.PNF_FIGURES = {
    "credit": "本站以 AI 繪製之示意圖（非真人照片）"
   }
  ],
- "3-5": [
+ "1-14": [
   {
    "src": "img/3-5_rs.webp",
    "ratio": 0.6667,
@@ -169,7 +169,7 @@ window.PNF_FIGURES = {
    "credit": "本站以 AI 繪製之示意圖（非真人照片）"
   }
  ],
- "3-7": [
+ "1-16": [
   {
    "src": "img/3-7_hr.webp",
    "ratio": 0.6667,
@@ -188,7 +188,7 @@ window.PNF_FIGURES = {
    "credit": "Gonzales, J. (2021). Physical therapy: Run, walk, run again [Photograph]. U.S. Air Force; Wikimedia Commons. Public domain"
   }
  ],
- "4-5": [
+ "4-2": [
   {
    "src": "img/4-5_hand.webp",
    "ratio": 0.6667,
@@ -204,7 +204,7 @@ window.PNF_FIGURES = {
    "credit": "本站以 AI 繪製之示意圖（非真人照片）；手位依 Beckers & Buck (2021) 書頁 136"
   }
  ],
- "1-2": [
+ "1-7": [
   {
    "src": "img/1-2_verbal.webp",
    "ratio": 0.6667,
@@ -267,7 +267,7 @@ window.PNF_FIGURES = {
    "credit": "本站以 AI 繪製之示意圖（非真人照片）"
   }
  ],
- "1-5": [
+ "1-8": [
   {
    "src": "img/1-5_traction.webp",
    "ratio": 0.6667,
@@ -301,7 +301,7 @@ window.PNF_FIGURES = {
    "credit": "本站以 AI 繪製之示意圖（非真人照片）"
   }
  ],
- "1-1": [
+ "1-6": [
   {
    "src": "img/1-1_touch.webp",
    "ratio": 0.6667,
@@ -310,7 +310,7 @@ window.PNF_FIGURES = {
    "credit": "本站以 AI 繪製之示意圖（非真人照片）；手位依 Beckers & Buck (2021) 書頁 24"
   }
  ],
- "1-3": [
+ "1-4": [
   {
    "src": "img/1-3_resist.webp",
    "ratio": 0.6667,
@@ -319,7 +319,7 @@ window.PNF_FIGURES = {
    "credit": "本站以 AI 繪製之示意圖（非真人照片）；手位依 Beckers & Buck (2021) 書頁 103–107"
   }
  ],
- "1-6": [
+ "1-9": [
   {
    "src": "img/1-6_timing.webp",
    "ratio": 0.6667,
@@ -328,7 +328,7 @@ window.PNF_FIGURES = {
    "credit": "本站以 AI 繪製之示意圖（非真人照片）；手位依 Beckers & Buck (2021) 書頁 157"
   }
  ],
- "2-1": [
+ "2-2": [
   {
    "src": "img/2-1_ant_elev.webp",
    "ratio": 0.6667,
@@ -344,7 +344,7 @@ window.PNF_FIGURES = {
    "credit": "本站以 AI 繪製之示意圖（非真人照片）；手位依 Beckers & Buck (2021) 書頁 84–85"
   }
  ],
- "2-3": [
+ "2-4": [
   {
    "src": "img/2-3_ue_grip.webp",
    "ratio": 0.6667,
@@ -360,7 +360,7 @@ window.PNF_FIGURES = {
    "credit": "本站以 AI 繪製之示意圖（非真人照片）；手位依 Beckers & Buck (2021) 書頁 105–107"
   }
  ],
- "2-4": [
+ "2-5": [
   {
    "src": "img/2-4_le_flex.webp",
    "ratio": 0.6667,
@@ -376,7 +376,7 @@ window.PNF_FIGURES = {
    "credit": "本站以 AI 繪製之示意圖（非真人照片）；手位依 Beckers & Buck (2021) 書頁 163–164"
   }
  ],
- "3-6": [
+ "1-15": [
   {
    "src": "img/3-6_repstretch.webp",
    "ratio": 0.6667,
@@ -385,7 +385,7 @@ window.PNF_FIGURES = {
    "credit": "本站以 AI 繪製之示意圖（非真人照片）；手位依 Beckers & Buck (2021) 書頁 47–49"
   }
  ],
- "2-5": [
+ "2-7": [
   {
    "src": "img/2-5_chop.webp",
    "ratio": 0.6667,
@@ -401,7 +401,7 @@ window.PNF_FIGURES = {
    "credit": "本站以 AI 繪製之示意圖（非真人照片）；手位依 Beckers & Buck (2021) 書頁 200–201"
   }
  ],
- "3-4": [
+ "1-13": [
   {
    "src": "img/3-4_dr.webp",
    "ratio": 0.6667,
