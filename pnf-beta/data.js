@@ -203,15 +203,6 @@ window.PNF_COURSE = {
      "pre": "<p>PNF 不是單獨存在的一套療法。書中把選擇治療方式的因素整理成一張圖（Fig. 1.1）：詳細的評估與量測、治療師的經驗、動作控制與動作學習的知識、實證醫療（evidence-based practice），再加上社會與文化的影響。PNF 的原則與技巧放在這個架構裡使用（Beckers & Buck, 2021, p. 2）。</p><p>評估與設定目標的共同語言是 WHO 的 <b>ICF</b>（International Classification of Functioning, Disability and Health）。下表用書中的 Mr. B. 案例說明五個面向。Mr. B. 是一位 60 歲的工程主管，第二次罹患重度 Guillain–Barré 症候群，在加護病房插管住了很久（Beckers & Buck, 2021, p. 3；以下為轉述摘要）。</p><div class='tblwrap'><table><thead><tr><th>ICF 面向</th><th>先記錄：做得到、保留的</th><th>再記錄：問題與限制</th></tr></thead><tbody><tr><td>身體結構與功能</td><td>關節活動度良好、軀幹穩定；下肢近端肌力 4 級、遠端 3 級；意識清楚、動機強</td><td>全身含臉部無力、上肢關節活動受限、手部感覺異常與水腫、疼痛、呼吸問題</td></tr><tr><td>活動</td><td>能用腳推動輪椅，能自己從輪椅轉位到床</td><td>不能走路；日常生活幾乎全需協助；臉部麻痺使說話不清，吃喝困難；不能開車、不能整理花園</td></tr><tr><td>參與</td><td>週末可以回家，子孫來探望</td><td>無法工作；路途遠，不能去看子孫；避免上餐廳吃飯</td></tr><tr><td>個人因素</td><td colspan='2'>社會地位、個性、年齡、第二次發病，都影響他對目標的期待</td></tr><tr><td>環境因素</td><td colspan='2'>工作與嗜好的要求，決定需要恢復哪些身體能力（書中另舉樓梯、無障礙環境為例）</td></tr></tbody></table></div><p>目標由治療團隊與病人一起討論決定。書中把這種方式稱為 <b>dialog-driven</b>（對話導向），既不是只由醫療端決定（supply-driven），也不是只聽病人要求（demand-driven）。每個目標再用 <b>SMART</b> 寫成可檢驗的目標（Beckers & Buck, 2021, pp. 3–4）：</p><div class='tblwrap'><table><thead><tr><th>SMART</th><th>意思</th><th>Mr. B. 的寫法（轉述）</th></tr></thead><tbody><tr><td><b>S</b> specific 具體</td><td>針對這位病人自己的目標</td><td>日常生活完全自理</td></tr><tr><td><b>M</b> measurable 可測量</td><td>用活動表現與量表記錄進步</td><td>自己盥洗、穿衣、脫衣</td></tr><tr><td><b>A</b> acceptable 可接受</td><td>病人與團隊都認同</td><td>本人與團隊都期待他最後能自己完成所有日常活動</td></tr><tr><td><b>R</b> realistic 實際</td><td>是做得到的目標</td><td>雖有動作與感覺缺損，判斷仍可能完全自理</td></tr><tr><td><b>T</b> time related 有時限</td><td>在合理時間內完成</td><td>討論階段目標與最終目標；4 個月後完全自理</td></tr></tbody></table></div><p>本課後半說明動作學習與動作控制：病人在哪個階段，決定 PNF 的徒手接觸、口令與阻力要給多少，以及什麼時候該放手。</p>",
      "videos": [
       {
-       "yt": "V5-_r9k5WR0",
-       "title": "「したい」を叶えるのが、リハビリテーション　\"娘とバージンロードを歩きたい\"",
-       "channel": "PNF チャンネル（松田現，IPNFA Advanced Instructor）",
-       "dur": "37 秒",
-       "lang": "日語標題（現場收音）",
-       "cc": "無",
-       "note": "參與層級目標的實例：病人的目標是「陪女兒走紅毯」，影片是婚禮當天的實際畫面。治療的終點在生活情境，不在治療室。"
-      },
-      {
        "yt": "85TOgIF-Tus",
        "title": "Philosophy from PNF - find patient interest for Motivation",
        "channel": "IPNF Association 官方頻道（講師訪談）",
@@ -282,7 +273,6 @@ window.PNF_COURSE = {
       "problem": "一位發病 2 個月的右側偏癱阿伯，病歷上的治療目標寫著「增加右下肢肌力」。問他想做什麼，他說：「想自己走到巷口的廟埕，跟老朋友下棋。」",
       "why": "ICF 把目標拉回參與層級。從「走到廟埕下棋」往回推，才知道要評估哪些活動（站起、走一段路、跨門檻、坐矮凳）與哪些身體功能；PNF 的技巧與促進量，再依他在這些活動中處於哪個學習期來調整（臨床推論）。",
       "look": [
-       "紅毯影片：目標是一個生活場景，觀察治療成果如何呈現在參與層級",
        "足球訪談：講師如何把病人的興趣轉成承重練習",
        "原則訪談：為什麼不能只用單一技巧的研究結果判斷 PNF"
       ]
@@ -3652,37 +3642,6 @@ window.PNF_COURSE = {
        "note": "IPNFA 講師示範：穩定反轉，再用上肢型態間接促進下肢承重（直式短片、無旁白）。"
       },
       {
-       "yt": "agGBc70Ij_A",
-       "title": "国際PNF協会認定アドバンスコースPNF3 治療実習結果報告",
-       "channel": "PNF チャンネル（松田現，IPNFA Advanced Instructor）",
-       "dur": "2 分 6 秒",
-       "lang": "日語",
-       "cc": "自動字幕",
-       "note": "PNF 3 課程 4 天治療實習的成果報告：頸椎個案喝水時肩胛上提代償明顯。學員先讓肩胛穩定在下壓位置，再加強肱二頭肌，並用骨盆前上提等較強的部位帶動，最後以「能順利喝水」當作再測的功能結果。",
-       "timeline": [
-        {
-         "t": "0:27",
-         "text": "講師說明個案：頸椎個案，一開始喝水很吃力，代償明顯"
-        },
-        {
-         "t": "0:50",
-         "text": "學員一：喝水時肩胛會上提，先讓前鋸肌作用、把肩胛穩定在下壓位置"
-        },
-        {
-         "t": "1:06",
-         "text": "學員二：肩胛穩定後，再加強肱二頭肌"
-        },
-        {
-         "t": "1:19",
-         "text": "在上肢抓握固定的閉鎖鏈姿勢下，用骨盆前上提帶動，運用較強的部位"
-        },
-        {
-         "t": "1:46",
-         "text": "結果：個案能順利喝水"
-        }
-       ]
-      },
-      {
        "yt": "sYQmJavIx8o",
        "title": "PNF Approach – Indirect Treatment with UE Flex-Abd-ER",
        "channel": "Damian Kapturski（IPNFA Instructor，波蘭）",
@@ -3757,8 +3716,7 @@ window.PNF_COURSE = {
       "look": [
        "Grzebellus 講座：擺位如何決定擴散方向",
        "Byungki Lee 示範：穩定反轉後，如何用上肢型態帶動下肢承重",
-       "單腳站 19 秒：阻力位置與站立腳的反應",
-       "PNF 3 成果報告：治療設計怎麼從「喝水時肩胛上提」這個問題出發，最後用「能不能順利喝水」再測"
+       "單腳站 19 秒：阻力位置與站立腳的反應"
       ]
      },
      "quiz": [
