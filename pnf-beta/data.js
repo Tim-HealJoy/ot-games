@@ -641,7 +641,7 @@ window.PNF_COURSE = {
     },
     {
      "id": "1-4",
-     "title": "最適阻力 Optimal resistance",
+     "title": "最適阻力：給多少、往哪個方向",
      "en": "Optimal resistance",
      "minutes": 20,
      "book": "Ch 2 導言、2.1（pp. 18–22）",
@@ -830,7 +830,7 @@ window.PNF_COURSE = {
     },
     {
      "id": "1-5",
-     "title": "擴散與強化 Irradiation & reinforcement",
+     "title": "擴散與強化：用強帶弱",
      "en": "Irradiation & reinforcement",
      "minutes": 30,
      "book": "Ch 2.2（pp. 22–23）",
@@ -1075,7 +1075,7 @@ window.PNF_COURSE = {
     },
     {
      "id": "1-6",
-     "title": "徒手接觸與身體力學 Manual contact & body mechanics",
+     "title": "徒手接觸與身體力學：手放哪裡、身體怎麼站",
      "en": "Tactile stimulus (manual contact), body position & body mechanics",
      "minutes": 25,
      "book": "Ch 2.3–2.4（pp. 23–26）",
@@ -1318,7 +1318,7 @@ window.PNF_COURSE = {
     },
     {
      "id": "1-7",
-     "title": "口令與視覺刺激 Verbal & visual stimulation",
+     "title": "口令與視覺刺激：預備、動作、修正",
      "en": "Verbal stimulation (commands) & visual stimulus",
      "minutes": 20,
      "book": "Ch 2.5–2.6（pp. 26–27）",
@@ -1535,7 +1535,7 @@ window.PNF_COURSE = {
     },
     {
      "id": "1-8",
-     "title": "牽引、擠壓與牽拉 Traction, approximation & stretch",
+     "title": "牽引、擠壓與牽拉：促進動作與穩定",
      "en": "Traction, approximation & stretch",
      "minutes": 20,
      "book": "Ch 2.7–2.8（pp. 28–29）",
@@ -1765,7 +1765,7 @@ window.PNF_COURSE = {
     },
     {
      "id": "1-9",
-     "title": "時序與型態 Timing & patterns",
+     "title": "時序與型態：動作的順序與方向",
      "en": "Timing & patterns",
      "minutes": 20,
      "book": "Ch 2.9–2.10（p. 30）；型態細節見 Ch 5",
@@ -2065,7 +2065,7 @@ window.PNF_COURSE = {
     },
     {
      "id": "1-11",
-     "title": "節律啟動 Rhythmic initiation：協助起始、教會動作",
+     "title": "節律啟動：協助起始、教會動作",
      "en": "Rhythmic initiation",
      "minutes": 20,
      "book": "Ch 3.2（p. 39）",
@@ -2214,7 +2214,7 @@ window.PNF_COURSE = {
     },
     {
      "id": "1-12",
-     "title": "等張組合 Combination of isotonics：主動控制與離心訓練",
+     "title": "等張組合：主動控制與離心訓練",
      "en": "Combination of isotonics",
      "minutes": 20,
      "book": "Ch 3.3（pp. 40–41）",
@@ -2381,7 +2381,7 @@ window.PNF_COURSE = {
     },
     {
      "id": "1-13",
-     "title": "動態反轉 Dynamic reversals：不停頓地轉換方向",
+     "title": "動態反轉：不停頓地轉換方向",
      "en": "Dynamic reversals (incorporates slow reversal)",
      "minutes": 20,
      "book": "Ch 3.4.1（pp. 41–44）",
@@ -2429,6 +2429,7 @@ window.PNF_COURSE = {
        "<b>書中兩個換手範例</b>：上肢屈曲－外展轉伸展－內收：近端手先移到遠端，原本的遠端手再換到近端（Fig. 3.2）；下肢屈曲－內收轉伸展－外展：抵抗足背的手滑到足底（足背屈肌此時仍因近端手的擴散而活化），病人開始往下踢時，近端手也換到新方向（Fig. 3.3）（Beckers & Buck, 2021, pp. 42–43）。",
        "<b>三個要點</b>：只在一開始用一次牽拉反射，換方向時不再牽拉，因為拮抗肌還沒有處於張力下；換方向時只給阻力、不要協助；做肢體型態時，新方向要先從遠端啟動（Beckers & Buck, 2021, p. 44）。通常從較強的型態開始、以較弱的型態結束，但不要讓肢體停在半空中（Beckers & Buck, 2021, p. 42）。",
        "<b>書中的變化</b>：不一定做全範圍，可只在需要控制的範圍反轉，例如只在範圍末端；可改變一個或兩個方向的速度；可從小範圍開始，隨能力增加範圍，也可逐漸縮小範圍直到兩個方向都穩定；可在任何一點或範圍末端，於反轉前或反轉後請病人穩定住（Beckers & Buck, 2021, p. 43）。",
+       "<b>其他教材的三種變化</b>（出自傳統 Knott 與 Voss 體系教材，<i>PNF in Practice</i> 未收錄；本站未逐頁核對原文）：① <b>慢反轉維持</b>（slow reversal-hold）：兩個方向交替時，在每個方向的末端加上短暫的等長維持，增加末端穩定；② <b>慢反轉</b>（slow reversal）：舊教材的名稱，本書已把它併入動態反轉，操作上放慢反轉速度、著重平順協調；用於小腦損傷或帕金森病人屬臨床推論；③ <b>節律性旋轉</b>（rhythmic rotation）：在肢體的長軸上，於可動範圍內緩慢、有節奏地來回旋轉，用於放鬆與增加活動範圍，放鬆後再帶到新範圍（Voss et al., 1985）。",
        "<b>強化與疲勞</b>：從較強的方向開始，反轉後可把擴散帶到較弱的肌肉；主動肌開始疲勞時就反轉；以肌力為目標時，每次換方向都加大阻力，口令要求更多力量（Beckers & Buck, 2021, p. 43）。做完重複牽拉，立刻接動態反轉，可緩解疲勞（Beckers & Buck, 2021, p. 38）。"
       ],
       "when": [
@@ -2524,12 +2525,13 @@ window.PNF_COURSE = {
      ],
      "practice": "<p>夥伴坐在床邊。你一手放在胸骨、一手放在背部，先給「往前推向我」的阻力，接近末端時說「準備」並把一手換到背部，再說「現在往後」，換第二隻手，來回 10 次，不停頓。再做下肢屈曲－內收轉伸展－外展的動態反轉 10 次，練習「抵抗足背的手滑到足底」的換手順序。最後在每個方向末端各停 2 秒，再反轉。</p>",
      "refs": [
-      "Beckers, D., & Buck, M. (2021). <i>PNF in practice: An illustrated guide</i> (5th ed.). Springer. https://doi.org/10.1007/978-3-662-61818-9"
+      "Beckers, D., & Buck, M. (2021). <i>PNF in practice: An illustrated guide</i> (5th ed.). Springer. https://doi.org/10.1007/978-3-662-61818-9",
+      "Voss, D. E., Ionta, M. K., & Myers, B. J. (1985). <i>Proprioceptive neuromuscular facilitation: Patterns and techniques</i> (3rd ed.). Harper & Row."
      ]
     },
     {
      "id": "1-14",
-     "title": "穩定反轉與節律穩定 Stabilizing reversals & rhythmic stabilization：增加穩定與平衡",
+     "title": "穩定反轉與節律穩定：增加穩定與平衡",
      "en": "Stabilizing reversals & rhythmic stabilization",
      "minutes": 25,
      "book": "Ch 3.4.2–3.4.3（pp. 44–47）",
@@ -2720,7 +2722,7 @@ window.PNF_COURSE = {
     },
     {
      "id": "1-15",
-     "title": "重複牽拉 Repeated stretch：促進起始、增加肌力",
+     "title": "重複牽拉：促進起始、增加肌力",
      "en": "Repeated stretch (repeated contractions)",
      "minutes": 20,
      "book": "Ch 3.5（pp. 47–50）",
@@ -2875,7 +2877,7 @@ window.PNF_COURSE = {
     },
     {
      "id": "1-16",
-     "title": "收縮放鬆與維持放鬆 Contract–relax & hold–relax：增加被動活動度",
+     "title": "收縮放鬆與維持放鬆：增加被動活動度",
      "en": "Contract–relax & hold–relax",
      "minutes": 20,
      "book": "Ch 3.6–3.7（pp. 50–54）",
@@ -3076,7 +3078,7 @@ window.PNF_COURSE = {
     },
     {
      "id": "1-17",
-     "title": "複製 Replication：教會功能活動的終點位置",
+     "title": "複製：教會功能活動的終點位置",
      "en": "Replication",
      "minutes": 15,
      "book": "Ch 3.8（pp. 54–55）",
