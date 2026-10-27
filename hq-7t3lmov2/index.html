@@ -1,0 +1,503 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>復能小遊戲｜施昱廷 職能治療師</title>
+<meta name="description" content="職能治療師設計的復能小遊戲。有的用鏡頭練動作、有的點螢幕練動腦，不用買設備、不用穿戴，一台手機或電腦就能玩。免費分享，歡迎給我建議。">
+<link rel="icon" href="/favicon.png">
+<link rel="apple-touch-icon" href="/mole/icon-180.png">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="復能小遊戲">
+<meta property="og:title" content="復能小遊戲｜施昱廷 職能治療師">
+<meta property="og:description" content="不用買設備、不用穿戴，一台手機或電腦就能玩的復能訓練小遊戲。動作訓練與認知訓練都有，免費分享。">
+<meta name="robots" content="noindex, nofollow">
+<meta property="og:image" content="https://games.otshih.com/mole/share.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:locale" content="zh_TW">
+<meta name="twitter:card" content="summary_large_image">
+<style>
+  :root{
+    --bg:#F4EFE3; --card:#FAF6EE; --ink:#22201C; --muted:#6B6459;
+    --line:#E2D9C7; --accent:#8A6A3B;
+    --move:#C4622F;   /* 練身手 暖橘 */
+    --mind:#3F6293;   /* 練頭腦 靛藍 */
+    --power:#5E7A32;  /* 練體力 橄欖綠 */
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{margin:0;background:var(--bg);color:var(--ink);
+       font-family:"PingFang TC","Noto Sans TC","Helvetica Neue",Arial,sans-serif;
+       line-height:1.7;-webkit-text-size-adjust:100%}
+  a{color:inherit}
+  .wrap{max-width:960px;margin:0 auto;padding:40px 20px 64px}
+
+  /* ---------- Hero ---------- */
+  .hero{text-align:center;margin-bottom:40px}
+  .hero h1{font-size:2rem;margin:0 0 8px;letter-spacing:.03em}
+  .hero .sub{color:var(--muted);font-size:1rem;margin:0 0 18px}
+  .hero .tagline{max-width:640px;margin:0 auto 24px;font-size:1.02rem;color:var(--ink)}
+  .hero .tagline b{font-weight:600}
+  .chips{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
+  .chip{display:inline-flex;align-items:center;gap:6px;min-height:44px;
+        padding:8px 20px;border-radius:24px;text-decoration:none;font-size:1rem;font-weight:600;
+        background:var(--card);border:1.5px solid var(--c,var(--line));color:var(--c,var(--ink));
+        transition:transform .15s ease, box-shadow .15s ease}
+  .chip:hover{transform:translateY(-2px);box-shadow:0 6px 14px rgba(34,32,28,.12)}
+
+  /* ---------- 分類區 ---------- */
+  .cat{margin:0 0 44px;scroll-margin-top:20px}
+  .cat-head{margin-bottom:20px;padding-bottom:12px;border-bottom:3px solid var(--c)}
+  .cat-head h2{font-size:1.35rem;margin:0 0 4px;color:var(--c)}
+  .cat-head p{margin:0;color:var(--muted);font-size:.97rem}
+
+  .grid{display:grid;gap:20px;grid-template-columns:repeat(auto-fill,minmax(280px,1fr))}
+
+  /* ---------- 遊戲卡 ---------- */
+  .card{background:var(--card);border:1px solid var(--line);border-radius:16px;
+        overflow:hidden;display:flex;flex-direction:column;
+        transition:transform .18s ease, box-shadow .18s ease}
+  .card:hover{transform:translateY(-4px);box-shadow:0 12px 26px rgba(34,32,28,.14)}
+  .thumb{position:relative;aspect-ratio:16/9;overflow:hidden;background:#EDE5D6}
+  .thumb img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .3s ease}
+  .card:hover .thumb img{transform:scale(1.05)}
+  .cam{position:absolute;top:10px;left:10px;z-index:2;
+       background:rgba(250,246,238,.94);color:var(--ink);
+       font-size:.8rem;font-weight:600;padding:3px 11px;border-radius:14px;
+       border:1px solid var(--line)}
+  .body{padding:18px 20px 20px;display:flex;flex-direction:column;flex:1}
+  .body h3{font-size:1.2rem;margin:0 0 8px}
+  .desc{margin:0 0 14px;color:var(--muted);font-size:.96rem}
+  .tags{display:flex;flex-wrap:wrap;gap:7px;margin:0 0 18px}
+  .tags span{font-size:.82rem;color:var(--c);border:1px solid var(--c);
+             border-radius:20px;padding:2px 11px;white-space:nowrap}
+  .spacer{flex:1}
+  .btn{display:block;text-align:center;background:var(--ink);color:var(--bg);
+       text-decoration:none;padding:13px 20px;min-height:48px;border-radius:11px;
+       font-size:1.08rem;font-weight:600}
+  .btn:hover{opacity:.88}
+  .pro{margin:12px 0 0;font-size:.86rem;color:var(--muted);text-align:center}
+  .pro a{color:var(--accent)}
+
+  /* ---------- 即將上線卡 ---------- */
+  .card.soon{opacity:.72}
+  .card.soon:hover{transform:none;box-shadow:none}
+  .thumb.ph{display:flex;align-items:center;justify-content:center;background:var(--ph)}
+  .thumb.ph .emoji{font-size:3.4rem;line-height:1}
+  .ribbon{position:absolute;bottom:10px;right:10px;
+          background:var(--c);color:#fff;font-size:.82rem;font-weight:600;
+          padding:4px 14px;border-radius:16px}
+  .card.soon .placeholder-note{font-size:.9rem;color:var(--muted);margin:0}
+
+  /* ---------- 說明區塊 ---------- */
+  .howto,.feedback{background:var(--card);border:1px solid var(--line);border-radius:16px;
+        padding:24px 26px;margin-bottom:20px}
+  .howto h3,.feedback h3{font-size:1.1rem;margin:0 0 14px}
+  .howto ol{margin:0;padding-left:1.3em;font-size:.98rem}
+  .howto li{margin-bottom:10px} .howto li:last-child{margin-bottom:0}
+  .note{font-size:.9rem;color:var(--muted);margin-top:14px}
+  .feedback p{margin:0 0 18px;color:var(--muted);font-size:.98rem}
+  .btn.ghost{display:inline-block;background:none;color:var(--ink);
+             border:1.5px solid var(--ink);padding:12px 28px;font-size:1rem}
+
+  footer{margin-top:38px;padding-top:22px;border-top:1px solid var(--line);
+         font-size:.86rem;color:var(--muted);text-align:center}
+  footer p{margin:0 0 6px}
+  footer a{color:var(--accent)}
+
+  @media (max-width:520px){
+    .hero h1{font-size:1.6rem}
+    .wrap{padding:28px 16px 48px}
+    .chip{font-size:.95rem;padding:8px 16px}
+    .cat{margin-bottom:36px}
+  }
+</style>
+<script src="/open-in-browser.js"></script>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <h1>復能小遊戲</h1>
+    <p class="sub">施昱廷 職能治療師　設計與開發</p>
+    <p class="tagline">在長照現場，「運動」「訓練」這幾個字對長輩來說太像功課。
+      所以我把它們做成遊戲——<b>不用買設備、不用穿戴，一台手機或電腦就能玩</b>，
+      家屬、居服員、帶團體的老師都能直接帶著長輩開始。全部免費分享。</p>
+    <nav class="chips">
+      <a class="chip" style="--c:var(--move)"  href="#move">🏃 動一動・練身手</a>
+      <a class="chip" style="--c:var(--mind)"  href="#mind">🧠 想一想・練頭腦</a>
+      <a class="chip" style="--c:var(--power)" href="#power">💪 出出力・練體力</a>
+      <a class="chip" style="--c:#8A6A3B" href="#learn">📚 學一學・治療師自學</a>
+    </nav>
+  </header>
+
+  <!-- ===== 動作訓練 ===== -->
+  <section class="cat" id="move" style="--c:var(--move);--ph:#F6E7DC">
+    <div class="cat-head">
+      <h2>🏃 動一動・練身手</h2>
+      <p>伸手、揮手、反應快，把動作練靈活</p>
+    </div>
+    <div class="grid">
+
+      <article class="card">
+        <div class="thumb">
+          <span class="cam">需要鏡頭</span>
+          <img src="/mole/share.png" alt="趕走山豬 遊戲畫面" loading="lazy">
+        </div>
+        <div class="body">
+          <h3>🐗 趕走山豬</h3>
+          <p class="desc">山豬闖進農場了！打開鏡頭、揮手把牠們趕回洞裡，伸手轉身之間就把上肢和反應練到了。</p>
+          <div class="tags"><span>長輩自己會操作</span><span>先量活動範圍</span><span>玩完講白話成效</span></div>
+          <div class="spacer"></div>
+          <a class="btn" href="/mole/">開始玩 ▶</a>
+          <p class="pro">治療師想調患側、看臨床報表？用 <a href="/mole/pro/">治療師版</a></p>
+        </div>
+      </article>
+
+      <article class="card">
+        <div class="thumb">
+          <span class="cam">需要鏡頭</span>
+          <img src="/rhythm/share.png" alt="節奏律動 遊戲畫面" loading="lazy">
+        </div>
+        <div class="body">
+          <h3>🎵 節奏律動</h3>
+          <p class="desc">坐著也能玩的跳舞機！音符跟著音樂流過來，撞到圈圈的那一刻拍手或舉手。小朋友、爸媽、阿公阿嬤都能一起玩，給愛麗絲、藍色多瑙河、卡農，六首耳熟能詳的曲子任你選。</p>
+          <div class="tags"><span>小孩長輩都能玩</span><span>坐著、輪椅也行</span><span>自動調難度</span></div>
+          <div class="spacer"></div>
+          <a class="btn" href="/rhythm/">開始玩 ▶</a>
+          <p class="pro">團體課可切「投影模式」免鏡頭帶動唱　·　治療師設定可調靈敏度與喇叭延遲</p>
+        </div>
+      </article>
+
+      <article class="card soon">
+        <div class="thumb ph">
+          <span class="emoji">⭐</span>
+          <span class="ribbon">即將上線</span>
+        </div>
+        <div class="body">
+          <h3>⭐ 摘星星</h3>
+          <p class="desc">雙手輪流往上摘星星，練的是雙側伸取與跨過身體中線的動作。</p>
+          <div class="tags"><span>雙側伸取</span><span>跨中線</span></div>
+          <div class="spacer"></div>
+          <p class="placeholder-note">整理中，很快開放。</p>
+        </div>
+      </article>
+
+    </div>
+  </section>
+
+  <!-- ===== 認知訓練 ===== -->
+  <section class="cat" id="mind" style="--c:var(--mind);--ph:#E3E9F2">
+    <div class="cat-head">
+      <h2>🧠 想一想・練頭腦</h2>
+      <p>排一排、想一想，頭腦保持靈光</p>
+    </div>
+    <div class="grid">
+
+      <article class="card">
+        <div class="thumb">
+          <span class="cam">不用鏡頭</span>
+          <img src="/sudoku/share.png" alt="數獨大挑戰 遊戲畫面" loading="lazy">
+        </div>
+        <div class="body">
+          <h3>🧩 數獨大挑戰</h3>
+          <p class="desc">從 2×2 暖身一路玩到 9×9，八個關卡慢慢往上爬。每題只有一種答案、不用猜；卡住按提示，會告訴你「為什麼這格是 2」。</p>
+          <div class="tags"><span>8 級 78 題</span><span>投影、手機都能玩</span><span>附紙本 PDF</span></div>
+          <div class="spacer"></div>
+          <a class="btn" href="/sudoku/">開始玩 ▶</a>
+          <p class="pro">先點空格再點數字　·　<a href="/sudoku/sudoku.pdf">紙本版下載（含答案）</a></p>
+        </div>
+      </article>
+
+      <article class="card">
+        <div class="thumb">
+          <span class="cam">不用鏡頭</span>
+          <img src="/sequence/share.png" alt="生活排序王 遊戲畫面" loading="lazy">
+        </div>
+        <div class="body">
+          <h3>🔢 生活排序王</h3>
+          <p class="desc">把打散的字卡依正確順序點回來——數字大小、生肖排行、泡茶步驟、一天的作息，答完立刻知道對不對。</p>
+          <div class="tags"><span>22 道題目</span><span>不需任何權限</span><span>可當團體教案</span></div>
+          <div class="spacer"></div>
+          <a class="btn" href="/sequence/">開始玩 ▶</a>
+          <p class="pro">手機、平板、電腦都能玩　·　點錯可以再點一次取消</p>
+        </div>
+      </article>
+
+      <article class="card">
+        <div class="thumb">
+          <span class="cam">不用鏡頭</span>
+          <img src="/price/share.png" alt="猜價格大挑戰 遊戲畫面" loading="lazy">
+        </div>
+        <div class="body">
+          <h3>🛒 猜價格大挑戰</h3>
+          <p class="desc">兩樣市場好物比一比，前 10 題挑便宜、後 10 題挑貴——全是台灣市場時價，答完馬上公佈行情，還附聰明買菜小技巧。</p>
+          <div class="tags"><span>20 道時價題</span><span>不需任何權限</span><span>可當團體教案</span></div>
+          <div class="spacer"></div>
+          <a class="btn" href="/price/">開始玩 ▶</a>
+          <p class="pro">手機、平板、電腦都能玩　·　可投影讓大家舉手搶答</p>
+        </div>
+      </article>
+
+      <article class="card">
+        <div class="thumb">
+          <span class="cam">不用鏡頭</span>
+          <img src="/market-beta/share.png" alt="菜市場數一數 遊戲畫面" loading="lazy">
+        </div>
+        <div class="body">
+          <h3>🧺 菜市場數一數</h3>
+          <p class="desc">數幾隻鴨子、比哪籃橘子多、把價錢牌排好——用菜市場最熟悉的東西練數字。三個級別從「一定答得出來」開始，答完聊一段回憶。</p>
+          <div class="tags"><span>三關 54 題</span><span>初中進三級</span><span>可分組計分</span></div>
+          <div class="spacer"></div>
+          <a class="btn" href="/market-beta/">開始玩 ▶</a>
+          <p class="pro">簡報筆／鍵盤翻頁，按 → 才揭曉　·　<a href="/market-beta/print.html">帶領者提示卡</a></p>
+        </div>
+      </article>
+
+      <article class="card">
+        <div class="thumb">
+          <span class="cam">不用鏡頭</span>
+          <img src="/fruit-beta/share.png" alt="水果猜猜看（上集）遊戲畫面" loading="lazy">
+        </div>
+        <div class="body">
+          <h3>🍌 水果猜猜看（上集）</h3>
+          <p class="desc">先看影子、再看切開的樣子、最後拿放大鏡看果皮——線索一張一張變清楚，猜猜是什麼水果？說話比較困難的長輩，按一下就有二選一。</p>
+          <div class="tags"><span>三關 15 種水果</span><span>投影、手機都能玩</span><span>可二選一</span></div>
+          <div class="spacer"></div>
+          <a class="btn" href="/fruit-beta/">開始玩 ▶</a>
+          <p class="pro">簡報筆／鍵盤翻頁，清楚圖片後再按一下才揭曉</p>
+        </div>
+      </article>
+
+      <article class="card">
+        <div class="thumb">
+          <span class="cam">不用鏡頭</span>
+          <img src="/fruit2-beta/share.png" alt="水果猜猜看（下集）遊戲畫面" loading="lazy">
+        </div>
+        <div class="body">
+          <h3>🍍 水果猜猜看（下集）</h3>
+          <p class="desc">鳳梨酥、桂圓乾、柿餅是什麼水果做的？過年、端午、中秋的水果攤上賣什麼？從點心和節日聊出一年四季的回憶。</p>
+          <div class="tags"><span>兩關 10 題</span><span>投影、手機都能玩</span><span>可二選一</span></div>
+          <div class="spacer"></div>
+          <a class="btn" href="/fruit2-beta/">開始玩 ▶</a>
+          <p class="pro">簡報筆／鍵盤翻頁，清楚圖片後再按一下才揭曉</p>
+        </div>
+      </article>
+
+      <article class="card">
+        <div class="thumb">
+          <span class="cam">不用鏡頭</span>
+          <img src="/veg-beta/share.png" alt="蔬菜猜猜看 遊戲畫面" loading="lazy">
+        </div>
+        <div class="body">
+          <h3>🥕 蔬菜猜猜看</h3>
+          <p class="desc">先看影子、再看切開的樣子、最後拿放大鏡看表皮——線索一張一張變清楚，猜猜是什麼菜？說話比較困難的長輩，按一下就有二選一。</p>
+          <div class="tags"><span>三關 15 種蔬菜</span><span>投影、手機都能玩</span><span>可二選一</span></div>
+          <div class="spacer"></div>
+          <a class="btn" href="/veg-beta/">開始玩 ▶</a>
+          <p class="pro">簡報筆／鍵盤翻頁，清楚圖片後再按一下才揭曉</p>
+        </div>
+      </article>
+
+      <article class="card">
+        <div class="thumb">
+          <span class="cam">不用鏡頭</span>
+          <img src="/speed/share.png" alt="哪一個比較快 遊戲畫面" loading="lazy">
+        </div>
+        <div class="body">
+          <h3>🚄 哪一個比較快？</h3>
+          <p class="desc">兔子和烏龜、野狼 125 和腳踏車、自強號和區間車……左右二選一，猜猜看哪一個比較快？揭曉後再聊一句懷舊話題。</p>
+          <div class="tags"><span>18 題生活快慢</span><span>投影、手機都能玩</span><span>三層提示</span></div>
+          <div class="spacer"></div>
+          <a class="btn" href="/speed/">開始玩 ▶</a>
+          <p class="pro">點圖片就揭曉，簡報筆／鍵盤也能翻頁</p>
+        </div>
+      </article>
+
+      <article class="card">
+        <div class="thumb">
+          <span class="cam">不用鏡頭</span>
+          <img src="/kitchen/share.png" alt="阿公阿嬤的料理教室 遊戲畫面" loading="lazy">
+        </div>
+        <div class="body">
+          <h3>🥬 阿公阿嬤的料理教室</h3>
+          <p class="desc">大白菜、地瓜、雞蛋……主食材先登場，配料一樣一樣端上來，猜猜看會煮成哪道台灣家常料理？揭曉後講一段故事，再問一句「你家怎麼做」。</p>
+          <div class="tags"><span>6 食材 12 道菜</span><span>投影、手機都能玩</span><span>附帶領者提示卡</span></div>
+          <div class="spacer"></div>
+          <a class="btn" href="/kitchen/">開始玩 ▶</a>
+          <p class="pro">簡報筆／鍵盤翻頁，配料一張一張出現　·　<a href="/kitchen/print.html">帶領者提示卡</a></p>
+        </div>
+      </article>
+
+      <article class="card">
+        <div class="thumb">
+          <span class="cam">投影教案</span>
+          <img src="/moon/share.png" alt="中秋節教案大集合 投影片預覽" loading="lazy">
+        </div>
+        <div class="body">
+          <h3>🌕 中秋節教案大集合</h3>
+          <p class="desc">數柚子、排月相、找玉兔、算后羿射下幾個太陽、嫦娥奔月排順序、烤肉要準備什麼——七個單元 37 頁投影片，每題先猜再揭曉，每個單元最後聊一段中秋回憶。</p>
+          <div class="tags"><span>七單元 37 頁</span><span>PPT／PDF 免費下載</span><span>可投影帶團體</span></div>
+          <div class="spacer"></div>
+          <a class="btn" href="/moon/">下載教案 ▶</a>
+          <p class="pro">PowerPoint 直接投影，簡報筆翻頁揭曉　·　帶領語在每頁備註欄</p>
+        </div>
+      </article>
+
+      <article class="card">
+        <div class="thumb">
+          <span class="cam">紙本教案</span>
+          <img src="/find/share.png" alt="古早味找找看 紙本教案預覽" loading="lazy">
+        </div>
+        <div class="body">
+          <h3>🔍 古早味找找看</h3>
+          <p class="desc">大同電鍋、陀螺、彈珠汽水——在一整頁古早物件裡找出指定的那一樣。三個主題、三級難度，一頁只找一樣，最後一頁附帶領者提示和答案。</p>
+          <div class="tags"><span>3 主題×3 級難度</span><span>PDF 免費下載</span><span>列印就能帶</span></div>
+          <div class="spacer"></div>
+          <a class="btn" href="/find/">下載教案 ▶</a>
+          <p class="pro">一張紙、一支筆就能玩　·　找到後順便聊聊以前的生活</p>
+        </div>
+      </article>
+
+      <article class="card">
+        <div class="thumb">
+          <span class="cam">紙本教案</span>
+          <img src="/link/share.png" alt="數字連連看 紙本教案預覽" loading="lazy">
+        </div>
+        <div class="body">
+          <h3>✏️ 數字連連看</h3>
+          <p class="desc">1 連 1、2 連 2、3 連 3，線不可以交叉，也不能畫出外框。從直直連就好的簡單題，到要從外面繞一圈的困難題，先想好路線再下筆。</p>
+          <div class="tags"><span>12 題・3 級難度</span><span>PDF 免費下載</span><span>附解答</span></div>
+          <div class="spacer"></div>
+          <a class="btn" href="/link/">下載教案 ▶</a>
+          <p class="pro">建議用鉛筆，畫錯擦掉再來　·　每題都驗證過一定有解</p>
+        </div>
+      </article>
+
+      <article class="card">
+        <div class="thumb">
+          <span class="cam">不用鏡頭</span>
+          <img src="/taiwan-beta/share.png" alt="台灣地名名產大挑戰 遊戲畫面" loading="lazy">
+        </div>
+        <div class="body">
+          <h3>🇹🇼 台灣地名名產大挑戰</h3>
+          <p class="desc">左右兩張照片猜一張——這是哪裡的名產、哪個縣市的景點？答錯不扣分，答完講一段地方故事，再問一句「你去過嗎」勾起回憶。</p>
+          <div class="tags"><span>美食 19 題</span><span>景點 9 題</span><span>可投影帶團體</span></div>
+          <div class="spacer"></div>
+          <a class="btn" href="/taiwan-beta/">開始玩 ▶</a>
+          <p class="pro">手機、平板、電腦都能玩　·　字級可切到投影用大字　·　<a href="/taiwan-beta/print.html">列印版圖卡</a></p>
+        </div>
+      </article>
+
+      <article class="card">
+        <div class="thumb">
+          <span class="cam">不用鏡頭</span>
+          <img src="/wuwei/share.png" alt="五味人生 遊戲畫面" loading="lazy">
+        </div>
+        <div class="body">
+          <h3>🍋 五味人生</h3>
+          <p class="desc">哪一個是酸的？兩張美食大圖二選一，酸甜苦辣鹹五關玩下來，每一種味道都能接一段人生故事。</p>
+          <div class="tags"><span>25 題＋終盤挑戰</span><span>不需任何權限</span><span>可當團體教案</span></div>
+          <div class="spacer"></div>
+          <a class="btn" href="/wuwei/">開始玩 ▶</a>
+          <p class="pro">手機、平板、電腦都能玩　·　答錯不批評，答完聊聊味道的回憶</p>
+        </div>
+      </article>
+
+      <article class="card soon">
+        <div class="thumb ph">
+          <span class="emoji">🍎</span>
+          <span class="ribbon">即將上線</span>
+        </div>
+        <div class="body">
+          <h3>🍎 豐收果園</h3>
+          <p class="desc">照著任務採果子：這回合只採紅的、下回合採三顆——一邊伸手一邊動腦，適合失智與輕度認知障礙的長輩。</p>
+          <div class="tags"><span>動作 × 認知</span><span>雙任務訓練</span><span>需要鏡頭</span></div>
+          <div class="spacer"></div>
+          <p class="placeholder-note">整理中，很快開放。</p>
+        </div>
+      </article>
+
+    </div>
+  </section>
+
+  <!-- ===== 上肢體適能 ===== -->
+  <section class="cat" id="power" style="--c:var(--power);--ph:#E6EBDA">
+    <div class="cat-head">
+      <h2>💪 出出力・練體力</h2>
+      <p>出點力、撐久一點，手臂更有力氣</p>
+    </div>
+    <div class="grid">
+
+      <article class="card soon">
+        <div class="thumb ph">
+          <span class="emoji">🪢</span>
+          <span class="ribbon">即將上線</span>
+        </div>
+        <div class="body">
+          <h3>🪢 虛擬拔河</h3>
+          <p class="desc">兩個人站在同一個鏡頭前比力氣，能力差很多也沒關係，系統會自動讓分讓雙方都有得拚。</p>
+          <div class="tags"><span>兩人同樂</span><span>上肢肌耐力</span><span>可切換坐站</span></div>
+          <div class="spacer"></div>
+          <p class="placeholder-note">整理中，很快開放。</p>
+        </div>
+      </article>
+
+    </div>
+  </section>
+
+  <!-- ===== 治療師自學 ===== -->
+  <section class="cat" id="learn" style="--c:#8A6A3B;--ph:#EFE6D6">
+    <div class="cat-head">
+      <h2>📚 學一學・治療師自學課</h2>
+      <p>給治療師與相關科系學生的線上自學教材，國際公開影片配中文摘要</p>
+    </div>
+    <div class="grid">
+
+      <article class="card">
+        <div class="thumb">
+          <span class="cam">不用鏡頭</span>
+          <img src="/pnf-beta/share.png" alt="PNF 從理論到實務 課程封面" loading="lazy">
+        </div>
+        <div class="body">
+          <h3>🧭 PNF 從理論到實務</h3>
+          <p class="desc">從基本程序、對角線型態、手法技術到帶長輩做翻身、坐站與走路——每課配國際公開影片、中文時間軸摘要、自我檢核與實作作業，一步一步從不會到會。</p>
+          <div class="tags"><span>27 課・6 模組</span><span>影片＋中文摘要</span><span>進度自動記錄</span></div>
+          <div class="spacer"></div>
+          <a class="btn" href="/pnf-beta/">開始上課 ▶</a>
+          <p class="pro">適合 OT／PT 與學生　·　建議找一位夥伴互相練手感</p>
+        </div>
+      </article>
+
+    </div>
+  </section>
+
+  <div class="howto">
+    <h3>第一次玩鏡頭遊戲，三件事就好</h3>
+    <ol>
+      <li><b>把裝置擺好</b>：手機請<b>橫著拿</b>、立在桌上；坐遠一點，讓上半身完整入鏡。</li>
+      <li><b>按「允許」使用相機</b>：影像只在你的裝置上運算，不會上傳、不會儲存，也不會錄到臉。</li>
+      <li><b>先做一次校正</b>：跟著畫面把手伸到最大範圍，系統會把你的能力放大成整個畫面——手抬不高也玩得動。</li>
+    </ol>
+    <p class="note">第一次想先試試看，把「單局時間」拉到最短的 15 秒就好。</p>
+  </div>
+
+  <div class="feedback">
+    <h3>玩過之後，想聽你的一句話</h3>
+    <p>這些遊戲還在調整。哪裡卡卡的、長輩玩不動、動作偵測不準，或是你希望多一款什麼樣的訓練，
+       都歡迎直接告訴我——這對我調整方向幫助最大。</p>
+    <a class="btn ghost" href="https://www.facebook.com/shihyuting.OT" target="_blank" rel="noopener">到粉專留言給我</a>
+  </div>
+
+  <footer>
+    <p>鏡頭遊戲的影像只在你的裝置上運算，不會上傳、不會儲存，也不會錄到臉。</p>
+    <p>本站只統計「有多少人打開這個頁面」，不使用 cookie、不追蹤個人身分。</p>
+    <p>♪ 打地鼠背景音樂：Monkeys Spinning Monkeys — Kevin MacLeod (incompetech.com)，CC-BY 4.0</p>
+    <p><a href="https://www.facebook.com/shihyuting.OT">施昱廷 職能治療師　粉絲專頁</a></p>
+  </footer>
+</div>
+<!-- Cloudflare Web Analytics：無 cookie、不追蹤個人，只統計造訪量 -->
+<script defer src='https://static.cloudflareinsights.com/beacon.min.js' data-cf-beacon='{"token": "3df68cf5d6bd4975b97a157f7ff3cafb"}'></script>
+</body>
+</html>
