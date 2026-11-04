@@ -1,0 +1,524 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>台灣婚俗巡禮：吃喜酒，話當年｜長輩懷舊互動教案</title>
+<meta name="description" content="從收到一張喜帖開始，走過作媒、合八字、聘金喜餅、嫁妝、新娘出門、過門、辦桌、冠夫姓。翻格子、比 1 比 2，再聊聊長輩自己的故事。投影、線上分享螢幕、手機都能帶。">
+<meta name="theme-color" content="#6B1212">
+<link rel="icon" href="../favicon.png">
+<meta property="og:type" content="website">
+<meta property="og:title" content="台灣婚俗巡禮：吃喜酒，話當年">
+<meta property="og:description" content="八站懷舊互動教案：作媒、合八字、聘金、嫁妝、拜別父母、過門、辦桌、冠夫姓。打開連結就能帶。">
+<meta property="og:image" content="https://games.otshih.com/wedding/share.png">
+<meta property="og:url" content="https://games.otshih.com/wedding/">
+<script src="/open-in-browser.js"></script>
+<style>
+:root{--red:#8E1B1B;--red-d:#6B1212;--gold:#D9AE5A;--cream:#F8F1E2;--ink:#3A2218;
+  --sans:"PingFang TC","Noto Sans TC","Microsoft JhengHei",-apple-system,sans-serif;
+  --serif:"Noto Serif TC","Songti TC","PMingLiU",serif}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{position:fixed;inset:0;overflow:hidden;background:var(--red-d);font-family:var(--sans);overscroll-behavior:none}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;touch-action:manipulation}
+#stage{position:absolute;left:0;top:0;width:1920px;height:1080px;transform-origin:0 0;background:var(--red);overflow:hidden;user-select:none;-webkit-user-select:none}
+#stage.portrait{width:1080px;height:1920px}
+#view{position:absolute;left:0;right:0;top:0;bottom:96px}
+.portrait #view{bottom:160px}
+
+/* 底部操作列 */
+#nav{position:absolute;left:0;right:0;bottom:0;height:96px;z-index:50;background:var(--red-d);display:flex;align-items:center;gap:20px;padding:0 28px}
+.portrait #nav{height:160px;gap:16px;padding:0 24px}
+#nav button{height:72px;border-radius:36px;font-size:34px;font-weight:800;padding:0 34px;white-space:nowrap}
+.portrait #nav button{height:120px;border-radius:60px;font-size:44px;padding:0 30px}
+#prev{color:var(--cream);border:3px solid rgba(248,241,226,.5)!important}
+#next{background:var(--gold)!important;color:var(--red-d)}
+#snd{margin-left:auto}
+.portrait #next{flex:1.25}.portrait #prev{flex:1}
+.portrait #snd{margin-left:0}
+#tip{color:var(--cream);border:3px solid rgba(248,241,226,.5)!important}
+#count{color:var(--cream);font-size:30px;font-weight:700;min-width:120px;text-align:center}
+.portrait #count{display:none}
+.portrait #tip{padding:0 24px}
+#nav .round{width:72px;padding:0;background:rgba(0,0,0,.25);font-size:32px;font-weight:400}
+.portrait #nav .round{width:120px;flex:none;font-size:48px;padding:0}
+.portrait #fs{display:none}
+#bar{position:absolute;left:0;top:0;height:6px;background:var(--gold);transition:width .25s}
+
+/* 帶領提示 */
+#notes{position:absolute;left:0;right:0;bottom:96px;background:var(--cream);color:var(--ink);border-top:8px solid var(--gold);padding:30px 60px 34px;font-size:36px;line-height:1.55;z-index:40;display:none;max-height:60%;overflow:auto}
+.portrait #notes{bottom:160px;font-size:46px;padding:36px 44px;max-height:70%}
+#notes.on{display:block}
+#notes b{display:block;color:var(--red);font-size:.86em;margin-bottom:8px}
+
+/* 共用版面 */
+.page{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;padding:20px 60px}
+.portrait .page{gap:30px;padding:40px 40px}
+.title{color:#fff;font-size:62px;font-weight:900;line-height:1.25;text-align:center;white-space:pre-line;max-width:1780px}
+.portrait .title{font-size:68px;max-width:1000px}
+.pill{display:inline-block;background:var(--gold);color:var(--red-d);font-weight:900;border-radius:60px;padding:8px 44px}
+.title .pill{font-size:.56em;padding:6px 28px;margin-right:18px;vertical-align:.16em}
+.portrait .title .pill{display:block;width:max-content;margin:0 auto 14px;vertical-align:0}
+.frame{position:absolute;inset:18px;border:5px solid var(--gold);pointer-events:none}
+.frame::before{content:"";position:absolute;inset:8px;border:2px solid var(--gold)}
+.frame i{position:absolute;color:var(--gold);font:900 34px/1 var(--serif);font-style:normal}
+.frame i:nth-child(1){left:20px;top:18px}.frame i:nth-child(2){right:20px;top:18px}
+.frame i:nth-child(3){left:20px;bottom:18px}.frame i:nth-child(4){right:20px;bottom:18px}
+.card{background:var(--cream);color:var(--ink);border-radius:32px}
+.explain{color:#fff;font-size:46px;font-weight:800;line-height:1.35;text-align:center;min-height:66px;white-space:pre-line}
+.portrait .explain{font-size:54px;min-height:150px}
+.hide{visibility:hidden}
+.pop{animation:pop .35s ease-out}
+@keyframes pop{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:none}}
+
+/* 封面、章節 */
+.xi{color:var(--gold);font:900 220px/1.1 var(--serif)}
+.portrait .xi{font-size:320px}
+.h1{color:#fff;font-size:108px;font-weight:900;line-height:1.2;text-align:center}
+.portrait .h1{font-size:112px}
+.h2{color:var(--gold);font-size:62px;font-weight:900;text-align:center;line-height:1.3}
+.portrait .h2{font-size:68px}
+.sub{color:var(--cream);font-size:46px;text-align:center;line-height:1.4;text-wrap:balance}
+.portrait .sub{font-size:54px}
+.small{color:var(--cream);font-size:32px;text-align:center;line-height:1.5}
+.portrait .small{font-size:44px}
+.link{color:var(--gold);text-decoration:underline;font-size:36px;font-weight:700}
+.portrait .link{font-size:48px}
+
+/* 聊聊看、老人言 */
+.pill.big{font-size:50px}
+.portrait .pill.big{font-size:62px}
+.qcard{width:1560px;min-height:520px;display:flex;align-items:center;justify-content:center;padding:40px 70px;text-align:center;font-size:76px;font-weight:900;line-height:1.4;white-space:pre-line}
+.portrait .qcard{width:960px;min-height:780px;padding:50px 36px;font-size:64px;line-height:1.5}
+.say{font-family:var(--serif);color:var(--red-d);font-size:92px;min-height:420px}
+.portrait .say{font-size:96px;min-height:560px}
+.hint{color:var(--cream);font-size:38px;text-align:center;line-height:1.4;max-width:1500px;white-space:pre-line}
+.portrait .hint{font-size:48px;max-width:940px}
+
+/* 圖片框 */
+.pic{position:relative;border:8px solid var(--gold);background:#000;flex:none;overflow:hidden}
+.pic img{display:block;width:100%;height:100%;object-fit:contain}
+.credit{position:absolute;right:0;bottom:0;background:rgba(0,0,0,.6);color:#fff;font-size:21px;padding:3px 12px;z-index:5;pointer-events:none;max-width:100%}
+.portrait .credit{font-size:30px;padding:4px 14px}
+.tiles{position:absolute;inset:0;display:grid}
+.tile{background:var(--red-d);border:3px solid var(--gold);color:var(--gold);font-weight:900;font-size:96px;transition:opacity .4s}
+.tile.open{opacity:0;pointer-events:none}
+.label{background:var(--cream);color:var(--red-d);border:5px solid var(--gold);border-radius:60px;font-size:60px;font-weight:900;padding:6px 70px;line-height:1.35;white-space:nowrap}
+.portrait .label{font-size:80px;padding:14px 70px}
+
+/* 六宮格 */
+.grid{display:grid;grid-template-columns:repeat(3,470px);grid-auto-rows:400px;gap:20px}
+.portrait .grid{grid-template-columns:repeat(2,480px);grid-auto-rows:490px;gap:24px}
+.cell{position:relative;border-radius:24px;overflow:hidden;display:flex;flex-direction:column;align-items:center;padding:12px;background:var(--cream)}
+.cell img{flex:1;min-height:0;width:100%;object-fit:contain}
+.cell span{color:var(--red-d);font-size:48px;font-weight:900;line-height:1.3}
+.portrait .cell span{font-size:56px}
+.cell .tile{position:absolute;inset:0;border-radius:24px;border-width:4px}
+
+/* 二選一 */
+.opts{display:flex;gap:50px;justify-content:center}
+.portrait .opts{flex-direction:column;gap:30px;align-items:center}
+.opt{position:relative;background:var(--cream);color:var(--ink);border-radius:32px;width:800px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:18px;outline:0 solid var(--gold);transition:outline-width .15s}
+.opt.txt{height:520px;font-size:96px;font-weight:900;line-height:1.3}
+.opt.imgo{height:610px;font-size:64px;font-weight:900}
+.portrait .opt{width:960px}
+.portrait .opt.txt{height:480px;font-size:100px}
+.portrait .opt.imgo{height:610px;font-size:70px}
+.opt img{flex:1;min-height:0;width:100%;object-fit:contain;margin-bottom:8px}
+.opt.right{outline-width:14px;animation:bounce .5s}
+.opt.wrong{animation:shake .4s;opacity:.72}
+@keyframes bounce{40%{transform:scale(1.04)}70%{transform:scale(.99)}}
+@keyframes shake{20%,60%{transform:translateX(-12px)}40%,80%{transform:translateX(12px)}}
+.yes{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);background:var(--red);color:#fff;border-radius:50px;font-size:66px;font-weight:900;padding:10px 46px;white-space:nowrap;animation:yes 1.1s forwards;pointer-events:none}
+@keyframes yes{0%{opacity:0;transform:translate(-50%,-30%) scale(.7)}20%,75%{opacity:1;transform:translate(-50%,-50%) scale(1)}100%{opacity:0;transform:translate(-50%,-70%)}}
+.star{position:absolute;left:50%;top:50%;font-size:64px;color:var(--gold);pointer-events:none;animation:star .9s ease-out forwards}
+@keyframes star{from{transform:translate(-50%,-50%) scale(.4);opacity:1}to{transform:translate(calc(-50% + var(--x)),calc(-50% + var(--y))) scale(1.2);opacity:0}}
+
+/* 解說 */
+.row{display:flex;gap:30px;align-items:stretch;justify-content:center}
+.portrait .row{flex-direction:column;align-items:center}
+.lines{display:flex;align-items:center;padding:30px 44px;font-size:50px;font-weight:800;line-height:1.5;white-space:pre-line;width:520px}
+.portrait .lines{width:1000px;font-size:58px;padding:36px 54px}
+.caption{padding:20px 44px;font-size:44px;font-weight:800;line-height:1.4;text-align:center;white-space:pre-line}
+.portrait .caption{font-size:52px}
+
+/* 冠夫姓 */
+.names{width:1500px;height:480px;display:flex;align-items:center;justify-content:center;gap:50px;font:900 110px/1.2 var(--serif)}
+.portrait .names{width:960px;height:800px;flex-direction:column;gap:30px;font-size:130px}
+.names em{font-style:normal;color:var(--gold)}
+.portrait .names em{transform:rotate(90deg)}
+.names b{color:var(--red-d)}
+/* 手機橫拿：操作鈕放大，內容讓一點位置 */
+.short #view{bottom:130px}
+.short #nav{height:130px}
+.short #notes{bottom:130px;font-size:44px}
+.short #nav button{height:106px;border-radius:53px;font-size:46px}
+.short #nav .round{width:106px;font-size:46px}
+.short #count{font-size:40px}
+.short .grid{grid-auto-rows:378px}
+.short .opt.imgo{height:570px}
+.short .opt.txt{height:490px}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div id="stage">
+  <div id="view"></div>
+  <div id="notes"></div>
+  <div id="nav">
+    <div id="bar"></div>
+    <button id="prev">‹ 上一步</button>
+    <span id="count"></span>
+    <button id="snd" class="round" aria-label="音效開關">🔊</button>
+    <button id="fs" class="round" aria-label="全螢幕">⛶</button>
+    <button id="tip">帶領提示</button>
+    <button id="next">下一步 ›</button>
+  </div>
+</div>
+<script>
+const SLIDES = [{"type": "cover", "title": "台灣婚俗巡禮", "sub": "吃喜酒，話當年", "by": "編修：施昱廷 職能治療師", "tip": "各地習俗不同，歡迎分享你家的做法", "note": "開場：今天我們一起去吃一場喜酒，順便聊聊大家當年的故事。各地做法不同，沒有標準答案。"}, {"type": "section", "no": "開場", "title": "收到一張喜帖", "sub": "今天，我們一起去吃喜酒"}, {"type": "tiles", "title": "信箱裡來了一張紅色的帖子，是什麼好消息？", "img": {"src": "img/p01.jpg", "w": 1400, "h": 933}, "rows": 2, "cols": 2, "label": "喜帖來了！", "credit": null, "tag": null, "note": "慢慢點開四格，讓長輩猜是什麼。揭曉後問：以前收到紅帖，心情怎麼樣？"}, {"type": "chat", "q": "小時候跟著大人去吃喜酒，\n你最期待什麼？", "hint": null, "note": "點名 2～3 位長輩輪流分享；沒有這個經驗的長輩，可以改說參加過的婚禮。"}, {"type": "chat", "q": "以前收到紅帖，第一個想到的是\n「包多少」，還是「穿什麼」？", "hint": null, "note": "點名 2～3 位長輩輪流分享；沒有這個經驗的長輩，可以改說參加過的婚禮。"}, {"type": "section", "no": "第一站", "title": "媒人來了", "sub": "相親、作媒的那些年"}, {"type": "tiles", "title": "猜猜我是誰？", "img": {"src": "img/p02.jpg", "w": 1400, "h": 933}, "rows": 3, "cols": 3, "label": "媒人婆", "credit": null, "tag": null, "note": "九宮格依序點開。揭曉後可以補一句俗語：「媒人喙，糊瘰瘰」（民間說法：媒人很會講好話）。"}, {"type": "choice", "title": "謝媒人，以前要送什麼？", "a": "豬腳", "b": "珍珠奶茶", "aimg": {"src": "img/p03.jpg", "w": 1400, "h": 933}, "bimg": {"src": "img/p04.jpg", "w": 1400, "h": 933}, "answer": 0, "explain": "謝媒禮常見豬腳，有一種說法是讓媒人「吃到腳軟」", "tag": "猜猜看", "note": "〔民間說法〕各地謝媒禮不同（豬腳、紅包、紅布…），請長輩說說自己家的做法。珍奶是搞笑選項。"}, {"type": "chat", "q": "你們是誰作媒的？\n親戚、厝邊，還是自己認識的？", "hint": null, "note": "點名 2～3 位長輩輪流分享；沒有這個經驗的長輩，可以改說參加過的婚禮。"}, {"type": "chat", "q": "第一次見面在哪裡？\n第一眼看到對方，心裡怎麼想？", "hint": null, "note": "點名 2～3 位長輩輪流分享；沒有這個經驗的長輩，可以改說參加過的婚禮。"}, {"type": "tiles", "title": "媒人送來一張紅紙，上面寫的是什麼？", "img": {"src": "img/p05.jpg", "w": 1400, "h": 933}, "rows": 2, "cols": 2, "label": "八字帖（庚帖）", "credit": null, "tag": null, "note": "依序點開。八字帖又叫庚帖、庚書：把女方出生的年月日時寫在紅紙上，訂婚前由媒人送到男方家，用來合八字（教育部臺灣客家語常用詞辭典・禮俗〈庚書〉）。"}, {"type": "choice", "title": "八字帖拿回男方家，要放在哪裡？", "a": "神明桌", "b": "枕頭下", "aimg": null, "bimg": null, "answer": 0, "explain": "放在神明桌上稟告神明祖先，三五天家裡平安，親事才繼續談", "tag": "猜猜看", "note": "〔查〕男方拿到庚書後放在神明廳或祖宗廳神桌上，三五天家中平安、沒有不吉祥的事，婚事才繼續（教育部客語辭典〈庚書〉）。〔民〕有人說這幾天不能打破碗。可以問：你們家也是這樣嗎？還是拿去給算命的合？枕頭下是搞笑選項。"}, {"type": "chat", "q": "你們當年有合八字嗎？\n算命的怎麼說？", "hint": "沒合過也沒關係：你聽過誰家「八字不合」的故事？", "note": "點名 2～3 位長輩輪流分享；沒有這個經驗的長輩，可以改說參加過的婚禮。"}, {"type": "section", "no": "第二站", "title": "訂婚：聘金與喜餅", "sub": "大餅分親友，戒指戴一半"}, {"type": "grid", "title": "男方送來的聘禮，一樣一樣打開", "cells": [{"src": "img/p06.jpg", "w": 475, "h": 475}, {"src": "img/p07.jpg", "w": 475, "h": 475}, {"src": "img/p08.jpg", "w": 475, "h": 475}, {"src": "img/p09.jpg", "w": 475, "h": 475}, {"src": "img/p10.jpg", "w": 475, "h": 475}, {"src": "img/p11.jpg", "w": 475, "h": 475}], "labels": ["聘金", "金飾", "喜餅", "四色糖", "禮香禮炮", "龍鳳燭"], "note": "請長輩點號碼，一格一格打開，邊開邊問「你們那時候有沒有這一樣？」。聘金分大聘、小聘；金飾取雙數（戒指、手鐲、項鍊）；四色糖＝冬瓜糖、冰糖、桔餅、糖果，寓意甜甜蜜蜜；禮炮、禮香要成對（新頭殼 newtalk 婚俗整理）。各地聘禮不同，歡迎長輩補充（豬肉、豬腳、米香…）。〔民〕戴戒指時新娘手指稍微彎起來，不讓戒指一次戴到底。"}, {"type": "tiles", "title": "這個竹籃，叫什麼名字？", "img": {"src": "img/p12.jpg", "w": 1400, "h": 933}, "rows": 2, "cols": 2, "label": "謝籃", "credit": "AI 示意圖（Codex 生成）", "tag": null, "note": "〔民〕謝籃是竹編的提籃，訂婚、迎娶時用來裝喜餅、禮品，常常一對一對挑著走。可以問：你家還有留著謝籃嗎？裡面裝過什麼？"}, {"type": "choice", "title": "大聘、小聘，哪一個常常會退回去？", "a": "大聘", "b": "小聘", "aimg": null, "bimg": null, "answer": 0, "explain": "有一種說法是：大聘退回男方，小聘女方收下", "tag": "猜猜看", "note": "〔民間說法〕各地與各家做法不同，請長輩分享自己家怎麼處理。"}, {"type": "chat", "q": "訂婚那天，\n你們家分了幾盒喜餅？送給誰？", "hint": null, "note": "點名 2～3 位長輩輪流分享；沒有這個經驗的長輩，可以改說參加過的婚禮。"}, {"type": "chat", "q": "阿公們，去提親那天緊張嗎？\n帶了什麼去？", "hint": "阿嬤也可以說說：那天男方來了誰？", "note": "點名 2～3 位長輩輪流分享；沒有這個經驗的長輩，可以改說參加過的婚禮。"}, {"type": "chat", "q": "那時候的聘金大概多少？\n那筆錢可以買什麼？", "hint": "記不清楚沒關係：說說那時候一碗麵多少錢", "note": "聊物價最容易打開話匣子。不比較多寡、不評論，只聽「那個年代」的故事；長輩不想說金額就跳過。"}, {"type": "section", "no": "第三站", "title": "嫁妝一牛車", "sub": "裁縫車、棉被、衣櫥，一樣一樣搬"}, {"type": "tiles", "title": "猜猜看，這台車上載著什麼？", "img": {"src": "img/p13.jpg", "w": 1400, "h": 933}, "rows": 2, "cols": 2, "label": "嫁妝一牛車", "credit": "AI 示意圖（Codex 生成）", "tag": null, "note": "依序點開四格，邊開邊猜（水牛、牛車、嫁妝櫃和棉被、新娘）。「嫁妝一牛車」口語形容嫁妝很多；王禎和 1967 年有同名小說，內容較悲涼，課堂只用口語意思。"}, {"type": "grid", "title": "嫁妝裡有什麼？一樣一樣打開", "cells": [{"src": "img/p14.jpg", "w": 475, "h": 475}, {"src": "img/p15.jpg", "w": 475, "h": 475}, {"src": "img/p16.jpg", "w": 475, "h": 475}, {"src": "img/p17.jpg", "w": 475, "h": 475}, {"src": "img/p18.jpg", "w": 475, "h": 475}, {"src": "img/p19.jpg", "w": 475, "h": 475}], "labels": ["子孫桶", "裁縫車", "電鍋", "喜被", "梳妝台", "腳踏車"], "note": "請長輩點號碼，一格一格打開，邊開邊問「你有沒有這一樣？」。〔查〕子孫桶＝腰桶、腳桶、尿桶三件，紅布包著，寓意子孫繁衍（TVBS 食尚玩家）；電鍋是早期常見嫁妝（大同公司受訪，聯合報）；嫁妝傢俱有專門木器廠製作（永進木器廠，1951）。裁縫車、喜被、腳踏車為常見記憶〔民〕，各家不同，歡迎長輩補充（金飾、樟木箱、皮箱、臉盆…）。"}, {"type": "chat", "q": "你的嫁妝裡，最寶貝的是什麼？\n現在還留著嗎？", "hint": null, "note": "點名 2～3 位長輩輪流分享；沒有這個經驗的長輩，可以改說參加過的婚禮。"}, {"type": "chat", "q": "嫁妝是用什麼載過去的？\n牛車、三輪車，還是卡車？", "hint": null, "note": "點名 2～3 位長輩輪流分享；沒有這個經驗的長輩，可以改說參加過的婚禮。"}, {"type": "section", "no": "第四站", "title": "新娘出門", "sub": "梳頭、拜別父母、上禮車"}, {"type": "tiles", "title": "出門前，新娘跪在神明桌前做什麼？", "img": {"src": "img/p20.jpg", "w": 1400, "h": 933}, "rows": 2, "cols": 2, "label": "拜別父母", "credit": "AI 示意圖（Codex 生成）", "tag": null, "note": "依序點開。新娘出門前先拜別祖先、跪別父母，感謝養育之恩。這一段容易勾起思念，長輩若掉淚，給一點時間，回應「這是很珍貴的回憶」，不急著下一題。"}, {"type": "tiles", "title": "新娘走出家門，頭上撐的是什麼？", "img": {"src": "img/p21.jpg", "w": 1400, "h": 933}, "rows": 2, "cols": 2, "label": "米篩", "credit": "AI 示意圖（Codex 生成）", "tag": null, "note": "依序點開。傳統說法是新娘出門頭不能見天，用米篩或黑傘遮擋、避煞。可以問：你們那時候用米篩還是黑傘？"}, {"type": "saying", "say": "新娘坐予正，\n才會得人疼", "explain": "上禮車時，好命婆會提醒新娘坐端正、不要亂動", "note": "〔查〕上禮車時好命婆的吉祥話（各地說法略有不同）。補充：車開動後媽媽潑一盆水、新娘丟扇，傳統說法是「嫁出去就安心在夫家」、「把壞脾氣留在娘家」（台中市性平教材）。"}, {"type": "chat", "q": "出門那天，\n是誰幫你梳頭、穿新娘衣？", "hint": null, "note": "點名 2～3 位長輩輪流分享；沒有這個經驗的長輩，可以改說參加過的婚禮。"}, {"type": "chat", "q": "拜別那天，\n爸爸媽媽跟你說了什麼？", "hint": "阿公也可以說說：岳父岳母那天交代你什麼？", "note": "情緒較深的題目：點名前先問「誰願意分享」，不強迫；父母已過世的長輩常會想說，給足時間。"}, {"type": "section", "no": "第五站", "title": "過門", "sub": "踩破瓦、過火爐"}, {"type": "tiles", "title": "新娘進門前，要先做哪兩件事？", "img": {"src": "img/p22.jpg", "w": 1400, "h": 933}, "rows": 2, "cols": 2, "label": "踩破瓦、過火爐", "credit": null, "tag": null, "note": "依序點開。答案：踩瓦片、跨過炭火烘爐。"}, {"type": "info", "title": "為什麼要踩瓦、過火？", "imgs": [{"src": "img/p23.jpg", "w": 1400, "h": 933}], "lines": "踩破瓦片\n→ 寓意早生貴子\n\n跨過火爐\n→ 寓意興旺、\n　 去除邪氣", "credits": ["AI 示意圖（Codex 生成）"], "tag": null, "note": "〔查〕台中市性平教材：踩瓦片象徵早生貴子；過火爐象徵為夫家帶來興旺、新婦入戶。各地做法不同。", "hide": false}, {"type": "chat", "q": "你進門那天，\n有沒有踩瓦片、跨火爐？\n瓦片踩破了嗎？", "hint": null, "note": "點名 2～3 位長輩輪流分享；沒有這個經驗的長輩，可以改說參加過的婚禮。"}, {"type": "chat", "q": "進到夫家，\n第一個迎接你的人是誰？", "hint": null, "note": "點名 2～3 位長輩輪流分享；沒有這個經驗的長輩，可以改說參加過的婚禮。"}, {"type": "section", "no": "第六站", "title": "馬路辦桌", "sub": "棚子搭起來，喜酒開桌囉"}, {"type": "info", "title": "找找看，畫面裡有什麼？", "imgs": [{"src": "img/p24.jpg", "w": 1400, "h": 933}], "lines": "棚子\n圓桌\n紅桌巾\n紅板凳\n廟口", "credits": ["AI 示意圖（Codex 生成）"], "tag": null, "note": "先不要念右邊答案，請長輩自己找。右邊答案可以邊說邊指。", "hide": true}, {"type": "info", "title": "以前的辦桌，大家擠在一起吃", "imgs": [{"src": "img/p25.jpg", "w": 1400, "h": 933}, {"src": "img/p26.jpg", "w": 1400, "h": 933}], "lines": "左：早年的婚宴辦桌（示意）　右：現在的水腳在排盤", "credits": ["AI 示意圖（Codex 生成）", "g0v.tw／Wikimedia Commons（CC BY 2.0）"], "tag": null, "note": "左圖是 AI 畫的黑白老照片風示意圖，可以問長輩：你們那時候的辦桌也是這樣嗎？", "hide": false}, {"type": "info", "title": "總舖師的大鼎", "imgs": [{"src": "img/p27.jpg", "w": 1400, "h": 933}], "lines": "大鼎煮菜\n水腳排盤\n一桌一桌\n送上去", "credits": ["g0v.tw／Wikimedia Commons（CC BY 2.0）"], "tag": null, "note": "水腳＝辦桌的助手。可以問：你們那時候是誰來煮？", "hide": false}, {"type": "choice", "title": "喜事包紅包，要包什麼數字？", "a": "雙數", "b": "單數", "aimg": null, "bimg": null, "answer": 0, "explain": "喜事好事成雙，紅包包雙數", "tag": "猜猜看", "note": "〔民間說法〕喜事包雙數、避開 4；白包才包單數。"}, {"type": "chat", "q": "你們的喜酒在哪裡請？\n家門口、廟口，還是餐廳？", "hint": null, "note": "點名 2～3 位長輩輪流分享；沒有這個經驗的長輩，可以改說參加過的婚禮。"}, {"type": "chat", "q": "那天辦了幾桌？\n桌椅是跟誰借的？", "hint": null, "note": "點名 2～3 位長輩輪流分享；沒有這個經驗的長輩，可以改說參加過的婚禮。"}, {"type": "section", "no": "第七站", "title": "辦桌美食", "sub": "上菜囉！猜猜這道是什麼"}, {"type": "tiles", "title": "上菜囉！猜猜這道是什麼？", "img": {"src": "img/p28.jpg", "w": 1400, "h": 933}, "rows": 2, "cols": 2, "label": "冷盤", "credit": null, "tag": null, "note": "〔民〕開桌第一道，烏魚子、香腸、滷牛腱拼一大盤。可以問：冷盤上桌，你先夾哪一樣？"}, {"type": "tiles", "title": "上菜囉！猜猜這道是什麼？", "img": {"src": "img/p29.jpg", "w": 1400, "h": 933}, "rows": 2, "cols": 2, "label": "紅蟳米糕", "credit": null, "tag": null, "note": "〔查〕早期辦桌經典菜，常常被打包回家。"}, {"type": "tiles", "title": "上菜囉！猜猜這道是什麼？", "img": {"src": "img/p30.jpg", "w": 1400, "h": 933}, "rows": 2, "cols": 2, "label": "佛跳牆", "credit": null, "tag": null, "note": "〔查〕北部辦桌常見；南部常上海鮮羹，可以問長輩：你們那邊吃哪一種？"}, {"type": "tiles", "title": "上菜囉！猜猜這道是什麼？", "img": {"src": "img/p31.jpg", "w": 1400, "h": 933}, "rows": 2, "cols": 2, "label": "筍絲焢肉", "credit": null, "tag": null, "note": "〔民〕大塊焢肉配筍乾，很下飯。可以問：家裡過年是不是也會滷一鍋？"}, {"type": "tiles", "title": "上菜囉！猜猜這道是什麼？", "img": {"src": "img/p32.jpg", "w": 1280, "h": 825}, "rows": 2, "cols": 2, "label": "白斬雞", "credit": "Wikimedia Commons（CC0）", "tag": null, "note": "〔民〕辦桌、拜拜都少不了的一道，台語有「食雞，會起家」的好意頭。可以問：你們家是不是自己養雞、自己殺？"}, {"type": "chat", "q": "吃辦桌，\n你最期待哪一道菜？", "hint": null, "note": "點名 2～3 位長輩輪流分享；沒有這個經驗的長輩，可以改說參加過的婚禮。"}, {"type": "chat", "q": "有沒有帶塑膠袋\n打包菜尾回家？隔天怎麼吃？", "hint": null, "note": "點名 2～3 位長輩輪流分享；沒有這個經驗的長輩，可以改說參加過的婚禮。"}, {"type": "section", "no": "第八站", "title": "做人媳婦", "sub": "名字多一個字，生活換一個家"}, {"type": "name", "title": "結婚以後，名字有什麼不一樣？", "tag": "猜猜看", "before": "林阿美", "after": "陳林阿美", "explain": "冠夫姓：那時候結婚後，名字前面多一個先生的姓", "note": "〔查〕1970 年代結婚原則上冠夫姓，證件也跟著改；1998 年民法修正後改為以不冠為原則。只問「當年大家怎麼想」，不用現在的觀點評論。名字為虛構示範。"}, {"type": "chat", "q": "結婚後，名字有沒有冠夫姓？\n大家都怎麼叫你？", "hint": null, "note": "點名 2～3 位長輩輪流分享；沒有這個經驗的長輩，可以改說參加過的婚禮。"}, {"type": "chat", "q": "剛嫁過去，\n第一件不習慣的事是什麼？", "hint": "阿公也可以說說：娶某之後，家裡多了什麼新規矩？", "note": "點名 2～3 位長輩輪流分享；沒有這個經驗的長輩，可以改說參加過的婚禮。"}, {"type": "closing", "line1": "以前媒人婆、好命婆都會唸好話", "line2": "大家還記得哪一句？", "note": "請長輩唸自己記得的四句聯或吉祥話，大家一起跟著唸。帶領者也可以補一句自己熟悉的。"}, {"type": "chat", "q": "如果能回到結婚那天，\n想跟那時候的自己說什麼？", "hint": null, "note": "點名 2～3 位長輩輪流分享；沒有這個經驗的長輩，可以改說參加過的婚禮。"}, {"type": "chat", "q": "給現在要結婚的年輕人\n一句話，你會說什麼？", "hint": null, "note": "點名 2～3 位長輩輪流分享；沒有這個經驗的長輩，可以改說參加過的婚禮。"}, {"type": "end", "title": "謝謝大家的分享", "sub": "今天的喜酒，吃得好飽！"}];
+const $ = id => document.getElementById(id);
+const stage = $('stage'), view = $('view'), notesEl = $('notes');
+const st = SLIDES.map(() => ({ open: new Set(), label: false, ans: null, step: 0 }));
+let idx = 0, portrait = false, short = false;
+
+function store(k, v) { try { if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v); } catch (e) { return null; } }
+let muted = store('wedding_mute') === '1';
+
+function el(tag, cls, txt) {
+  const e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (txt != null) e.textContent = txt;
+  return e;
+}
+// 依標點分行：手機上不要斷在詞的中間
+function wrapCN(t, max) {
+  if (!portrait || !t) return t;
+  const out = []; let line = '';
+  (t.match(/[^，、：？。]+[，、：？。]?/g) || [t]).forEach(seg => {
+    if (line && (line + seg).length > max) { out.push(line); line = seg; }
+    else line += seg;
+  });
+  if (line) out.push(line);
+  return out.join('\n');
+}
+function frame(page) {
+  const f = el('div', 'frame');
+  for (let i = 0; i < 4; i++) f.append(el('i', '', '囍'));
+  page.append(f);
+}
+function title(page, s) {
+  const t = el('div', 'title');
+  if (s.tag) t.append(el('span', 'pill', s.tag));
+  t.append(document.createTextNode(wrapCN(s.title, 14)));
+  page.append(t);
+}
+// 依圖片比例算出框的大小，圖片永遠完整不裁切
+function box(im, maxW, maxH) {
+  const r = im.w / im.h;
+  let w = maxW, h = w / r;
+  if (h > maxH) { h = maxH; w = h * r; }
+  return { w: Math.round(w), h: Math.round(h) };
+}
+function pic(im, maxW, maxH, credit, alt) {
+  const b = box(im, maxW, maxH), p = el('div', 'pic');
+  p.style.width = b.w + 16 + 'px'; p.style.height = b.h + 16 + 'px';
+  const i = el('img'); i.src = im.src; i.alt = alt || ''; i.draggable = false;
+  p.append(i);
+  if (credit) p.append(el('div', 'credit', '圖片來源：' + credit));
+  return p;
+}
+
+const RENDER = {
+  cover(s, page) {
+    frame(page);
+    page.append(el('div', 'xi', '囍'), el('div', 'h1', s.title), el('div', 'h2', s.sub), el('div', 'small', s.by), el('div', 'small', s.tip));
+  },
+  section(s, page) {
+    frame(page);
+    page.append(el('div', 'h2', s.no), el('div', 'h1', s.title), el('div', 'sub', s.sub));
+  },
+  chat(s, page) {
+    frame(page);
+    page.append(el('div', 'pill big', '聊聊看'), el('div', 'card qcard', s.q));
+    if (s.hint) page.append(el('div', 'hint', wrapCN(s.hint, 18)));
+  },
+  saying(s, page, state) {
+    frame(page);
+    const ex = el('div', 'explain', wrapCN(s.explain, 17));
+    if (!state.step) ex.classList.add('hide');
+    page.append(el('div', 'pill big', '老人言'), el('div', 'card qcard say', s.say), ex);
+    state.onStep = () => { ex.classList.remove('hide'); ex.classList.add('pop'); };
+  },
+  tiles(s, page, state) {
+    title(page, s);
+    const p = portrait ? pic(s.img, 1000, 1050, s.credit, s.label) : pic(s.img, 1200, short ? 660 : 690, s.credit, s.label);
+    const g = el('div', 'tiles');
+    g.style.gridTemplateColumns = `repeat(${s.cols},1fr)`;
+    g.style.gridTemplateRows = `repeat(${s.rows},1fr)`;
+    const n = s.rows * s.cols, tiles = [];
+    for (let i = 0; i < n; i++) {
+      const t = el('button', 'tile' + (state.open.has(i) ? ' open' : ''), String(i + 1));
+      t.setAttribute('aria-label', '翻開第 ' + (i + 1) + ' 格');
+      t.onclick = () => openTile(s, state, i);
+      tiles.push(t); g.append(t);
+    }
+    p.append(g); page.append(p);
+    const lb = el('div', 'label' + (state.label ? '' : ' hide'), s.label);
+    page.append(lb);
+    state.tiles = tiles; state.labelEl = lb; state.total = n;
+  },
+  grid(s, page, state) {
+    title(page, s);
+    const g = el('div', 'grid'), tiles = [];
+    s.labels.forEach((lab, i) => {
+      const c = el('div', 'cell'), im = el('img');
+      im.src = s.cells[i].src; im.alt = lab; im.draggable = false;
+      const t = el('button', 'tile' + (state.open.has(i) ? ' open' : ''), String(i + 1));
+      t.setAttribute('aria-label', '翻開第 ' + (i + 1) + ' 格');
+      t.onclick = () => openTile(s, state, i);
+      tiles.push(t);
+      c.append(im, el('span', '', lab), t);
+      g.append(c);
+    });
+    page.append(g);
+    state.tiles = tiles; state.total = s.labels.length; state.labelEl = null;
+  },
+  choice(s, page, state) {
+    title(page, s);
+    const opts = el('div', 'opts'), cards = [];
+    [[s.a, s.aimg], [s.b, s.bimg]].forEach(([t, im], i) => {
+      const c = el('button', 'opt ' + (im ? 'imgo' : 'txt'));
+      if (im) {
+        const m = el('img'); m.src = im.src; m.alt = ''; m.draggable = false;
+        c.append(m, el('div', '', '①②'[i] + ' ' + t));
+      } else {
+        c.append(el('div', '', '①②'[i]), el('div', '', t));
+      }
+      c.onclick = () => answer(s, state, i);
+      cards.push(c); opts.append(c);
+    });
+    const ex = el('div', 'explain', wrapCN(state.ans == null ? '請比 1 或比 2，大家都比完再點答案' : s.explain, 17));
+    page.append(opts, ex);
+    state.cards = cards; state.exEl = ex;
+    if (state.ans != null) markChoice(s, state, false);
+  },
+  info(s, page, state) {
+    title(page, s);
+    const hideLines = s.hide && !state.step;
+    if (s.imgs.length === 1) {
+      const row = el('div', 'row');
+      const p = portrait ? pic(s.imgs[0], 1000, 900, s.credits[0]) : pic(s.imgs[0], 1120, short ? 740 : 780, s.credits[0]);
+      const c = el('div', 'card lines' + (hideLines ? ' hide' : ''), s.lines);
+      row.append(p, c); page.append(row);
+      state.onStep = () => { c.classList.remove('hide'); c.classList.add('pop'); };
+    } else {
+      const row = el('div', 'row');
+      s.imgs.forEach((im, i) => row.append(portrait ? pic(im, 900, 610, s.credits[i]) : pic(im, 860, 620, s.credits[i])));
+      const cap = portrait ? s.lines.replace('左：', '上：').replace('右：', '下：').replace('　', '\n') : s.lines;
+      page.append(row, el('div', 'card caption', cap));
+    }
+  },
+  name(s, page, state) {
+    title(page, s);
+    const c = el('div', 'card names');
+    const after = el('b', state.step >= 1 ? '' : 'hide', s.after);
+    c.append(el('span', '', s.before), el('em', '', '→'), after);
+    const ex = el('div', 'explain' + (state.step >= 2 ? '' : ' hide'), wrapCN(s.explain, 17));
+    page.append(c, ex);
+    state.onStep = () => {
+      if (state.step === 1) { after.classList.remove('hide'); after.classList.add('pop'); }
+      else { ex.classList.remove('hide'); ex.classList.add('pop'); }
+    };
+  },
+  closing(s, page) {
+    frame(page);
+    page.append(el('div', 'xi', '囍'), el('div', 'sub', s.line1), el('div', 'h2', s.line2));
+  },
+  end(s, page) {
+    frame(page);
+    const a = el('a', 'link', '更多長輩教案與遊戲：OTshih.com');
+    a.href = 'https://otshih.com/';
+    page.append(el('div', 'h1', s.title), el('div', 'h2', s.sub), el('div', 'small', '編修：施昱廷 職能治療師'), a);
+  }
+};
+
+function openTile(s, state, i) {
+  if (state.open.has(i)) return;
+  state.open.add(i);
+  state.tiles[i].classList.add('open');
+  syncNav();
+}
+function answer(s, state, i) {
+  if (state.ans != null) return;
+  state.ans = i;
+  markChoice(s, state, true);
+  syncNav();
+}
+function markChoice(s, state, fx) {
+  const right = state.cards[s.answer];
+  right.classList.add('right');
+  state.exEl.textContent = wrapCN(s.explain, 17);
+  if (!fx) return;
+  state.exEl.classList.add('pop');
+  if (state.ans !== s.answer && state.ans >= 0) state.cards[state.ans].classList.add('wrong');
+  if (state.ans === s.answer) {
+    right.append(el('div', 'yes', '答對了！'));
+    for (let k = 0; k < 10; k++) {
+      const a = k / 10 * Math.PI * 2, st8 = el('div', 'star', '★');
+      st8.style.setProperty('--x', Math.cos(a) * 330 + 'px');
+      st8.style.setProperty('--y', Math.sin(a) * 220 + 'px');
+      right.append(st8);
+    }
+    chord();
+  }
+}
+let actx = null;
+function chord() {
+  if (muted) return;
+  try {
+    actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+    if (actx.state === 'suspended') actx.resume();
+    [523.25, 659.25, 783.99].forEach((f, i) => {
+      const o = actx.createOscillator(), g = actx.createGain(), t = actx.currentTime + i * .09;
+      o.type = 'triangle'; o.frequency.value = f;
+      g.gain.setValueAtTime(0, t);
+      g.gain.linearRampToValueAtTime(.16, t + .02);
+      g.gain.exponentialRampToValueAtTime(.001, t + .6);
+      o.connect(g).connect(actx.destination);
+      o.start(t); o.stop(t + .62);
+    });
+  } catch (e) {}
+}
+
+// 這一頁還有沒翻開的內容？
+function pending(s, state) {
+  if (s.type === 'tiles') return state.open.size < state.total || !state.label;
+  if (s.type === 'grid') return state.open.size < state.total;
+  if (s.type === 'choice') return state.ans == null;
+  if (s.type === 'saying') return !state.step;
+  if (s.type === 'name') return state.step < 2;
+  if (s.type === 'info') return s.hide && !state.step;
+  return false;
+}
+function next() {
+  const s = SLIDES[idx], state = st[idx];
+  if (pending(s, state)) {
+    if (s.type === 'tiles' || s.type === 'grid') {
+      if (state.open.size < state.total) {
+        let i = 0; while (state.open.has(i)) i++;
+        openTile(s, state, i);
+      } else {
+        state.label = true;
+        state.labelEl.classList.remove('hide'); state.labelEl.classList.add('pop');
+      }
+    } else if (s.type === 'choice') {
+      answer(s, state, -1);
+    } else {
+      state.step++; state.onStep && state.onStep();
+    }
+    syncNav();
+    return;
+  }
+  go(idx + 1);
+}
+function go(n) {
+  if (n < 0 || n >= SLIDES.length) return;
+  idx = n;
+  closeNotes();
+  render();
+  try { history.replaceState(null, '', '#' + (idx + 1)); } catch (e) {}
+}
+function render() {
+  const s = SLIDES[idx], page = el('div', 'page');
+  view.replaceChildren(page);
+  RENDER[s.type](s, page, st[idx]);
+  syncNav();
+  preload(idx + 1); preload(idx + 2);
+}
+function preload(n) {
+  const s = SLIDES[n];
+  if (!s) return;
+  [s.img, s.aimg, s.bimg, ...(s.imgs || []), ...(s.cells || [])].forEach(im => { if (im) new Image().src = im.src; });
+}
+function syncNav() {
+  $('count').textContent = (idx + 1) + ' / ' + SLIDES.length;
+  $('bar').style.width = (idx + 1) / SLIDES.length * 100 + '%';
+  $('prev').style.visibility = idx ? 'visible' : 'hidden';
+  $('next').style.visibility = (idx === SLIDES.length - 1 && !pending(SLIDES[idx], st[idx])) ? 'hidden' : 'visible';
+  $('tip').style.visibility = SLIDES[idx].note ? 'visible' : 'hidden';
+  $('next').textContent = idx === 0 ? '開始 ›' : (pending(SLIDES[idx], st[idx]) ? '翻開 ›' : '下一頁 ›');
+}
+function closeNotes() { notesEl.classList.remove('on'); }
+function toggleNotes() {
+  if (notesEl.classList.contains('on')) return closeNotes();
+  notesEl.replaceChildren(el('b', '', '帶領提示（只有帶領者需要看）'), document.createTextNode(portrait && (SLIDES[idx].imgs || []).length === 2 ? SLIDES[idx].note.replace('左圖', '上圖') : (SLIDES[idx].note || '')));
+  notesEl.classList.add('on');
+}
+function setMute(v) {
+  muted = v; store('wedding_mute', v ? '1' : '0');
+  $('snd').textContent = v ? '🔇' : '🔊';
+}
+function fit() {
+  const iw = innerWidth, ih = innerHeight, p = ih > iw, sh = !p && ih < 500;
+  if (p !== portrait || sh !== short) {
+    portrait = p; short = sh;
+    stage.classList.toggle('portrait', p);
+    stage.classList.toggle('short', sh);
+    render();
+  }
+  const k = Math.min(iw / (p ? 1080 : 1920), ih / (p ? 1920 : 1080));
+  stage.style.width = iw / k + 'px';
+  stage.style.height = ih / k + 'px';
+  stage.style.transform = `scale(${k})`;
+}
+
+$('next').onclick = next;
+$('prev').onclick = () => go(idx - 1);
+$('tip').onclick = toggleNotes;
+$('snd').onclick = () => setMute(!muted);
+$('fs').onclick = () => {
+  const d = document;
+  if (d.fullscreenElement) d.exitFullscreen();
+  else if (d.documentElement.requestFullscreen) d.documentElement.requestFullscreen();
+};
+// 點畫面空白處：右邊下一步、左邊上一步；可以左右滑
+view.addEventListener('click', e => {
+  if (e.target.closest('button,a')) return;
+  if (notesEl.classList.contains('on')) return closeNotes();
+  const r = stage.getBoundingClientRect();
+  if ((e.clientX - r.left) / r.width > .35) next(); else go(idx - 1);
+});
+let sx = null;
+stage.addEventListener('touchstart', e => { sx = e.touches[0].clientX; }, { passive: true });
+stage.addEventListener('touchend', e => {
+  if (sx == null) return;
+  const dx = e.changedTouches[0].clientX - sx; sx = null;
+  if (Math.abs(dx) > 60) { e.preventDefault(); dx < 0 ? next() : go(idx - 1); }
+});
+addEventListener('keydown', e => {
+  const k = e.key;
+  if (['ArrowRight', 'PageDown', ' ', 'Enter'].includes(k)) { e.preventDefault(); next(); }
+  else if (['ArrowLeft', 'PageUp'].includes(k)) { e.preventDefault(); go(idx - 1); }
+  else if (k === 'n' || k === 'N') toggleNotes();
+  else if (k === 'm' || k === 'M') setMute(!muted);
+  else if (k === 'f' || k === 'F') $('fs').click();
+  else if ((k === '1' || k === '2') && SLIDES[idx].type === 'choice') answer(SLIDES[idx], st[idx], +k - 1);
+});
+addEventListener('resize', fit);
+addEventListener('orientationchange', fit);
+if (window.visualViewport) visualViewport.addEventListener('resize', fit);
+if (window.ResizeObserver) new ResizeObserver(fit).observe(document.documentElement);
+
+const h = parseInt(location.hash.slice(1), 10);
+if (h >= 1 && h <= SLIDES.length) idx = h - 1;
+setMute(muted);
+portrait = innerHeight > innerWidth;
+short = !portrait && innerHeight < 500;
+stage.classList.toggle('portrait', portrait);
+stage.classList.toggle('short', short);
+render();
+fit();
+</script>
+<script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "3df68cf5d6bd4975b97a157f7ff3cafb"}'></script>
+</body>
+</html>
