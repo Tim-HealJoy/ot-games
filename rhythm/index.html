@@ -52,7 +52,18 @@
   .song .lv{background:#E4F7F2;color:#0A9C84;border-radius:999px;padding:1px 9px;font-size:.75rem;font-weight:700;}
   .song .len{color:var(--soft);font-size:.8rem;}
   .song .d{color:var(--soft);font-size:.86rem;margin-top:7px;line-height:1.55;}
+  /* ⭐ v15 星級分層解鎖：鎖住的歌看得到、選不了 */
+  .song.locked{cursor:not-allowed;background:#EEF2F1;}
+  .song.locked:hover{border-color:transparent;}
+  .song.locked .t,.song.locked .meta,.song.locked .d{opacity:.45;filter:grayscale(1);}
+  .song .lockTip{margin-top:8px;font-size:.86rem;font-weight:700;color:#7A8C88;}
+  .song .clr{background:#0A9C84;color:#fff;border-radius:999px;padding:1px 9px;font-size:.75rem;font-weight:700;}
+  .song.shake{animation:shake .35s;}
+  @keyframes shake{25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+  @media (prefers-reduced-motion:reduce){.song.shake{animation:none;}}
+  .unlockLine{font-weight:800;margin-top:8px;color:#E8722A;font-size:1.1rem;}
   .legend{color:var(--soft);font-size:.82rem;margin-top:12px;line-height:1.6;}
+  .devTip{background:#FFF6E8;border:2px solid #FFD9A8;border-radius:14px;padding:10px 14px;margin-bottom:14px;font-size:.92rem;line-height:1.6;color:var(--ink);}
   .seg{display:inline-flex;background:#EDF4F2;border-radius:99px;overflow:hidden;margin:4px 0;padding:4px;gap:4px;}
   .seg button{background:none;border:none;color:var(--soft);padding:9px 20px;font-size:1.02rem;
     cursor:pointer;border-radius:99px;font-family:var(--round);}
@@ -394,8 +405,11 @@
         <div><div class="nm">高舉</div><div class="sb">綠色音符・單手也算</div></div></div>
     </div>
 
+    <div class="devTip">💻 建議用<b>平板或電腦</b>來玩：螢幕大、音符看得清楚，鏡頭也拍得到整個上半身，動作抓得更準。
+      用手機也可以，請<b>橫放、放遠一點</b>。</div>
+
     <div class="card">
-      <div class="cardT">① 選一首歌 <span class="cardS">★ 越多越難・第一次玩建議從「給愛麗絲」開始</span></div>
+      <div class="cardT">① 選一首歌 <span class="cardS">★ 越多越難・過關就會解鎖更難的歌 🔓</span></div>
       <div class="songGrid" id="songGrid"></div>
     </div>
 
@@ -423,6 +437,8 @@
           <p class="legend" id="arcHint">做錯動作不扣分，只會中斷連擊並提示正確動作；連擊滿 5 次就有 ×1.5 加成，之後每 10 次升一級，最高 ×3；
           畫面上方的量表填到 80% 就過關；結算會記進排行榜。<br>重度個案建議關閉——關掉就沒有連擊中斷提示與競爭，只記錄、也不上榜。</p>
         </div>
+        <label class="fld">🔓 歌曲解鎖 — <span id="vUnlock">依過關進度</span>（過關任一首同星級的歌，就開放下一級；替個案指定歌曲或示範時可全部開放）</label>
+        <div class="seg" id="segUnlock"><button data-v="prog" class="on">依過關進度</button><button data-v="all">全部開放</button></div>
         <label class="fld">🔊 喇叭 — <span id="vSpk">一般</span>（接藍牙喇叭聲音會慢 0.2 秒左右，選「藍牙」系統會自動補回來，判定才準）</label>
         <div class="seg" id="segSpk"><button data-v="wired" class="on">一般／內建</button><button data-v="bt">藍牙喇叭</button></div>
         <label class="fld">🎵 音樂音量</label>
@@ -435,7 +451,7 @@
     <div class="credit" id="creditLine">
       教案設計：施昱廷 職能治療師<br>音樂為公共領域或自由授權之演奏／錄音，授權明細見 <a href="songs/LICENSES.md" style="color:inherit">songs/LICENSES.md</a>。<br>
       <!-- ⭐ v13：清榜是治療師換據點才用的功能，刻意做小、放在最角落，長者不會誤觸 -->
-      <span class="miniLink" id="clearBoard">清除排行榜</span>
+      <span class="miniLink" id="clearBoard">清除排行榜</span>　<span class="miniLink" id="resetUnlock">重設解鎖進度</span>
     </div>
   </div>
   <div class="startBar"><div class="startIn">
@@ -519,6 +535,7 @@
         <div class="tile"><b id="tScore">—</b><span>分數</span></div>
       </div>
       <div class="clearLine" id="rClearLine"></div>
+      <div class="unlockLine" id="rUnlock"></div>
       <div id="rTrend"></div>
     </div>
 
@@ -593,27 +610,73 @@ const SONGS=[
    why:'軍樂進行曲，鼓點方正好跟；動作變換最少，曲子也最短。'},
   {id:'danube',   title:'藍色多瑙河',      audio:'songs/danube_main.mp3', star:2, len:'2:35',
    why:'華爾滋三拍子，搖擺感強、節奏規律，適合帶動唱。'},
+  {id:'yuye_inst',title:'雨夜花（演奏版）', audio:'songs/yu_ye_hua_inst.m4a', star:2, len:'2:05',
+   why:'四月望雨之一，慢慢的三拍子，像跳華爾滋。一小節一個動作，很適合先把節奏找回來。'},
   {id:'turkish',  title:'土耳其進行曲',    audio:'songs/turkish.mp3', star:3, len:'2:58',
    why:'速度明快，但指令已放寬，動作之間留了喘息空間。'},
-  {id:'bang',     title:'望春風（1933）',  audio:'songs/bang_chhun_hong_1933.ogg', star:4, len:'3:10',
-   why:'純純原版人聲。老錄音的節奏比較自由，反而最難跟；全曲沒有連拍段可以喘息。'},
+  {id:'bang_inst',title:'望春風（演奏版）', audio:'songs/bang_chhun_hong_inst.m4a', star:3, len:'2:42',
+   why:'大家都會哼的台灣老歌，專為跟拍子重新編曲：鼓點穩、間奏一起拍手，旋律唱到高音就舉手。'},
+  {id:'yueye_inst',title:'月夜愁（演奏版）', audio:'songs/yue_ye_chou_inst.m4a', star:3, len:'2:10',
+   why:'四月望雨之一，旋律悠揚，音符之間有喘息的地方，但要記得等到拍點再做。'},
   {id:'canon',    title:'卡農 Canon in D', audio:'songs/canon.mp3', star:4, len:'3:19',
    why:'最長的一首，動作切換也最頻繁，是耐力型挑戰。'},
+  {id:'siji_inst', title:'四季紅（演奏版）', audio:'songs/si_ji_hong_inst.m4a', star:4, len:'2:08',
+   why:'四月望雨之一，最輕快活潑的一首。速度快、動作一個接一個，要跟上不容易。'},
+  {id:'orpheus',  title:'天國與地獄',      audio:'songs/orpheus_cancan.ogg', star:5, len:'1:46',
+   why:'運動會賽跑曲！全曲庫最快，拍手、高舉幾乎每下都要換，沒有連拍段喘息。玩過其他首再來挑戰。'},
 ];
 const cfg={song:null,mode:'solo',warmup:true,arcade:true};
 const grid=$('songGrid');
 const STAR_LABEL={1:'入門',2:'輕鬆',3:'普通',4:'挑戰',5:'高難度'};
-SONGS.forEach(s=>{
-  const d=document.createElement('div');d.className='song';
-  d.innerHTML=`<div class="t">${s.title}</div>
-    <div class="meta"><span class="stars">${'★'.repeat(s.star)+'☆'.repeat(5-s.star)}</span>
-      <span class="lv">${STAR_LABEL[s.star]}</span><span class="len">${s.len}</span></div>
-    <div class="d">${s.why}</div>`;
-  d.onclick=()=>{grid.querySelectorAll('.song').forEach(x=>x.classList.remove('on'));d.classList.add('on');cfg.song=s;
-    $('pickHint').innerHTML='已選：<b>'+s.title+'</b>';};
-  grid.appendChild(d);
-});
-grid.firstChild.click();
+/* ⭐ v15 星級分層解鎖（像 Just Dance：過關才能挑戰更難的歌）
+   一開始只開最低星級；同一星級過關任一首 → 開放下一星級。
+   過關＝單人模式、遊戲機制開、整首玩完且過關量表 ≥ 80%（任何自動難度都算）。
+   團體投影沒有計分、由帶領者選歌 → 全部開放；治療師也可以在設定裡全部開放。
+   進度只存 localStorage（同一台平板共用一份）；demo 模式另存一份，免得試玩把正式進度解開。 */
+const CLEARED_KEY=DEMO?'rhythm_cleared_demo_v1':'rhythm_cleared_v1';
+const UNLOCK_ALL_KEY='rhythm_unlock_all';
+const TIERS=[...new Set(SONGS.map(s=>s.star))].sort((a,b)=>a-b);
+let cleared=new Set(), unlockAll=false;
+try{ cleared=new Set(JSON.parse(localStorage.getItem(CLEARED_KEY)||'[]')); unlockAll=localStorage.getItem(UNLOCK_ALL_KEY)==='1'; }catch(e){}
+function openStar(){                     // 目前開放到幾星
+  let top=TIERS[0];
+  for(let i=1;i<TIERS.length;i++){
+    if(SONGS.some(s=>s.star===TIERS[i-1]&&cleared.has(s.id))) top=TIERS[i]; else break; }
+  return top;
+}
+const isOpen=s=> unlockAll || cfg.mode==='group' || s.star<=openStar();
+function prevTier(star){ return TIERS[TIERS.indexOf(star)-1]; }
+function pickSong(s,d){ grid.querySelectorAll('.song').forEach(x=>x.classList.remove('on'));d.classList.add('on');cfg.song=s;
+  $('pickHint').innerHTML='已選：<b>'+s.title+'</b>'; }
+function renderSongs(){
+  grid.innerHTML='';
+  if(cfg.song&&!isOpen(cfg.song)) cfg.song=null;
+  SONGS.forEach(s=>{
+    const d=document.createElement('div'), open=isOpen(s);
+    d.className='song'+(open?'':' locked');
+    d.innerHTML=`<div class="t">${open?'':'🔒 '}${s.title}</div>
+      <div class="meta"><span class="stars">${'★'.repeat(s.star)+'☆'.repeat(5-s.star)}</span>
+        <span class="lv">${STAR_LABEL[s.star]}</span><span class="len">${s.len}</span>
+        ${cleared.has(s.id)?'<span class="clr">✅ 已過關</span>':''}</div>
+      <div class="d">${s.why}</div>
+      ${open?'':`<div class="lockTip">🔓 過關任一首 ${prevTier(s.star)} 星的歌就能挑戰</div>`}`;
+    d.onclick=()=>{
+      if(!isOpen(s)){ d.classList.remove('shake'); void d.offsetWidth; d.classList.add('shake');
+        $('pickHint').innerHTML=`<b>${s.title}</b> 還沒解鎖：先過關一首 ${prevTier(s.star)} 星的歌`; return; }
+      pickSong(s,d); };
+    grid.appendChild(d);
+    if(cfg.song===s) pickSong(s,d);
+  });
+  if(!cfg.song) grid.querySelector('.song:not(.locked)').click();
+}
+/* 回傳這次新開放的歌（沒有就空陣列） */
+function recordClear(id){
+  const before=SONGS.filter(isOpen).map(s=>s.id);
+  cleared.add(id);
+  try{ localStorage.setItem(CLEARED_KEY,JSON.stringify([...cleared])); }catch(e){}
+  return SONGS.filter(s=>isOpen(s)&&!before.includes(s.id));
+}
+renderSongs();
 
 function segBind(id,fn){ $(id).querySelectorAll('button').forEach(b=>{ b.onclick=()=>{
   $(id).querySelectorAll('button').forEach(x=>x.classList.remove('on')); b.classList.add('on'); fn(b.dataset.v); };});}
@@ -623,8 +686,17 @@ segBind('segMode',v=>{ cfg.mode=v;
     : '不開鏡頭、不計分。畫面放大當帶動唱字卡投影出去，帶領者在台前示範，全班跟著做。';
   $('soloOpts').classList.toggle('hidden',v!=='solo');
   $('startBtn').textContent = v==='solo' ? '開啟鏡頭開始 ▶' : '開始播放 ▶';
-  therSum();
+  renderSongs(); therSum();
 });
+function setUnlockAll(on){ unlockAll=!!on; $('vUnlock').textContent=unlockAll?'全部開放':'依過關進度';
+  $('segUnlock').querySelectorAll('button').forEach(b=>b.classList.toggle('on',(b.dataset.v==='all')===unlockAll));
+  renderSongs(); therSum(); }
+segBind('segUnlock',v=>{ setUnlockAll(v==='all'); try{localStorage.setItem(UNLOCK_ALL_KEY,unlockAll?'1':'0');}catch(e){} });
+$('resetUnlock').onclick=()=>{
+  if(!confirm('確定把歌曲解鎖進度重設回只開放第一級嗎？\n（換一位長者從頭破關時用；排行榜不受影響）'))return;
+  cleared=new Set(); try{ localStorage.removeItem(CLEARED_KEY); }catch(e){}
+  renderSongs(); alert('解鎖進度已重設。');
+};
 /* 曲庫試聽頁是內部工具，只在本機顯示（線上版沒有部署那一頁） */
 if(!/^(localhost|127\.0\.0\.1)$/.test(location.hostname)) $('listenBtn').remove();
 segBind('segWarm',v=>{ cfg.warmup=(v==='on'); $('vWarm').textContent=cfg.warmup?'開啟':'跳過'; therSum(); });
@@ -650,8 +722,10 @@ function therSum(){
   if(cfg.mode==='solo'){ parts.push('靈敏度 '+$('vSens').textContent, '暖身 '+(cfg.warmup?'開':'跳過'), '遊戲機制 '+(cfg.arcade?'開':'關')); }
   parts.push('喇叭 '+(spk==='bt'?'藍牙':'一般'));
   if(vol.music<1) parts.push('音樂 '+Math.round(vol.music*100)+'%');
+  if(unlockAll) parts.push('歌曲全部開放');
   el.textContent=parts.join('・');
 }
+setUnlockAll(unlockAll);            // ⚠️ 要放在 therSum 用到的 spk／vol 宣告之後，否則 TDZ
 
 /* 靈敏度（記憶上次設定） */
 const sensLabel=v=>v<0.85?'較嚴格':v<0.98?'略嚴':v<1.12?'標準':v<1.28?'較靈敏':'最靈敏';
@@ -1657,6 +1731,13 @@ function endPlay(){
     $('rClearLine').style.color=ok?'#0A9C84':'var(--soft)';
     $('rMult').textContent='最高 ×'+stats.maxMult.toFixed(1);
   }else{ $('rClear').textContent='—（遊戲機制關閉）'; $('rMult').textContent='—'; $('rClearLine').textContent=''; }
+  /* ⭐ v15 解鎖：只有單人＋機制開＋整首玩完過關才記（endPlay 只在曲終觸發） */
+  $('rUnlock').textContent='';
+  if(cfg.arcade&&cfg.mode==='solo'&&stats.gauge>=GAUGE_CLEAR){
+    const fresh=recordClear(cfg.song.id);
+    if(fresh.length&&!unlockAll) $('rUnlock').textContent='🔓 解鎖新歌：'+fresh.map(s=>'「'+s.title+'」').join('、')+'！';
+    renderSongs();
+  }
   if(grade==='S'||grade==='A'||(cfg.arcade&&stats.gauge>=GAUGE_CLEAR)) confetti();
   /* ⭐ v12：門檻若被個人化調過，據實寫一行小字（治療師看得到系統幫了多少忙）。
      沒調過就整行留白，不佔版面、也不用解釋一個沒發生的事。 */
