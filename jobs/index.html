@@ -33,7 +33,11 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;touch-
 #count{color:var(--cream);font-size:30px;font-weight:700;min-width:120px;text-align:center}
 .portrait #count,.portrait #fs{display:none}
 #nav .round{width:72px;padding:0;background:rgba(0,0,0,.25);font-size:32px;font-weight:400;color:var(--cream)}
-.portrait #nav .round{width:120px;flex:none;font-size:48px;padding:0}
+.portrait #nav .round{width:112px;flex:none;font-size:48px;padding:0}
+#home{font-size:42px!important}
+.portrait #home{font-size:60px!important}
+.portrait #nav{gap:12px;padding:0 18px}
+.portrait #nav #prev,.portrait #nav #tip{padding:0 16px;font-size:38px}
 #bar{position:absolute;left:0;top:0;height:6px;background:var(--sign);transition:width .25s}
 #notes{position:absolute;left:0;right:0;bottom:96px;background:#fff;color:var(--ink);border-top:8px solid var(--sign);padding:30px 60px 34px;font-size:36px;line-height:1.55;z-index:40;display:none;max-height:60%;overflow:auto;white-space:pre-line}
 .portrait #notes{bottom:160px;font-size:46px;padding:36px 44px;max-height:70%}
@@ -118,6 +122,7 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;touch-
   <div id="notes"></div>
   <div id="nav">
     <div id="bar"></div>
+    <button id="home" class="round" aria-label="回到首頁" title="回到首頁">⌂</button>
     <button id="prev">‹ 上一步</button>
     <span id="count"></span>
     <button id="snd" class="round" aria-label="音效開關">🔊</button>
@@ -371,9 +376,15 @@ function syncNav() {
   $('count').textContent = (idx + 1) + ' / ' + SLIDES.length;
   $('bar').style.width = (idx + 1) / SLIDES.length * 100 + '%';
   $('prev').style.visibility = idx ? 'visible' : 'hidden';
+  $('home').style.visibility = idx ? 'visible' : 'hidden';
   $('next').style.visibility = (idx === SLIDES.length - 1 && !p) ? 'hidden' : 'visible';
   $('tip').style.visibility = s.note ? 'visible' : 'hidden';
   $('next').textContent = idx === 0 ? '開始 ›' : (p ? '翻開 ›' : '下一頁 ›');
+}
+// 回封面並把題目重置，下一場可以重新帶；百工圖內容保留
+function goHome() {
+  st.forEach(x => { x.step = 0; x.ans = null; x.open = new Set(); });
+  go(0);
 }
 function closeNotes() { notesEl.classList.remove('on'); }
 function toggleNotes() {
@@ -391,6 +402,7 @@ function fit() {
 }
 $('next').onclick = next;
 $('prev').onclick = () => go(idx - 1);
+$('home').onclick = goHome;
 $('tip').onclick = toggleNotes;
 $('snd').onclick = () => setMute(!muted);
 $('fs').onclick = () => { const d = document; if (d.fullscreenElement) d.exitFullscreen(); else if (d.documentElement.requestFullscreen) d.documentElement.requestFullscreen(); };
@@ -412,6 +424,7 @@ addEventListener('keydown', e => {
   const k = e.key;
   if (['ArrowRight', 'PageDown', ' ', 'Enter'].includes(k)) { e.preventDefault(); next(); }
   else if (['ArrowLeft', 'PageUp'].includes(k)) { e.preventDefault(); go(idx - 1); }
+  else if (k === 'Home') { e.preventDefault(); goHome(); }
   else if (k === 'n' || k === 'N') toggleNotes();
   else if (k === 'm' || k === 'M') setMute(!muted);
   else if (k === 'f' || k === 'F') $('fs').click();
