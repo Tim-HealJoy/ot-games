@@ -1,0 +1,432 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>百工百業大挑戰：您做過什麼活？｜長輩懷舊互動教案</title>
+<meta name="description" content="看圖猜職業、猜制服、聽聲音、比動作，再聊那些快看不到的工作，最後請長輩當老師傅。投影、線上分享螢幕、手機都能帶。">
+<meta name="theme-color" content="#1A352D">
+<link rel="icon" href="../favicon.png">
+<meta property="og:type" content="website">
+<meta property="og:title" content="百工百業大挑戰：您做過什麼活？">
+<meta property="og:description" content="七關懷舊互動教案：猜職業、車掌小姐、電梯小姐、客廳即工廠，最後請長輩當老師傅。打開連結就能帶。">
+<meta property="og:image" content="https://games.otshih.com/jobs/share.png">
+<meta property="og:url" content="https://games.otshih.com/jobs/">
+<script src="/open-in-browser.js"></script>
+<style>
+:root{--board:#24483E;--board-d:#1A352D;--cream:#F4EFE3;--sign:#E9B44C;--brick:#B5472F;--ink:#2E2A25;--line:#D8CFBA;
+  --sans:"PingFang TC","Noto Sans TC","Microsoft JhengHei",-apple-system,sans-serif}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{position:fixed;inset:0;overflow:hidden;background:var(--board-d);font-family:var(--sans);overscroll-behavior:none}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;touch-action:manipulation}
+#stage{position:absolute;left:0;top:0;width:1920px;height:1080px;transform-origin:0 0;background:var(--cream);overflow:hidden;user-select:none;-webkit-user-select:none}
+#view{position:absolute;left:0;right:0;top:0;bottom:96px}
+.portrait #view{bottom:160px}
+#nav{position:absolute;left:0;right:0;bottom:0;height:96px;z-index:50;background:var(--board-d);display:flex;align-items:center;gap:20px;padding:0 28px}
+.portrait #nav{height:160px;gap:16px;padding:0 24px}
+#nav button{height:72px;border-radius:36px;font-size:34px;font-weight:800;padding:0 34px;white-space:nowrap}
+.portrait #nav button{height:120px;border-radius:60px;font-size:44px;padding:0 30px}
+#prev,#tip{color:var(--cream);border:3px solid rgba(244,239,227,.5)!important}
+#next{background:var(--sign)!important;color:var(--board-d)}
+#snd{margin-left:auto}
+.portrait #next{flex:1.25}.portrait #prev{flex:1}.portrait #snd{margin-left:0}.portrait #tip{padding:0 24px}
+#count{color:var(--cream);font-size:30px;font-weight:700;min-width:120px;text-align:center}
+.portrait #count,.portrait #fs{display:none}
+#nav .round{width:72px;padding:0;background:rgba(0,0,0,.25);font-size:32px;font-weight:400;color:var(--cream)}
+.portrait #nav .round{width:120px;flex:none;font-size:48px;padding:0}
+#bar{position:absolute;left:0;top:0;height:6px;background:var(--sign);transition:width .25s}
+#notes{position:absolute;left:0;right:0;bottom:96px;background:#fff;color:var(--ink);border-top:8px solid var(--sign);padding:30px 60px 34px;font-size:36px;line-height:1.55;z-index:40;display:none;max-height:60%;overflow:auto;white-space:pre-line}
+.portrait #notes{bottom:160px;font-size:46px;padding:36px 44px;max-height:70%}
+#notes.on{display:block}
+#notes b{display:block;color:var(--brick);font-size:.86em;margin-bottom:8px}
+
+.page{position:absolute;inset:0;display:flex;flex-direction:column;gap:20px;padding:26px 44px}
+.portrait .page{gap:26px;padding:34px 36px}
+.dark{background:var(--board);align-items:center;justify-content:center;text-align:center}
+.dark::before{content:"";position:absolute;inset:24px;border:4px solid var(--sign);border-radius:26px;pointer-events:none}
+.h1{color:var(--cream);font-size:112px;font-weight:900;line-height:1.2}
+.portrait .h1{font-size:104px}
+.h2{color:var(--sign);font-size:58px;font-weight:900;line-height:1.3}
+.sub{color:var(--cream);font-size:48px;line-height:1.4;max-width:1500px;text-wrap:balance}
+.portrait .sub{font-size:54px;max-width:940px}
+.small{color:var(--cream);font-size:34px}
+.portrait .small{font-size:44px}
+.chips{display:flex;flex-wrap:wrap;justify-content:center;gap:18px;margin:14px 0;max-width:1500px}
+.chips span{background:var(--cream);color:var(--board-d);font-size:40px;font-weight:800;padding:10px 34px;border-radius:50px}
+.portrait .chips span{font-size:48px}
+.link{color:var(--sign);text-decoration:underline;font-size:36px;font-weight:700}
+.portrait .link{font-size:46px}
+.basis{color:var(--cream);opacity:.85;font-size:26px;line-height:1.5;max-width:1500px}
+.portrait .basis{font-size:34px;max-width:960px}
+
+.head{display:flex;align-items:center;gap:22px;flex:none;min-height:84px}
+.portrait .head{flex-direction:column;align-items:flex-start;gap:14px}
+.pill{background:var(--board);color:var(--cream);font-size:34px;font-weight:800;padding:10px 36px;border-radius:50px;white-space:nowrap}
+.portrait .pill{font-size:42px}
+.q{color:var(--ink);font-size:58px;font-weight:900;line-height:1.25}
+.portrait .q{font-size:66px}
+.body{flex:1;min-height:0;display:flex;gap:26px}
+.portrait .body{flex-direction:column;gap:24px}
+.col{flex:1;min-width:0;min-height:0;display:flex;flex-direction:column;gap:22px}
+.pic{position:relative;flex:1;min-width:0;min-height:0;border-radius:14px;overflow:hidden;background:#E5DCC8}
+.pic img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;display:block}
+.pic.cover img{object-fit:cover}
+.credit{position:absolute;right:0;bottom:0;background:rgba(0,0,0,.62);color:#fff;font-size:21px;padding:3px 12px;z-index:5;pointer-events:none;max-width:100%}
+.portrait .credit{font-size:30px;padding:4px 14px}
+.card{background:#fff;border:3px solid var(--board);border-radius:22px;color:var(--ink);display:flex;align-items:center;justify-content:center;text-align:center;font-weight:900;font-size:66px;line-height:1.4;padding:24px 40px;white-space:pre-line}
+.portrait .card{font-size:64px;padding:30px 36px}
+.card.sm{font-size:48px;text-align:left;justify-content:flex-start}
+.portrait .card.sm{font-size:56px}
+.grow{flex:1;min-height:0}
+.ans{background:var(--brick);border:0;color:#fff;font-size:68px}
+.portrait .ans{font-size:72px}
+.hide{visibility:hidden}
+.pop{animation:pop .35s ease-out}
+@keyframes pop{from{opacity:0;transform:scale(.95)}to{opacity:1;transform:none}}
+.opt{flex:1;width:100%}
+.opt.right{background:var(--brick);border-color:var(--brick);color:#fff}
+.opt.wrong{opacity:.55}
+.tip{color:var(--board);font-size:36px;font-weight:800;text-align:center;flex:none}
+.portrait .tip{font-size:44px}
+.q-mark{background:#E5DCC8;border:0;color:var(--board);font-size:160px}
+.speaker{align-self:center;display:flex;flex-direction:column;align-items:center;gap:14px;margin:auto;color:var(--board);font-size:44px;font-weight:900}
+.speaker img{width:300px;height:300px}
+.speaker.big{font-size:60px}
+.icons{display:flex;justify-content:center;gap:50px;flex:none}
+.icons img{width:200px;height:200px}
+.big-q{color:var(--ink);font-size:84px;font-weight:900;text-align:center;line-height:1.3;flex:none}
+.portrait .big-q{font-size:76px}
+.vote{flex:1;display:flex;align-items:center;gap:26px;background:#fff;border:3px solid var(--board);border-radius:22px;padding:18px 34px;font-size:48px;font-weight:900;line-height:1.35;color:var(--ink);white-space:pre-line}
+.portrait .vote{font-size:56px}
+.vote img{width:130px;height:130px;flex:none}
+.flip{position:relative;flex:1.35;min-height:0;min-width:0}
+.flip .pic{position:absolute;inset:0}
+.tiles{position:absolute;inset:0;display:grid;grid-template:repeat(2,1fr)/repeat(2,1fr);z-index:6;border-radius:14px;overflow:hidden}
+.tile{background:var(--board);border:3px solid var(--cream);color:var(--sign);font-weight:900;font-size:110px;transition:opacity .4s}
+.tile.open{opacity:0;pointer-events:none}
+.board{flex:1;min-height:0;display:grid;grid-template-columns:repeat(4,1fr);grid-auto-rows:1fr;gap:18px}
+.portrait .board{grid-template-columns:repeat(3,1fr)}
+.board div{background:var(--cream);border-radius:16px;display:flex;align-items:center;justify-content:center;font-size:48px;font-weight:900;color:var(--ink);text-align:center;padding:8px;outline:none;user-select:text;-webkit-user-select:text}
+.bpage{background:var(--board)}
+.bpage .big-q{color:var(--cream);font-size:66px}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<div id="stage">
+  <div id="view"></div>
+  <div id="notes"></div>
+  <div id="nav">
+    <div id="bar"></div>
+    <button id="prev">‹ 上一步</button>
+    <span id="count"></span>
+    <button id="snd" class="round" aria-label="音效開關">🔊</button>
+    <button id="fs" class="round" aria-label="全螢幕">⛶</button>
+    <button id="tip">帶領提示</button>
+    <button id="next">下一步 ›</button>
+  </div>
+</div>
+<script>
+const SLIDES = [{"type": "cover", "title": "百工百業大挑戰", "sub": "您做過什麼活？", "chips": ["醫師", "老師", "農夫", "郵差", "車掌小姐", "理髮師"], "by": "編修：施昱廷 職能治療師", "note": "今天不考試，大家都是老師傅。猜錯沒關係，想到什麼就說什麼。"}, {"type": "audio", "tag": "開場", "q": "噹噹噹！這是什麼聲音？", "sound": "bell", "icon": "icons/speaker.png", "img": {"src": "img/classroom.jpg", "credit": "AI 示意圖"}, "answer": "上課鐘聲", "chat": "上課囉！\n今天我們來聊工作。", "note": "點喇叭播放（瀏覽器合成的示意音），接著按「翻開」揭曉。答案：上課鐘聲。"}, {"type": "chat", "tag": "開場", "qs": ["小時候，爸媽希望您以後做什麼工作？", "那您自己，小時候最想做什麼？"], "img": null, "note": "點 2～3 位長輩。答「沒想過」也很好，可以接著問：那時候身邊的大人都在做什麼？"}, {"type": "section", "no": 1, "title": "看圖猜職業", "sub": "二選一、猜工具、猜制服", "note": "約 15 分。前面幾題要快，每題約 30 秒，先讓大家猜得到。"}, {"type": "pick", "tag": "二選一", "q": "這個人是做什麼的？", "img": {"src": "img/doctor.jpg", "credit": "AI 示意圖"}, "img2": null, "opts": ["醫師", "廚師"], "ans": 0, "note": "請比 1 或 2。答案：醫師。"}, {"type": "pick", "tag": "二選一", "q": "這些人是做什麼的？", "img": {"src": "img/farmer.jpg", "credit": "AI 示意圖"}, "img2": null, "opts": ["警察", "農夫"], "ans": 1, "note": "請比 1 或 2。答案：農夫。"}, {"type": "pick", "tag": "二選一", "q": "這個人是做什麼的？", "img": {"src": "img/teacher.jpg", "credit": "AI 示意圖"}, "img2": null, "opts": ["老師", "司機"], "ans": 0, "note": "請比 1 或 2。答案：老師。"}, {"type": "reveal", "tag": "猜工具", "q": "誰每天都用這些東西？", "img": {"src": "img/t_barber.jpg", "credit": "AI 示意圖"}, "img2": {"src": "img/barber.jpg", "credit": "AI 示意圖"}, "answer": "理髮師", "note": "答案：理髮師。卡住時先給線索，再變二選一，最後直接揭曉。"}, {"type": "reveal", "tag": "猜工具", "q": "誰每天都用這些東西？", "img": {"src": "img/t_tailor.jpg", "credit": "Wikimedia Commons（CC0）"}, "img2": {"src": "img/tailor.jpg", "credit": "AI 示意圖"}, "answer": "裁縫師", "note": "答案：裁縫師。卡住時先給線索，再變二選一，最後直接揭曉。"}, {"type": "reveal", "tag": "猜工具", "q": "誰每天都用這些東西？", "img": {"src": "img/t_wood.jpg", "credit": "Wikimedia Commons（CC0）"}, "img2": {"src": "img/carpenter.jpg", "credit": "AI 示意圖"}, "answer": "木工師傅", "note": "答案：木工師傅。卡住時先給線索，再變二選一，最後直接揭曉。"}, {"type": "reveal", "tag": "猜制服", "q": "這是誰的制服？", "img": {"src": "img/u_police.jpg", "credit": "AI 示意圖"}, "img2": {"src": "img/police.jpg", "credit": "Wikimedia Commons（公眾領域）"}, "answer": "警察", "note": "答案：警察。卡住時先給線索，再變二選一，最後直接揭曉。"}, {"type": "reveal", "tag": "猜制服", "q": "這是誰的制服？", "img": {"src": "img/u_nurse.jpg", "credit": "AI 示意圖"}, "img2": {"src": "img/nurse.jpg", "credit": "AI 示意圖"}, "answer": "護理師", "note": "答案：護理師。卡住時先給線索，再變二選一，最後直接揭曉。"}, {"type": "reveal", "tag": "猜制服", "q": "這是誰的制服？", "img": {"src": "img/u_postman.jpg", "credit": "AI 示意圖"}, "img2": {"src": "img/postman.jpg", "credit": "AI 示意圖"}, "answer": "郵差", "note": "答案：郵差。卡住時先給線索，再變二選一，最後直接揭曉。"}, {"type": "think", "q1": "哪些工作要戴帽子？", "q2": "為什麼要戴？怕曬，還是怕撞到頭？", "icons": ["icons/cap.png", "icons/helmet.png"], "note": "帶領者把答案寫白板或念出來。提示：在外面工作（農夫的斗笠、工地的安全帽）；在室內工作（廚師的高帽）；交通（司機、車掌小姐）；保護大家（消防員、軍人）。"}, {"type": "think", "q1": "哪些工作要穿制服？", "q2": "剛剛說的工作，哪些帽子和制服都要？", "icons": ["icons/labcoat.png", "icons/tie.png", "icons/tshirt.png"], "note": "提示：在外面工作（郵差、警察）；在室內工作（護理師、銀行行員）；交通（車掌小姐、空服員）；保護大家（消防員、軍人）。"}, {"type": "chat", "tag": "猜制服", "qs": ["您或家人做過的工作，\n要戴帽子或穿制服嗎？"], "img": null, "note": "學生制服也可以聊。"}, {"type": "section", "no": 2, "title": "聲音＋動作猜", "sub": "聽一聽、看一看，這是什麼工作？", "note": "約 12 分。猜到生意就算對。叫賣聲可由帶領者親自喊，長輩更容易接話。"}, {"type": "voice", "tag": "聽聲音", "q": "這是在做什麼生意的？", "icon": "icons/speaker.png", "img": {"src": "img/rouzong.jpg", "credit": "AI 示意圖"}, "answer": "賣燒肉粽", "chat": "您晚上有聽過這個聲音，\n跑出去買嗎？", "note": "請帶領者自己喊：「燒～肉～粽～」用台語或長輩熟悉的腔調都好，也可以請長輩接著喊。答案：賣燒肉粽。"}, {"type": "audio", "tag": "聽聲音", "q": "這是在做什麼生意的？", "sound": "steam", "icon": "icons/speaker.png", "img": {"src": "img/miancha.jpg", "credit": "AI 示意圖"}, "answer": "賣麵茶", "chat": "麵茶您喜歡泡得稀，\n還是濃一點？", "note": "點喇叭播放（瀏覽器合成的示意音），接著按「翻開」揭曉。答案：賣麵茶。麵茶車常用蒸氣汽笛，這裡是示意音。"}, {"type": "audio", "tag": "聽聲音", "q": "這是在做什麼生意的？", "sound": "horn", "icon": "icons/speaker.png", "img": {"src": "img/bapu.jpg", "credit": "AI 示意圖"}, "answer": "賣冰淇淋（叭噗）", "chat": "小時候聽到叭噗聲，\n您跟誰要錢買？", "note": "點喇叭播放（瀏覽器合成的示意音），接著按「翻開」揭曉。答案：賣冰淇淋（叭噗）。"}, {"type": "voice", "tag": "聽聲音", "q": "這是在做什麼生意的？", "icon": "icons/speaker.png", "img": {"src": "img/douhua.jpg", "credit": "AI 示意圖"}, "answer": "賣豆花", "chat": "您吃豆花喜歡加什麼？", "note": "請帶領者自己喊：「豆～花～喔～」用台語或長輩熟悉的腔調都好，也可以請長輩接著喊。答案：賣豆花。"}, {"type": "action", "img": {"src": "img/chef.jpg", "credit": "AI 示意圖"}, "answer": "廚師", "move": "單手拿鍋鏟，往前翻一下", "note": "帶領者示範：單手拿鍋鏟，往前翻一下。答案：廚師。單手做也算，不要求動作標準。"}, {"type": "action", "img": {"src": "img/driver.jpg", "credit": "AI 示意圖"}, "answer": "司機", "move": "雙手握住方向盤，左右轉", "note": "帶領者示範：雙手握住方向盤，左右轉。答案：司機。單手做也算，不要求動作標準。"}, {"type": "action", "img": {"src": "img/singer.jpg", "credit": "AI 示意圖"}, "answer": "歌手", "move": "拿麥克風，張口唱", "note": "帶領者示範：拿麥克風，張口唱。答案：歌手。單手做也算，不要求動作標準。"}, {"type": "clues", "clues": ["天還沒亮就要出門", "常騎腳踏車", "我把消息送到您家門口"], "answer": "送報生", "note": "一句一句出。猜得到就直接揭曉。接著問：您家以前有訂報嗎？"}, {"type": "section", "no": 3, "title": "這工作還在嗎？", "sub": "比讚＝還常看到；揮手＝很少看到了", "note": "約 5 分。只用前面玩過的工作，第 4 關的答案不要先說。"}, {"type": "still", "job": "理髮師", "img": {"src": "img/barber.jpg", "credit": "AI 示意圖"}, "thumb": "icons/thumb.png", "wave": "icons/wave.png", "note": "沒有標準答案，大家不同也可以。追問：您最近在哪裡看過？"}, {"type": "still", "job": "裁縫師", "img": {"src": "img/tailor.jpg", "credit": "AI 示意圖"}, "thumb": "icons/thumb.png", "wave": "icons/wave.png", "note": "沒有標準答案，大家不同也可以。追問：您最近在哪裡看過？"}, {"type": "still", "job": "賣叭噗的", "img": {"src": "img/bapu.jpg", "credit": "AI 示意圖"}, "thumb": "icons/thumb.png", "wave": "icons/wave.png", "note": "沒有標準答案，大家不同也可以。追問：您最近在哪裡看過？"}, {"type": "still", "job": "賣麵茶的", "img": {"src": "img/miancha.jpg", "credit": "AI 示意圖"}, "thumb": "icons/thumb.png", "wave": "icons/wave.png", "note": "沒有標準答案，大家不同也可以。追問：您最近在哪裡看過？"}, {"type": "section", "no": 4, "title": "那些快看不到的工作", "sub": "有些工作，現在已經很少見了。您認不認得？", "note": "約 18 分。每個工作三步：猜職業 → 猜被什麼取代 → 聊經驗。"}, {"type": "reveal", "tag": "猜制服", "q": "這是誰的制服？", "img": {"src": "img/u_conductor.jpg", "credit": "AI 示意圖"}, "img2": {"src": "img/conductor.jpg", "credit": "AI 示意圖"}, "answer": "車掌小姐", "note": "答案：車掌小姐。卡住時先給線索，再變二選一，最後直接揭曉。早年負責剪票、報站名。確切取消年份未查到，帶領時不講年份。"}, {"type": "pick", "tag": "猜猜看", "q": "車掌小姐後來換成什麼？", "img": {"src": "img/conductor.jpg", "credit": "AI 示意圖"}, "img2": null, "opts": ["投幣和刷卡", "機器人"], "ans": 0, "note": "請比 1 或 2。答案：投幣和刷卡。"}, {"type": "chat", "tag": "車掌小姐", "qs": ["您搭車時，遇過親切\n或很兇的車掌嗎？"], "img": {"src": "img/conductor.jpg", "credit": "AI 示意圖"}, "note": ""}, {"type": "reveal", "tag": "猜制服", "q": "這是誰的制服？", "img": {"src": "img/u_elevator.jpg", "credit": "AI 示意圖"}, "img2": {"src": "img/elevator.jpg", "credit": "AI 示意圖"}, "answer": "電梯小姐", "note": "答案：電梯小姐。卡住時先給線索，再變二選一，最後直接揭曉。1932 年菊元百貨已有；現在部分百貨仍可見到，帶領時說「現在很少了」。"}, {"type": "pick", "tag": "猜猜看", "q": "現在多數換成什麼？", "img": {"src": "img/elevator.jpg", "credit": "AI 示意圖"}, "img2": null, "opts": ["自己按按鈕", "爬樓梯"], "ans": 0, "note": "請比 1 或 2。答案：自己按按鈕。"}, {"type": "chat", "tag": "電梯小姐", "qs": ["您第一次搭百貨公司\n電梯，是在哪裡？"], "img": {"src": "img/elevator.jpg", "credit": "AI 示意圖"}, "note": ""}, {"type": "flip", "q": "這是什麼工作？", "img": {"src": "img/operator.jpg", "credit": "AI 示意圖"}, "answer": "電話\n接線生", "note": "點數字或按「翻開」依序翻格，每翻一格猜一次；第 5 下揭曉。答案：電話\n接線生。1950 年代公用電話仍多靠人工轉接；自動化年份未查到，帶領時不講年份。"}, {"type": "pick", "tag": "猜猜看", "q": "後來打電話變成什麼？", "img": {"src": "img/operator.jpg", "credit": "AI 示意圖"}, "img2": null, "opts": ["自己直接撥", "寫信"], "ans": 0, "note": "請比 1 或 2。答案：自己直接撥。"}, {"type": "chat", "tag": "電話接線生", "qs": ["您家第一支電話，\n是什麼時候裝的？"], "img": {"src": "img/operator.jpg", "credit": "AI 示意圖"}, "note": ""}, {"type": "flip", "q": "這是什麼工作？", "img": {"src": "img/pedicab.jpg", "credit": "AI 示意圖"}, "answer": "三輪車伕", "note": "點數字或按「翻開」依序翻格，每翻一格猜一次；第 5 下揭曉。答案：三輪車伕。民國 53 年決定淘汰、57 年台北市區禁行；來源年份不一，帶領時說「民國 50 幾年」。"}, {"type": "pick", "tag": "猜猜看", "q": "後來多數換成什麼？", "img": {"src": "img/pedicab.jpg", "credit": "AI 示意圖"}, "img2": null, "opts": ["計程車", "飛機"], "ans": 0, "note": "請比 1 或 2。答案：計程車。"}, {"type": "chat", "tag": "三輪車", "qs": ["您搭過三輪車嗎？\n要去哪裡？"], "img": {"src": "img/pedicab.jpg", "credit": "AI 示意圖"}, "note": ""}, {"type": "flip", "q": "這是什麼工作？", "img": {"src": "img/homework.jpg", "credit": "AI 示意圖"}, "answer": "家庭裁縫\n代工", "note": "點數字或按「翻開」依序翻格，每翻一格猜一次；第 5 下揭曉。答案：家庭裁縫\n代工。1972 年謝東閔倡導「客廳即工廠」，很多家庭在客廳接代工貼補家用。"}, {"type": "pick", "tag": "猜猜看", "q": "代工的錢怎麼算？", "img": {"src": "img/homework3.jpg", "credit": "AI 示意圖"}, "img2": null, "opts": ["按件計酬", "按月領薪"], "ans": 0, "note": "請比 1 或 2。答案：按件計酬。可接著問：一件多少錢，您還記得嗎？"}, {"type": "chat", "tag": "家庭代工", "qs": ["您家以前有在客廳\n做過代工嗎？做什麼？"], "img": {"src": "img/homework2.jpg", "credit": "AI 示意圖"}, "note": "裁縫以外，穿燈泡、縫雨傘、做手工都算。"}, {"type": "section", "no": 5, "title": "請教老師傅", "sub": "今天我是學徒，您是師傅", "note": "約 15 分，今天的主體。帶領者當新來的學徒；長輩提到動作時，請全體跟著做一次。"}, {"type": "chat", "tag": "請教老師傅", "qs": ["師傅，\n您第一份工作是做什麼？"], "img": null, "note": "三個入口：我自己做過／我家人做過／我看過。"}, {"type": "chat", "tag": "請教老師傅", "qs": ["我是新來的，\n第一天要先學什麼？"], "img": null, "note": "請長輩比給大家看，全體跟著做一次。"}, {"type": "chat", "tag": "請教老師傅", "qs": ["您的工作有什麼訣竅，\n可以教我一招嗎？"], "img": null, "note": "長輩說不出來時，改問：那時候師傅都怎麼教您？"}, {"type": "chat", "tag": "請教老師傅", "qs": ["煮一桌菜、顧一家人，\n您有什麼訣竅？"], "img": null, "note": "家庭主婦、家中照顧者的入口，這也是一份工作。"}, {"type": "chat", "tag": "請教老師傅", "qs": ["您小時候，\n看家人做什麼工作？"], "img": null, "note": "想不起自己工作的長輩，可以從這題開始。"}, {"type": "section", "no": 6, "title": "當年的薪水", "sub": "猜一猜，當年多少錢？", "note": "約 5 分。數字猜錯反而有笑點，不必糾正。"}, {"type": "pick", "tag": "猜價錢", "q": "民國 50 年代，老師一個月大約領多少？", "img": {"src": "img/classroom.jpg", "credit": "AI 示意圖"}, "img2": null, "opts": ["不到 700 元", "7,000 元"], "ans": 0, "note": "請比 1 或 2。答案：不到 700 元。依張哲生〈半世紀前的台灣物價〉（ETtoday）：教員和公務員月薪不到 700 元。"}, {"type": "pick", "tag": "猜價錢", "q": "1960 年代，味噌湯一碗多少錢？", "img": {"src": "img/menu_mask.jpg", "credit": "AI 示意圖"}, "img2": {"src": "img/menu.jpg", "credit": "AI 示意圖"}, "opts": ["2 元", "20 元"], "ans": 0, "note": "請比 1 或 2。答案：2 元。答完才顯示價格。價格依張哲生〈半世紀前的台灣物價〉（ETtoday）；招牌圖為示意。"}, {"type": "chat", "tag": "當年的薪水", "qs": ["以前領到薪水袋，\n您都交給誰？"], "img": {"src": "img/payslip.jpg", "credit": "AI 示意圖"}, "note": ""}, {"type": "chat", "tag": "當年的薪水", "qs": ["第一次領薪水，\n您買了什麼？"], "img": null, "note": ""}, {"type": "section", "no": 7, "title": "我們這一團的百工圖", "sub": "今天大家都是老師傅", "note": "約 3 分。"}, {"type": "board", "note": "點格子直接打字，把今天大家提到的工作填進去。家庭主婦、家庭代工、幫忙農務都算。現場課也可以寫白板。"}, {"type": "chat", "tag": "收尾", "qs": ["今天聽到這麼多工作，\n您最想跟誰拜師？"], "img": null, "note": ""}, {"type": "audio", "tag": "收尾", "q": "噹噹噹！這是什麼聲音？", "sound": "bell", "icon": "icons/speaker.png", "img": {"src": "img/store.jpg", "credit": "Wikimedia Commons（CC0）"}, "answer": "下課鐘聲", "chat": "我們也下課囉！\n謝謝各位老師傅！", "note": "點喇叭播放（瀏覽器合成的示意音），接著按「翻開」揭曉。答案：下課鐘聲。"}, {"type": "end", "title": "謝謝老師傅", "sub": "今天大家都是老師傅", "by": "編修：施昱廷 職能治療師", "basis": "內容依據：張哲生〈半世紀前的台灣物價〉（ETtoday）、國家文化記憶庫〈客廳即工廠〉；標示 AI 示意圖者為情境重現，不是當年真實照片。"}];
+const $ = id => document.getElementById(id);
+const stage = $('stage'), view = $('view'), notesEl = $('notes');
+const st = SLIDES.map(() => ({ step: 0, ans: null, open: new Set(), board: null }));
+let idx = 0, portrait = false, justStepped = false;
+function store(k, v) { try { if (v === undefined) return localStorage.getItem(k); localStorage.setItem(k, v); } catch (e) { return null; } }
+let muted = store('jobs_mute') === '1';
+function el(tag, cls, txt) { const e = document.createElement(tag); if (cls) e.className = cls; if (txt != null) e.textContent = txt; return e; }
+function pic(im, cover) {
+  const p = el('div', 'pic' + (cover ? ' cover' : ''));
+  const i = el('img'); i.src = im.src; i.alt = im.alt || ''; i.draggable = false; p.append(i);
+  if (im.credit) p.append(el('div', 'credit', im.credit === 'AI 示意圖' ? im.credit : '圖片來源：' + im.credit));
+  return p;
+}
+function head(page, tag, q) { const h = el('div', 'head'); h.append(el('div', 'pill', tag), el('div', 'q', q)); page.append(h); }
+function fresh(node, on) { if (on && justStepped) node.classList.add('pop'); return node; }
+// 每一頁總共要按幾下才算翻完
+const STEPS = { chat: s => s.qs.length - 1, pick: () => 1, reveal: () => 1, audio: () => 2, voice: () => 2, action: () => 2, clues: () => 3, think: () => 1, flip: () => 5 };
+const maxStep = s => (STEPS[s.type] ? STEPS[s.type](s) : 0);
+
+const RENDER = {
+  cover(s, page) {
+    page.classList.add('dark');
+    const c = el('div', 'chips'); s.chips.forEach(t => c.append(el('span', '', t)));
+    page.append(el('div', 'h1', s.title), el('div', 'h2', s.sub), c, el('div', 'small', s.by));
+  },
+  section(s, page) {
+    page.classList.add('dark');
+    page.append(el('div', 'h2', `第 ${s.no} 關`), el('div', 'h1', s.title), el('div', 'sub', s.sub));
+  },
+  chat(s, page, state) {
+    head(page, s.tag, '聊聊看');
+    const body = el('div', 'body');
+    if (s.img) body.append(pic(s.img));
+    const col = el('div', 'col');
+    s.qs.forEach((q, i) => {
+      const c = el('div', 'card grow' + (s.img ? ' sm' : ''), q);
+      if (i > state.step) c.classList.add('hide');
+      col.append(fresh(c, i === state.step));
+    });
+    body.append(col); page.append(body);
+  },
+  pick(s, page, state) {
+    head(page, s.tag, s.q);
+    const body = el('div', 'body');
+    body.append(pic(state.step && s.img2 ? s.img2 : s.img));
+    const col = el('div', 'col');
+    s.opts.forEach((o, i) => {
+      const b = el('button', 'card opt', '①②'[i] + ' ' + o);
+      if (state.step) { b.textContent = (i === s.ans ? '✓ ' : '①②'[i] + ' ') + o; b.classList.add(i === s.ans ? 'right' : 'wrong'); }
+      b.onclick = () => { if (!state.step) { state.step = 1; if (i === s.ans) chord(); justStepped = true; render(); } };
+      col.append(b);
+    });
+    col.append(el('div', 'tip', state.step ? ' ' : '請比 1 或比 2，再點答案'));
+    body.append(col); page.append(body);
+  },
+  reveal(s, page, state) {
+    head(page, s.tag, s.q);
+    const body = el('div', 'body');
+    body.append(pic(s.img));
+    const col = el('div', 'col');
+    if (state.step) {
+      col.append(fresh(el('div', 'card ans', s.answer), true));
+      if (s.img2) col.append(fresh(pic(s.img2, true), true));
+    } else col.append(el('div', 'card q-mark grow', '？'));
+    body.append(col); page.append(body);
+  },
+  audio(s, page, state) { soundPage(s, page, state, true); },
+  voice(s, page, state) { soundPage(s, page, state, false); },
+  action(s, page, state) {
+    head(page, '動作猜', '看我的動作，這是什麼工作？');
+    if (!state.step) { page.append(el('div', 'card ans grow', '看老師的動作')); return; }
+    answerPanel(s, page, state, `大家一起做一次！\n${s.move}`);
+  },
+  clues(s, page, state) {
+    head(page, '三句線索', '這是什麼工作？');
+    const col = el('div', 'col');
+    s.clues.forEach((t, i) => {
+      const c = el('div', 'card grow', `${i + 1}．${t}`);
+      if (i > state.step) c.classList.add('hide');
+      col.append(fresh(c, i === state.step));
+    });
+    const a = el('div', 'card ans grow', s.answer);
+    if (state.step < 3) a.classList.add('hide');
+    col.append(fresh(a, state.step === 3));
+    page.append(col);
+  },
+  think(s, page, state) {
+    head(page, '想想看', '想到就說，沒有標準答案');
+    const ic = el('div', 'icons');
+    s.icons.forEach(n => { const m = el('img'); m.src = n; m.alt = ''; ic.append(m); });
+    const c = el('div', 'card grow', s.q2);
+    if (!state.step) c.classList.add('hide');
+    page.append(el('div', 'big-q', s.q1), ic, fresh(c, state.step === 1));
+  },
+  still(s, page) {
+    head(page, '還在嗎', `${s.job}，現在還常看到嗎？`);
+    const body = el('div', 'body');
+    body.append(pic(s.img));
+    const col = el('div', 'col');
+    [[s.thumb, '比讚\n還常看到'], [s.wave, '揮手\n很少看到了']].forEach(([src, t]) => {
+      const v = el('div', 'vote'), m = el('img'); m.src = src; m.alt = '';
+      v.append(m, document.createTextNode(t)); col.append(v);
+    });
+    body.append(col); page.append(body);
+  },
+  flip(s, page, state) {
+    head(page, '翻格猜', s.q);
+    const body = el('div', 'body');
+    const f = el('div', 'flip');
+    f.append(pic(s.img));
+    const g = el('div', 'tiles');
+    for (let i = 0; i < 4; i++) {
+      const t = el('button', 'tile' + (state.open.has(i) ? ' open' : ''), String(i + 1));
+      t.setAttribute('aria-label', '翻開第 ' + (i + 1) + ' 格');
+      t.onclick = () => { if (!state.open.has(i)) { state.open.add(i); state.step = state.open.size; t.classList.add('open'); syncNav(); } };
+      g.append(t);
+    }
+    f.append(g); body.append(f);
+    const col = el('div', 'col');
+    col.append(state.step >= 5 ? fresh(el('div', 'card ans grow', s.answer), true) : el('div', 'card q-mark grow', '？'));
+    body.append(col); page.append(body);
+  },
+  board(s, page, state) {
+    page.classList.add('bpage');
+    page.append(el('div', 'big-q', '我們這一團的百工圖'));
+    const g = el('div', 'board');
+    state.board = state.board || Array(12).fill('');
+    state.board.forEach((t, i) => {
+      const d = el('div', '', t);
+      d.contentEditable = 'true'; d.setAttribute('aria-label', '填入工作 ' + (i + 1));
+      d.oninput = () => { state.board[i] = d.textContent; };
+      g.append(d);
+    });
+    page.append(g);
+  },
+  end(s, page) {
+    page.classList.add('dark');
+    const a = el('a', 'link', '更多長輩教案與遊戲：OTshih.com'); a.href = 'https://otshih.com/';
+    const fb = el('a', 'link', '歡迎給我回饋與建議（粉專私訊）'); fb.href = 'https://www.facebook.com/shihyuting.OT';
+    page.append(el('div', 'h1', s.title), el('div', 'h2', s.sub), el('div', 'small', s.by), fb, a, el('div', 'basis', s.basis));
+  }
+};
+function answerPanel(s, page, state, chatText) {
+  const body = el('div', 'body');
+  body.append(fresh(pic(s.img, !portrait ? false : false), state.step === 1));
+  const col = el('div', 'col');
+  col.append(fresh(el('div', 'card ans', s.answer), state.step === 1));
+  const c = el('div', 'card grow sm', chatText);
+  if (state.step < 2) c.classList.add('hide');
+  col.append(fresh(c, state.step === 2));
+  body.append(col); page.append(body);
+}
+function soundPage(s, page, state, hasSound) {
+  head(page, s.tag, s.q);
+  if (state.step) return answerPanel(s, page, state, s.chat);
+  const box = el(hasSound ? 'button' : 'div', 'speaker' + (hasSound ? '' : ' big'));
+  const m = el('img'); m.src = s.icon; m.alt = ''; m.draggable = false; box.append(m);
+  box.append(document.createTextNode(hasSound ? '點喇叭，聽一聽' : '請老師喊一聲，大家猜猜看'));
+  if (hasSound) box.onclick = () => SYNTH[s.sound]();
+  page.append(box);
+}
+
+// ---------- 自製音效（瀏覽器合成，不用任何錄音） ----------
+let actx = null;
+function ctx() { actx = actx || new (window.AudioContext || window.webkitAudioContext)(); if (actx.state === 'suspended') actx.resume(); return actx; }
+function tone(f, t0, dur, type, vol) {
+  const a = ctx(), o = a.createOscillator(), g = a.createGain(), t = a.currentTime + t0;
+  o.type = type; o.frequency.value = f;
+  g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol, t + .015);
+  g.gain.exponentialRampToValueAtTime(.001, t + dur);
+  o.connect(g).connect(a.destination); o.start(t); o.stop(t + dur + .02);
+  return o;
+}
+const SYNTH = {
+  bell() { // 校園常見的四音鐘聲
+    if (muted) return;
+    const q = [659.25, 523.25, 587.33, 392, 392, 587.33, 659.25, 523.25];
+    q.forEach((f, i) => { const t = i * .62 + (i > 3 ? .3 : 0); [1, 2, 2.76].forEach((k, j) => tone(f * k, t, 1.5 - j * .4, 'sine', .17 / (j + 1))); });
+  },
+  horn() { // 橡皮球喇叭，叭噗
+    if (muted) return;
+    [0, .42, 1.1, 1.52].forEach((t, i) => {
+      const o = tone(i % 2 ? 330 : 415, t, .34, 'sawtooth', .12);
+      o.frequency.setValueAtTime(i % 2 ? 330 : 415, ctx().currentTime + t);
+      o.frequency.linearRampToValueAtTime(i % 2 ? 300 : 440, ctx().currentTime + t + .3);
+    });
+  },
+  steam() { // 麵茶車的蒸氣汽笛
+    if (muted) return;
+    const a = ctx(), t = a.currentTime, o = a.createOscillator(), o2 = a.createOscillator(), g = a.createGain();
+    o.type = 'sine'; o2.type = 'triangle';
+    o.frequency.setValueAtTime(1500, t); o.frequency.linearRampToValueAtTime(1750, t + .4);
+    o2.frequency.setValueAtTime(1508, t); o2.frequency.linearRampToValueAtTime(1762, t + .4);
+    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(.12, t + .3);
+    g.gain.setValueAtTime(.12, t + 2.6); g.gain.linearRampToValueAtTime(0, t + 3.2);
+    o.connect(g); o2.connect(g); g.connect(a.destination);
+    o.start(t); o2.start(t); o.stop(t + 3.3); o2.stop(t + 3.3);
+  }
+};
+function chord() {
+  if (muted) return;
+  try { [523.25, 659.25, 783.99].forEach((f, i) => tone(f, i * .09, .6, 'triangle', .16)); } catch (e) {}
+}
+
+// ---------- 導覽 ----------
+function pending(s, state) { return state.step < maxStep(s); }
+function next() {
+  const s = SLIDES[idx], state = st[idx];
+  if (pending(s, state)) {
+    if (s.type === 'flip' && state.step < 4) {
+      let i = 0; while (state.open.has(i)) i++;
+      state.open.add(i);
+      state.step = state.open.size;
+      view.querySelectorAll('.tile')[i].classList.add('open');
+      syncNav();
+      return;
+    }
+    state.step++;
+    justStepped = true;
+    render();
+    return;
+  }
+  go(idx + 1);
+}
+function go(n) {
+  if (n < 0 || n >= SLIDES.length) return;
+  idx = n; closeNotes(); render();
+  try { history.replaceState(null, '', '#' + (idx + 1)); } catch (e) {}
+}
+function render() {
+  const s = SLIDES[idx], page = el('div', 'page');
+  view.replaceChildren(page);
+  RENDER[s.type](s, page, st[idx]);
+  justStepped = false;
+  syncNav();
+  preload(idx + 1); preload(idx + 2);
+}
+function preload(n) { const s = SLIDES[n]; if (!s) return; [s.img, s.img2].forEach(im => { if (im) new Image().src = im.src; }); }
+function syncNav() {
+  const s = SLIDES[idx], p = pending(s, st[idx]);
+  $('count').textContent = (idx + 1) + ' / ' + SLIDES.length;
+  $('bar').style.width = (idx + 1) / SLIDES.length * 100 + '%';
+  $('prev').style.visibility = idx ? 'visible' : 'hidden';
+  $('next').style.visibility = (idx === SLIDES.length - 1 && !p) ? 'hidden' : 'visible';
+  $('tip').style.visibility = s.note ? 'visible' : 'hidden';
+  $('next').textContent = idx === 0 ? '開始 ›' : (p ? '翻開 ›' : '下一頁 ›');
+}
+function closeNotes() { notesEl.classList.remove('on'); }
+function toggleNotes() {
+  if (notesEl.classList.contains('on')) return closeNotes();
+  notesEl.replaceChildren(el('b', '', '帶領提示（只有帶領者需要看）'), document.createTextNode(SLIDES[idx].note || ''));
+  notesEl.classList.add('on');
+}
+function setMute(v) { muted = v; store('jobs_mute', v ? '1' : '0'); $('snd').textContent = v ? '🔇' : '🔊'; }
+function fit() {
+  const iw = innerWidth, ih = innerHeight, p = ih > iw;
+  if (p !== portrait) { portrait = p; stage.classList.toggle('portrait', p); render(); }
+  const k = Math.min(iw / (p ? 1080 : 1920), ih / (p ? 1920 : 1080));
+  stage.style.width = iw / k + 'px'; stage.style.height = ih / k + 'px';
+  stage.style.transform = `scale(${k})`;
+}
+$('next').onclick = next;
+$('prev').onclick = () => go(idx - 1);
+$('tip').onclick = toggleNotes;
+$('snd').onclick = () => setMute(!muted);
+$('fs').onclick = () => { const d = document; if (d.fullscreenElement) d.exitFullscreen(); else if (d.documentElement.requestFullscreen) d.documentElement.requestFullscreen(); };
+view.addEventListener('click', e => {
+  if (e.target.closest('button,a,[contenteditable]')) return;
+  if (notesEl.classList.contains('on')) return closeNotes();
+  const r = stage.getBoundingClientRect();
+  if ((e.clientX - r.left) / r.width > .35) next(); else go(idx - 1);
+});
+let sx = null;
+stage.addEventListener('touchstart', e => { sx = e.touches[0].clientX; }, { passive: true });
+stage.addEventListener('touchend', e => {
+  if (sx == null) return;
+  const dx = e.changedTouches[0].clientX - sx; sx = null;
+  if (Math.abs(dx) > 60) { e.preventDefault(); dx < 0 ? next() : go(idx - 1); }
+});
+addEventListener('keydown', e => {
+  if (e.target.closest && e.target.closest('[contenteditable]')) return;
+  const k = e.key;
+  if (['ArrowRight', 'PageDown', ' ', 'Enter'].includes(k)) { e.preventDefault(); next(); }
+  else if (['ArrowLeft', 'PageUp'].includes(k)) { e.preventDefault(); go(idx - 1); }
+  else if (k === 'n' || k === 'N') toggleNotes();
+  else if (k === 'm' || k === 'M') setMute(!muted);
+  else if (k === 'f' || k === 'F') $('fs').click();
+});
+addEventListener('resize', fit);
+addEventListener('orientationchange', fit);
+if (window.visualViewport) visualViewport.addEventListener('resize', fit);
+if (window.ResizeObserver) new ResizeObserver(fit).observe(document.documentElement);
+const h = parseInt(location.hash.slice(1), 10);
+if (h >= 1 && h <= SLIDES.length) idx = h - 1;
+setMute(muted);
+portrait = innerHeight > innerWidth;
+stage.classList.toggle('portrait', portrait);
+render(); fit();
+</script>
+<script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "3df68cf5d6bd4975b97a157f7ff3cafb"}'></script>
+</body>
+</html>
