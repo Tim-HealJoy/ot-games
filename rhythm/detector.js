@@ -585,14 +585,14 @@ export function createAutoFramer(cfg = {}) {
 }
 
 /* 模型載入（full 精度明顯優於 lite，手腕尤其；失敗自動退回） */
-export async function loadPose(quality = 'full') {
+export async function loadPose(quality = 'full', numPoses = 1) {
   const { PoseLandmarker, FilesetResolver } =
     await import("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.35");
   const vision = await FilesetResolver.forVisionTasks("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.35/wasm");
   const url = q => `https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_${q}/float16/latest/pose_landmarker_${q}.task`;
   const opt = (q, d) => ({
     baseOptions: { modelAssetPath: url(q), delegate: d },
-    runningMode: "VIDEO", numPoses: 1,
+    runningMode: "VIDEO", numPoses,
     minPoseDetectionConfidence: .5, minPosePresenceConfidence: .5, minTrackingConfidence: .5
   });
   const tries = quality === 'full'
