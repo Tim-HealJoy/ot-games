@@ -314,6 +314,15 @@
   .hxCta:active{transform:translateY(5px);box-shadow:0 2px 0 #D94E2C;}
   .hxCta:disabled{opacity:.6;}
   .hxCta small{font-size:1.02rem;font-weight:700;opacity:.95;}
+  /* 單人／雙人放首屏：不用捲過 10 張封面才看得到 */
+  .hxModes{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;}
+  .hxModes button{min-height:54px;padding:8px 22px;border-radius:16px;border:3px solid #fff;background:#fff;color:var(--ink);font-family:var(--round);font-size:1.25rem;font-weight:900;cursor:pointer;}
+  .hxModes button.on{background:var(--ink);border-color:var(--ink);color:#fff;}
+  .hxDiff{display:flex;align-items:center;gap:6px;margin-top:10px;flex-wrap:wrap;}
+  .hxDiff span{font-weight:800;margin-right:4px;color:var(--ink);}
+  .hxDiff button{min-height:44px;padding:4px 16px;border-radius:12px;border:2px solid #fff;background:rgba(255,255,255,.85);color:var(--ink);font-size:1.05rem;font-weight:800;cursor:pointer;}
+  .hxDiff button.on{background:#FF6F4A;border-color:#FF6F4A;color:#fff;}
+  .hxDiff.hidden{display:none;}
   .hxLock{margin-top:18px;background:#fff;color:#8A4A10;border-radius:18px;padding:14px 20px;font-size:1.2rem;font-weight:800;line-height:1.45;}
   #backOpen{background:#fff;color:var(--ink);box-shadow:0 2px 8px rgba(29,59,54,.16);}
   #setup .song.peek{box-shadow:0 0 0 5px #9FB8B2,0 8px 20px rgba(23,64,58,.2);}
@@ -365,7 +374,7 @@
     .hxArt{position:relative;width:100%;height:56vw;max-height:330px;background-position:50% 15%;}
     .hxArt::after{background:linear-gradient(0deg,#8FFCE3 0,rgba(143,252,227,0) 20%);}
     .hxIn{width:100%;padding:0 16px 24px;text-align:center;margin-top:-6px;}
-    .hxMoves{justify-content:center;}
+    .hxMoves,.hxModes,.hxDiff{justify-content:center;}
     .hxCta{width:100%;justify-content:center;padding:15px 12px;}
     .pathRow{flex-direction:column;align-items:flex-start;gap:8px;}
     .steps{width:100%;}
@@ -516,6 +525,8 @@
         <span><img src="art/seat-clap-t.png" alt="">拍手</span>
         <span><img src="art/seat-raise-t.png" alt="">高舉</span>
       </div>
+      <div class="hxModes" id="heroModes"><button data-v="solo" class="on">👤 單人</button><button data-v="duo">👥 雙人合作</button></div>
+      <div class="hxDiff hidden" id="heroDiff"><span>難度</span><button data-v="easy" class="on">簡單</button><button data-v="normal">普通</button><button data-v="hard">困難</button></div>
       <button class="hxCta" id="heroStart"><span id="heroMain">開啟鏡頭開始 ▶</span><small id="heroSong"></small></button>
       <div class="hxLock hidden" id="heroLock"></div>
     </div>
@@ -865,12 +876,18 @@ segBind('segMode',v=>{ cfg.mode=v;
     duo:'兩人各坐鏡頭一邊，一起跟著音符動、一起過關。開始前先做 3 組動作，確認鏡頭看到你們。鏡頭要放遠一點，兩個人舉手都要在畫面裡。',
     group:'不開鏡頭、不計分。畫面放大當帶動唱字卡投影出去，帶領者在台前示範，全班跟著做。'}[v];
   $('duoOpts').classList.toggle('hidden',v!=='duo');
+  $('heroDiff').classList.toggle('hidden',v!=='duo');
+  $('heroModes').querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.v===v));
   $('soloOpts').classList.toggle('hidden',v==='group');
   $('soloOnly').classList.toggle('hidden',v!=='solo');
   $('startBtn').textContent = v==='group' ? '開始播放 ▶' : '開啟鏡頭開始 ▶';
   renderSongs(); therSum();
 });
-segBind('segDuoDiff',v=>{ duo.diff=v; });
+segBind('segDuoDiff',v=>{ duo.diff=v;
+  $('heroDiff').querySelectorAll('button').forEach(b=>b.classList.toggle('on',b.dataset.v===v)); });
+/* 首屏的按鈕＝下方設定的分身，只有一份狀態 */
+$('heroModes').querySelectorAll('button').forEach(b=>{ b.onclick=()=>$('segMode').querySelector(`[data-v="${b.dataset.v}"]`).click(); });
+$('heroDiff').querySelectorAll('button').forEach(b=>{ b.onclick=()=>$('segDuoDiff').querySelector(`[data-v="${b.dataset.v}"]`).click(); });
 function setUnlockAll(on){ unlockAll=!!on; $('vUnlock').textContent=unlockAll?'全部開放':'依過關進度';
   $('segUnlock').querySelectorAll('button').forEach(b=>b.classList.toggle('on',(b.dataset.v==='all')===unlockAll));
   renderSongs(); therSum(); }
