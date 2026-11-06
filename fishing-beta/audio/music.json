@@ -1,0 +1,12 @@
+{
+ "main": {
+  "file": "music_main.m4a",
+  "start": 1.73914,
+  "end": 57.39132
+ },
+ "final": {
+  "file": "music_final.m4a",
+  "start": 1.5,
+  "end": 25.5
+ }
+}
