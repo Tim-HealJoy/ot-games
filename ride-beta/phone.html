@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="theme-color" content="#fbf5e6">
+<title>騎遍台灣．手機方向盤</title>
+<meta name="robots" content="noindex">
+<script src="/open-in-browser.js"></script>
+<link rel="icon" href="data:,">
+<style>
+:root{--ink:#2b2622;--cream:#fbf5e6;--paper:#fffdf6;--org:#e8622c;--grn:#2f9a63;--red:#d8362f;--blu:#2c6fb3;--mut:#766c5e;--gold:#ffd24a;--f:"PingFang TC","Noto Sans TC","Heiti TC","Microsoft JhengHei",system-ui,sans-serif}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none}
+input{-webkit-user-select:text;user-select:text}
+#codeIn{display:block;width:100%;border:3px solid var(--ink);border-radius:14px;background:var(--paper);font:900 44px var(--f);letter-spacing:.3em;text-align:center;padding:12px 0 12px .3em;color:var(--ink);margin-top:10px}
+#codeIn::placeholder{color:#d4c9b3}
+.err{color:var(--red);font-weight:800;font-size:16px;text-align:center;margin-top:10px;min-height:22px}
+a.btn{text-align:center;text-decoration:none}
+#netKind{text-align:center;font-size:13px;font-weight:700;color:var(--mut);min-height:16px}
+#readyBtn{position:sticky;bottom:max(10px,env(safe-area-inset-bottom))}
+html,body{margin:0;min-height:100%;background:var(--cream);color:var(--ink);font-family:var(--f)}
+main{padding:max(14px,env(safe-area-inset-top)) 14px max(16px,env(safe-area-inset-bottom));max-width:560px;margin:auto}
+.hide{display:none!important}
+h1{margin:0 0 3px;font-size:27px;font-weight:900}.sub{color:var(--mut);font-weight:700;font-size:15px;margin:0 0 8px}
+.me{display:inline-block;color:#fff;border:3px solid var(--ink);border-radius:10px;padding:0 10px;font-size:23px;font-weight:900;margin-right:6px;vertical-align:2px}
+.lab{font-weight:900;font-size:18px;margin:12px 0 6px}
+.g{display:grid;grid-template-columns:repeat(2,1fr);gap:9px}
+.pc{appearance:none;padding:0;font:inherit;color:inherit;border:3px solid var(--ink);border-radius:12px;background:var(--paper);overflow:hidden;box-shadow:0 3px 0 rgba(43,38,34,.85);text-align:center}
+.pc img{width:100%;aspect-ratio:13/10;object-fit:cover;display:block}.pc b{display:block;font-size:17px;font-weight:900;line-height:1.3;padding-top:3px}.pc small{display:block;font-size:12.5px;color:var(--mut);font-weight:700;padding-bottom:4px}
+.pc.on{outline:4px solid var(--org);outline-offset:1px;background:#ffe9c2}
+.btn{appearance:none;display:block;width:100%;border:3px solid var(--ink);border-radius:14px;font:900 22px var(--f);padding:15px;background:var(--org);color:#fff;box-shadow:0 4px 0 rgba(43,38,34,.85);margin-top:13px}
+.btn.ghost{background:var(--paper);color:var(--ink);font-size:17px;padding:10px}
+.big{font-size:27px;font-weight:900;text-align:center;margin-top:16vh}.mid{font-size:18px;font-weight:700;color:var(--mut);text-align:center;margin:8px 0 20px}
+/* 方向盤 */
+#ride{position:fixed;inset:0;display:flex;flex-direction:column;touch-action:none;padding:max(10px,env(safe-area-inset-top)) max(12px,env(safe-area-inset-right)) max(12px,env(safe-area-inset-bottom)) max(12px,env(safe-area-inset-left));gap:10px}
+.rtop{display:flex;align-items:center;justify-content:space-between;font-weight:900;font-size:18px}
+.meter{position:relative;height:30px;border:3px solid var(--ink);border-radius:15px;background:var(--paper);overflow:hidden;flex:none}
+.meter i{position:absolute;top:0;bottom:0;width:30px;margin-left:-15px;left:50%;background:var(--org);border-radius:12px}
+.meter u{position:absolute;left:50%;top:0;bottom:0;width:2px;background:var(--ink);opacity:.4}
+.ctrls{flex:1;display:flex;gap:12px;min-height:0}
+.ctrl{flex:1;appearance:none;border:4px solid var(--ink);border-radius:22px;background:var(--paper);font:900 34px var(--f);color:var(--ink);touch-action:none;box-shadow:0 5px 0 rgba(43,38,34,.85)}
+.ctrl.down{background:var(--gold);transform:translateY(3px)}
+#brk{background:#ff7a5c;color:#fff;flex:1.4}#brk.down{background:var(--red)}
+#tiltHelp{text-align:center;font-weight:800;font-size:16px;color:var(--mut)}
+#eyes{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:10px;min-height:0}#eyes b{font-size:clamp(26px,8vw,38px);font-weight:900}#eyes span{font-size:clamp(16px,5vw,21px);font-weight:700;color:var(--mut);line-height:1.5}
+body.hasBtn #eyes{display:none}
+.ctrls:empty{display:none}body:not(.hasBtn) .ctrls{flex:none}
+</style>
+</head>
+<body>
+<main id="m">
+  <section id="sCode" class="hide">
+    <h1>接電腦螢幕玩</h1>
+    <p class="sub">輸入電腦畫面上 QR 下方的 4 位數房間碼。</p>
+    <input id="codeIn" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off" placeholder="0000" aria-label="房間碼">
+    <div class="err" id="codeErr"></div>
+    <button class="btn" id="codeGo">連上電腦</button>
+    <a class="btn ghost" href="./">不接電腦，用這支手機玩</a>
+  </section>
+  <section id="sConn"><div class="big" id="connT">連線中…</div><div class="mid" id="connMsg">請稍等</div>
+    <button class="btn hide" id="connRetry">重新連線</button>
+    <button class="btn ghost hide" id="connCode">重新輸入房間碼</button>
+  </section>
+  <section id="sFull" class="hide"><div class="big" id="fullT">已經兩個人了</div><div class="mid">等這場結束再掃一次</div></section>
+  <section id="sPick" class="hide">
+    <h1><span class="me" id="meTag"></span><span id="rName"></span></h1>
+    <p class="sub" id="rHelp"></p>
+    <div class="lab">誰來騎？</div><div class="g" id="gc"></div>
+    <div class="lab">騎什麼車？</div><div class="g" id="gv"></div>
+    <button class="btn" id="readyBtn">選好了，準備！</button>
+  </section>
+  <section id="sWait" class="hide">
+    <div class="big"><span class="me" id="meTag2"></span>準備好了</div>
+    <div class="mid" id="waitMsg">等另一位…</div>
+    <div class="mid"><b>橫拿手機，像握機車龍頭</b><br>看電腦螢幕騎，傾斜手機就會轉彎。</div>
+    <button class="btn ghost" id="unready">重新選</button>
+  </section>
+  <section id="sEnd" class="hide">
+    <div class="big" id="endT"></div><div class="mid" id="endS"></div>
+    <button class="btn" id="again">再騎一次</button>
+    <button class="btn ghost" id="repick">換角色或車</button>
+  </section>
+</main>
+<section id="ride" class="hide">
+  <div class="rtop"><span><span class="me" id="meTag3"></span><span id="rName2"></span></span><button class="btn ghost" id="zero" style="width:auto;margin:0;padding:5px 12px;font-size:15px">方向歸零</button></div>
+  <div class="meter"><u></u><i id="mi"></i></div>
+  <div id="tiltHelp">傾斜手機轉向</div>
+  <div id="netKind"></div>
+  <div id="eyes"><b>眼睛看電腦螢幕</b><span>橫拿手機像握龍頭<br>往左傾就往左，往右傾就往右</span></div>
+  <div class="ctrls"><button class="ctrl hide" id="lb">◀</button><button class="ctrl hide" id="rb">▶</button><button class="ctrl hide" id="brk">煞車</button></div>
+</section>
+<script src="net-config.js"></script>
+<script src="tilt.js"></script>
+<script src="rtc.js"></script>
+<script>
+const $ = id => document.getElementById(id);
+const CHARS = {bike: [['agong', '阿公', '斗笠白汗衫'], ['ama', '阿嬤', '花布衫'], ['boy', '少年', '卡其制服'], ['girl', '少女', '白衣黑裙']], moto: [['office', '上班族', '襯衫公事包'], ['delivery', '外送員', '趕下一單'], ['auntie', '市場阿姨', '花袖套'], ['student', '學生', '外套反穿']]};
+const VEHS = {bike: [['iron', '黑鐵馬', '後座綁竹簍'], ['basket', '菜籃車', '前面有籃子'], ['cargo', '載貨鐵馬', '載一袋米'], ['post', '郵差車', '綠色郵袋']], moto: [['s125', '白牌速克達', '掛著手搖飲'], ['ev', '電動機車', '安靜省油'], ['wolf', '老打檔車', '阿伯的最愛'], ['food', '外送機車', '呷飽未']]};
+const COL = {1: '#e8622c', 2: '#2c6fb3'};
+const NAMES = {rice: '稻田回家路', breakfast: '巷口買早餐', market: '廟口菜市場', school: '國小上學路', rush: '大馬路尖峰', storm: '颱風天照常上班'};
+let id = ''; try { id = sessionStorage.getItem('rideId') || ''; } catch (e) {}
+if (!id) { id = Math.random().toString(36).slice(2, 12); try { sessionStorage.setItem('rideId', id); } catch (e) {} }
+const qs = new URLSearchParams(location.search);
+const RELAY = (/^(localhost|127\.)/.test(location.hostname) && qs.get('relay')) || window.RIDE_RELAY || '';
+const tilt = window.createTilt();
+let room = /^\d{4}$/.test(qs.get('room') || '') ? qs.get('room') : '';
+let ws = null, st = {}, pick = {char: null, veh: null}, brake = false, l = false, r = false, sendT = null, lastPack = null, last = {v: null, b: false, t: 0}, seq = 0, linkYou = 0, oneWay = 0;
+const link = window.createLink({
+  signal: d => send({t: 'rtc', d}),
+  onData: m => { if (m.buzz) navigator.vibrate?.(m.buzz); if (m.q != null) oneWay = Math.round((performance.now() - m.q) / 2); },
+  onChange: () => { oneWay = 0; syncNetKind(); },
+});
+function syncNetKind() { $('netKind').textContent = link.open ? `連線：直連${oneWay ? ` 約 ${oneWay} ms` : ''}` : '連線：雲端轉傳'; }
+/* 電腦在線就試著直連；電腦離開或座位換了就重來 */
+function ensureLink(retry) {
+  if (!st.host) { if (linkYou) { link.close(); linkYou = 0; } return; }
+  if (linkYou !== st.you || (retry && !link.open)) { linkYou = st.you; seq = 0; link.start(); }
+}
+const show = name => { for (const s of ['sCode', 'sConn', 'sFull', 'sPick', 'sWait', 'sEnd']) $(s).classList.toggle('hide', s !== name); $('m').classList.toggle('hide', name === 'ride'); $('ride').classList.toggle('hide', name !== 'ride'); document.body.style.overflow = name === 'ride' ? 'hidden' : ''; };
+function connMsg(title, msg, retry, code) {
+  $('connT').textContent = title; $('connMsg').textContent = msg;
+  $('connRetry').classList.toggle('hide', !retry); $('connCode').classList.toggle('hide', !code);
+  show('sConn');
+}
+function connect() {
+  if (ws) { ws.onclose = null; ws.close(); }
+  connMsg('連線中…', '請稍等', false, false);
+  const wsBase = RELAY || `${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}`;
+  ws = new WebSocket(`${wsBase}/ws?role=phone&room=${room}&id=${id}`);
+  ws.onmessage = e => {
+    const m = JSON.parse(e.data);
+    if (m.t === 'full') { $('fullT').textContent = m.max === 1 ? '這場是一個人騎' : '已經兩個人了'; show('sFull'); ws.onclose = null; return; }
+    if (m.t === 'kicked') { connMsg('這場結束了', '要再玩，請重新掃電腦上的 QR', false, true); ws.onclose = null; stopSending(); return; }
+    if (m.t === 'idle') { connMsg('連線先休息了', '很久沒有動作。電腦那邊還開著的話，按下面就能接回去。', true, true); ws.onclose = null; stopSending(); return; }
+    if (m.t === 'buzz') { navigator.vibrate?.(m.ms || 200); return; }
+    if (m.t === 'rtc') { link.onSignal(m.d); return; }
+    if (m.t === 'state') { st = m; ensureLink(false); render(); }
+  };
+  ws.onclose = () => { stopSending(); connMsg('連線中斷', '重新連線中，請檢查手機網路…', false, true); setTimeout(connect, 1200); };
+  ws.onerror = () => {};
+}
+function askCode(msg) {
+  if (ws) { ws.onclose = null; ws.close(); ws = null; }
+  stopSending(); room = ''; history.replaceState(null, '', location.pathname);
+  $('codeErr').textContent = msg || ''; $('codeIn').value = ''; show('sCode');
+}
+function submitCode() {
+  const v = $('codeIn').value.trim();
+  if (!/^\d{4}$/.test(v)) { $('codeErr').textContent = '房間碼是 4 位數字'; return; }
+  room = v; history.replaceState(null, '', `${location.pathname}?room=${room}`);
+  connect();
+}
+const send = o => { if (ws?.readyState === 1) ws.send(JSON.stringify(o)); };
+function tag(el) { el.textContent = st.you + 'P'; el.style.background = COL[st.you]; }
+function grid(host, list, pre, cur, fn) {
+  host.innerHTML = list.map(([i, n, d]) => `<button class="pc ${i === cur ? 'on' : ''}" data-i="${i}"><img src="art/${pre}_${i}.jpg" alt="${n}"><b>${n}</b><small>${d}</small></button>`).join('');
+  host.querySelectorAll('.pc').forEach(b => { b.onclick = () => fn(b.dataset.i); });
+}
+function renderPick() {
+  const p = st.pack || 'moto';
+  tag($('meTag')); $('rName').textContent = NAMES[st.route] || '';
+  $('rHelp').textContent = p === 'bike' ? '騎鐵馬：傾斜手機撿稻穗、閃竹簍，趕在天黑前到厝。' : '騎機車：傾斜手機轉向、按住煞車，平安打卡。';
+  grid($('gc'), CHARS[p], 'char', pick.char, i => { pick.char = i; send({t: 'pick', char: i}); renderPick(); });
+  grid($('gv'), VEHS[p], 'veh', pick.veh, i => { pick.veh = i; send({t: 'pick', veh: i}); renderPick(); });
+}
+function render() {
+  const p = st.pack || 'moto';
+  if (!st.host) { stopSending(); connMsg(`房間 ${room} 還沒開`, '請確認電腦畫面上的房間碼。電腦選好路線就會自動接上。', false, true); return; }
+  if (p !== lastPack) { lastPack = p; pick = {char: CHARS[p][st.you === 2 ? 1 : 0][0], veh: VEHS[p][st.you === 2 ? 1 : 0][0]}; send({t: 'pick', char: pick.char, veh: pick.veh}); }
+  if (st.phase === 'race') {
+    tag($('meTag3')); $('rName2').textContent = NAMES[st.route] || '';
+    $('brk').classList.toggle('hide', p !== 'moto'); document.body.classList.toggle('hasBtn', p === 'moto');
+    show('ride'); startSending(); keepAwake(); tilt.setFollow(!st.go); syncGoText(); return;
+  }
+  stopSending();
+  if (st.phase === 'result' && st.result && !st.ready && window.__seenEnd !== JSON.stringify(st.result)) {
+    window.__seenEnd = JSON.stringify(st.result);
+    window.__endDone = false;
+    if (st.result.solo) { navigator.vibrate?.([120, 60, 120]); $('endT').textContent = st.result.arrived ? '🎉 到了！' : '這趟結束了'; $('endS').textContent = `${st.result.score} 分．${st.result.title}`; }
+    else { const w = st.result.winner === st.you; navigator.vibrate?.(w ? [120, 60, 120] : 200); $('endT').textContent = w ? '🎉 你贏了！' : '差一點！'; $('endS').textContent = `1P ${st.result.s1} 分 ／ 2P ${st.result.s2} 分`; }
+    show('sEnd'); return;
+  }
+  if (st.phase === 'result' && !st.ready && !window.__endDone) { show('sEnd'); return; }
+  if (st.ready) { tag($('meTag2')); const o = (st.players || []).find(x => x.slot !== st.you); $('waitMsg').textContent = st.max === 1 ? '馬上開始！' : o?.ready ? '兩位都好了，馬上開始！' : o?.online ? '等另一位按準備…' : '等另一位掃碼…'; show('sWait'); }
+  else { renderPick(); show('sPick'); }
+}
+/* 感測器 */
+function syncGoText() {
+  const btn = !$('lb').classList.contains('hide');
+  $('tiltHelp').textContent = !st.go ? '手機拿好，出發時會自動歸零' : tilt.live ? '傾斜手機轉向' : !btn ? '傾斜手機轉向' : tilt.state === 'insecure' ? '目前連線讀不到傾斜，請按左右' : tilt.state === 'denied' ? '沒有動作權限，請按左右' : '這支手機讀不到傾斜，改按左右';
+}
+$('readyBtn').onclick = async () => { await tilt.ask(); tilt.rezero(); send({t: 'pick', char: pick.char, veh: pick.veh}); send({t: 'ready', v: true}); };
+$('unready').onclick = () => send({t: 'ready', v: false});
+$('again').onclick = async () => { await tilt.ask(); tilt.rezero(); send({t: 'ready', v: true}); };
+$('repick').onclick = () => { window.__endDone = true; render(); };
+$('zero').onclick = () => tilt.rezero();
+$('codeGo').onclick = submitCode;
+$('codeIn').addEventListener('keydown', e => { if (e.key === 'Enter') submitCode(); });
+$('connRetry').onclick = () => connect();
+$('connCode').onclick = () => askCode();
+let pingAt = 0;
+function startSending() {
+  if (sendT) return;
+  tilt.rezero();
+  ensureLink(true); syncNetKind();
+  clearTimeout(window.__btnT);
+  window.__btnT = setTimeout(() => { if (!tilt.live) { $('lb').classList.remove('hide'); $('rb').classList.remove('hide'); document.body.classList.add('hasBtn'); syncGoText(); } }, 1500);
+  sendT = setInterval(() => {
+    const k = (r ? 1 : 0) - (l ? 1 : 0), v = +(k || (tilt.live ? tilt.value : 0)).toFixed(2), now = performance.now();
+    if (v !== last.v || brake !== last.b || now - last.t > 250) {   // 沒變化就少傳
+      if (!link.send({n: ++seq, v, b: brake})) send({t: 'in', tilt: v, brake });   // 能直連就不繞雲端
+      last = {v, b: brake, t: now};
+    }
+    if (now - pingAt > 1000) { pingAt = now; link.send({p: now}); syncNetKind(); }
+    $('mi').style.left = (50 + v * 45) + '%';
+  }, 50);
+}
+function stopSending() { clearInterval(sendT); sendT = null; clearTimeout(window.__btnT); tilt.setFollow(false); brake = false; l = false; r = false; }
+function hold(el, on, off) { el.addEventListener('pointerdown', e => { e.preventDefault(); on(); el.classList.add('down'); navigator.vibrate?.(15); }); for (const ev of ['pointerup', 'pointercancel', 'pointerleave']) el.addEventListener(ev, e => { e.preventDefault(); off(); el.classList.remove('down'); }); }
+hold($('brk'), () => { brake = true; }, () => { brake = false; });
+hold($('lb'), () => { l = true; }, () => { l = false; });
+hold($('rb'), () => { r = true; }, () => { r = false; });
+let wake = null; async function keepAwake() { try { if (!wake) wake = await navigator.wakeLock.request('screen'); } catch (e) {} }
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') { wake = null; if (st.phase === 'race') keepAwake(); } });
+setInterval(() => send({t: 'ping'}), 25000);
+window.__phone = {get st() { return st; }, tilt, link, get oneWay() { return oneWay; }};
+if (room) connect(); else askCode();
+</script>
+<script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "3df68cf5d6bd4975b97a157f7ff3cafb"}'></script>
+</body>
+</html>
