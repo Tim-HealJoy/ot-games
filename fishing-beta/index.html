@@ -299,13 +299,13 @@
 <button class="tool hidden" id="btnSkip">略過 ▶</button>
 
 <script type="module">
-import {LiftDetector,HandSignal,isLowered,calibrate} from './detector.js?v=11';
-import {ITEMS,FISH_ORDER,TRASH_ORDER,DIFF,TODAY,DOUBLE_SEC,itemsFor,mixFor,scoreFor,comboBonus,starsFor,starLines,nextStarGap,titleFor} from './rules.js?v=11';
-import {createRank} from './rank.js?v=11';
+import {LiftDetector,HandSignal,isLowered,calibrate} from './detector.js?v=12';
+import {ITEMS,FISH_ORDER,TRASH_ORDER,DIFF,TODAY,DOUBLE_SEC,itemsFor,mixFor,scoreFor,comboBonus,starsFor,starLines,nextStarGap,titleFor} from './rules.js?v=12';
+import {createRank} from './rank.js?v=12';
 
 const QS=new URLSearchParams(location.search);
 const DEMO=QS.get('demo')==='1', SHORT=QS.get('short')==='1', SKIP=QS.get('skip')==='1', AUTO=QS.get('auto')==='1';
-/* 排行榜後端：本機測試連本機 Worker；線上連 rank.otshih.com（上線後才存在） */
+/* 排行榜後端：本機測試連本機 Worker；線上連 rank.otshih.com */
 const RANK_API=QS.get('api')||(['localhost','127.0.0.1'].includes(location.hostname)?'http://localhost:8863':'https://rank.otshih.com');
 const RANK=createRank(RANK_API,'fishing');
 const $=id=>document.getElementById(id);
@@ -788,9 +788,8 @@ function paintBoard(){
   else list.innerHTML=boardRows(v,8);
   let status=B.base, chase='';
   if(st&&st.rank){
-    status=st.rank===1?`🏆 您是${label}第一！`:`${label}第 ${st.rank} 名`;
-    if(st.prev==null)status+='，第一次上榜！';
-    else if(st.prev>st.rank)status+=`，上升 ${st.prev-st.rank} 名！`;
+    const lead=st.rank===1?`🏆 您是${label}第一`:`${label}第 ${st.rank} 名`;
+    status=st.prev==null?`${lead}，第一次上榜！`:st.prev>st.rank?`${lead}，上升 ${st.prev-st.rank} 名！`:st.rank===1?`${lead}！`:lead;
     const bits=[];
     if(score<st.score)bits.push(`這局 ${score} 分，榜上是您的最高 ${st.score} 分`);
     if(st.above)bits.push(`再 ${st.above.score-st.score+1} 分超過「${st.above.name}」`);
