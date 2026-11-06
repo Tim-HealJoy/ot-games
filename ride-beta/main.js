@@ -1,7 +1,7 @@
 // 騎遍台灣：大螢幕流程（首頁 → 選路線 → 選角色／QR 大廳 → 騎 → 結算）
 import * as THREE from 'three';
 import {makeKit, makeSky} from './world.js';
-import {createRide, ROUTES, PACKS, SOON, TIPS, LABEL, HP} from './ride.js';
+import {createRide, ROUTES, PACKS, SOON, TIPS, LABEL, HP, routeInfo} from './ride.js';
 import {makePlayerMesh, CHARS, VEHICLES, defaultsFor} from './roster.js';
 
 const $ = id => document.getElementById(id);
@@ -13,7 +13,9 @@ if (TOUCH) document.body.classList.add('touch');
 const MUTE = qs.get('mute') === '1', DEMO_N = +(qs.get('demo') || 0), NOPAUSE = qs.has('nopause') || DEMO_N > 0;
 const IS_PHONE = TOUCH && Math.min(screen.width, screen.height) < 820;   // 玩法二：手機自己當螢幕，手機感測器轉向
 const LOCALHOST = /^(localhost|127\.)/.test(location.hostname);
-const RELAY = (LOCALHOST && qs.get('relay')) || window.RIDE_RELAY || '';   // 雲端中繼；空的＝連提供這個網頁的伺服器
+const CLOUD = window.RIDE_CLOUD || {}, LOCAL_CLOUD = LOCALHOST && !qs.has('lan') && !qs.get('relay') && !window.RIDE_RELAY && !!CLOUD.relay;
+// 雲端中繼；空的＝連提供這個網頁的伺服器。本機試玩也走雲端，手機才能開 https 頁讀傾斜
+let RELAY = (LOCALHOST && qs.get('relay')) || window.RIDE_RELAY || (LOCAL_CLOUD ? CLOUD.relay : '');
 const tilt = window.createTilt();
 
 const canvas = $('c');
@@ -104,6 +106,7 @@ const medalsOf = id => { try { return JSON.parse(store.get('medals', '{}'))[id] 
 function saveMedals(id, r) { let m = {}; try { m = JSON.parse(store.get('medals', '{}')); } catch (e) {} const o = m[id] || {}; m[id] = {safe: o.safe || r.safe, see: o.see || r.see, time: o.time || r.onTime}; store.set('medals', JSON.stringify(m)); }
 
 /* 路線頁 */
+const routeText = id => { const s = routeInfo(id); return `約 ${s.km.toFixed(1)} 公里．${s.bends || s.rounds ? [s.bends ? s.bends + ' 個彎' : '', s.rounds ? s.rounds + ' 座圓環' : ''].filter(Boolean).join('．') : '直路'}`; };
 function renderRoutes() {
   let got = 0, all = 0;
   const html = ['bike', 'moto'].map(p => {
@@ -111,7 +114,7 @@ function renderRoutes() {
     const cards = rs.map(([id, r]) => {
       const md = medalsOf(id), arr = [['safe', '平安'], ['see', r.kind === 'valley' ? '撿穗' : '預判'], ['time', '準時']];
       arr.forEach(([k]) => { all++; if (md[k]) got++; });
-      return `<button class="rc" data-r="${id}"><div class="th"><img src="art/route_${id}.jpg" alt="${r.name}" onerror="this.style.display='none'"><span class="lvl">${LEVEL[r.stars]}<i>${'★'.repeat(r.stars)}</i></span>${r.stars === 1 ? '<span class="startTag" hidden>從這裡開始</span>' : ''}</div><div class="tt"><b>${r.name}</b><span class="rtag">${r.tag}</span><div class="medals">${arr.map(([k, t]) => `<span class="medal ${md[k] ? 'on' : ''}">${t}</span>`).join('')}</div></div></button>`;
+      return `<button class="rc" data-r="${id}"><div class="th"><img src="art/route_${id}.jpg" alt="${r.name}" onerror="this.style.display='none'"><span class="lvl">${LEVEL[r.stars]}<i>${'★'.repeat(r.stars)}</i></span>${r.stars === 1 ? '<span class="startTag" hidden>從這裡開始</span>' : ''}</div><div class="tt"><b>${r.name}</b><span class="rtag">${r.tag}</span><span class="rinfo">${routeText(id)}</span><div class="medals">${arr.map(([k, t]) => `<span class="medal ${md[k] ? 'on' : ''}">${t}</span>`).join('')}</div></div></button>`;
     }).join('');
     const soon = `<p class="soon">之後會加：${SOON[p].map(([n]) => n).join('、')}</p>`;
     return `<div class="pack"><div class="ph"><b>${P.name}</b><span class="pill t">${P.era}</span><span class="pill">${P.ctrl}</span></div><div class="cards">${cards}</div>${soon}</div>`;
@@ -161,8 +164,11 @@ function connect() {
     const wsBase = RELAY || `${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}`;
     const ws = new WebSocket(`${wsBase}/ws?role=host&room=${net.room}&key=${net.key}`);
     net.ws = ws;
-    ws.onopen = () => { net.ok = true; if (net.last) send(net.last); renderLobby(); };   // 斷線接回時，手機回到原本的階段
-    ws.onclose = () => { net.ok = false; if (net.ws === ws) setTimeout(() => { if (app.screen !== 'home' && !net.idle) connect(); }, 1500); renderLobby(); };
+    ws.onopen = () => { ws.opened = true; net.fails = 0; net.ok = true; if (net.last) send(net.last); renderLobby(); };   // 斷線接回時，手機回到原本的階段
+    ws.onclose = () => {
+      net.ok = false;
+      if (!ws.opened && RELAY && LOCAL_CLOUD && (net.fails = (net.fails || 0) + 1) >= 3) { RELAY = ''; app.qr = ''; setupQR(); }   // 沒網路：本機試玩退回同一個 Wi-Fi
+      if (net.ws === ws) setTimeout(() => { if (app.screen !== 'home' && !net.idle) connect(); }, 1500); renderLobby(); };
     ws.onerror = () => {};
     ws.onmessage = e => {
       const m = JSON.parse(e.data);
@@ -216,6 +222,7 @@ function maybeStart() {
   }
 }
 async function baseUrl() {
+  if (RELAY && LOCAL_CLOUD) return CLOUD.site;
   if (RELAY) return new URL('.', location.href).href.replace(/\/$/, '');
   let base = location.origin;
   try {
@@ -235,14 +242,14 @@ async function setupQR() {
   if (url !== app.qr) { app.qr = url; drawQR($('qr'), url); }
   $('roomCode').textContent = net.room;
   $('qrUrl').textContent = `掃不了？手機打開 ${base.replace(/^https?:\/\//, '')}/phone.html，輸入房間碼`;
-  $('qrHelp').innerHTML = base.startsWith('https://') ? '手機用 Wi-Fi 或行動網路都可以，不用跟電腦連同一個，也不用裝 App。' : '本機試玩中：手機要連同一個 Wi-Fi，先用<b>左右按鈕</b>轉向。正式上線後就能傾斜轉向，也不用同一個 Wi-Fi。';
+  $('qrHelp').innerHTML = base.startsWith('https://') ? '手機用 Wi-Fi 或行動網路都可以，不用跟電腦連同一個，也不用裝 App。' : '連不上雲端，先走同一個 Wi-Fi：手機只能用<b>左右按鈕</b>，沒辦法傾斜。';
 }
 /* 玩法二的引導：電腦畫面給一個 QR，手機打開就直接在手機上玩 */
 async function showHowPhone() {
   showScreen('howPhone');
   const base = await baseUrl();
   drawQR($('qrOwn'), base + '/');
-  $('qrOwnHelp').innerHTML = base.startsWith('https://') ? '手機用 Wi-Fi 或行動網路都可以，第一次會問能不能讀取動作，請按「允許」。' : '本機試玩中：手機要連同一個 Wi-Fi，先用<b>左右按鈕</b>轉向。正式上線後就能傾斜轉向。';
+  $('qrOwnHelp').innerHTML = base.startsWith('https://') ? '手機用 Wi-Fi 或行動網路都可以，第一次會問能不能讀取動作，請按「允許」。' : '連不上雲端，先走同一個 Wi-Fi：手機只能用<b>左右按鈕</b>，沒辦法傾斜。';
 }
 function renderLobby() {
   const isSolo = app.mode === 'solo', Rt = ROUTES[app.routeId];
@@ -286,10 +293,12 @@ bindHold($('brake'), 'brake'); bindHold($('lBtn'), 'l'); bindHold($('rBtn'), 'r'
 const ownDevice = () => app.mode === 'solo' && TOUCH && !app.usesPhone?.[1];
 function syncPads() {
   const riding = app.screen === 'race' && ownDevice(), noTilt = !tilt.live;
+  $('tiltBtn').style.display = riding && noTilt && tilt.state !== 'insecure' && tilt.state !== 'unsupported' ? '' : 'none';
   $('lBtn').classList.toggle('show', riding && noTilt); $('rBtn').classList.toggle('show', riding && noTilt);
   $('zeroBtn').style.display = riding && !noTilt ? '' : 'none';
 }
 function askTilt() { const p = tilt.ask(); clearTimeout(app.padT); app.padT = setTimeout(syncPads, 1200); return p; }
+if (TOUCH) tilt.listen();   // 不用等點擊，Android 這樣就讀得到；iPhone 要按了才有
 const wake = {lock: null,
   async on() { try { if (!this.lock && navigator.wakeLock) { const l = await navigator.wakeLock.request('screen'); this.lock = l; l.addEventListener('release', () => { if (this.lock === l) this.lock = null; }); } } catch (e) {} },
   off() { try { this.lock?.release(); } catch (e) {} this.lock = null; }};
@@ -422,6 +431,7 @@ $('goHowPhone').onclick = () => { Snd.init(); showHowPhone(); };
 $('howBack').onclick = () => showScreen('home');
 $('goJoin').onclick = () => { location.href = 'phone.html'; };
 $('zeroBtn').onclick = () => tilt.rezero();
+$('tiltBtn').onclick = () => askTilt();
 $('modeSolo').onclick = () => { app.mode = 'solo'; renderRoutes(); };
 $('modeDuel').onclick = () => { app.mode = 'duel'; renderRoutes(); };
 $('kbGo').onclick = () => { Snd.init(); if (TOUCH) askTilt(); renderPick(); showScreen('pick'); };
@@ -442,6 +452,7 @@ $('quit').onclick = () => { try { Snd.ctx?.resume(); } catch (e) {} clearRace();
 if (IS_PHONE) {   // 手機首頁：直接在手機玩，或接到電腦螢幕當方向盤
   $('goSolo').innerHTML = '用這支手機玩<small>看手機螢幕，傾斜手機轉向</small>';
   $('goJoin').style.display = ''; $('goDuel').style.display = 'none'; $('goHowPhone').style.display = 'none'; $('modeSeg').style.display = 'none';
+  if (window.isSecureContext === false && CLOUD.site) { const a = $('httpNote'); a.href = CLOUD.site + '/'; a.style.display = ''; }   // http 網址手機不給傾斜，指路到正式網址
 }
 $('sndBtn').textContent = Snd.on ? '🔊' : '🔇';
 $('sndBtn').onclick = () => { Snd.setOn(!Snd.on); $('sndBtn').textContent = Snd.on ? '🔊' : '🔇'; };
@@ -480,6 +491,7 @@ function frame(now) {
   } else show.draw(W, H, dt);
 }
 function step(dt) {
+  if (tilt.live !== app.tiltLive) { app.tiltLive = tilt.live; syncPads(); }
   if (app.paused || (!app.racing && !app.rides.every(r => r.S.finished))) return;
   if (app.cdHideAt && performance.now() > app.cdHideAt) { app.cdHideAt = 0; $('count').classList.remove('on'); }
   const n = Math.max(1, Math.ceil(dt / .017));

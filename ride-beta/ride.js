@@ -2,7 +2,8 @@
 // 機車路況邏輯搬自 prototype（已用自動騎手驗證過），這裡只包成可重複建立的形式。
 import * as THREE from 'three';
 import {makeSky, makeThemeSky, mulberry, CHUNK} from './world.js';
-import {THEMES, themedTemplate} from './themes.js';
+import {THEMES, themedTemplate, themedPart, trackSidePiece} from './themes.js';
+import {expandSeq, buildRoad, routeStats, ringShape, ringKappa, bendKappa, trackWarp, polarWarp, bakeGroup, RING} from './road.js';
 import {buildValley, itemTemplates, RW, LANE} from './valley.js';
 import {makePlayerMesh} from './roster.js';
 
@@ -23,24 +24,65 @@ export const ROUTES = {
   breakfast: {pack: 'moto', name: '巷口買早餐', stars: 1, kind: 'street', mode: 'easy', theme: 'dawn', song: 'diudiudang', tag: '清晨老社區，早餐攤冒白煙', tip: '巷子多：經過巷口先放慢，路邊車可能突然起步',
     bag: ['parkPull', 'door', 'pedestrian', 'pothole'], crossBag: ['redLight', 'redRunner'], traffic: {opp: ['m1', 'car', 'm2', 'taxi', 'm3'], oppGap: 62, same: 1, flow: 2},
     seq: [['ord3', '住家巷口'], ['alley', ''], ['ord1', '早餐街'], ['ord3', ''], ['alley', '巷口豆漿店'], ['cross', '民生路口'], ['ord1', ''], ['alley', ''], ['ord3', '饅頭店前'], ['cross', '公司前路口'], ['ord4', ''], ['finish', '公司到了']]},
-  market: {pack: 'moto', name: '廟口菜市場', stars: 2, kind: 'street', mode: 'normal', v: 9.4, theme: 'noon', song: 'sikuihong', tag: '正午廟口，紅燈籠下鑽人潮', tip: '人多又慢：有人要過馬路就煞車，別跟貨車貼太近',
+  market: {pack: 'moto', name: '廟口菜市場', stars: 2, kind: 'street', mode: 'normal', v: 9.4, theme: 'noon', song: 'sikuihong', tag: '正午廟口，紅燈籠下鑽人潮', tip: '有人要過馬路就煞車，別跟貨車貼太近；彎道會把車往外甩',
     bag: ['pedestrian', 'parkPull', 'truckDrop', 'pedestrian', 'door'], crossBag: ['redRunner', 'redLight', 'leftTurn'], traffic: {opp: ['m1', 'pick', 'm2', 'car', 'm3', 'pick'], oppGap: 52, same: 2, flow: 3},
-    seq: [['ord1', '住家巷口'], ['market', '福安市場'], ['market2', ''], ['temple', '福安宮前'], ['market', ''], ['market2', '黃昏市場街'], ['temple', ''], ['cross', '福安路口'], ['market', ''], ['market2', ''], ['cross', '中興路口'], ['ord4', ''], ['finish', '公司到了']]},
-  school: {pack: 'moto', name: '國小上學路', stars: 2, kind: 'street', mode: 'normal', v: 9.7, theme: 'shade', song: 'shangxue', tag: '綠蔭校園，路隊小朋友過馬路', tip: '小朋友會突然過馬路：校門口前先減速',
+    seq: [['ord1', '住家巷口'], ['market', '福安市場'], ['market2', ''], ['ord3', '市場彎道', {turn: 35}], ['temple', '福安宮前'], ['market', ''], ['market2', '黃昏市場街'], ['ord1', '', {turn: -35}], ['temple', ''], ['cross', '福安路口'], ['market', ''], ['market2', ''], ['ord3', '', {turn: -30}], ['ord1', ''], ['market', ''], ['cross', '中興路口'], ['ord4', ''], ['finish', '公司到了']]},
+  school: {pack: 'moto', name: '國小上學路', stars: 2, kind: 'street', mode: 'normal', v: 9.7, theme: 'shade', song: 'shangxue', tag: '綠蔭校園，路隊小朋友過馬路', tip: '小朋友會突然過馬路：校門口前先減速；彎道記得修方向',
     bag: ['pedestrian', 'door', 'parkPull', 'pedestrian', 'pothole'], crossBag: ['redLight', 'leftTurn', 'redRunner'], traffic: {opp: ['bus', 'm1', 'car', 'm2', 'car', 'm3'], oppGap: 48, same: 2, flow: 3},
-    seq: [['ord1', '住家巷口'], ['school', '幸福國小'], ['ord4', '文具店街'], ['alley', ''], ['school', ''], ['cross', '仁愛路口'], ['ord2', '林蔭大道'], ['school', '校門口'], ['ord3', ''], ['cross', '信義路口'], ['alley', ''], ['ord1', ''], ['finish', '公司到了']]},
-  rush: {pack: 'moto', name: '大馬路尖峰', stars: 3, kind: 'street', mode: 'normal', v: 12.5, theme: 'haze', song: 'jianfeng', tag: '高架捷運下，機車車陣又快又密', tip: '車多速度快：別貼前車，路口小心大車右轉和對向搶左轉',
+    seq: [['ord1', '住家巷口'], ['school', '幸福國小'], ['ord4', '文具店街'], ['ord2', '林蔭彎道', {turn: -40}], ['alley', ''], ['school', ''], ['cross', '仁愛路口'], ['ord2', '林蔭大道'], ['ord3', '', {turn: 40}], ['school', '校門口'], ['ord3', ''], ['ord1', '', {turn: 30}], ['ord4', '', {turn: -30}], ['cross', '信義路口'], ['alley', ''], ['ord1', ''], ['school', ''], ['ord4', ''], ['finish', '公司到了']]},
+  rush: {pack: 'moto', name: '大馬路尖峰', stars: 3, kind: 'street', mode: 'normal', v: 12.5, theme: 'haze', song: 'jianfeng', tag: '高架捷運下，彎道和圓環一路考驗', tip: '速度快車又多：別貼前車；彎道提早修方向，進圓環先讓環內車',
     bag: ['suddenBrake', 'truckDrop', 'wrongWay', 'suddenBrake', 'parkPull'], crossBag: ['rightTruck', 'leftTurn', 'redLight', 'redRunner'], traffic: {opp: ['bus', 'taxi', 'car', 'm1', 'bus', 'car', 'taxi', 'm2', 'car', 'bus', 'm3', 'car'], oppGap: 30, same: 5, flow: 9},
-    seq: [['ord1', '住家巷口'], ['ord2', '大馬路'], ['cross', '光復路口'], ['ord3', ''], ['work', '道路施工中'], ['ord2', ''], ['cross', '中正路口'], ['ord1', ''], ['ord2', ''], ['cross', '復興路口'], ['ord4', ''], ['work', '前方又施工'], ['ord2', ''], ['cross', '上班路口'], ['ord1', ''], ['finish', '公司到了']]},
-  storm: {pack: 'moto', name: '颱風天照常上班', stars: 5, kind: 'street', mode: 'storm', v: 10.4, theme: 'storm', song: 'uyahue', songBpm: 92, gust: true, tag: '烏雲暴雨，強風會把車吹偏', tip: '路滑難煞：提早減速，強風來時握穩龍頭',
+    seq: [['ord1', '住家巷口'], ['ord2', '大馬路'], ['cross', '光復路口'], ['ord3', ''], ['ord1', '高架大彎', {turn: 50, n: 2}], ['work', '道路施工中'], ['ord2', ''], ['cross', '中正路口'], ['ord1', ''], ['round', '中山圓環', {exit: 'straight'}], ['ord2', ''], ['ord3', '', {turn: -45, n: 2}], ['cross', '復興路口'], ['ord4', ''], ['work', '前方又施工'], ['ord2', ''], ['ord1', '', {turn: -30}], ['ord3', '', {turn: 25}], ['cross', '上班路口'], ['ord1', ''], ['ord4', ''], ['finish', '公司到了']]},
+  storm: {pack: 'moto', name: '颱風天照常上班', stars: 5, kind: 'street', mode: 'storm', v: 10.4, theme: 'storm', song: 'uyahue', songBpm: 92, gust: true, tag: '烏雲暴雨，強風、大彎加兩座圓環', tip: '路滑難煞又有強風：大彎和圓環都要提早減速',
     bag: ['pothole', 'door', 'parkPull', 'pothole', 'wrongWay', 'truckDrop'], crossBag: ['redRunner', 'leftTurn', 'redLight'], traffic: {opp: ['pick', 'm1', 'car', 'm2'], oppGap: 70, same: 1, flow: 1, garbage: false},
-    seq: [['ord1', '住家巷口'], ['ord3', '風雨交加'], ['work', '路樹倒了'], ['cross', '民族路口'], ['alley', ''], ['ord2', '積水路段'], ['work', '招牌掉下來'], ['ord4', ''], ['cross', '建國路口'], ['ord1', ''], ['ord3', ''], ['cross', '上班路口'], ['ord3', ''], ['finish', '公司到了']]},
+    seq: [['ord1', '住家巷口'], ['ord3', '風雨交加'], ['work', '路樹倒了'], ['ord2', '', {turn: 45, n: 2}], ['cross', '民族路口'], ['alley', ''], ['round', '民權圓環', {exit: 'straight'}], ['ord2', '積水路段'], ['ord4', '', {turn: -60, n: 2}], ['work', '招牌掉下來'], ['ord4', ''], ['cross', '建國路口'], ['ord1', ''], ['ord3', '', {turn: 35}], ['ord1', '', {turn: -35}], ['alley', ''], ['round', '中正圓環', {exit: 'left'}], ['ord2', ''], ['ord3', '', {turn: 60, n: 2}], ['ord1', '', {turn: 30}], ['cross', '上班路口'], ['ord3', ''], ['ord4', ''], ['finish', '公司到了']]},
 };
+/** 路線有多長、幾個彎、幾座圓環（給選路線頁看） */
+export const routeInfo = id => { const r = ROUTES[id]; return r.kind === 'valley' ? {km: r.seq.length * CHUNK / 1000, bends: 0, rounds: 0} : routeStats(r.seq); };
 export const SOON = {bike: [['甘蔗田五分車', 2], ['鹽田海邊路', 2], ['廟會夜歸', 3]], moto: [['機車瀑布上橋', 4]]};
-export const LABEL = {parkPull: '紅線違停車起步', door: '並排車開門', truckDrop: '貨車掉貨', work: '施工縮減車道', pothole: '路面坑洞', wrongWay: '逆向機車', redRunner: '路口機車闖紅燈', leftTurn: '對向左轉搶快', rightTruck: '右轉大車', alley: '巷口衝出', pedestrian: '行人過馬路', suddenBrake: '前車急煞', redLight: '黃燈轉紅燈'};
-export const TIPS = {parkPull: '路邊車亮方向燈，先當它會出來。', door: '和路邊停車保持一個車門寬。', truckDrop: '別貼在載貨車後面，留反應距離。', work: '看到箭頭板就提早併到開放車道。', pothole: '路面顏色變了，先減速再閃。', wrongWay: '對向機車靠過來，先減速、守住自己的路線。', redRunner: '綠燈亮了，還是先看左右。', leftTurn: '對向車打左轉燈，別假設它會等您。', rightTruck: '大車打右轉燈，不要停在它右邊。', alley: '巷口被車擋住時，先放慢。', pedestrian: '靠近行人穿越道先減速，行人優先。', suddenBrake: '跟車距離要夠，前車煞車才來得及。', redLight: '黃燈不要衝，紅燈一定停。'};
+export const LABEL = {parkPull: '紅線違停車起步', door: '並排車開門', truckDrop: '貨車掉貨', work: '施工縮減車道', pothole: '路面坑洞', wrongWay: '逆向機車', redRunner: '路口機車闖紅燈', leftTurn: '對向左轉搶快', rightTruck: '右轉大車', alley: '巷口衝出', pedestrian: '行人過馬路', suddenBrake: '前車急煞', redLight: '黃燈轉紅燈', ringYield: '圓環讓環內車'};
+export const TIPS = {parkPull: '路邊車亮方向燈，先當它會出來。', door: '和路邊停車保持一個車門寬。', truckDrop: '別貼在載貨車後面，留反應距離。', work: '看到箭頭板就提早併到開放車道。', pothole: '路面顏色變了，先減速再閃。', wrongWay: '對向機車靠過來，先減速、守住自己的路線。', redRunner: '綠燈亮了，還是先看左右。', leftTurn: '對向車打左轉燈，別假設它會等您。', rightTruck: '大車打右轉燈，不要停在它右邊。', alley: '巷口被車擋住時，先放慢。', pedestrian: '靠近行人穿越道先減速，行人優先。', suddenBrake: '跟車距離要夠，前車煞車才來得及。', redLight: '黃燈不要衝，紅燈一定停。', ringYield: '進圓環前先減速，環內的車先走。'};
 const TPLC = new WeakMap();
 function template(kit, k, theme) { if (!TPLC.has(kit)) TPLC.set(kit, {}); const c = TPLC.get(kit), key = (theme || '') + '|' + k; return c[key] ??= theme ? themedTemplate(kit, theme, k) : kit.templates[k](); }
+/* 彎道路段：把直的街景彎過去，同樣的彎只做一次 */
+const BENDC = new WeakMap(), RINGC = new WeakMap(), DEG = Math.PI / 180;
+function bendTemplate(kit, k, theme, bend) {
+  if (!BENDC.has(kit)) BENDC.set(kit, {});
+  const c = BENDC.get(kit), key = `${theme}|${k}|${bend.deg}|${bend.n}|${bend.j}`;
+  if (c[key]) return c[key];
+  const L = bend.n * CHUNK, src = template(kit, k, theme).group.clone(true);
+  kit.bendSigns(src, bend.deg, [-5, -15, -25, -35]);
+  return c[key] = bakeGroup(THREE, src, trackWarp(u => bendKappa(bend.deg, L, u + bend.j * CHUNK), CHUNK), 2);
+}
+/* 一整座圓環：車走的路面彎好疊在上面，環道、安全島、四周街區以環心為原點 */
+function ringTemplate(kit, theme, exit) {
+  if (!RINGC.has(kit)) RINGC.set(kit, {});
+  const c = RINGC.get(kit), key = `${theme}|${exit}`;
+  if (c[key]) return c[key];
+  const sh = ringShape(exit), P = kit.parts, root = new THREE.Group(), center = new THREE.Group(), warp = trackWarp(u => ringKappa(sh, u), sh.len);
+  const part = fn => themedPart(kit, theme, fn);
+  root.add(bakeGroup(THREE, part(() => P.roundStrip(sh)), warp, 1.5));
+  const side = trackSidePiece(kit, theme);
+  if (side) for (let i = 0; i < sh.n; i++) root.add(bakeGroup(THREE, side, (x, z) => warp(x, z - i * CHUNK), 2));
+  center.position.z = sh.centerZ; root.add(center);
+  center.add(part(() => P.island(RING.Rc, RING.inner, RING.outer)));
+  const half = 26.5, len = half * 2 * DEG * RING.facade;
+  [45, 135, 225, 315].forEach((q, i) => center.add(bakeGroup(THREE, part(() => P.quadrant(900 + i * 37, len)), polarWarp((q - half) * DEG), 2)));
+  const exitPsi = exit === 'left' ? 180 : 90, reach = -sh.centerZ;   // reach＝環心到這段路起點的距離
+  [0, 90, 180, 270].forEach((psi, i) => {
+    const a = psi * DEG, ox = Math.cos(a), oz = -Math.sin(a), ry = (psi - 90) * DEG;
+    const place = (g, R, rot = ry) => { g.position.set(ox * R, 0, oz * R); g.rotation.y = rot; center.add(g); };
+    if (psi === 270 || psi === exitPsi) {   // 遊戲會走的路口
+      place(part(() => P.legPad(reach - 28, psi === 270 ? .45 : -.45)), 28);
+      place(part(() => P.leg(950 + i * 13, reach - RING.facade, false)), RING.facade);
+    } else {                                 // 其他街口：有路面，盡頭一排房子擋住視線
+      place(part(() => P.legPad(10, null)), 28);
+      place(part(() => P.leg(950 + i * 13, 40, true)), RING.facade);
+      place(part(() => P.cap(970 + i, 26)), RING.facade + 40 + 2 - 10, a);
+    }
+  });
+  return c[key] = root;
+}
 const NOOP_SND = new Proxy({}, {get: () => () => {}});
 /* 血條規則：滿 100，摔車扣 20，所以連摔 5 次就回起點 */
 export const HP = {start: 100, crash: 20, ticket: 15, bump: 5, low: 20};
@@ -69,22 +111,43 @@ export function createRide(cfg) {
   sun.shadow.bias = -.0006; sun.shadow.normalBias = .03;
   scene.add(sun, sun.target);
 
-  const slots = []; let far = null;
+  /* 路的形狀：s、x 是路座標，畫面都透過 road 換算。路尾再多接幾格，終點才不會露空 */
+  const cells = valley ? route.seq.map(() => ({})) : expandSeq(route.seq);
+  const tailSeq = valley ? Array.from({length: 12}, (_, i) => i % 4) : ['ord1', 'end'];
+  const road = buildRoad(cells, tailSeq.length);
+  const slots = [], tailSlots = []; let far = null, farHome = null;
+  const frame = (g, a) => { const p = road.at(a); g.position.set(p.x, 0, p.z); g.rotation.y = -p.th; };
   if (valley) {
-    const v = buildValley(kit, scene, route.seq);
-    far = v.far;
-    v.chunks.forEach((g, i) => { slots.push({i, a: i * CHUNK, g, fine: g.getObjectByName('fine'), type: 'valley', name: route.zones[i] || '', lamps: {R: [], Y: [], G: []}, sig: 'G'}); g.visible = false; });
+    const v = buildValley(kit, scene, route.seq.concat(tailSeq));
+    far = v.far; farHome = v.home;
+    v.chunks.forEach((g, i) => {
+      const slot = {i, a: i * CHUNK, g, fine: g.getObjectByName('fine'), type: 'valley', name: route.zones[i] || '', lamps: {R: [], Y: [], G: []}, sig: 'G', span: CHUNK}; g.visible = false;
+      (i < route.seq.length ? slots : tailSlots).push(slot);
+    });
   } else {
-    route.seq.forEach(([k, name], i) => {
-      const t = template(kit, k, route.theme), g = t.group.clone(true);
-      g.position.z = -i * CHUNK; g.visible = false; scene.add(g);
-      const slot = {i, a: i * CHUNK, g, fine: g.getObjectByName('fine'), type: t.type, name, colliders: t.colliders || null, lamps: {R: [], Y: [], G: []}, sig: 'G'};
+    cells.forEach((c, i) => {
+      const a = i * CHUNK;
+      let g, type, colliders = null;
+      if (c.ring) { g = c.j === 0 ? ringTemplate(kit, route.theme, c.ring.exit).clone(true) : new THREE.Group(); type = 'round'; }
+      else { const t = template(kit, c.k, route.theme); g = (c.bend ? bendTemplate(kit, c.k, route.theme, c.bend) : t.group).clone(true); type = t.type; colliders = t.colliders || null; }
+      frame(g, a); g.visible = false; scene.add(g);
+      const slot = {i, a, g, fine: g.getObjectByName('fine'), type, name: c.name, colliders, lamps: {R: [], Y: [], G: []}, sig: 'G', span: c.ring && c.j === 0 ? c.ring.len : CHUNK, bend: !!c.bend, ring: c.ring || null, ringJ: c.j};
       g.traverse(o => { if (o.name === 'lampR') slot.lamps.R.push(o); if (o.name === 'lampY') slot.lamps.Y.push(o); if (o.name === 'lampG') slot.lamps.G.push(o); });
       setSignal(slot, 'G');
       slots.push(slot);
     });
+    tailSeq.forEach((k, j) => {
+      const a = (cells.length + j) * CHUNK, g = template(kit, k, route.theme).group.clone(true);
+      frame(g, a); g.visible = false; scene.add(g);
+      tailSlots.push({i: cells.length + j, a, g, fine: g.getObjectByName('fine'), type: 'tail', name: '', lamps: {R: [], Y: [], G: []}, sig: 'G', span: CHUNK});
+    });
   }
-  const FINISH_A = valley ? (route.seq.length - 1) * CHUNK + 22 : (route.seq.length - 1) * CHUNK + 24;
+  const viewSlots = slots.concat(tailSlots);
+  const FINISH_A = (slots.length - 1) * CHUNK + (valley ? 22 : 24);
+  const END_S = (cells.length + 1) * CHUNK + 33;   // 路尾丁字路口，車流到這裡轉走
+  // 打卡時間跟著路長走：路再長，正常騎都來得及
+  const CLOCK_RATE = 360 / (FINISH_A / NOM * 1.75);
+  const CURVE_PUSH = MODE.slip ? .36 : .3;   // 彎道把車往外甩的力道
   const extras = TH?.extras ? TH.extras(kit, scene) : null;
   const player = makePlayerMesh(kit, pack, me.char, me.veh); scene.add(player);
   const playerLamps = lampsOf(player);
@@ -116,7 +179,7 @@ export function createRide(cfg) {
   /* ───────── 狀態與提示 ───────── */
   const freshState = () => ({phase: 'wait', t: 0, s: 8, x: (valley ? 0 : 4.6) + (cfg.laneOffset || 0), v: 0, vx: 0, lean: 0, brake: false, gauge: HP.start, score: 0, combo: 0, maxCombo: 0, crashes: 0, bumps: 0, tickets: 0, early: 0, late: 0, ok: 0, tested: 0, fakes: 0,
     leads: [], worst: null, worstRank: 0, clock: 0, invuln: 0, crashT: 0, crashDir: 1, shake: 0, seen: new Set(), zoneIdx: -1, ycross: 0, wrongSide: 0, arriveT: 0, hintT: 0, lastBrake: -9, zoneT: 0, seed,
-    rice: 0, riceAll: 0, baskets: 0, offroad: false, offT: 0, dusk: 0, finished: false, restarts: 0, redoT: 0, gustT: 6, gustDur: 0, gustDir: 1, boltT: 7});
+    rice: 0, riceAll: 0, baskets: 0, offroad: false, offT: 0, dusk: 0, finished: false, restarts: 0, redoT: 0, gustT: 6, gustDur: 0, gustDir: 1, boltT: 7, warned: new Set()});
   let S = freshState();
   let EVENTS = [], AMB = [], result = null, inputFn = cfg.input || (() => ({steer: 0, brake: false}));
   function toast(txt, cls = 'good') { if (!hud) return; const box = el.toasts; if (cls === 'see' && box.querySelector('.see')) return; const t = document.createElement('div'); t.className = 'toast ' + cls; t.textContent = txt; box.appendChild(t); while (box.children.length > 3) box.firstChild.remove(); setTimeout(() => t.remove(), cls === 'see' ? 900 : 1450); }
@@ -135,6 +198,12 @@ const COLORS = [0xf2f2ee, 0x2f3338, 0xb8bdc2, 0x9a2f2f, 0x2c5e92];
 const curveAt = (p0, p1, p2, u) => { const i = 1 - u; return {x: i * i * p0.x + 2 * i * u * p1.x + u * u * p2.x, a: i * i * p0.a + 2 * i * u * p1.a + u * u * p2.a, dx: 2 * i * (p1.x - p0.x) + 2 * u * (p2.x - p1.x), da: 2 * i * (p1.a - p0.a) + 2 * u * (p2.a - p1.a)}; };
 function faceFrom(e, dx, da) { e.yaw = Math.atan2(-dx, da); const sn = Math.abs(Math.sin(e.yaw)); e.hw = lerp(e.bw ?? .95, e.bl ?? 2.25, sn); e.hl = lerp(e.bl ?? 2.25, e.bw ?? .95, sn); }
 
+/** 把環內的車擺到環道上。d＝從進環點沿環道前進幾公尺（可為負），r＝半徑 */
+function placeRingCar(e, R, d, r) {
+  const T = road.map(0, R.t1), vx = (T.x - R.cx) / RING.Rc, vz = (T.z - R.cz) / RING.Rc, psi = -d / RING.Rc, c = Math.cos(psi), s = Math.sin(psi);
+  e.wx = R.cx + (vx * c - vz * s) * r; e.wz = R.cz + (vx * s + vz * c) * r; e.wth = T.th + psi;
+  e.g.position.set(e.wx, 0, e.wz); e.g.rotation.y = -e.wth;
+}
 function followV(e, v) {
   if (e.a < S.s && Math.abs(e.x - S.x) < e.hw + .7) v = Math.min(v, Math.max(0, (S.s - e.a - e.hl - 1.4) * 1.6));
   const red = nextRed(e.a); if (red != null) v = Math.min(v, Math.max(0, (red - e.a - e.hl - .6) * 1.3));
@@ -304,7 +373,7 @@ const H = {
   },
   pothole: {
     cls: 'dodge',
-    spawn(ev) { const m = kit.potholeMesh(); m.position.set(4.7, .024, -ev.anchor); m.receiveShadow = true; scene.add(m); ev.mesh = m; ev.ents = []; },
+    spawn(ev) { const m = kit.potholeMesh(), w = road.map(4.7, ev.anchor); m.position.set(w.x, .024, w.z); m.rotation.y = -w.th; m.receiveShadow = true; scene.add(m); ev.mesh = m; ev.ents = []; },
     corr: () => Math.abs(S.x - 4.7) < 1.5,
     tick(ev) { if (!ev.hit && S.invuln <= 0 && Math.abs(S.s - ev.anchor) < 1.25 && Math.abs(S.x - 4.7) < 1.25) { ev.hit = true; ev.crashed = true; bump(); } },
     done: ev => S.s > ev.anchor + 2,
@@ -317,6 +386,18 @@ const H = {
     corr: () => S.x > 2.65,
     done: ev => S.s > ev.anchor + 3,
     dead: ev => S.s > ev.anchor + 30,
+  },
+  ringYield: {
+    cls: 'brake', spawnAt: 140,
+    spawn(ev) { const e = ev.e = ent(kit.makeSedan(ev.rng() < .5 ? 0xf2d23a : COLORS[ev.rng() * 5 | 0], {}), 99, ev.anchor, .95, 2.25); e.world = true; e.live = false; e.g.visible = false; ev.ents = [e]; ev.vc = 8.5; },
+    corr: () => true,
+    onCue(ev) {   // 環內車算好和你同時到進環點，要讓它先走才不會撞
+      const tt = (ev.anchor - S.s) / Math.max(S.v, 3); ev.d = -ev.vc * tt;
+      placeRingCar(ev.e, ev.R, ev.d, RING.Rc + 4.4); ev.e.g.visible = true; ev.e.live = true; hint('環內有車！先讓它過', 2.4); Snd.horn();
+    },
+    tick(ev, dt) { if (ev.d == null) return; ev.d += ev.vc * dt; if (ev.d > 0) ev.vc = Math.min(NOM * 1.15, ev.vc + 3 * dt); placeRingCar(ev.e, ev.R, ev.d, RING.Rc + 4.4); },
+    done: ev => (ev.d != null && ev.d > 6) || S.s > ev.anchor + 4,
+    dead: ev => S.s > ev.R.end + 25,
   },
   redLight: {
     cls: 'brake', spawnAt: 120,
@@ -364,7 +445,8 @@ function planEvents(seed) {
   const MOVING = ['truckDrop', 'suddenBrake'];
   let oi = 0, ci = 0, skipNext = false;
   slots.forEach((slot, idx) => {
-    if (idx < 2 || idx >= slots.length - 1) return;
+    if (slot.ring) { if (slot.ringJ === 0) { const R = road.rings.find(q => q.a === slot.a); evs.push({type: 'ringYield', anchor: R.t1, slot, R, fake: false, state: 'idle', rng: mulberry(seed * 31 + idx), ents: []}); } return; }
+    if (idx < 2 || idx >= slots.length - 1 || slot.bend) return;
     let type = null, anchor = slot.a + 20 + r() * 8;
     if (slot.type === 'cross') { type = crossBag[ci++ % crossBag.length]; anchor = slot.a + 20; if (type === 'redLight') anchor = slot.a + 9.2; }
     else if (slot.type === 'work') { type = 'work'; anchor = slot.a + 5; }
@@ -423,7 +505,13 @@ function tickEvent(ev, dt) {
 }
 /* 碰撞 */
 const PLAYER_HW = .3, PLAYER_HL = .72;
-function overlap(r) { return Math.abs(S.x - r.x) < PLAYER_HW + r.hw * .92 && Math.abs(S.s - r.a) < PLAYER_HL + r.hl * .92; }
+function overlap(r) {
+  if (r.world) {
+    const w = road.map(S.x, S.s), dx = w.x - r.wx, dz = w.z - r.wz, c = Math.cos(r.wth), s = Math.sin(r.wth);
+    return Math.abs(dx * c + dz * s) < PLAYER_HW + r.hw * .92 && Math.abs(dx * s - dz * c) < PLAYER_HL + r.hl * .92;
+  }
+  return Math.abs(S.x - r.x) < PLAYER_HW + r.hw * .92 && Math.abs(S.s - r.a) < PLAYER_HL + r.hl * .92;
+}
 function checkCollisions() {
   if (S.invuln > 0 || S.phase !== 'ride') return;
   for (const ev of EVENTS) {
@@ -431,7 +519,7 @@ function checkCollisions() {
     for (const e of ev.ents) if (e.live && overlap(e)) { crash(ev); return; }
     const ex = H[ev.type].extra?.(ev); if (ex && overlap(ex)) { crash(ev); return; }
   }
-  for (const e of AMB) if (e.solid && overlap(e)) { crash(null, e); return; }
+  for (const e of AMB) if (e.solid && !(e.op && road.inRing(e.a)) && !(e.ringCar && e.wx == null) && overlap(e)) { crash(null, e); return; }
   for (const slot of slots) if (slot.colliders && Math.abs(S.s - slot.a - 20) < 40) for (const c of slot.colliders) {
     const r = {x: (c.x0 + c.x1) / 2, hw: (c.x1 - c.x0) / 2, a: slot.a + (-c.z0 - c.z1) / 2, hl: (c.z0 - c.z1) / 2};
     if (overlap(r)) { const ev = EVENTS.find(v => v.slot === slot && v.type === 'work'); crash(ev, null, 2.2); return; }
@@ -465,6 +553,9 @@ function buildAmbient() {
     e.v = NOM * 1.1; e.flow = true; e.solid = false; AMB.push(e);
   }
   if (TF.garbage !== false) { const gt = ent(kit.makeGarbageTruck(), -5.25, S.s + 190, 1.1, 3.2, Math.PI); gt.v = -7.5; gt.solid = true; gt.op = true; gt.label = '逆向撞上垃圾車'; AMB.push(gt); }
+  road.rings.forEach(R => { for (let k = 0; k < 2; k++) {
+    const e = ent(k ? make.taxi() : make.car(), 99, R.a + R.shape.len / 2, .95, 2.25); e.world = true; e.solid = true; e.label = '撞上環內車'; e.ringCar = {R, d: 30 + k * 72, r: RING.Rc - 3.5}; AMB.push(e);
+  } });
   AMB.forEach(e => { e.a0 = e.a; e.x0 = e.x; e.v0 = e.v; });
 }
 const ACCEL = 3.6, SC = [0x7eb4a8, 0x2b2d33, 0xf2f2ec], HM = [0xe23b35, 0xf2f2ec, 0x3f7fc4], SH = [0xe6c84f, 0x3fa266, 0x34383f];
@@ -472,6 +563,7 @@ function nextRed(a) { let best = null; for (const ev of EVENTS) if (ev.type === 
 function tickAmbient(dt) {
   const same = AMB.filter(e => e.same).sort((p, q) => p.a - q.a);
   for (const e of AMB) {
+    if (e.ringCar) { e.ringCar.d += 6.5 * dt; placeRingCar(e, e.ringCar.R, e.ringCar.d, e.ringCar.r); continue; }
     if (e.op) { e.a += e.v * dt; if (e.a < S.s - 40) { e.a = S.s + 230 + Math.random() * 90; } continue; }
     if (e.flow) {
       const red = nextRed(e.a); let tgt = NOM * 1.12;
@@ -514,7 +606,7 @@ function demoThink() {
     if (H[ev.type].cls === 'dodge') { demoTarget = ev.type === 'work' ? 2.0 : 2.95; } else if (S.t - ev.tCue < 3.4) demoB = true;
   }
   for (const slot of slots) if (slot.colliders && S.s > slot.a - 26 && S.s < slot.a + 37) demoTarget = 2.0;
-  for (const e of AMB) if (e.same && Math.abs(e.x - S.x) < 1.15 && e.a > S.s && e.a - S.s < 9 + e.hl) demoB = true;
+  for (const e of AMB) if (e.same && Math.abs(e.x - S.x) < 1.35 && e.a > S.s && e.a - S.s < 9 + e.hl) demoB = true;
 }
 const demoSteer = () => clamp((demoTarget - S.x) * 1.4, -1, 1);
 const demoBrake = () => demoB;
@@ -584,9 +676,10 @@ const demoBrake = () => demoB;
   function steerStep(dt, steer, x0, x1) { // 鐵馬和機車共用同一套轉向，手感才會一致
     const vxT = steer * 5.4 * clamp(S.v / NOM + .15, .15, 1.1), grip = MODE.slip ? 3.4 : 9;
     S.vx += (vxT - S.vx) * Math.min(1, dt * grip);
-    S.x = clamp(S.x + S.vx * dt, x0, x1);
+    const k = road.kappa(S.s), fling = k * S.v * S.v;   // 右彎（k > 0）把車往左甩，要自己修回來
+    S.x = clamp(S.x + (S.vx - fling * CURVE_PUSH) * dt, x0, x1);
     S.s += S.v * dt;
-    S.lean += (clamp(-S.vx * .085, -.3, .3) - S.lean) * Math.min(1, dt * 9);
+    S.lean += (clamp(-S.vx * .085 - fling * .045, -.3, .3) - S.lean) * Math.min(1, dt * 9);
   }
   function knockOut() { // 血條歸零：摔車動畫 → 回起點重騎
     const n = S.restarts + 1;
@@ -632,16 +725,18 @@ const demoBrake = () => demoB;
       if (brk) S.v = Math.max(0, S.v - dec * dt); else S.v = Math.min(NOM, S.v + (S.v < NOM ? ACCEL : 0) * dt);
       steerStep(dt, steer, -6.4, 6.55);
       if (route.gust) tickGust(dt);
-      if (S.x < -.25) { S.wrongSide += dt; if (S.wrongSide > .7 && !S.ycross) { S.ycross = 1; ticket('跨雙黃線逆向'); } }
+      if (road.inRing(S.s)) S.wrongSide = 0;
+      else if (S.x < -.25) { S.wrongSide += dt; if (S.wrongSide > .7 && !S.ycross) { S.ycross = 1; ticket('跨雙黃線逆向'); } }
       else { S.wrongSide = 0; if (S.x > .3) S.ycross = 0; }
       if (S.s >= FINISH_A) { S.phase = 'arrive'; S.arriveT = S.t; S.clockEnd = S.clock; hint('到公司了！', 2); }
     } else if (S.phase === 'arrive') {
       S.v = Math.max(0, S.v - 7 * dt); S.s += S.v * dt; S.brake = true;
       if (S.v <= .1 && S.t - S.arriveT > .7) { finish(); return; }
     }
-    if (S.phase !== 'arrive') S.clock += dt * 3.3 * (NOM / 11.1);
+    if (S.phase !== 'arrive') S.clock += dt * CLOCK_RATE;
     if (!valley) { EVENTS.forEach(ev => tickEvent(ev, dt)); tickAmbient(dt); checkCollisions(); }
-    extras?.update?.(S, dt);
+    extras?.update?.(S, dt, road);
+    warnAhead();
     if (S.gauge <= 0 && (S.phase === 'ride' || S.phase === 'crash')) { knockOut(); return; }
     const si = clamp(Math.floor(S.s / CHUNK), 0, slots.length - 1);
     if (si !== S.zoneIdx) {
@@ -650,6 +745,11 @@ const demoBrake = () => demoB;
       if (si === 1 && !valley && help.brake) hint(help.brake, 4);
     }
     if (S.zoneT > 0) { S.zoneT -= dt; if (S.zoneT <= 0) el.zone.classList.remove('on'); }
+  }
+  function warnAhead() {   // 彎道和圓環前先講一聲
+    if (S.phase !== 'ride') return;
+    for (const b of road.bends) if (!S.warned.has(b.a) && S.s > b.a - 40 && S.s < b.a) { S.warned.add(b.a); hint(b.deg > 0 ? '前方右彎，往右修方向' : '前方左彎，往左修方向', 2.6); }
+    for (const r of road.rings) if (!S.warned.has(r.a) && S.s > r.a - 48 && S.s < r.a) { S.warned.add(r.a); hint(r.shape.exit === 'left' ? '前方圓環，繞大半圈從左邊出去，先減速' : '前方圓環，直行穿過，先減速', 3); }
   }
   function tickGust(dt) { // 颱風天：一陣陣強風把車往旁邊吹
     S.gustT -= dt;
@@ -692,10 +792,13 @@ const demoBrake = () => demoB;
   }
 
   /* ───────── 畫面 ───────── */
-  const camPos = new THREE.Vector3(S.x, 3, -S.s + 6);
+  const camPos = new THREE.Vector3(S.x, 3, -S.s + 6); let camBend = 0;
   function placeEnt(e, blinkOn) {
-    e.g.position.set(e.x, e.yOffset != null ? e.yOffset : (e.g.position.y || 0), -e.a);
-    e.g.rotation.y = e.yaw;
+    if (!e.world) {
+      const w = road.map(e.x, e.a);
+      e.g.position.set(w.x, e.yOffset != null ? e.yOffset : (e.g.position.y || 0), w.z);
+      e.g.rotation.y = e.yaw - w.th;
+    }
     if (e.lamps && e.blinkSide) e.lamps[e.blinkSide].forEach(m => { m.visible = blinkOn; });
   }
   let lastBlink = false;
@@ -703,27 +806,32 @@ const demoBrake = () => demoB;
     const blinkOn = (S.t % .72) < .4;
     if (blinkOn && !lastBlink && !valley && EVENTS.some(ev => ev.ents.some(e => e.blinkSide) && Math.abs(ev.anchor - S.s) < 60)) Snd?.tick();
     lastBlink = blinkOn;
-    slots.forEach(slot => { slot.g.visible = slot.a > S.s - 45 && slot.a < S.s + (valley ? 420 : 340); if (slot.fine) slot.fine.visible = slot.a > S.s - 45 && slot.a < S.s + (valley ? 70 : 130) * (low ? .55 : fineScale); });
+    viewSlots.forEach(slot => { const on = slot.a + slot.span > S.s - 5 && slot.a < S.s + (valley ? 420 : 340); slot.g.visible = on; if (slot.fine) slot.fine.visible = on && slot.a < S.s + (valley ? 70 : 130) * (low ? .55 : fineScale); });
     for (const ev of EVENTS) { if (ev.state === 'idle' || ev.state === 'dead') continue; ev.ents.forEach(e => placeEnt(e, blinkOn)); }
-    AMB.forEach(e => { placeEnt(e, blinkOn); e.g.visible = Math.abs(e.a - S.s) < 340; if (e.same) e.lamps.B.forEach(m => { m.visible = e.v < e.base * .7; }); });
+    AMB.forEach(e => { placeEnt(e, blinkOn); e.g.visible = e.ringCar ? e.wx != null && S.s > e.ringCar.R.a - 220 && S.s < e.ringCar.R.end + 70 : Math.abs(e.a - S.s) < 340 && e.a < END_S && !(e.op && road.inRing(e.a)); if (e.same) e.lamps.B.forEach(m => { m.visible = e.v < e.base * .7; }); });
     const crashA = S.phase === 'crash' || S.phase === 'down' ? ease((2.3 - S.crashT) / .4) : 0;
-    player.position.set(S.x, crashA ? .04 : Math.sin(S.t * 26) * .004 * (S.v / NOM), -S.s);
+    const pw = road.map(S.x, S.s), pwx = pw.x, pwz = pw.z, pth = pw.th;
+    player.position.set(pwx, crashA ? .04 : Math.sin(S.t * 26) * .004 * (S.v / NOM), pwz);
     player.rotation.z = S.lean + crashA * 1.35 * S.crashDir * -1;
-    player.rotation.y = clamp(-S.vx * .03, -.22, .22) + crashA * .6 * S.crashDir;
+    player.rotation.y = clamp(-S.vx * .03, -.22, .22) + crashA * .6 * S.crashDir - pth;
     player.visible = S.invuln <= 0 || (S.t * 9 | 0) % 2 === 0;
     playerLamps.B.forEach(m => { m.visible = S.brake; });
     const W = vp.w, H = vp.h, port = W < H * .98;
     camera.aspect = W / H; camera.fov = port ? 74 : 58; camera.updateProjectionMatrix();
     const off = valley ? 0 : 1.25, tOff = valley ? 0 : .95;
-    const cx = S.x * .42 + off, tx = S.x * .34 + tOff, ch = port ? 4.3 : 3.15, cb = port ? 7.4 : 6.2;
+    // 彎道裡鏡頭看近一點、靠近車子，車才不會被擠到畫面邊邊
+    const bendNow = Math.min(1, Math.max(Math.abs(road.kappa(S.s)), Math.abs(road.kappa(S.s + 12))) * 26);
+    camBend += (bendNow - camBend) * Math.min(1, dt * 3);
+    const cx = lerp(S.x * .42 + off, S.x * .85, camBend), tx = lerp(S.x * .34 + tOff, S.x * (port ? 1 : .55), camBend), ch = port ? 4.3 : 3.15, cb = port ? 7.4 : 6.2, look = lerp(17, port ? 4.5 : 10, camBend);   // 手機直拿畫面窄，要看得更近
     camPos.lerp(new THREE.Vector3(cx, ch, -S.s + cb), Math.min(1, dt * 6));
     camPos.z = -S.s + cb;
-    camera.position.copy(camPos);
-    camera.lookAt(tx, port ? -.4 : 1.25, -S.s - 17);
-    camera.rotation.z += S.lean * .12;
+    let cw = road.map(camPos.x, S.s - cb); camera.position.set(cw.x, camPos.y, cw.z);
+    cw = road.map(tx, S.s + look); camera.lookAt(cw.x, port ? -.4 : 1.25, cw.z);
+    camera.rotateZ(S.lean * .12);
     if (S.shake > 0) { camera.position.x += (Math.random() - .5) * S.shake * .35; camera.position.y += (Math.random() - .5) * S.shake * .28; }
-    sun.position.set(S.x + SUN_AT[0], SUN_AT[1], -S.s + SUN_AT[2]); sun.target.position.set(S.x, 0, -S.s - 22); sun.target.updateMatrixWorld();
+    sun.position.set(pwx + SUN_AT[0], SUN_AT[1], pwz + SUN_AT[2]); sun.target.position.set(pwx, 0, pwz - 22); sun.target.updateMatrixWorld();
     if (far) far.position.z = -S.s;
+    if (farHome) farHome.visible = S.s < FINISH_A - 280;
     // 鐵馬路線：隨時間日頭漸斜
     if (valley) {
       const d = S.dusk; hemi.intensity = lerp(1.75, 1.05, d); sun.intensity = lerp(2.25, 1.15, d);
@@ -748,11 +856,11 @@ const demoBrake = () => demoB;
         if (act) {
           const tg = act.ents.find(e => e.live && e.g.visible);
           const x = tg ? tg.x : 4.7, a = tg ? tg.a : act.anchor, y = tg ? 1.3 : .6;
-          const sc = 3.2 + Math.sin(S.t * 8) * .5; ring.position.set(x, y, -a); ring.scale.set(sc, sc, 1); ring.visible = true;
+          const sc = 3.2 + Math.sin(S.t * 8) * .5, rw = tg?.world ? {x: tg.wx, z: tg.wz} : road.map(x, a); ring.position.set(rw.x, y, rw.z); ring.scale.set(sc, sc, 1); ring.visible = true;
         }
       }
     }
-    if (rain) { rain.position.set(camera.position.x, camera.position.y - 8, camera.position.z); rain.position.y -= (S.t * 26) % 8; }
+    if (rain) { rain.position.set(camera.position.x, camera.position.y - 8, camera.position.z); rain.position.y -= (S.t * 26) % 8; rain.rotation.y = -pth; }
     // HUD
     if (valley) {
       const left = Math.max(0, route.limit - S.t);
@@ -778,12 +886,12 @@ const demoBrake = () => demoB;
     renderer.render(scene, camera);
   }
   return {
-    get S() { return S; }, get result() { return result; }, get EVENTS() { return EVENTS; }, get AMB() { return AMB; }, H: typeof H !== 'undefined' ? H : null, ITEMS, NPCS, scene, camera, FINISH_A, player,
+    get S() { return S; }, get result() { return result; }, get EVENTS() { return EVENTS; }, get AMB() { return AMB; }, H: typeof H !== 'undefined' ? H : null, ITEMS, NPCS, scene, camera, FINISH_A, END_S, player, road, viewSlots,
     begin() { if (S.phase === 'wait') { S.phase = 'ride'; begin0(); } },
     sim, draw, finish, rideV: () => S.v, nominal: NOM,
     setInput(fn) { inputFn = fn; },
     setLow(v) { low = !!v; sun.castShadow = !low; },
-    setRival(x, s, lean, vis = true) { if (!rivalG) return; rivalG.position.set(x, 0, -s); rivalG.userData.lean = lean; rivalG.visible = vis && s > S.s - 7 && !(Math.abs(x - S.x) < .55 && Math.abs(s - S.s) < 1.7); rivalG.userData.tag.visible = s > S.s + 1.5; },
+    setRival(x, s, lean, vis = true) { if (!rivalG) return; const w = road.map(x, s); rivalG.position.set(w.x, 0, w.z); rivalG.rotation.y = -w.th; rivalG.userData.lean = lean; rivalG.visible = vis && s > S.s - 7 && !(Math.abs(x - S.x) < .55 && Math.abs(s - S.s) < 1.7); rivalG.userData.tag.visible = s > S.s + 1.5; },
     setRivalDot(pct, leadTxt) { el.riDot.style.left = pct + '%'; el.lead.textContent = leadTxt; },
     banner(txt) { el.banner.textContent = txt || ''; el.banner.classList.toggle('on', !!txt); },
     notice(txt) { el.notice.textContent = txt || ''; el.notice.classList.toggle('on', !!txt); },

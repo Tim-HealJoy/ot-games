@@ -17,6 +17,7 @@ input{-webkit-user-select:text;user-select:text}
 .err{color:var(--red);font-weight:800;font-size:16px;text-align:center;margin-top:10px;min-height:22px}
 a.btn{text-align:center;text-decoration:none}
 #netKind{text-align:center;font-size:13px;font-weight:700;color:var(--mut);min-height:16px}
+#sensorBtn{flex:none;margin:0;padding:12px;font-size:20px;background:var(--gold);color:var(--ink)}
 #readyBtn{position:sticky;bottom:max(10px,env(safe-area-inset-bottom))}
 html,body{margin:0;min-height:100%;background:var(--cream);color:var(--ink);font-family:var(--f)}
 main{padding:max(14px,env(safe-area-inset-top)) 14px max(16px,env(safe-area-inset-bottom));max-width:560px;margin:auto}
@@ -72,6 +73,8 @@ body.hasBtn #eyes{display:none}
   <section id="sWait" class="hide">
     <div class="big"><span class="me" id="meTag2"></span>準備好了</div>
     <div class="mid" id="waitMsg">等另一位…</div>
+    <div class="mid" id="waitSensor"></div>
+    <button class="btn hide" id="waitSensorBtn" style="background:var(--gold);color:var(--ink)">開啟傾斜感測</button>
     <div class="mid"><b>橫拿手機，像握機車龍頭</b><br>看電腦螢幕騎，傾斜手機就會轉彎。</div>
     <button class="btn ghost" id="unready">重新選</button>
   </section>
@@ -86,6 +89,7 @@ body.hasBtn #eyes{display:none}
   <div class="meter"><u></u><i id="mi"></i></div>
   <div id="tiltHelp">傾斜手機轉向</div>
   <div id="netKind"></div>
+  <button class="btn hide" id="sensorBtn">開啟傾斜感測</button>
   <div id="eyes"><b>眼睛看電腦螢幕</b><span>橫拿手機像握龍頭<br>往左傾就往左，往右傾就往右</span></div>
   <div class="ctrls"><button class="ctrl hide" id="lb">◀</button><button class="ctrl hide" id="rb">▶</button><button class="ctrl hide" id="brk">煞車</button></div>
 </section>
@@ -110,7 +114,7 @@ const link = window.createLink({
   onData: m => { if (m.buzz) navigator.vibrate?.(m.buzz); if (m.q != null) oneWay = Math.round((performance.now() - m.q) / 2); },
   onChange: () => { oneWay = 0; syncNetKind(); },
 });
-function syncNetKind() { $('netKind').textContent = link.open ? `連線：直連${oneWay ? ` 約 ${oneWay} ms` : ''}` : '連線：雲端轉傳'; }
+function syncNetKind() { $('netKind').textContent = `傾斜：${tilt.live ? '有訊號' : '沒有訊號'}．連線：${link.open ? `直連${oneWay ? ` 約 ${oneWay} ms` : ''}` : '雲端轉傳'}`; }
 /* 電腦在線就試著直連；電腦離開或座位換了就重來 */
 function ensureLink(retry) {
   if (!st.host) { if (linkYou) { link.close(); linkYou = 0; } return; }
@@ -181,14 +185,37 @@ function render() {
     show('sEnd'); return;
   }
   if (st.phase === 'result' && !st.ready && !window.__endDone) { show('sEnd'); return; }
-  if (st.ready) { tag($('meTag2')); const o = (st.players || []).find(x => x.slot !== st.you); $('waitMsg').textContent = st.max === 1 ? '馬上開始！' : o?.ready ? '兩位都好了，馬上開始！' : o?.online ? '等另一位按準備…' : '等另一位掃碼…'; show('sWait'); }
+  if (st.ready) { tag($('meTag2')); const o = (st.players || []).find(x => x.slot !== st.you); $('waitMsg').textContent = st.max === 1 ? '馬上開始！' : o?.ready ? '兩位都好了，馬上開始！' : o?.online ? '等另一位按準備…' : '等另一位掃碼…'; show('sWait'); syncSensor(); }
   else { renderPick(); show('sPick'); }
 }
 /* 感測器 */
-function syncGoText() {
-  const btn = !$('lb').classList.contains('hide');
-  $('tiltHelp').textContent = !st.go ? '手機拿好，出發時會自動歸零' : tilt.live ? '傾斜手機轉向' : !btn ? '傾斜手機轉向' : tilt.state === 'insecure' ? '目前連線讀不到傾斜，請按左右' : tilt.state === 'denied' ? '沒有動作權限，請按左右' : '這支手機讀不到傾斜，改按左右';
+const canAsk = () => tilt.state !== 'insecure' && tilt.state !== 'unsupported';
+function sensorText() {
+  const s = tilt.state;
+  if (s === 'insecure') return '這個網址（http）手機不給傾斜資料，請按左右，或重新掃電腦上的 QR';
+  if (s === 'unsupported') return '這個瀏覽器讀不到傾斜，請按左右，或改用 Safari／Chrome';
+  if (s === 'denied') return '動作權限被拒絕：再按一次下面的按鈕；沒跳出詢問就關掉分頁重開，選「允許」';
+  if (s === 'granted') return '手機沒有傳回傾斜資料，請按左右，或換一個瀏覽器';
+  return '傾斜感測還沒開，請按下面的按鈕';
 }
+function syncSensor() {   // 等待畫面也講清楚感測器狀態，不用等比賽才發現
+  $('waitSensor').textContent = tilt.live ? '傾斜感測：有訊號' : sensorText();
+  $('waitSensorBtn').classList.toggle('hide', tilt.live || !canAsk());
+}
+function syncGoText() {
+  const pads = !!window.__btnReady && !tilt.live;
+  $('lb').classList.toggle('hide', !pads); $('rb').classList.toggle('hide', !pads);
+  document.body.classList.toggle('hasBtn', pads || (st.pack || 'moto') === 'moto');
+  $('sensorBtn').classList.toggle('hide', tilt.live || !canAsk());
+  $('tiltHelp').textContent = !tilt.live ? sensorText() : !st.go ? '手機拿好，出發時會自動歸零' : '傾斜手機轉向';
+  syncNetKind();
+}
+const askSensor = () => tilt.ask().then(() => { tilt.rezero(); syncGoText(); syncSensor(); setTimeout(() => { syncGoText(); syncSensor(); }, 500); });
+$('sensorBtn').onclick = askSensor;
+$('waitSensorBtn').onclick = askSensor;
+// 中途重新整理後沒經過「準備」鈕：碰一下螢幕就補要權限（iPhone 一定要在點擊裡要）
+for (const ev of ['click', 'touchend']) document.addEventListener(ev, () => { if (!tilt.live && tilt.state === 'idle') askSensor(); });
+tilt.listen();
 $('readyBtn').onclick = async () => { await tilt.ask(); tilt.rezero(); send({t: 'pick', char: pick.char, veh: pick.veh}); send({t: 'ready', v: true}); };
 $('unready').onclick = () => send({t: 'ready', v: false});
 $('again').onclick = async () => { await tilt.ask(); tilt.rezero(); send({t: 'ready', v: true}); };
@@ -204,14 +231,15 @@ function startSending() {
   tilt.rezero();
   ensureLink(true); syncNetKind();
   clearTimeout(window.__btnT);
-  window.__btnT = setTimeout(() => { if (!tilt.live) { $('lb').classList.remove('hide'); $('rb').classList.remove('hide'); document.body.classList.add('hasBtn'); syncGoText(); } }, 1500);
+  window.__btnReady = false;
+  window.__btnT = setTimeout(() => { window.__btnReady = true; syncGoText(); }, 1500);
   sendT = setInterval(() => {
     const k = (r ? 1 : 0) - (l ? 1 : 0), v = +(k || (tilt.live ? tilt.value : 0)).toFixed(2), now = performance.now();
     if (v !== last.v || brake !== last.b || now - last.t > 250) {   // 沒變化就少傳
       if (!link.send({n: ++seq, v, b: brake})) send({t: 'in', tilt: v, brake });   // 能直連就不繞雲端
       last = {v, b: brake, t: now};
     }
-    if (now - pingAt > 1000) { pingAt = now; link.send({p: now}); syncNetKind(); }
+    if (now - pingAt > 1000) { pingAt = now; link.send({p: now}); syncGoText(); }
     $('mi').style.left = (50 + v * 45) + '%';
   }, 50);
 }

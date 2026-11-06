@@ -1015,6 +1015,177 @@ export function makeKit(style) {
     b.into(g);
     return {group: g, type: 'work', colliders: [{x0: 2.75, x1: 7, z0: -12.5, z1: -33}, {x0: 5.2, x1: 7, z0: -6, z1: -12.5}, {x0: 3.6, x1: 5.2, z0: -9.8, z1: -12.5}]};
   }
+
+  /* ─── 路的盡頭：丁字路口＋公司大樓，把終點畫面收起來 ─── */
+  function hqFacade() {
+    const [c, g] = cv(128, 92);
+    g.fillStyle = '#c9d2d6'; g.fillRect(0, 0, 128, 92);
+    g.fillStyle = '#4d7e93'; g.fillRect(8, 12, 112, 66);
+    g.fillStyle = 'rgba(255,255,255,.22)'; g.beginPath(); g.moveTo(22, 78); g.lineTo(60, 12); g.lineTo(84, 12); g.lineTo(46, 78); g.fill();
+    g.fillStyle = '#e8ecec'; g.fillRect(62, 12, 4, 66); g.fillRect(8, 42, 112, 3);
+    g.fillStyle = '#9aa6aa'; g.fillRect(0, 84, 128, 8);
+    return tex(c, true);
+  }
+  function textTex(txt, w, h, bg, fg) {
+    const [c, g] = cv(w, h);
+    g.fillStyle = bg; g.fillRect(0, 0, w, h);
+    g.fillStyle = fg; g.font = `900 ${h * .62}px "PingFang TC","Noto Sans TC",sans-serif`; g.textAlign = 'center'; g.textBaseline = 'middle';
+    g.fillText(txt, w / 2, h * .54);
+    return tex(c);
+  }
+  function tEnd(seed) {
+    const r = mulberry(seed + (BO.seed || 0)), g = new THREE.Group(), b = nb(), Zc = -24, Zh = -46, W = 96, H = 40;
+    const white = M(0xf4f2ea), yel = M(0xf3bd2b);
+    baseRoad(b, {noMarkFrom: Zc, noMarkTo: -CHUNK, walks: {1: [[0, Zc]], [-1]: [[0, Zc]]}});
+    row(b, r, 1, 0, Zc); row(b, r, -1, 0, Zc);
+    pole(b, 7.72, -.5, true); pole(b, -7.72, -.5);
+    for (const s of [-1, 1]) for (let z = -3; z > Zc + 2; z -= 1.15) if (r() < .5) parked(b, s * (8.62 + r() * .2), z, s * (1.25 + r() * .32), SCOOT_COL[r() * 8 | 0]);
+    // 橫向馬路
+    b.add(flat(150, 18, 7), roadMat, T(0, -.012, -33));
+    b.add(flat(7, .45), white, T(3.5, .02, Zc + .6));
+    for (const dz of [-.14, .14]) b.add(flat(150, .12), yel, T(0, .012, -33 + dz));
+    // 大樓前人行道
+    b.add(flat(150, 5, 3), pavingMat, T(0, .16, Zh + 2.5));
+    b.add(box(150, .19, .2), M(0xa8a59c), T(0, .08, Zh + 4.95));
+    // 大樓本體
+    const front = quad(W, H), uv = front.attributes.uv;
+    for (let i = 0; i < uv.count; i++) uv.setXY(i, uv.getX(i) * W / 5, uv.getY(i) * H / 3.6);
+    b.add(box(W, H, 20), M(0xb7c1c6, {rough: .9}), T(0, H / 2, Zh - 10), .06);
+    b.add(front, M(0xffffff, {map: hqFacade(), rough: .7}), T(0, H / 2, Zh + .03));
+    b.add(box(34, 5.4, .5), M(0x2d4653), T(0, 2.7, Zh + .3));
+    for (let x = -15; x <= 15; x += 5) b.add(box(.3, 5.4, .55), M(0xdfe3e3), T(x, 2.7, Zh + .32));
+    b.add(box(38, .5, 7), M(0x2c6fb3), T(0, 5.7, Zh + 3.4), .05);
+    for (const x of [-16, 16]) b.add(cyl(.28, .28, 5.6, 10), M(0xdfe3e3), T(x, 2.8, Zh + 6.4), .02);
+    b.add(quad(14, 2), new THREE.MeshBasicMaterial({map: textTex('打卡上班處', 512, 74, '#2c6fb3', '#ffffff')}), T(0, 7.2, Zh + .1));
+    b.add(box(30, 5, .4), M(0x1f4f8f), T(0, H - 4, Zh + .2), .04);
+    b.add(quad(29, 4.4), new THREE.MeshBasicMaterial({map: textTex('平安企業大樓', 1024, 156, '#1f4f8f', '#ffffff')}), T(0, H - 4, Zh + .44));
+    // 旗子、花台、上班的人
+    for (const [x, col] of [[-24, 0xd8362f], [-20, 0x2c6fb3], [20, 0x2f9a63], [24, 0xf3bd2b]]) {
+      b.add(cyl(.06, .07, 8, 6), M(0xd8dcdc), T(x, 4, Zh + 3.6), .012);
+      b.add(box(1.5, .9, .03), M(col), T(x + .78, 7.3, Zh + 3.6), .012);
+    }
+    for (const x of [-30, -9.5, 9.5, 30]) { b.add(box(5, .6, 1.2), M(0x9b9a90), T(x, .46, Zh + 2.4), .02); b.add(box(4.6, .5, .9), M(0x5d9c52), T(x, .95, Zh + 2.4), .02); }
+    for (let i = 0; i < 7; i++) person(b, -14 + r() * 28, Zh + 1.6 + r() * 2.6, {shirt: [0xf2f2ec, 0x34383f, 0x2c5e92, 0xd65a5a][r() * 4 | 0], hair: r() < .25 ? 0xbcb8b0 : 0x2a2522});
+    b.into(g);
+    return {group: g, type: 'end'};
+  }
+
+  /* ─── 彎道導引牌：立在彎道外側，黃底箭頭指向要轉的方向 ─── */
+  function bendSigns(g, dir, zs) {
+    const b = nb(), x = dir > 0 ? -7.55 : 7.55, yel = M(0xf5c518), dark = M(0x1c1c20), tilt = dir > 0 ? -.62 : .62;
+    for (const z of zs) {
+      b.add(box(.1, 1.3, .1), M(0x55565a), T(x, .65, z));
+      b.add(box(1.28, .92, .08), dark, T(x, 1.62, z), .018);
+      for (const off of [-.3, .26]) {
+        b.add(box(.15, .5, .02), yel, T(x + off, 1.8, z + .05, 0, 0, tilt));
+        b.add(box(.15, .5, .02), yel, T(x + off, 1.44, z + .05, 0, 0, -tilt));
+      }
+    }
+    const f = new THREE.Group(); b.into(f); g.add(f);
+  }
+
+  /* ─── 圓環的零件 ───
+     環道、安全島、四周街區都以環心為原點；車走的那條路另外彎好再疊上去。 */
+  function tRoundStrip(sh) {
+    const g = new THREE.Group(), b = nb(), L = sh.len, white = M(0xf4f2ea), yel = M(0xf3bd2b), red = M(0xd8362f);
+    const strip = (mat, w, x, z0, z1) => b.add(flat(w, z0 - z1), mat, T(x, .018, (z0 + z1) / 2));
+    b.add(flat(14, L, 7), roadMat, T(0, 0, -L / 2));
+    const inEnd = sh.lead + 3, outStart = L - sh.lead - 3;
+    for (const [z0, z1] of [[0, -inEnd], [-outStart, -L]]) { strip(yel, .12, -.14, z0, z1); strip(yel, .12, .14, z0, z1); strip(red, .17, 6.82, z0, z1); }
+    // 進環前的讓路線（一排白色小方塊）
+    for (let x = .6; x < 6.8; x += 1.1) b.add(flat(.62, .62), white, T(x, .02, -(sh.t1 - 2.5)));
+    // 減速標線
+    for (const z of [-(sh.lead * .55), -(sh.lead + sh.fil * .4)]) for (const dz of [0, 1.1]) strip(white, 5.6, 3.5, z - dz, z - dz - .22);
+    b.into(g);
+    return g;
+  }
+  function roundSign() {
+    const [c, gc] = cv(256, 256);
+    gc.fillStyle = '#1b5fae'; gc.beginPath(); gc.arc(128, 128, 124, 0, 7); gc.fill();
+    gc.strokeStyle = '#fff'; gc.lineWidth = 8; gc.beginPath(); gc.arc(128, 128, 116, 0, 7); gc.stroke();
+    gc.lineWidth = 22; gc.lineCap = 'butt';
+    for (let i = 0; i < 3; i++) {
+      const a0 = i * 2.094 - 1.7, a1 = a0 + 1.5;
+      gc.beginPath(); gc.arc(128, 128, 66, a0, a1); gc.stroke();
+      const hx = 128 + 66 * Math.cos(a1), hy = 128 + 66 * Math.sin(a1), dx = -Math.sin(a1), dy = Math.cos(a1), nx = Math.cos(a1), ny = Math.sin(a1);
+      gc.fillStyle = '#fff'; gc.beginPath(); gc.moveTo(hx + dx * 30, hy + dy * 30); gc.lineTo(hx + nx * 26, hy + ny * 26); gc.lineTo(hx - nx * 26, hy - ny * 26); gc.fill();
+    }
+    return new THREE.MeshBasicMaterial({map: tex(c), alphaTest: .5, transparent: false});
+  }
+  /** 環道、安全島與地面，原點在環心 */
+  function tIsland(Rc, inner, outer) {
+    const r = mulberry(4100 + (BO.seed || 0)), g = new THREE.Group(), b = nb(), white = M(0xf4f2ea);
+    // 地面先鋪滿，四周街區之間才不會露空
+    b.add(cyl(92, 92, .02, 56), M(0xa8a59c), T(0, -.08, 0));
+    // 環道（貼圖用平面座標，和直路的柏油接得起來）
+    const ring = new THREE.RingGeometry(inner - .4, outer + .4, 112, 1); ring.rotateX(-Math.PI / 2);
+    const rp = ring.attributes.position, ruv = ring.attributes.uv;
+    for (let i = 0; i < rp.count; i++) ruv.setXY(i, rp.getX(i) / 7, rp.getZ(i) / 7);
+    b.add(ring, roadMat, T(0, -.03, 0));
+    // 環道車道線
+    for (const R of [Rc - 3.5, Rc + 3.5]) { const n = Math.round(2 * Math.PI * R / 7); for (let i = 0; i < n; i++) { const phi = i / n * Math.PI * 2; b.add(flat(.14, 3), white, T(R * Math.cos(phi), .016, -R * Math.sin(phi), phi)); } }
+    // 安全島：路緣、草地、花圈
+    b.add(cyl(inner, inner + .1, .28, 64), M(0xcfcabd), T(0, .14, 0), .03);
+    b.add(cyl(inner - .5, inner - .5, .06, 56), M(0x6fa85a), T(0, .3, 0));
+    const fl = [0xe3506b, 0xf3bd2b, 0xf7f3e6, 0xd9783a];
+    for (let i = 0; i < 44; i++) { const a = i / 44 * Math.PI * 2, R = inner - 2.2; b.add(box(.9, .42, .9), M(fl[i % 4]), T(R * Math.cos(a), .46, R * Math.sin(a), a)); }
+    // 中央噴水池
+    b.add(cyl(7, 7.3, .9, 32), M(0xd8d3c6), T(0, .75, 0), .04);
+    b.add(cyl(6.4, 6.4, .1, 32), M(0x79c6d8, {rough: .2}), T(0, 1.2, 0));
+    b.add(cyl(1, 1.3, 2.6, 14), M(0xd8d3c6), T(0, 2.4, 0), .03);
+    b.add(cyl(3, 1.1, .5, 20), M(0xd8d3c6), T(0, 3.9, 0), .03);
+    b.add(cyl(.45, .6, 1.5, 12), M(0xd8d3c6), T(0, 4.9, 0), .02);
+    for (let i = 0; i < 8; i++) { const a = i / 8 * Math.PI * 2; b.add(cyl(.05, .09, 1.9, 6), M(0xb8e6f2, {rough: .2}), T(1.9 * Math.cos(a), 5, 1.9 * Math.sin(a), 0, Math.cos(a) * .55, Math.sin(a) * .55)); }
+    b.add(cyl(.05, .1, 2.6, 8), M(0xdff3f8, {rough: .2}), T(0, 6.7, 0));
+    // 樹
+    for (let i = 0; i < 7; i++) { const a = i / 7 * Math.PI * 2 + .3, R = 10.6 + r() * 1.6; tree(b, R * Math.cos(a), R * Math.sin(a), 1.25 + r() * .45); }
+    // 面對進場路口的圓環牌
+    b.add(box(.12, 2.3, .12), M(0x55565a), T(0, 1.4, inner - .6));
+    b.add(quad(1.7, 1.7), roundSign(), T(0, 3.1, inner - .52));
+    b.into(g);
+    return g;
+  }
+  /** 沿環道外圍的一段建築（之後繞成弧形）。只有右側，x＝7 是環道外緣 */
+  function tQuadrant(seed, len) {
+    const r = mulberry(seed + (BO.seed || 0)), g = new THREE.Group(), b = nb();
+    sidewalk(b, 1, 0, -len);
+    row(b, r, 1, 0, -len);
+    for (let z = -2; z > -len + 1; z -= 1.4) if (r() < .3) parked(b, 8.7, z, 1.3, SCOOT_COL[r() * 8 | 0]);
+    for (let i = 0; i < 3; i++) person(b, 9.3 + r(), -3 - r() * (len - 6), {shirt: [0xd65a5a, 0x4f86c6, 0xf0e6d0, 0x6aa86a, 0xe0a33a][r() * 5 | 0], hair: r() < .3 ? 0xbcb8b0 : 0x2a2522});
+    if (!BO.noTree) tree(b, 7.75, -len * .5, 1 + r() * .3);
+    b.into(g);
+    return g;
+  }
+  /** 圓環接出去的街口：road＝true 表示有自己的路面（不是遊戲要走的那條） */
+  function tLeg(seed, len, road) {
+    const r = mulberry(seed + (BO.seed || 0)), g = new THREE.Group(), b = nb(), yel = M(0xf3bd2b), white = M(0xf4f2ea);
+    if (road) {
+      b.add(flat(14, len, 7), roadMat, T(0, 0, -len / 2));
+      for (const dx of [-.14, .14]) b.add(flat(.12, len), yel, T(dx, .018, -len / 2));
+      for (let z = -3; z > -len; z -= 10) for (const x of [-3.5, 3.5]) b.add(flat(.14, 4), white, T(x, .018, z - 2));
+    }
+    for (const s of [-1, 1]) {
+      sidewalk(b, s, 0, -len); row(b, r, s, 0, -len);
+      for (let z = -1.5; z > -len + 1; z -= 1.3) if (r() < .32) parked(b, s * 8.7, z, s * 1.3, SCOOT_COL[r() * 8 | 0]);
+    }
+    b.into(g);
+    return g;
+  }
+  /** 遊戲走的兩個路口：路面加寬銜接環道，中間一條分隔島。mx＝分隔島在路的哪一邊 */
+  function tLegPad(len, mx) {
+    const g = new THREE.Group(), b = nb();
+    b.add(flat(21, len, 7), roadMat, T(0, -.02, -len / 2));
+    if (mx != null) { b.add(box(1.3, .24, 13), M(0xcfcabd), T(mx, .12, -9), .025); b.add(box(.9, .06, 12.4), M(0x6fa85a), T(mx, .26, -9)); }
+    b.into(g);
+    return g;
+  }
+  /** 街口盡頭橫著的一排房子，擋住視線 */
+  function tCap(seed, half) {
+    const r = mulberry(seed + (BO.seed || 0)), g = new THREE.Group(), b = nb();
+    row(b, r, 1, half, -half, {floors: 5});
+    b.into(g);
+    return g;
+  }
   function tFinish(seed) {
     const r = mulberry(seed + (BO.seed || 0)), g = new THREE.Group(), b = nb();
     baseRoad(b, {}); row(b, r, 1, 0, -CHUNK); row(b, r, -1, 0, -CHUNK); furnish(b, r, {});
@@ -1030,11 +1201,12 @@ export function makeKit(style) {
   return {
     withOpts(o, fn) { BO = o || {}; try { return fn(); } finally { BO = {}; } },
     tree, wire, cart, busStop, streetFood, hydrant, planters, signMat, markMat, pavingMat, roadMat,
+    bendSigns, parts: {roundStrip: tRoundStrip, island: tIsland, quadrant: tQuadrant, leg: tLeg, legPad: tLegPad, cap: tCap},
     style, M, ink, nb, A, person, scooterBody, addLamp, plateUv, plateMat, miscMat, fabricMat, stripeMat, makeGarbageTruck, makeScooter, makeSedan, makePickup, makeBus, makeTruck, makeBox, makePerson, setCountdown,
     templates: {
       ord1: () => tOrd(101), ord2: () => tOrd(202, {arrow: true}), ord3: () => tOrd(303, {curbR: 'yellow'}), ord4: () => tOrd(404),
       alley: () => tOrd(505, {alley: true}), market: () => tMarket(606), market2: () => tMarket(616), temple: () => tTemple(707), school: () => tSchool(808),
-      cross: () => tCross(909), work: () => tWork(111), finish: () => tFinish(222),
+      cross: () => tCross(909), work: () => tWork(111), finish: () => tFinish(222), end: () => tEnd(333),
     },
     potholeMesh() {
       const m = new THREE.Mesh(flat(2.6, 2.6, null, A.mark.uv(6)), markMat); return m;

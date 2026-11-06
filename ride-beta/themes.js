@@ -211,19 +211,21 @@ function decoHaze(kit, b, t, key, r) {
   for (let k = 0; k < 5; k++) { const s = 1, z = -3 - r() * 34; if (key === 'cross' && z < -8 && z > -32) continue; kit.person(b, s * (8.2 + r() * 1.4), z, {shirt: [0x34383f, 0xf2f2ec, 0x2c5e92][r() * 3 | 0], pants: 0x2a2c32, hair: 0x2a2522}); }
 }
 function extrasHaze(kit, scene) {
-  const {M} = kit, g = new THREE.Group(), b = kit.nb();
+  const {M} = kit, cars = [];
   for (let i = 0; i < 5; i++) {
-    const z = -i * 17;
-    b.add(box(3, 3, 16), M(0xf2f3f0), T(0, 1.6, z), .04);
-    b.add(box(3.04, .42, 16.02), M(0x2c6fb3), T(0, .9, z));
-    b.add(box(3.06, .86, 14.2), M(0x2b3a45), T(0, 2.2, z));
-    for (const dz of [-4, 4]) b.add(box(3.08, 1.8, 1.2), M(0xd8dcdc), T(0, 1.5, z + dz));
+    const g = new THREE.Group(), b = kit.nb();
+    b.add(box(3, 3, 16), M(0xf2f3f0), T(0, 1.6, 0), .04);
+    b.add(box(3.04, .42, 16.02), M(0x2c6fb3), T(0, .9, 0));
+    b.add(box(3.06, .86, 14.2), M(0x2b3a45), T(0, 2.2, 0));
+    for (const dz of [-4, 4]) b.add(box(3.08, 1.8, 1.2), M(0xd8dcdc), T(0, 1.5, dz));
+    if (i === 0) b.add(box(2.7, 1.2, .1), M(0x2b3a45), T(0, 2.3, 8.06));
+    b.into(g, {cast: false}); g.position.y = 11.9; scene.add(g); cars.push(g);
   }
-  b.add(box(2.7, 1.2, .1), M(0x2b3a45), T(0, 2.3, 8.06));
-  b.into(g, {cast: false});
-  g.position.set(-8.8, 11.9, 0); scene.add(g);
   let at = 50;
-  return {update(S, dt) { at += 17 * dt; if (at > S.s + 330) at = S.s - 110; g.position.z = -at; }};
+  return {update(S, dt, road) {
+    at += 17 * dt; if (at > S.s + 330) at = S.s - 110;
+    cars.forEach((g, i) => { const w = road.map(-8.8, at + i * 17); g.position.x = w.x; g.position.z = w.z; g.rotation.y = -w.th; });
+  }};
 }
 
 /* ───────── 暴雨：鐵門、沙包、斷枝、積水 ───────── */
@@ -265,10 +267,11 @@ function extrasStorm(kit, scene) {
   for (let i = 0; i < n; i++) { pos[i * 3] = (Math.random() - .5) * 40; pos[i * 3 + 1] = .4 + Math.random() * 7; pos[i * 3 + 2] = -Math.random() * 44; }
   const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
   const pts = new THREE.Points(geo, new THREE.PointsMaterial({color: 0x6f8f3e, size: .17, fog: false})); pts.frustumCulled = false; scene.add(pts);
-  return {update(S, dt) {
+  return {update(S, dt, road) {
     const dir = S.gustDur > 0 ? S.gustDir : .35;
     for (let i = 0; i < n; i++) { let x = pos[i * 3] + dir * 13 * dt; if (x > 20) x = -20; if (x < -20) x = 20; pos[i * 3] = x; pos[i * 3 + 1] += Math.sin(S.t * 3 + i) * dt * .8; if (pos[i * 3 + 1] < .3) pos[i * 3 + 1] = 7; if (pos[i * 3 + 1] > 8) pos[i * 3 + 1] = .4; }
-    geo.attributes.position.needsUpdate = true; pts.position.set(S.x, 0, -S.s);
+    geo.attributes.position.needsUpdate = true;
+    const w = road.map(S.x, S.s); pts.position.set(w.x, 0, w.z); pts.rotation.y = -w.th;
   }};
 }
 
@@ -286,8 +289,17 @@ export const THEMES = {
     build: {seed: 9000, floors: r => 2 + (r() * 4 | 0), shut: .8, parkP: .1, propP: .2, noTree: true}, deco: decoStorm, extras: extrasStorm},
 };
 
+/** 用這個主題的建築樣式做零件（圓環的街區、路尾的大樓） */
+export function themedPart(kit, themeId, fn) { return themeId ? kit.withOpts(THEMES[themeId].build, fn) : fn(); }
+/** 一路跟著車道的東西（目前只有高架捷運），圓環上也要接著走 */
+export function trackSidePiece(kit, themeId) {
+  if (themeId !== 'haze') return null;
+  const g = new THREE.Group(), b = kit.nb(); viaduct(kit, b, 'ord1'); b.into(g);
+  return g;
+}
 export function themedTemplate(kit, themeId, key) {
   const th = THEMES[themeId], t = kit.withOpts(th.build, () => kit.templates[key]());
+  if (key === 'end') return t;
   const r = mulberry(th.build.seed + key.length * 97 + key.charCodeAt(key.length - 1) * 13), b = kit.nb();
   th.deco(kit, b, t, key, r);
   const fine = new THREE.Group(); fine.name = 'fine'; b.into(fine); t.group.add(fine);   // 遠處先不畫，省效能

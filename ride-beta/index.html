@@ -53,6 +53,7 @@ h2{margin:0;font-size:clamp(24px,3vw,34px);font-weight:900}
 .lvl{position:absolute;left:7px;top:7px;background:rgba(43,38,34,.88);color:#fff;border-radius:8px;padding:1px 8px;font-size:13.5px;font-weight:900}.lvl i{font-style:normal;color:var(--gold);margin-left:4px}
 .startTag{position:absolute;right:7px;top:7px;background:var(--gold);color:var(--ink);border:2px solid var(--ink);border-radius:8px;padding:0 7px;font-size:13.5px;font-weight:900}
 .rtag{display:block;font-size:14.5px;color:var(--mut);font-weight:700;line-height:1.35;margin:2px 0 6px}.soon{margin:8px 2px 0;font-size:14.5px;color:var(--mut);font-weight:700}
+.rinfo{display:block;font-size:14px;font-weight:900;color:var(--org);margin:-3px 0 6px}
 .rc .tt{padding:7px 10px 9px}.rc .tt b{display:block;font-size:17px;font-weight:900;line-height:1.25}
 .stars{color:#d98a1f;font-size:13.5px;letter-spacing:1px}
 .medals{display:flex;gap:4px;flex-wrap:wrap}.medal{border-radius:8px;border:2px solid #cfc4ad;padding:0 6px;font-size:13px;font-weight:900;background:#f6f0e0;color:#a2967f}.medal.on{background:var(--gold);color:var(--ink);border-color:var(--ink)}
@@ -155,7 +156,7 @@ body.riding.touch .pad.show{display:flex}
   <div id="hudLayer"></div>
   <div id="divider"></div>
   <div id="count"></div><div id="brief"></div>
-  <div id="tools"><button class="btn ghost" id="sndBtn" aria-label="聲音開關">🔊</button><button class="btn ghost" id="zeroBtn" style="display:none">方向歸零</button><button class="btn ghost" id="pauseBtn">⏸ 暫停</button></div>
+  <div id="tools"><button class="btn ghost" id="sndBtn" aria-label="聲音開關">🔊</button><button class="btn ghost" id="tiltBtn" style="display:none;background:var(--gold)">開啟傾斜</button><button class="btn ghost" id="zeroBtn" style="display:none">方向歸零</button><button class="btn ghost" id="pauseBtn">⏸ 暫停</button></div>
   <button class="pad" id="brake">煞車</button><button class="pad" id="lBtn">◀</button><button class="pad" id="rBtn">▶</button>
 
   <section class="scr" id="home">
@@ -167,6 +168,7 @@ body.riding.touch .pad.show{display:flex}
       <button class="btn" id="goDuel" style="background:var(--gold)">兩個人比<small>各用一支手機，掃 QR 對戰</small></button>
       <button class="btn" id="goHowPhone">只有手機？<small>掃 QR，直接在手機上玩</small></button>
     </div>
+    <a id="httpNote" href="#" style="display:none;margin-top:12px;background:var(--paper);border:3px solid var(--ink);border-radius:12px;padding:8px 12px;font-weight:800;font-size:15px;color:var(--red);width:min(380px,88vw)">這個網址讀不到手機傾斜。點這裡改開正式網址</a>
   </section>
 
   <section class="scr" id="howPhone">
