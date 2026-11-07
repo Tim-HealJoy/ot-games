@@ -68,8 +68,13 @@
   .err{color:var(--red);font-weight:800;font-size:18px}
 
   .tool{position:fixed;top:10px;z-index:5;min-width:64px;min-height:54px;background:rgba(19,53,74,.88);color:#fff;border:2px solid #fff5;border-radius:14px;font-size:20px;font-weight:800;padding:6px 12px}
-  #btnMute{right:calc(29.2vw + 8px)} #btnSet{right:calc(29.2vw + 84px)}
-  #btnSkip{top:auto;left:auto;right:14px;bottom:158px}
+  :root{--hudR:29.2vw;--toolW:64px}
+  #btnMute{right:var(--hudR)} #btnSet{right:calc(var(--hudR) + var(--toolW) + 8px)}
+  /* 練習與校正沒有分數板，標題又在正上方，按鈕移到最右邊才不會擋字 */
+  .hud-far #btnMute{right:10px} .hud-far #btnSet{right:calc(10px + var(--toolW) + 8px)}
+  /* 手機橫放：畫面矮，按鈕縮小 */
+  @media (max-height:520px){ :root{--toolW:44px} .tool{top:4px;min-width:44px;min-height:42px;font-size:15px;padding:2px 6px;border-radius:10px} #btnSkip{bottom:6px;right:6px} }
+  #btnSkip{top:auto;left:auto;right:14px;bottom:18px}
 
   #result .card{max-width:min(1340px,100%);padding:clamp(10px,1.8vh,22px) clamp(14px,2.2vw,28px)}
   .res-layout{display:grid;grid-template-columns:minmax(0,1.12fr) minmax(0,1fr);grid-template-areas:"main board" "more board";column-gap:clamp(14px,2vw,26px);align-items:start}
@@ -168,7 +173,7 @@
     <p class="sub">坐著，看水裡的東西，決定要不要往上拉。</p>
     <p class="rank" id="rankLine"></p>
     <div class="rule-row">
-      <div class="rule ok"><img id="ruleFish" alt="紅鯛魚"><span>魚咬住了<br>手往上拉</span></div>
+      <div class="rule ok"><img id="ruleFish" alt="嘉鱲魚"><span>魚咬住了<br>手舉越高越好</span></div>
       <div class="rule no"><img id="ruleTrash" alt="破鞋子"><span>勾到垃圾<br>手不要動</span></div>
     </div>
     <div class="field">
@@ -176,7 +181,7 @@
       <div class="seg" id="segDiff">
         <button data-v="0" class="on">簡單<small>魚等 8 秒，有語音帶您</small><em id="best0"></em></button>
         <button data-v="1">普通<small>8 種魚，魚等 2.5 秒，垃圾三成</small><em id="best1"></em></button>
-        <button data-v="2">困難<small>10 種魚，魚影現形才知道，1.3 秒決定</small><em id="best2"></em></button>
+        <button data-v="2">困難<small>10 種魚，從深水慢慢浮上來，1.3 秒決定</small><em id="best2"></em></button>
       </div>
     </div>
     <div class="field">
@@ -192,14 +197,15 @@
         <label>抬手門檻 <b id="vRise">8</b>%（占個人校正範圍）<input type="range" id="rRise" min="5" max="40" step="1" value="8"></label>
         <label>魚咬鉤後等 <b id="vWin">8</b> 秒<input type="range" id="rWin" min="0.8" max="10" step="0.1" value="8"></label>
         <label>一局 <b id="vDur">90</b> 秒<input type="range" id="rDur" min="60" max="180" step="30" value="90"></label>
-        <label><input type="checkbox" id="cPractice" checked>開始前先練習</label>
+        <label><input type="checkbox" id="cPractice" checked>開始前先練習動作</label>
         <label><input type="checkbox" id="cRank" checked>分數列入線上排行榜</label>
+        <label><input type="checkbox" id="cShowCam" checked>顯示鏡頭畫面（關掉只顯示骨架）</label>
       </div>
-      <p class="note">調低門檻、拉長魚等的秒數或改局長，這局不會列入排行榜。中風肩痛或半脫位者，請治療師評估後再玩；不必舉過頭，舉到舒服的高度就是滿分。</p>
+      <p class="note">調低門檻、拉長魚等的秒數或改局長，這局不會列入排行榜。金線依每個人校正的最高點計算，不必舉過頭。中風肩痛或半脫位者，請治療師評估後再玩，會痛就停。</p>
     </details>
     <div class="btn-row"><button class="btn primary" id="btnStart">開始釣魚</button><button class="btn" id="btnRankSetup">🏆 排行榜</button></div>
     <p class="err" id="setupErr"></p>
-    <p class="note">坐姿即可，輪椅也可以玩，單手也算。第一次需要網路下載姿勢模型，畫面只顯示骨架，鏡頭影像不會上傳。</p>
+    <p class="note">坐姿即可，輪椅也可以玩，單手也算。第一次需要網路下載姿勢模型。鏡頭畫面只顯示在這台裝置，不會上傳，也不會錄影。</p>
   </div>
 </section>
 
@@ -299,9 +305,11 @@
 <button class="tool hidden" id="btnSkip">略過 ▶</button>
 
 <script type="module">
-import {LiftDetector,HandSignal,isLowered,calibrate} from './detector.js?v=13';
-import {ITEMS,FISH_ORDER,TRASH_ORDER,DIFF,TODAY,DOUBLE_SEC,itemsFor,mixFor,scoreFor,comboBonus,starsFor,starLines,nextStarGap,titleFor} from './rules.js?v=13';
-import {createRank} from './rank.js?v=13';
+import {LiftDetector,HandSignal,isLowered,calibrate,postureHints} from './detector.js?v=15';
+import {ITEMS,FISH_ORDER,TRASH_ORDER,DIFF,TODAY,DOUBLE_SEC,HIGH_LINE,heightBonus,itemsFor,mixFor,scoreFor,comboBonus,starsFor,starLines,nextStarGap,titleFor} from './rules.js?v=15';
+import {createRank} from './rank.js?v=15';
+import {FisherRig,drawFisher,drawLine,makeSticker} from './fisher.js?v=15';
+import {Drill} from './drill.js?v=15';
 
 const QS=new URLSearchParams(location.search);
 const DEMO=QS.get('demo')==='1', SHORT=QS.get('short')==='1', SKIP=QS.get('skip')==='1', AUTO=QS.get('auto')==='1';
@@ -317,14 +325,14 @@ const rand=(a,b)=>a+Math.random()*(b-a);
 
 /* ========== 畫面配置（虛擬 1920×1080） ========== */
 const W=1920,H=1080;
-const LAY={water:425,dock:345,fisherX:172,fisherH:330,bucketX:488,binX:604,hookX:1000,hookY:700,tipX:1000,tipLow:210,tipHigh:30,band:930};
+const LAY={water:425,dock:345,bucketX:488,binX:604,hookX:1000,hookY:700,floor:1050,deep:1000};
 
 /* ========== 物件與分數在 rules.js ========== */
 const BANK_SEC=.42;
 const CHATS=['您以前釣過魚嗎？是在哪裡釣的？','小時候家裡最常吃哪一種魚？','您最愛吃什麼魚？怎麼煮最好吃？','到海邊或河邊，有沒有難忘的回憶？'];
 
 /* ========== 設定 ========== */
-const cfg={diff:0,input:DEMO?'demo':'cam',rise:DIFF[0].rise,win:DIFF[0].win,dur:SHORT?30:DIFF[0].dur,practice:!SKIP,rank:true};
+const cfg={diff:0,input:DEMO?'demo':'cam',rise:DIFF[0].rise,win:DIFF[0].win,dur:SHORT?30:DIFF[0].dur,practice:!SKIP,rank:true,showCam:true};
 function segBind(id,cb){ $(id).querySelectorAll('button').forEach(b=>b.onclick=()=>{
   $(id).querySelectorAll('button').forEach(x=>x.classList.remove('on')); b.classList.add('on'); cb(b.dataset.v); }); }
 segBind('segDiff',v=>{ cfg.diff=+v; const D=DIFF[cfg.diff]; cfg.rise=D.rise; cfg.win=D.win; if(!SHORT)cfg.dur=D.dur;
@@ -336,6 +344,7 @@ $('rWin').oninput=e=>{ cfg.win=+e.target.value; $('vWin').textContent=e.target.v
 $('rDur').oninput=e=>{ cfg.dur=+e.target.value; $('vDur').textContent=e.target.value; };
 $('cPractice').onchange=e=>cfg.practice=e.target.checked;
 $('cRank').onchange=e=>cfg.rank=e.target.checked;
+$('cShowCam').onchange=e=>cfg.showCam=e.target.checked;
 /* 這局為什麼不能上榜；null＝可以 */
 function rankBlock(){
   const D=DIFF[cfg.diff];
@@ -361,22 +370,25 @@ function refreshSetup(){
 }
 
 /* ========== 素材 ========== */
-const IMG={}; let META={};
+const IMG={}; let META={}, FA=null;
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 async function pool(items,fn,n=4){ const q=[...items]; await Promise.all(Array.from({length:n},async()=>{ while(q.length) await fn(q.shift()); })); }
 async function retry(fn,times=3){ for(let i=0;i<times;i++){ try{ const v=await fn(); if(v!=null)return v; }catch(e){} await sleep(250*(i+1)); } return null; }
 const loadOnce=src=>new Promise(r=>{ const i=new Image(); i.onload=()=>r(i); i.onerror=()=>r(null); i.src=src; });
 const loadImg=src=>retry(()=>loadOnce(src));
 async function loadAssets(){
-  META=await (await fetch('assets/sprites.json')).json();
-  const names=[...Object.keys(ITEMS),'bucket','bin','bobber','hook','fisher_0','fisher_1','fisher_2','fisher_3','bg_harbor'];
+  META=await (await fetch('assets/sprites.json?v=15')).json();
+  const rigParts=Object.keys(META.rig);
+  const names=[...Object.keys(ITEMS),'bucket','bin','bobber','hook',...rigParts.map(n=>`fisher_${n}`),'bg_harbor'];
   await pool(names,async n=>{ IMG[n]=await loadImg(`assets/${n}.webp`); });
   const missing=names.filter(n=>!IMG[n]); if(missing.length)throw new Error(`缺少圖片：${missing.join('、')}`);
+  FA={parts:META.rig,img:{},sticker:{}};
+  for(const n of rigParts){ const im=IMG[`fisher_${n}`]; FA.img[n]=im; FA.sticker[n]=makeSticker(im,2.6/META.rig[n].k); }
   $('ruleFish').src='assets/snapper.webp'; $('ruleTrash').src='assets/shoe.webp';
 }
 
 /* ========== 音訊 ========== */
-const VOICES=['intro1','intro2','cal1','cal2','caldone','tut1','tut2','tutagain','tutdone','pull','nopull','hold','lower','fish0','fish1','fish2','fish3','fish4','fish5','fish6','fish7','fish8','fish9','chest','trash','escape','high','end','record','double','today0','today1','today2','today3','today4','today5','combo','near','star3'];
+const VOICES=['intro1','intro2','cal1','cal3','caldone','tut1b','tut2','tutagain','tutdone','pull','nopull','hold','lower','fish0','fish1','fish2b','fish3b','fish4','fish5','fish6','fish7','fish8b','fish9','chest','trash','escape','high','end','record','double','today0','today1','today2b','today3','today4','today5','combo','near','star3','drill1','drillok','drillup','drillarm','drillmore','drilllow','drillgo','drillsit','drillback','drilldone'];
 const MUSIC_VOL=.26, MUSIC_DUCK=.09;  /* 新曲 RMS −20 dB，這個音量約等於舊曲 */
 const AE={ac:null,sfx:null,vg:null,mg:null,voice:{},mb:{},cur:null,want:null,voiceUntil:0,muted:QS.get('mute')==='1',last:0,
   init(){ if(this.ac){ if(this.ac.state==='suspended')this.ac.resume(); return; }
@@ -415,6 +427,7 @@ const AE={ac:null,sfx:null,vg:null,mg:null,voice:{},mb:{},cur:null,want:null,voi
   bite(){ this.tone(1175,.32,.5,'triangle'); this.tone(1568,.42,.42,'triangle',0,.1); },
   clunk(){ this.tone(170,.2,.65,'square',90); this.tone(95,.25,.5,'sine',60,.05); },
   plop(){ this.tone(420,.14,.55,'sine',880); },
+  high(){ [880,1175,1568].forEach((f,i)=>this.tone(f,.22,.32,'triangle',0,i*.06)); },
   catch(pts){ const n=pts>=100?7:pts>=50?5:pts>=30?4:pts>=20?3:2, sc=[523,659,784,1047,1319,1568,2093];
     for(let i=0;i<n;i++) this.tone(sc[i],.36,.34,'triangle',0,i*.09); },
   combo(n){ this.tone(784*Math.pow(2,Math.min(n,14)/12),.22,.3,'square',0,.34); },
@@ -467,34 +480,39 @@ function updateInput(now,dt){
   } else {
     P.valid=true;
     if(cfg.input==='demo') demoHands(now);
-    else P.target=P.key?.62:0;
-    P.s+=(P.target-P.s)*clamp(dt*(P.target>P.s?9:6)); P.seq++;
+    else P.target=forceS!=null?forceS:(P.key?1.4:0);
+    /* 按鍵和展示模式像真的舉手一樣慢慢上去：按一下只抬一點，按久才到金線 */
+    P.s+=(P.target-P.s)*clamp(dt*(P.target>P.s?(forceS!=null?9:2.6):6)); P.seq++;
   }
   P.disp+=(P.s-P.disp)*clamp(dt*24);
 }
 /* 展示模式：看到魚就抬手，垃圾偶爾手滑 */
 const demo={until:0,react:0,forId:null};
+let forceS=null;
 function demoHands(now){
+  if(phase==='drill'){ P.target=drill&&drill.st==='up'?drill.line+.12:0; return; }
   if(T&&T.st==='bite'&&demo.forId!==T.uid){ demo.forId=T.uid; const item=ITEMS[T.id];
-    demo.react=now+rand(500,1100); demo.lift=item.good||Math.random()<.2; }
-  if(T&&T.st==='bite'&&demo.lift&&now>demo.react){ demo.until=now+900; demo.lift=false; }
-  P.target=now<demo.until?.75:0;
+    demo.react=now+rand(500,1100); demo.lift=item.good||Math.random()<.2; demo.h=Math.random()<.7?1.1:.6; }
+  if(T&&T.st==='bite'&&demo.lift&&now>demo.react){ demo.until=now+1100; demo.lift=false; }
+  P.target=now<demo.until?demo.h:0;
 }
 addEventListener('keydown',e=>{ if(e.target&&e.target.tagName==='INPUT')return; if(e.code==='Space'||e.code==='ArrowUp'){ if(cfg.input==='key'){ P.key=true; e.preventDefault(); } } });
 addEventListener('keyup',e=>{ if(e.code==='Space'||e.code==='ArrowUp') P.key=false; });
 
 /* ========== 遊戲狀態 ========== */
 const det=new LiftDetector();
+const rig=new FisherRig(LAY);
 let phase='boot',T=null,uid=0,score=0,scoreShown=0,elapsed=0,rush=false,paused=false,today=TODAY[0],combo=0,comboSaid=false,comboPop=0,doubleAt=-9999;
-let stat=null,tut=null,storyT=0,storyStep=0,chestAt=0,chestDone=false,lastTrash=0,lastId=null,spawned=0,seqSeen=-1,pendHit=null,loosen=1,earlySaid=0,rodKick=0;
+let stat=null,tut=null,storyT=0,storyStep=0,chestAt=0,chestDone=false,lastTrash=0,lastId=null,spawned=0,seqSeen=-1,pendHit=null,loosen=1,earlySaid=0;
 let cap={text:'',until:0},card=null,parts=[],shake=0,bucketKick=0,binKick=0,lowerSaid=0,highSaid=-99,revealT=-9999;
 let rep={up:false,peak:0,lp:-9,rp:-9},cal=null,endAt=0,chatI=0;
 let bestNow=0,recordBeaten=false,recordAt=-9999,roundToken=null,rankBlocked=null;
+let drill=null,drillHint=null,drillMsg={text:'',until:0},drillBackSaid=-99999,highFlash=-9999,lowSaid=-99999,camCx=.5;
 const TR=[];
-const glitter=Array.from({length:46},()=>({x:rand(0,W),y:rand(LAY.water+14,LAY.band-26),w:rand(16,48),p:rand(0,6)}));
-const bubbles=Array.from({length:7},()=>({x:rand(300,1880),y:rand(450,920),r:rand(4,11),v:rand(16,34),p:rand(0,6)}));
+const glitter=Array.from({length:46},()=>({x:rand(0,W),y:rand(LAY.water+14,LAY.floor-26),w:rand(16,48),p:rand(0,6)}));
+const bubbles=Array.from({length:7},()=>({x:rand(340,1880),y:rand(450,LAY.floor-20),r:rand(4,11),v:rand(16,34),p:rand(0,6)}));
 
-function newStat(){ return {counts:Object.fromEntries(Object.keys(ITEMS).map(k=>[k,0])),hold:0,escape:0,rts:[],reps:0,peaks:[],lPeaks:[],rPeaks:[],fast:0,slow:0,maxCombo:0,near:0,log:[]}; }
+function newStat(){ return {counts:Object.fromEntries(Object.keys(ITEMS).map(k=>[k,0])),hold:0,escape:0,rts:[],reps:0,peaks:[],lPeaks:[],rPeaks:[],fast:0,slow:0,maxCombo:0,near:0,high:0,low:0,log:[]}; }
 function caption(text,sec=2.6){ cap={text,until:performance.now()+sec*1000}; }
 const isDouble=()=>phase==='play'&&cfg.dur-elapsed<=DOUBLE_SEC;
 const pace=()=>phase==='play'?1+(elapsed/cfg.dur)*.35:1;
@@ -536,8 +554,11 @@ function spawn(forced){
   const w=it.w, ratio=IMG[id]?IMG[id].height/IMG[id].width:.5, h=w*ratio;
   const endX=it.center?LAY.hookX:LAY.hookX+dir*(w/2-26);
   const ramp=phase==='play'?clamp(.62+.38*elapsed/8,.62,1):.7;
-  const dur=D.approach/ramp*(rush?.6:1)/pace();
-  T={uid:++uid,id,st:'approach',p:0,dur,dir,w,h,x:dir>0?W+w/2+10:-w/2-10,sx:dir>0?W+w/2+10:-w/2-10,ex:endX,y:LAY.hookY,t:0,bite:0,hook:{x:LAY.hookX,y:LAY.hookY,vy:0},fly:0,base:0,peak:0,hidden:D.shadow&&phase==='play'};
+  const deep=D.shadow&&phase==='play';
+  const dur=(deep?D.emerge:D.approach)/ramp*(rush?.6:1)/pace();
+  T={uid:++uid,id,st:'approach',p:0,dur,dir,w,h,x:dir>0?W+w/2+10:-w/2-10,sx:dir>0?W+w/2+10:-w/2-10,ex:endX,y:LAY.hookY,t:0,bite:0,hook:{x:LAY.hookX,y:LAY.hookY,vy:0},fly:0,base:0,peak:0,hidden:deep,deep,rot:0,ph:rand(0,6.28)};
+  /* 困難：從深水斜斜浮上來，一開始是模糊的黑影，靠近水面才看得清楚 */
+  if(deep){ T.sx=endX+dir*rand(240,520); T.sy=LAY.deep; T.x=T.sx; T.y=T.sy; }
   lastTrash=it.good?0:lastTrash+1; lastId=id; spawned++;
 }
 function toGap(sec){ const D=DIFF[cfg.diff]; T={st:'gap',wait:sec??rand(...D.gap)*(rush?.4:1)/pace(),uid:++uid}; }
@@ -556,7 +577,7 @@ function ripple(x,y){ return Array.from({length:6},()=>({x:x+rand(-30,30),y,vx:r
 function onLift(now,r){
   const it=ITEMS[T.id], rt=Math.max(0,(now-(T.biteAt||now))/1000), D=DIFF[cfg.diff];
   logTurn(it.good?'caught':'trash',rt);
-  T.st='hooked'; T.t=0; T.base=r.base; T.peak=P.s; T.fly=0;
+  T.st='hooked'; T.t=0; T.base=r.base; T.peak=P.s; T.peakAt=now; T.highDone=false; T.fly=0;
   det.stop(); pendHit=null;
   const q=clamp(P.s);
   parts.push(...Array.from({length:22+Math.round(q*18)},()=>({x:LAY.hookX+rand(-70,70),y:LAY.water,vx:rand(-340,340),vy:rand(-780,-260),life:rand(.5,1),max:1,r:rand(5,11),c:'#DDF3FF'})));
@@ -572,20 +593,42 @@ function onLift(now,r){
     stat[r&&r.kind==='fast'?'fast':'slow']++;
     score=Math.max(0,score+gained);
     if(it.good)stat.rts.push(rt);
-    if(bestNow>0&&!recordBeaten&&score>bestNow){ recordBeaten=true; recordAt=now; AE.fanfare(); setTimeout(()=>AE.sayIdle('record'),700); }
+    checkRecord(now);
   }
-  card={id:T.id,t:now,pts:gained,bonus,dbl};
+  card={id:T.id,t:now,pts:gained,bonus,dbl,hb:0};
   if(it.good){
     AE.catch(it.pts);
     if(phase==='play'&&combo>=3){ comboPop=now; AE.combo(combo); }
     const sayName=phase==='tut'||cfg.diff===0||it.pts>=(cfg.diff===1?30:50);
     if(phase==='play'&&combo===3&&!comboSaid){ comboSaid=true; setTimeout(()=>AE.sayIdle('combo'),260); }
     else if(sayName)setTimeout(()=>AE.sayIdle(it.voice),260);
-    if(it.pts>=30)burst(LAY.tipX,LAY.tipLow+110,it.pts>=100?40:22);
+    if(it.pts>=30)burst(rig.tip.x,rig.tip.y+110,it.pts>=100?40:22);
   }
   else { AE.buzz(); setTimeout(()=>AE.sayIdle('trash'),260); }
 }
 function burst(x,y,n){ for(let i=0;i<n;i++)parts.push({x,y,vx:rand(-460,460),vy:rand(-520,180),life:rand(.6,1.2),max:1.2,r:rand(5,10),c:i%2?'#FFD84D':'#FFF2A8'}); }
+function checkRecord(now){ if(bestNow>0&&!recordBeaten&&score>bestNow){ recordBeaten=true; recordAt=now; AE.fanfare(); setTimeout(()=>AE.sayIdle('record'),700); } }
+/* 舉到金線：這條魚的分數多五成，當下就給聲音和星星 */
+function onHigh(now){
+  T.highDone=true; const it=ITEMS[T.id];
+  AE.high(); highFlash=now; burst(rig.tip.x,rig.tip.y+60,16);
+  if(phase==='play'){
+    const dbl=isDouble(), b=heightBonus(it.pts,1,dbl);
+    score+=b; stat.high++; checkRecord(now);
+    if(card&&card.id===T.id){ card.pts+=b; card.hb=b; card.t=now-120; }
+    else card={id:T.id,t:now,pts:b,bonus:0,dbl,hb:b};
+  }
+  if((phase==='tut'||cfg.diff===0)&&elapsed-highSaid>10){ highSaid=elapsed; setTimeout(()=>AE.sayIdle('high'),380); }
+}
+/* 魚釣到了但沒舉到金線：不扣分，提醒下次再高一點，不要每條都講 */
+function onLow(now){
+  if(phase==='play')stat.low++;
+  const voice=phase==='tut'||cfg.diff===0;
+  if(now-lowSaid<(voice?9000:6000))return;
+  lowSaid=now;
+  if(phase==='play')caption('再舉高一點！',1.5);
+  if(voice)AE.sayIdle('drillup');
+}
 function afterTurn(outcome){
   if(phase==='tut')return tutNext(outcome);
   toGap();
@@ -597,7 +640,7 @@ function noteMiss(){
 }
 /* 手有揮動就給回應，不論現在有沒有魚 */
 function onSwing(now){
-  rodKick=1;
+  rig.kick();
   if(phase!=='play'&&phase!=='tut')return;
   if(!T||(T.st!=='approach'&&T.st!=='gap'))return;
   AE.whoosh();
@@ -615,12 +658,23 @@ function stepTurn(now,dt){
       if(tutOn)tutSpawn(); else spawn();
       break; }
     case 'approach': {
-      T.p=clamp(T.p+dt/T.dur); T.x=lerp(T.sx,T.ex,easeOut(T.p));
-      T.y=LAY.hookY+Math.sin(now/340)*10*(1-T.p*.6);
+      T.p=clamp(T.p+dt/T.dur);
+      if(T.deep){
+        const e=T.p, px=T.x, py=T.y;
+        T.x=lerp(T.sx,T.ex,e*e*(3-2*e))+Math.sin(now/430+T.ph)*22*(1-e);
+        T.y=lerp(T.sy,LAY.hookY,1-(1-e)*(1-e));
+        /* 魚頭朝著游的方向，快到鉤子才放平；垃圾沒有方向，慢慢翻 */
+        const aim=ITEMS[T.id].good?clamp(T.dir*Math.atan2(py-T.y,Math.abs(T.x-px)+.001),-.55,.55)*(1-e*e):Math.sin(now/620+T.ph)*.3*(1-e);
+        T.rot+=(aim-T.rot)*clamp(dt*7);
+      } else {
+        T.x=lerp(T.sx,T.ex,easeOut(T.p));
+        T.y=LAY.hookY+Math.sin(now/340)*10*(1-T.p*.6);
+      }
       if(T.p>=1)enterBite(now);
       break; }
     case 'bite': {
       const it=ITEMS[T.id];
+      if(T.rot)T.rot*=Math.max(0,1-dt*8);
       if(!it.good&&!T.armed&&T.t>=(tutOn?.35:D.trashArm)){ T.armed=true; det.arm(now,{strict:1.5,graceMs:tutOn?0:(D.trashGrace||0)}); }
       if(pendHit){ const r=pendHit; pendHit=null; return onLift(now,r); }
       if(it.good&&phase==='play'&&cfg.diff<2&&!T.nudged&&T.t>.7&&P.s>.62&&!det.swinging){ T.nudged=true; caption('手先放下來，再往上拉',1.8); }
@@ -631,12 +685,16 @@ function stepTurn(now,dt){
       }
       break; }
     case 'hooked': {
-      T.fly=clamp(T.fly+dt/.22); T.peak=Math.max(T.peak,P.s);
-      if(ITEMS[T.id].good&&P.s>=.72&&phase==='play'&&cfg.diff===0&&elapsed-highSaid>18){ highSaid=elapsed; setTimeout(()=>AE.sayIdle('high'),900); }
+      const good=ITEMS[T.id].good;
+      T.fly=clamp(T.fly+dt/.36);
+      if(P.s>T.peak+.008){ T.peak=P.s; T.peakAt=now; }
+      if(good&&!T.highDone&&P.s>=HIGH_LINE)onHigh(now);
       const [hMin,hMax]=tutOn?[1,6.5]:D.hook;
       const down=T.t>hMin&&isLowered(P.s,T.base,T.peak);
       if((tutOn||cfg.diff===0)&&T.t>3&&now-lowerSaid>6000&&!down){ lowerSaid=now; AE.say('lower'); caption('手放下來，再釣下一條',2.4); }
-      if(down||T.t>hMax){ T.st='bank'; T.t=0; T.bx=T.hook.x; T.by=T.hook.y+T.h*.5; }
+      /* 手還在往上就不收魚：要留時間讓手舉到金線 */
+      const rising=now-T.peakAt<260;
+      if(down||(T.t>hMax&&!rising)){ if(good&&!T.highDone)onLow(now); const hp=hangPos(T,now); T.st='bank'; T.t=0; T.bx=hp.x; T.by=hp.y; T.brot=hp.rot; }
       break; }
     case 'bank': {
       const it=ITEMS[T.id], p=clamp(T.t/BANK_SEC);
@@ -648,9 +706,9 @@ function stepTurn(now,dt){
 }
 
 /* ========== 開場、校正、練習、回合 ========== */
-function enter(p){ phase=p; ['setup','result','chat','rank'].forEach(i=>hide($(i))); hide($('btnSkip')); }
+function enter(p){ phase=p; document.body.classList.toggle('hud-far',p==='drill'||p==='cal'); ['setup','result','chat','rank'].forEach(i=>hide($(i))); hide($('btnSkip')); }
 function hudOn(on){ (on?show:hide)($('btnSet')); (on?show:hide)($('btnMute')); }
-function backToSetup(){ AE.music(null); det.stop(); pendHit=null; T=null; card=null; cap.until=0; enter('setup'); refreshSetup(); show($('setup')); hudOn(false); }
+function backToSetup(){ AE.music(null); det.stop(); pendHit=null; T=null; card=null; drill=null; cal=null; cap.until=0; enter('setup'); refreshSetup(); show($('setup')); hudOn(false); }
 $('btnSet').onclick=backToSetup; $('btnBack').onclick=backToSetup;
 
 $('btnStart').onclick=async()=>{
@@ -679,8 +737,8 @@ function afterStory(){ storyT=-1; hide($('btnSkip')); cap.until=0; AE.music('mai
 function startCal(){ enter('cal'); cal={step:0,st:'prep',t:0,low:[],high:[],said:false}; }
 function stepCal(now,dt){
   if(!cal)return; cal.t+=dt;
-  const c=cal, durPrep=c.step===0?2.6:3.2, durCap=c.step===0?2.4:3;
-  if(!c.said){ c.said=true; AE.say(c.step===0?'cal1':'cal2'); }
+  const c=cal, durPrep=c.step===0?2.6:3.8, durCap=c.step===0?2.4:3;
+  if(!c.said){ c.said=true; AE.say(c.step===0?'cal1':'cal3'); }
   if(c.st==='prep'&&c.t>=durPrep){ c.st='cap'; c.t=0; }
   else if(c.st==='cap'){
     if(P.valid&&P.raw!=null&&now-P.t<300)(c.step===0?c.low:c.high).push(P.raw);
@@ -692,12 +750,40 @@ function stepCal(now,dt){
   }
 }
 $('btnRecal').onclick=()=>{ hide($('result')); hudOn(true); P.calibrated=false; sigT.reset(); loosen=1; det.setLoosen(1); AE.music('main'); if(cfg.input==='cam')startCal(); else afterCal(); };
-function afterCal(){ if(cfg.practice&&!SKIP&&!tutDone())startTut(); else startRound(); }
+function afterCal(){ if(cfg.practice&&!SKIP&&!tutDone())startDrill(); else startRound(); }
 let tutSeen=false; const tutDone=()=>tutSeen;
+/* 開場動作練習：看著自己的鏡頭畫面，把手舉到金線 3 次，一次比一次高 */
+function startDrill(){ enter('drill'); T=null; hudOn(true); cap.until=0; drill=new Drill({first:HIGH_LINE}); drillHint=null; drillMsg={text:'',until:0}; show($('btnSkip')); $('btnSkip').onclick=()=>{ drill=null; startTut(); }; AE.say('drill1'); }
+function stepDrill(now,dt){
+  const d=drill; if(!d)return;
+  if(d.finishAt){ if(now>=d.finishAt){ drill=null; startTut(); } return; }
+  const s=P.s;
+  if(cfg.input==='cam'&&P.lm&&s>=d.peak-.03)drillHint=postureHints(P.lm,sigT.aspect);
+  /* 手快超出畫面就當場提醒，舉再高也量不到 */
+  if(d.st==='up'&&cfg.input==='cam'&&P.lm&&postureHints(P.lm,sigT.aspect).nearTop){
+    drillMsg={text:'請往後坐一點，手才拍得到',until:now+2000};
+    if(now-drillBackSaid>9000){ drillBackSaid=now; AE.sayIdle('drillback'); }
+  }
+  for(const e of d.step(s,dt)){
+    if(e==='reach'){ AE.high(); AE.say('drillok'); highFlash=now; drillMsg={text:'到了！很好',until:now+1100}; }
+    else if(e==='miss'){
+      const h=drillHint||{}, pick=h.lean?['drillsit','身體坐正，再舉一次']:h.bent?['drillarm','手臂打直，再高一點']:['drillup','再高一點！'];
+      AE.say(pick[0]); drillMsg={text:pick[1],until:now+2200}; drillHint=null;
+    }
+    else if(e==='idle')AE.sayIdle('drillgo');
+    else if(e==='next'){ AE.say('drillmore'); drillHint=null; }
+    else if(e==='remindLow')AE.sayIdle('drilllow');
+    else if(e==='done'){
+      AE.fanfare(); setTimeout(()=>AE.say('drilldone'),400); d.finishAt=now+3200;
+      const nm=d.newMax();
+      if(nm&&cfg.input==='cam'){ P.calMax=P.calMin+nm*(P.calMax-P.calMin); det.setRange(P.calMax-P.calMin); }
+    }
+  }
+}
 function startTut(){ enter('tut'); det.setRise(cfg.rise); tut={step:0,tries:0}; show($('btnSkip')); $('btnSkip').onclick=()=>{ tutSeen=true; startRound(); };
   spawned=1; toGap(1.2); }
 function tutSpawn(){
-  if(tut.step===0){ spawn('tilapia'); AE.say('tut1'); caption('魚咬住了，手往上拉一下',60); }
+  if(tut.step===0){ spawn('tilapia'); AE.say('tut1b'); caption('魚咬住了，手舉高',60); }
   else { spawn('shoe'); AE.say('tut2'); caption('這次是破鞋子，手不要動，等它漂走',60); }
 }
 function tutNext(outcome){
@@ -736,7 +822,7 @@ function showResult(){
   $('resGrid').style.setProperty('--cols',Math.ceil(listed.length/2));
   $('resGrid').innerHTML=listed.map(k=>{ const it=ITEMS[k],n=stat.counts[k];
     return `<div class="catch ${it.good?'':'bad'} ${n?'':'none'}"><img src="assets/${k}.webp" alt="${it.name}">${it.name} <b>${n}</b></div>`; }).join('');
-  $('resSummary').textContent=`釣到 ${fishN} 樣，最高連擊 ${stat.maxCombo}，忍住垃圾 ${stat.hold} 個${trashN?`，勾到垃圾 ${trashN} 個`:''}`;
+  $('resSummary').textContent=`釣到 ${fishN} 樣，${stat.high} 次舉到金線，最高連擊 ${stat.maxCombo}，忍住垃圾 ${stat.hold} 個${trashN?`，勾到垃圾 ${trashN} 個`:''}`;
   $('resRank').textContent=`今日：${today.name}｜`+(leveled?`升級了！現在是「${after.name}」`:`${after.name}`+(after.next?`，再 ${after.need} 樣升「${after.next}」`:''));
   const avg=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:null, f=(v,d=1)=>v==null?'—':v.toFixed(d);
   const pct=v=>v==null?'—':Math.round(v*100)+'%';
@@ -745,6 +831,7 @@ function showResult(){
     <tr><th>難度／抬手門檻／魚等</th><td>${DIFF[d].name}／${Math.round(cfg.rise*100)}%／${cfg.win} 秒</td></tr>
     <tr><th>抬手次數</th><td>${stat.reps} 次</td></tr>
     <tr><th>平均舉高（占校正範圍）</th><td>${pct(avg(stat.peaks))}</td></tr>
+    <tr><th>釣到魚時舉到金線／沒舉到</th><td>${stat.high}／${stat.low} 次</td></tr>
     <tr><th>魚咬鉤後平均反應</th><td>${f(avg(stat.rts),2)} 秒</td></tr>
     <tr><th>魚跑掉</th><td>${stat.escape} 次（其中有抬但沒算到 ${stat.near} 次）</td></tr>
     <tr><th>垃圾：忍住／勾到</th><td>${stat.hold}／${trashN} 次</td></tr>
@@ -893,7 +980,9 @@ function stepRep(){
 
 /* ========== 主迴圈 ========== */
 const cv=$('cv'),ctx=cv.getContext('2d'); let scale=1,ox=0,oy=0,lastT=0;
-function resize(){ const d=Math.min(window.devicePixelRatio||1,2); cv.width=innerWidth*d; cv.height=innerHeight*d; scale=Math.min(cv.width/W,cv.height/H); ox=(cv.width-W*scale)/2; oy=(cv.height-H*scale)/2; }
+function resize(){ const d=Math.min(window.devicePixelRatio||1,2); cv.width=innerWidth*d; cv.height=innerHeight*d; scale=Math.min(cv.width/W,cv.height/H); ox=(cv.width-W*scale)/2; oy=(cv.height-H*scale)/2;
+  /* 設定、靜音鈕貼在分數板左邊：分數板左緣在虛擬座標 W-560 */
+  document.documentElement.style.setProperty('--hudR',`${Math.round(innerWidth-(ox+(W-560)*scale)/d+6)}px`); }
 addEventListener('resize',resize); resize();
 
 function frame(now){
@@ -902,11 +991,12 @@ function frame(now){
   /* 每個新樣本只算一次：畫面 60 Hz、鏡頭 30 Hz，不能把同一張影像算兩次 */
   if(P.seq!==seqSeen){ seqSeen=P.seq; const ev=det.update(P.s,now); if(ev.swing)onSwing(now); if(ev.hit)pendHit=ev.hit; tracePush(now); }
   const wasPaused=paused;
-  paused=(phase==='play'||phase==='tut')&&cfg.input==='cam'&&!P.valid;
+  paused=(phase==='play'||phase==='tut'||phase==='drill')&&cfg.input==='cam'&&!P.valid;
   if(paused&&!wasPaused)caption('看不到您，請坐到鏡頭前面',60); else if(!paused&&wasPaused)cap.until=0;
   if(!paused){
     if(phase==='story')stepStory(dt);
     if(phase==='cal')stepCal(now,dt);
+    if(phase==='drill')stepDrill(now,dt);
     if(phase==='tut')stepTurn(now,dt);
     if(phase==='play'){
       elapsed+=dt;
@@ -920,7 +1010,8 @@ function frame(now){
   scoreShown+=(score-scoreShown)*clamp(dt*8);
   for(const p of parts){ p.x+=p.vx*dt; p.y+=p.vy*dt; p.vy+=1100*dt; p.life-=dt; }
   parts=parts.filter(p=>p.life>0);
-  rodKick=Math.max(0,rodKick-dt*2.8); shake=Math.max(0,shake-dt*34); bucketKick=Math.max(0,bucketKick-dt*2.6); binKick=Math.max(0,binKick-dt*2.6);
+  stepRig(now,dt);
+  shake=Math.max(0,shake-dt*34); bucketKick=Math.max(0,bucketKick-dt*2.6); binKick=Math.max(0,binKick-dt*2.6);
   draw(now,dt);
   requestAnimationFrame(frame);
 }
@@ -937,15 +1028,13 @@ function spr(name,cx,cy,w,{flip=false,rot=0,alpha=1}={}){
   const im=IMG[name]; if(!im)return; const h=w*im.height/im.width;
   ctx.save(); ctx.globalAlpha=alpha; ctx.translate(cx,cy); if(rot)ctx.rotate(rot); if(flip)ctx.scale(-1,1); ctx.drawImage(im,-w/2,-h/2,w,h); ctx.restore();
 }
-function fisherGeom(){
-  const f=META.fisher, im=IMG.fisher_0, s=clamp(P.disp);
-  if(!f||!im) return {pose:0,hand:{x:LAY.fisherX+120,y:LAY.dock-110},k:1,feet:[0,0]};
-  const k=LAY.fisherH/im.height, A=f.hands&&f.hands.length===4?f.hands:null;
-  const pose=s<.18?0:s<.52?1:2;
-  let hx,hy;
-  if(A){ const a=s<.35?A[0]:A[1], b=s<.35?A[1]:A[2], t=s<.35?s/.35:clamp((s-.35)/.35); hx=lerp(a[0],b[0],t); hy=lerp(a[1],b[1],t); }
-  else { hx=f.feet[0]+130/k*.8; hy=f.feet[1]-(140+s*110)/k*.8; }
-  return {pose,k,feet:f.feet,hand:{x:LAY.fisherX+(hx-f.feet[0])*k,y:LAY.dock+(hy-f.feet[1])*k}};
+/* 物件越大越重，竿子彎得越多 */
+function loadOf(o){ if(!o||!o.w)return 0; return clamp(.42+o.w*o.h/380000+((o.id==='tire'||o.id==='chest')?.22:0),.42,1); }
+function stepRig(now,dt){
+  const it=T&&T.id&&ITEMS[T.id];
+  rig.step(dt,{s:clamp(P.disp),st:T?T.st:null,load:loadOf(T),fishLike:!!it&&(it.good||(DIFF[cfg.diff].shadow&&phase==='play')),fly:T&&T.fly!=null?T.fly:1,good:!it||it.good,dir:T&&T.dir||1,now});
+  if(T&&T.hook){ T.hook.x=rig.hook.x; T.hook.y=rig.hook.y; }
+  if(rig.plop){ rig.plop=false; parts.push(...ripple(rig.hook.x,LAY.water)); AE.splash(.18); }
 }
 function draw(now,dt){
   ctx.setTransform(1,0,0,1,0,0); ctx.fillStyle='#0f2c3d'; ctx.fillRect(0,0,cv.width,cv.height);
@@ -956,6 +1045,12 @@ function draw(now,dt){
   /* 今日天色與最後 10 秒的金色海面：只染背景，物件維持清楚 */
   const tint=(phase==='play'||phase==='ending')&&today.tint;
   if(tint){ ctx.save(); ctx.globalCompositeOperation='multiply'; ctx.globalAlpha=tint.a; ctx.fillStyle=tint.c; ctx.fillRect(0,0,W,H); ctx.restore(); }
+  /* 困難：水越深越暗，魚從暗處浮上來 */
+  if(DIFF[cfg.diff].shadow&&(phase==='play'||phase==='ending')){
+    const top=LAY.water+110, g=ctx.createLinearGradient(0,top,0,H);
+    g.addColorStop(0,'rgba(8,40,66,0)'); g.addColorStop(.5,'rgba(8,40,66,.3)'); g.addColorStop(1,'rgba(5,24,44,.78)');
+    ctx.fillStyle=g; ctx.fillRect(0,top,W,H-top);
+  }
   if(rush&&phase==='play'){
     const pulse=.5+.5*Math.sin(now/170), gr=ctx.createLinearGradient(0,0,0,LAY.water);
     gr.addColorStop(0,`rgba(255,160,30,${.52+.12*pulse})`); gr.addColorStop(1,`rgba(255,205,90,${.24+.08*pulse})`);
@@ -964,63 +1059,37 @@ function draw(now,dt){
     for(const k of glitter){ ctx.globalAlpha=(.3+.7*Math.abs(Math.sin(now/260+k.p)))*.9; ctx.beginPath(); ctx.ellipse(k.x,k.y,k.w,k.w*.16,0,0,7); ctx.fill(); }
     ctx.globalAlpha=.35+.35*pulse; ctx.strokeStyle='#FFD84D'; ctx.lineWidth=14; ctx.strokeRect(7,7,W-14,H-14); ctx.globalAlpha=1;
   }
-  for(const b of bubbles){ b.y-=b.v*dt; if(b.y<LAY.water+24){b.y=LAY.band-10;b.x=rand(300,1880);} ctx.beginPath(); ctx.arc(b.x+Math.sin(now/600+b.p)*8,b.y,b.r,0,7); ctx.fillStyle='rgba(255,255,255,.22)'; ctx.fill(); }
+  for(const b of bubbles){ b.y-=b.v*dt; if(b.y<LAY.water+24){b.y=LAY.floor-10;b.x=rand(340,1880);} ctx.beginPath(); ctx.arc(b.x+Math.sin(now/600+b.p)*8,b.y,b.r,0,7); ctx.fillStyle='rgba(255,255,255,.22)'; ctx.fill(); }
 
   /* 碼頭上的魚簍、垃圾桶、阿伯 */
   const kb=bucketKick?Math.sin(bucketKick*14)*.12*bucketKick:0, kt=binKick?Math.sin(binKick*14)*.12*binKick:0;
   spr('bin',LAY.binX,LAY.dock-62,104,{rot:kt});
   spr('bucket',LAY.bucketX,LAY.dock-58,128,{rot:kb});
   if(stat&&(phase==='play'||phase==='ending')){ const n=FISH_ORDER.filter(k=>k!=='chest').reduce((a,k)=>a+stat.counts[k],0); txt(`${n} 條`,LAY.bucketX,LAY.dock-50,40,'#fff','center','rgba(15,40,55,.95)',9); }
-  const g=fisherGeom(), hooked=T&&(T.st==='hooked');
-  const good=T&&ITEMS[T.id]&&ITEMS[T.id].good;
-  const showPose=(hooked&&good&&P.disp>.7)?3:g.pose;
-  if(showPose===3&&META.fisher&&META.fisher.hands&&META.fisher.hands.length===4){ const a=META.fisher.hands[3]; g.hand={x:LAY.fisherX+(a[0]-g.feet[0])*g.k,y:LAY.dock+(a[1]-g.feet[1])*g.k}; }
-  const fim=IMG[`fisher_${showPose}`];
-  if(fim){ const fw=fim.width*g.k, fh=fim.height*g.k; ctx.drawImage(fim,LAY.fisherX-g.feet[0]*g.k,LAY.dock-g.feet[1]*g.k,fw,fh); }
-
-  /* 釣竿與釣線：竿尖跟著手走，一揮就會彈一下 */
-  const s=clamp(P.disp), whip=rodKick*Math.sin(rodKick*Math.PI*3)*52, tip={x:LAY.tipX-26*s,y:lerp(LAY.tipLow,LAY.tipHigh,s)-whip};
-  const bite=T&&(T.st==='bite'), fishLike=good||(DIFF[cfg.diff].shadow&&phase==='play'), tug=(bite&&fishLike)?Math.sin(now/70)*6:0;
-  const bend=hooked?46:(bite&&fishLike?30:12);
+  /* 阿伯與釣竿、釣線、鉤子、浮標（動作都在 fisher.js） */
+  const bite=T&&T.st==='bite', hookP=rig.hook;
   ctx.lineCap='round';
-  const mx=(g.hand.x+tip.x)/2, my=(g.hand.y+tip.y)/2+bend+whip*.5;
-  for(const [c,lw] of [['#3b2410',15],['#B9823F',9]]){ ctx.beginPath(); ctx.moveTo(g.hand.x,g.hand.y); ctx.quadraticCurveTo(mx,my,tip.x,tip.y+tug*.4); ctx.strokeStyle=c; ctx.lineWidth=lw; ctx.stroke(); }
-  /* 浮標與魚鉤位置 */
-  let hookP={x:LAY.hookX,y:LAY.hookY-s*70}, bobY=LAY.water+Math.sin(now/520)*4-s*14;
-  if(bite){ bobY=LAY.water+(fishLike?30:14)+tug; }
-  if(T&&(T.st==='hooked')){
-    const tgtY=tip.y+56, e=easeOut(T.fly);
-    T.hook.x=lerp(LAY.hookX,tip.x,e); T.hook.y=lerp(LAY.hookY,tgtY,e)+(1-e)*0;
-    hookP={x:T.hook.x,y:T.hook.y};
-  }
-  if(T&&T.st==='bank'){ hookP={x:tip.x,y:tip.y+56}; }
-  const line=(a,b)=>{ for(const [c,lw] of [['rgba(10,30,45,.75)',6],['#fff',3]]){ ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y); ctx.strokeStyle=c; ctx.lineWidth=lw; ctx.stroke(); } };
-  line(tip,hookP);
-  const hookedNow=T&&T.st==='hooked';
-  const bobX=hookedNow?lerp(tip.x,hookP.x,.3):lerp(tip.x,hookP.x,(LAY.water-tip.y)/Math.max(1,hookP.y-tip.y));
-  const bobPosY=hookedNow?lerp(tip.y,hookP.y,.3):bobY;
-  if(!(T&&T.st==='bank'))spr('hook',hookP.x,hookP.y+18,62);
-  if(bite){ ctx.strokeStyle='rgba(255,255,255,.8)'; ctx.lineWidth=4; for(let i=0;i<2;i++){ const r=(now/9+i*50)%100; ctx.beginPath(); ctx.ellipse(bobX,LAY.water,30+r,(30+r)*.22,0,0,7); ctx.globalAlpha=1-r/100; ctx.stroke(); } ctx.globalAlpha=1; }
-  spr('bobber',bobX,bobPosY-8,64);
+  if(FA)drawFisher(ctx,rig,FA);
+  drawLine(ctx,rig,hookP);
+  spr('hook',hookP.x,hookP.y+18,62);
+  if(bite){ ctx.strokeStyle='rgba(255,255,255,.8)'; ctx.lineWidth=4; for(let i=0;i<2;i++){ const r=(now/9+i*50)%100; ctx.beginPath(); ctx.ellipse(rig.float.x,LAY.water,30+r,(30+r)*.22,0,0,7); ctx.globalAlpha=1-r/100; ctx.stroke(); } ctx.globalAlpha=1; }
+  spr('bobber',rig.float.x,rig.float.y-8,64);
 
   /* 水裡的物件 */
   if(T&&T.id){
     const it=ITEMS[T.id], flip=T.dir>0;
     if(T.hidden){
-      drawShadow(T.x,T.y);
+      drawDeep(T,now);
     } else if(T.st==='hooked'){
-      const wob=Math.sin(now/140)*.07, k=hangK(T);
-      if(it.center){ spr(T.id,hookP.x,hookP.y+T.h*k/2+4,T.w*k,{flip,rot:wob}); }
-      else { const th=.44, r=T.w*k/2-14, sd=flip?1:-1;
-        spr(T.id,hookP.x+sd*r*Math.cos(th),hookP.y+r*Math.sin(th)+6,T.w*k,{flip,rot:sd*th+wob}); }
+      const hp=hangPos(T,now); spr(T.id,hp.x,hp.y,T.w*hp.k,{flip,rot:hp.rot});
     } else if(T.st==='bank'){
       const p=easeOut(clamp(T.t/BANK_SEC)), tx=it.good?LAY.bucketX:LAY.binX, ty=LAY.dock-80, sc=lerp(hangK(T),.2,p);
-      const x=lerp(T.bx,tx,p), y=lerp(T.by,ty,p)-Math.sin(p*Math.PI)*170;
-      spr(T.id,x,y,T.w*sc,{flip,rot:p*2.4*(it.good?1:-1)});
+      const x=lerp(T.bx,tx,p), y=lerp(T.by,ty,p)-Math.sin(p*Math.PI)*Math.min(170,Math.max(40,T.by-110));
+      spr(T.id,x,y,T.w*sc,{flip,rot:(T.brot||0)+p*2.4*(it.good?1:-1)});
     } else {
       const wig=(T.st==='bite'&&it.good)?Math.sin(now/80)*.05:Math.sin(now/300)*.03;
       const after=phase==='tut'?1.2:DIFF[cfg.diff].after, fade=(T.st==='escape'||T.st==='drift')?clamp(1.25-T.t/after):1;
-      spr(T.id,T.x,T.y,T.w,{flip,rot:wig,alpha:fade});
+      spr(T.id,T.x,T.y,T.w,{flip,rot:wig+(T.rot||0),alpha:fade});
       if(tagOn()&&T.st!=='escape'&&T.st!=='drift'&&T.x>-T.w/2&&T.x<W+T.w/2) drawTag(it,T.x,T.y-T.h/2-44);
     }
     const ra=(now-revealT)/260;
@@ -1030,7 +1099,7 @@ function draw(now,dt){
   if(bite&&cueOn()){
     const it=ITEMS[T.id], cx=T.dir>0?620:1400, pul=1+Math.sin(now/120)*.06;
     ctx.save(); ctx.translate(cx,640); ctx.scale(pul,pul);
-    if(it.good){ txt('拉！',0,30,190,'#FFD84D','center','rgba(90,40,0,.95)',20);
+    if(it.good){ txt('舉高！',0,30,170,'#FFD84D','center','rgba(90,40,0,.95)',20);
       ctx.beginPath(); ctx.moveTo(0,-190); ctx.lineTo(74,-104); ctx.lineTo(30,-104); ctx.lineTo(30,-64); ctx.lineTo(-30,-64); ctx.lineTo(-30,-104); ctx.lineTo(-74,-104); ctx.closePath();
       ctx.fillStyle='#FFD84D'; ctx.strokeStyle='rgba(90,40,0,.95)'; ctx.lineWidth=10; ctx.lineJoin='round'; ctx.stroke(); ctx.fill(); }
     else { txt('不要拉',0,10,130,'#fff','center','#A32315',22); }
@@ -1041,25 +1110,49 @@ function draw(now,dt){
   ctx.restore();
 
   ctx.setTransform(scale,0,0,scale,ox,oy);
-  if(phase!=='boot'){ drawBand(); if(phase==='story'&&storyStep===1){ const a=.55+.45*Math.sin(now/170); ctx.globalAlpha=a; rr(6,LAY.band-4,W-12,H-LAY.band,24,null,'#FFD84D',12); ctx.globalAlpha=1; } drawMeter(); drawSkeleton(170,650,250); }
+  if(phase==='story'||phase==='tut'||phase==='play'||phase==='ending'){ drawMeter(now); drawCam(20,680,300,380,{line:HIGH_LINE}); }
   if(phase==='play'||phase==='ending')drawScore(now);
   if(card)drawCard(now);
   drawDoubleBanner(now);
   drawRecordBanner(now);
   if(phase==='cal')drawCal(now);
-  if(cap.until>now){ ctx.font=`900 52px ${FONT}`; const tw=ctx.measureText(cap.text).width; rr(W/2-tw/2-44,LAY.band-104,tw+88,88,20,'rgba(15,40,55,.92)'); txt(cap.text,W/2,LAY.band-60,52,'#fff'); }
+  if(phase==='drill')drawDrill(now);
+  if(cap.until>now){ ctx.font=`900 52px ${FONT}`; const tw=ctx.measureText(cap.text).width; rr(W/2-tw/2-44,H-112,tw+88,88,20,'rgba(15,40,55,.92)'); txt(cap.text,W/2,H-68,52,'#fff'); }
   if(phase==='boot')txt('準備中…',W/2,H/2,64,'#fff','center','rgba(15,40,55,.9)',10);
 }
 const hangK=o=>Math.min(.86,215/Math.max(o.h,o.w*.6));
+/* 物件掛在鉤上的位置：剛被拉起時和水裡的大小、角度接得上，不會突然跳一下 */
+function hangPos(o,now){
+  const it=ITEMS[o.id], e=1-(1-clamp(o.fly))**2, k=lerp(1,hangK(o),e), wob=(Math.sin(now/140)*.07+rig.swing*.6)*e, h=rig.hook;
+  if(it.center) return {x:h.x,y:h.y+lerp(0,o.h*k/2+4,e),rot:wob,k};
+  const th=.44*e, r=o.w*k/2-lerp(26,14,e), sd=o.dir>0?1:-1;
+  return {x:h.x+sd*r*Math.cos(th),y:h.y+r*Math.sin(th)+6*e,rot:sd*th+wob,k};
+}
 const tagOn=()=>phase==='tut'||DIFF[cfg.diff].tag;
 const cueOn=()=>phase==='tut'||DIFF[cfg.diff].text;
 const mult=()=>isDouble()?2:1;
 const ptsText=it=>it.pts>0?`${it.pts*mult()} 分`:`扣 ${-it.pts*mult()} 分`;
-/* 魚影大小一致，看不出是什麼 */
-function drawShadow(x,y){
-  ctx.save(); ctx.translate(x,y); ctx.scale(1,.42); const r=190;
-  const g=ctx.createRadialGradient(0,0,r*.18,0,0,r); g.addColorStop(0,'rgba(6,26,42,.82)'); g.addColorStop(.72,'rgba(6,26,42,.55)'); g.addColorStop(1,'rgba(6,26,42,0)');
-  ctx.fillStyle=g; ctx.beginPath(); ctx.arc(0,0,r,0,7); ctx.fill(); ctx.restore();
+/* 深水裡的樣子：模糊黑影 → 清楚的黑色剪影 → 慢慢顯出顏色。每個物件第一次用到時才做 */
+const DEEP_COLOR='#0A2C48', SIL={};
+const smooth=(a,b,v)=>{ const t=clamp((v-a)/(b-a)); return t*t*(3-2*t); };
+function silOf(id){
+  if(SIL[id])return SIL[id];
+  const im=IMG[id], mk=(w,h)=>{ const c=document.createElement('canvas'); c.width=w; c.height=h; return c; };
+  const sharp=mk(im.width,im.height), g=sharp.getContext('2d');
+  g.drawImage(im,0,0); g.globalCompositeOperation='source-in'; g.fillStyle=DEEP_COLOR; g.fillRect(0,0,im.width,im.height);
+  /* 縮到很小再放大就是模糊，不用 ctx.filter（iPhone Safari 不支援）。四周留邊，外緣才會軟 */
+  const bw=Math.max(12,Math.round(im.width/30)), bh=Math.max(8,Math.round(im.height/30)), pad=3, blob=mk(bw+pad*2,bh+pad*2), b=blob.getContext('2d');
+  b.imageSmoothingQuality='high'; b.drawImage(sharp,pad,pad,bw,bh);
+  return SIL[id]={sharp,blob,bk:(bw+pad*2)/bw};
+}
+function drawDeep(o,now){
+  const r=o.p, S=silOf(o.id), k=lerp(.5,1,Math.pow(r,1.25)), flip=o.dir>0;
+  const rot=(o.rot||0)+(ITEMS[o.id].good?Math.sin(now/95+o.ph)*.045:0);
+  const put=(img,a,grow=1)=>{ if(a<=.004)return; const w=o.w*grow,h=o.h*grow; ctx.save(); ctx.globalAlpha=a; ctx.translate(o.x,o.y); ctx.rotate(rot); ctx.scale((flip?-1:1)*k,k); ctx.imageSmoothingEnabled=true; ctx.drawImage(img,-w/2,-h/2,w,h); ctx.restore(); };
+  const col=smooth(.7,1,r);
+  put(S.blob,lerp(.34,.88,smooth(0,.5,r))*(1-smooth(.46,.72,r)),S.bk);
+  if(r>=.7)put(IMG[o.id],1);
+  put(S.sharp,smooth(.46,.7,r)*(1-col));
 }
 function drawRecordBanner(now){
   const age=(now-recordAt)/1000; if(age<0||age>1.5||phase!=='play')return;
@@ -1079,47 +1172,98 @@ function drawTag(it,x,y){
   rr(tx-tw/2,y-36,tw,72,18,it.good?'#FFFDF5':'#B92C1C','rgba(15,40,55,.9)',4);
   txt(text,tx,y+2,44,it.good?'#143A52':'#fff','center','',0);
 }
-function drawBand(){
-  const y=LAY.band,h=H-y-8; rr(10,y,W-20,h,20,'rgba(255,251,242,.97)','#134F72',4);
-  const list=itemsFor(cfg.diff), active=T&&!T.hidden&&T.id, m=mult(), two=list.length>8, rows=two?2:1, cols=Math.ceil(list.length/rows), cw=(W-40)/cols, rh=(h-(two?6:0))/rows, top=y+(two?3:0);
-  if(m>1)rr(10,y,W-20,h,20,null,'#FFB300',8);
-  list.forEach((k,i)=>{
-    const it=ITEMS[k], x=20+(i%cols)*cw, ry=top+Math.floor(i/cols)*rh;
-    if(active===k){ if(two)rr(x+2,ry+2,cw-4,rh-4,12,'#FFE9A8','#C88A12',3); else rr(x+3,y+6,cw-6,h-12,14,'#FFE9A8','#C88A12',4); }
-    const im=IMG[k], mw=two?(cols>=7?58:76):98, mh=two?rh-10:84;
-    if(im){ const sc=Math.min(mw/im.width,mh/im.height),w=im.width*sc,hh=im.height*sc; ctx.drawImage(im,x+(two?6:8)+(mw-w)/2,ry+(rh-hh)/2,w,hh); }
-    const pts=it.pts>0?`${it.pts*m} 分`:`扣 ${-it.pts*m}`;
-    if(two){
-      txt(it.name,x+mw+12,ry+rh/2+1,27,'#23303A','left','',0,800);
-      txt(pts,x+cw-12,ry+rh/2+1,29,it.good?'#134F72':'#C02A18','right','',0,900);
-    } else {
-      txt(it.name,x+112,y+h*.33,30,'#23303A','left','',0,800);
-      txt(pts,x+112,y+h*.7,36,it.good?'#134F72':'#C02A18','left','',0,900);
-    }
-  });
+/* 左上的高度條：金線是目標，舉過就變金色 */
+function drawMeter(now){
+  const x=32,y=112,w=46,h=240, s=clamp(P.disp), fh=h*s, ly=y+h-h*HIGH_LINE, over=P.disp>=HIGH_LINE, fl=clamp(1-(now-highFlash)/500);
+  rr(x-4,y-4,w+8,h+8,14,'rgba(15,40,55,.82)',fl>0?`rgba(255,216,77,${fl})`:null,6);
+  rr(x,y+h-Math.max(fh,6),w,Math.max(fh,6),10,over?'#FFD84D':'#8FD3F0');
+  if(T&&T.st==='hooked'&&T.peak>.04){ ctx.fillStyle='#fff'; ctx.fillRect(x,y+h-h*clamp(T.peak)-2,w,4); }
+  ctx.fillStyle='#FFC400'; ctx.fillRect(x-11,ly-4,w+22,8);
+  txt('舉高',x+w/2,y+h+30,28,'#fff','center','rgba(15,40,55,.95)',7);
 }
-function drawMeter(){
-  const x=32,y=112,w=46,h=240;
-  rr(x-4,y-4,w+8,h+8,14,'rgba(15,40,55,.82)');
-  const s=clamp(P.disp), fh=h*s;
-  rr(x,y+h-Math.max(fh,6),w,Math.max(fh,6),10,det.swinging?'#FFD84D':'#8FD3F0');
-  /* 魚咬鉤時才畫目標線：從目前的手往上一點點就到 */
-  if(det.active&&T&&T.st==='bite'&&ITEMS[T.id].good){ const ty=y+h-h*clamp(det.base+det.thresholds(1).fast); ctx.fillStyle='#fff'; ctx.fillRect(x-6,ty-3,w+12,6); }
-  txt('抬手',x+w/2,y+h+30,28,'#fff','center','rgba(15,40,55,.95)',7);
-}
-function drawSkeleton(x,y,h){
-  const w=h*.78,bx=20,by=y; rr(bx,by,w,h,16,'rgba(15,40,55,.8)');
-  if(cfg.input!=='cam'){ txt(cfg.input==='key'?'按住':'展示',bx+w/2,by+h/2-30,38); txt(cfg.input==='key'?'空白鍵':'模式',bx+w/2,by+h/2+22,38); if(cfg.input==='key')txt('＝抬手',bx+w/2,by+h/2+72,32); return; }
-  const lm=P.lm;
-  if(!lm||!P.valid){ txt('看不到人',bx+w/2,by+h/2,36,'#FFB4A8'); return; }
-  const px=i=>bx+w/2+(.5-lm[i].x)*h*16/9, py=i=>by+h*lm[i].y;
-  const seg=(a,b,c)=>{ if(!vis(lm,a)||!vis(lm,b))return; ctx.beginPath(); ctx.moveTo(px(a),py(a)); ctx.lineTo(px(b),py(b)); ctx.strokeStyle=c; ctx.lineWidth=7; ctx.lineCap='round'; ctx.stroke(); };
+/* 鏡頭畫面：鏡像的影像＋骨架＋金線。金線畫在個人校正高度對應的位置，看得到手離線還有多遠。 */
+const HANDS={L:[L.LWR,17,19,21],R:[L.RWR,18,20,22]};
+function drawCam(bx,by,w,h,{line=null,big=false}={}){
+  rr(bx,by,w,h,16,'rgba(15,40,55,.88)');
+  if(cfg.input!=='cam'){
+    const c=by+h/2, zs=big?64:38;
+    if(cfg.input==='key'){ txt('按住空白鍵',bx+w/2,c-zs*.7,zs); txt('＝舉手',bx+w/2,c+zs*.7,zs); }
+    else { txt('展示模式',bx+w/2,c,zs); }
+    return;
+  }
+  const lm=P.lm, hasVid=typeof HTMLVideoElement!=='undefined'&&video instanceof HTMLVideoElement&&video.readyState>=2&&video.videoWidth>0;
+  const asp=hasVid?video.videoWidth/video.videoHeight:16/9;
+  let vh=h,vw=h*asp; if(vw<w){ vw=w; vh=w/asp; }
+  if(lm&&P.valid&&vis(lm,L.LSH)&&vis(lm,L.RSH))camCx+=((lm[L.LSH].x+lm[L.RSH].x)/2-camCx)*.08;
+  /* 小框放不下整張畫面，跟著人走，不要把人切掉 */
+  const left=clamp(bx+w/2-(1-camCx)*vw,bx+w-vw,bx), top=by+(h-vh)/2, X=a=>left+(1-a)*vw, Y=b=>top+b*vh;
   ctx.save(); ctx.beginPath(); ctx.roundRect(bx,by,w,h,16); ctx.clip();
+  if(cfg.showCam&&hasVid){
+    ctx.save(); ctx.translate(left+vw,top); ctx.scale(-1,1); ctx.drawImage(video,0,0,vw,vh); ctx.restore();
+    ctx.fillStyle='rgba(10,30,45,.24)'; ctx.fillRect(bx,by,w,h);
+  }
+  const lw=big?9:6;
+  if(!lm||!P.valid){ ctx.restore(); txt('看不到人',bx+w/2,by+h/2,big?72:36,'#FFB4A8','center','rgba(15,40,55,.95)',8); rr(bx,by,w,h,16,null,'#fff5',3); return; }
+  const seg=(a,b,c)=>{ if(!vis(lm,a)||!vis(lm,b))return; ctx.beginPath(); ctx.moveTo(X(lm[a].x),Y(lm[a].y)); ctx.lineTo(X(lm[b].x),Y(lm[b].y)); ctx.strokeStyle=c; ctx.lineWidth=lw; ctx.lineCap='round'; ctx.stroke(); };
   seg(L.LSH,L.RSH,'#fff'); seg(L.LSH,L.LHIP,'#fff'); seg(L.RSH,L.RHIP,'#fff'); seg(L.LHIP,L.RHIP,'#fff');
   seg(L.LSH,L.LEL,'#8FD3F0'); seg(L.LEL,L.LWR,'#8FD3F0'); seg(L.RSH,L.REL,'#8FD3F0'); seg(L.REL,L.RWR,'#8FD3F0');
-  for(const i of [L.LWR,L.RWR]) if(vis(lm,i)){ ctx.beginPath(); ctx.arc(px(i),py(i),13,0,7); ctx.fillStyle='#FFD84D'; ctx.fill(); }
-  if(vis(lm,L.NOSE)){ ctx.beginPath(); ctx.arc(px(L.NOSE),py(L.NOSE),22,0,7); ctx.strokeStyle='#fff'; ctx.lineWidth=6; ctx.stroke(); }
+  if(vis(lm,L.NOSE)){ ctx.beginPath(); ctx.arc(X(lm[L.NOSE].x),Y(lm[L.NOSE].y),big?30:18,0,7); ctx.strokeStyle='#fff'; ctx.lineWidth=lw*.8; ctx.stroke(); }
+  /* 金線：手部最高點和判定用同一個定義，看到碰線就是真的碰線 */
+  let ly=null, atLine=false;
+  if(line!=null&&P.calibrated&&sigT.torso!=null&&sigT.shRef!=null){
+    const v=sigT.shRef-(P.calMin+line*(P.calMax-P.calMin))*sigT.torso;
+    ly=clamp(Y(v),by+7,by+h-7); atLine=P.disp>=line;
+    ctx.fillStyle=atLine?'#5BE08A':'#FFC400'; ctx.fillRect(bx,ly-(big?6:4),w,big?12:8);
+    ctx.shadowBlur=0;
+  }
+  for(const pts of [HANDS.L,HANDS.R]){
+    let best=null; for(const i of pts){ const p=lm[i]; if(p&&(vis(lm,i)||p.y<.02)&&(!best||p.y<best.y))best=p; }
+    if(!best)continue;
+    ctx.beginPath(); ctx.arc(X(best.x),Y(best.y),big?22:12,0,7); ctx.fillStyle=ly!=null&&Y(best.y)<=ly+2?'#5BE08A':'#FFD84D'; ctx.fill(); ctx.strokeStyle='rgba(15,40,55,.9)'; ctx.lineWidth=big?4:3; ctx.stroke();
+  }
   ctx.restore();
+  if(big&&ly!=null){ const tx=atLine?'到了':'舉到這裡'; ctx.font=`900 40px ${FONT}`; const tw=ctx.measureText(tx).width+36, yy=clamp(ly+36,by+30,by+h-30); rr(bx+w-tw-14,yy-28,tw,56,14,atLine?'#5BE08A':'#FFC400'); txt(tx,bx+w-14-tw/2,yy+1,40,'#1C2A33','center','',0); }
+  rr(bx,by,w,h,16,null,'#fff5',3);
+}
+/* 示範人形：手臂打直、從大腿舉到過頭。手往前舉時正面看手臂會變短，和鏡頭看到的自己一樣 */
+function drawDemo(x,y,w,h,now){
+  rr(x,y,w,h,18,'#FFFBF2','#134F72',4);
+  txt('跟著做',x+w/2,y+48,44,'#134F72','center','',0);
+  const ph=((now/1000)%3.6)/3.6, ease=t=>t*t*(3-2*t), a=ph<.4?ease(ph/.4):ph<.62?1:ph<.9?1-ease((ph-.62)/.28):0;
+  const cx=x+w/2, sh=y+h*.36, hw=w*.15, arm=h*.22, hip=sh+h*.22, th=a*Math.PI*.97, ink='#134F72';
+  const line=(ax,ay,bx,by,c=ink,lw=14)=>{ ctx.beginPath(); ctx.moveTo(ax,ay); ctx.lineTo(bx,by); ctx.strokeStyle=c; ctx.lineWidth=lw; ctx.lineCap='round'; ctx.stroke(); };
+  /* 金線位置和遊戲同比例：放下到舉滿的 85% */
+  const lineY=sh+arm-HIGH_LINE*2*arm*.97, wy=sh+arm*Math.cos(th), reached=wy<=lineY;
+  ctx.fillStyle=reached?'#3CC277':'#FFC400'; ctx.fillRect(x+18,lineY-5,w-36,10);
+  for(const sgn of [-1,1]){
+    line(cx+sgn*hw,sh,cx+sgn*hw*.72,hip);
+    line(cx+sgn*hw*.72,hip,cx+sgn*hw*1.05,hip+h*.05);
+    line(cx+sgn*hw*1.05,hip+h*.05,cx+sgn*hw*1.05,hip+h*.2);
+  }
+  line(cx-hw,sh,cx+hw,sh); line(cx-hw*.72,hip,cx+hw*.72,hip);
+  ctx.beginPath(); ctx.arc(cx,sh-h*.07,h*.048,0,7); ctx.fillStyle='#FFFBF2'; ctx.fill(); ctx.strokeStyle=ink; ctx.lineWidth=12; ctx.stroke();
+  for(const sgn of [-1,1]){ const wx=cx+sgn*hw*(1+.1*Math.sin(th)); line(cx+sgn*hw,sh,wx,wy,'#1C6E9C',16); ctx.beginPath(); ctx.arc(wx,wy,17,0,7); ctx.fillStyle=reached?'#3CC277':'#FFC400'; ctx.fill(); }
+  txt('手臂打直',x+w/2,y+h-82,38,'#23303A','center','',0);
+  txt('舉過金線',x+w/2,y+h-36,38,'#23303A','center','',0);
+}
+function drawDrill(now){
+  const d=drill; if(!d)return;
+  ctx.fillStyle='rgba(8,34,50,.95)'; ctx.fillRect(0,0,W,H);
+  txt('先練習動作',W/2,52,38,'#BFE3F4');
+  const head=d.st==='done'?'很好，釣魚也要舉這麼高':d.st==='intro'?'雙手舉到金線，越高越好':d.st==='low'?'手放下來':d.st==='top'?'很好，停一下':d.rep===0?'雙手舉到金線，越高越好':'這次再高一點';
+  txt(head,W/2,118,74,'#fff','center','rgba(15,40,55,.95)',10);
+  for(let i=0;i<d.o.reps;i++){ const cx=W/2+(i-(d.o.reps-1)/2)*86, on=i<d.rep; ctx.beginPath(); ctx.arc(cx,196,30,0,7); ctx.fillStyle=on?'#FFD84D':'rgba(255,255,255,.14)'; ctx.fill(); ctx.strokeStyle=on?'#8A5A00':'#fff6'; ctx.lineWidth=4; ctx.stroke(); txt(on?'✓':String(i+1),cx,198,36,on?'#5A3000':'#fff'); }
+  const by=244,bh=800;
+  drawDemo(40,by,410,bh,now);
+  drawCam(474,by,1190,bh,{line:d.line,big:true});
+  /* 高度條：比校正更高也看得到，金線跟著這次的目標走 */
+  const mx=1690,mw=110,top=1.35, s=clamp(P.disp/top), ly=by+bh-bh*clamp(d.line/top), ok=P.disp>=d.line;
+  rr(mx-6,by-6,mw+12,bh+12,18,'rgba(15,40,55,.9)');
+  if(s*bh>6)rr(mx,by+bh-s*bh,mw,s*bh,14,ok?'#5BE08A':'#8FD3F0');
+  if(d.peak>.04&&d.st!=='low'){ ctx.fillStyle='#fff'; ctx.fillRect(mx,by+bh-bh*clamp(d.peak/top)-3,mw,6); }
+  ctx.fillStyle=ok?'#5BE08A':'#FFC400'; ctx.fillRect(mx-16,ly-6,mw+32,12);
+  txt('高度',mx+mw/2,by-26,34,'#BFE3F4');
+  if(drillMsg.until>now&&drillMsg.text){ ctx.font=`900 66px ${FONT}`; const tw=ctx.measureText(drillMsg.text).width+80, good=drillMsg.text.startsWith('到了'); rr(474+595-tw/2,by+bh-120,tw,100,22,good?'#1E7A47':'#C8402E'); txt(drillMsg.text,474+595,by+bh-69,66,'#fff'); }
 }
 function drawScore(now){
   const remain=Math.max(0,Math.ceil(cfg.dur-elapsed)), x=W-560,y=14;
@@ -1149,27 +1293,28 @@ function drawCard(now){
   const im=IMG[card.id]; if(im){ const sc=Math.min(250/im.width,170/im.height),iw=im.width*sc,ih=im.height*sc; ctx.drawImage(im,x+18+(250-iw)/2,y+(h-ih)/2,iw,ih); }
   txt(it.name,x+415,y+50,48,'#23303A');
   txt(gained>0?`+${gained} 分`:`扣 ${-gained} 分`,x+415,y+118,74,it.good?'#134F72':'#C02A18');
-  const notes=[]; if(card.bonus)notes.push(`連擊加 ${card.bonus}`); if(card.dbl)notes.push('最後 10 秒 ×2');
+  const notes=[]; if(card.hb)notes.push(`舉得好高 加 ${card.hb}`); if(card.bonus)notes.push(`連擊加 ${card.bonus}`); if(card.dbl)notes.push('×2');
   if(notes.length)txt(notes.join('｜'),x+415,y+182,32,'#A0650A');
   ctx.restore();
 }
 function drawCal(now){
   const c=cal; if(!c)return;
   ctx.fillStyle='rgba(10,40,58,.72)'; ctx.fillRect(0,0,W,H);
-  const low=c.step===0, line1=c.retry&&!low?'看不到您的手，請再舉一次':(low?'雙手放在大腿上，放輕鬆':'把手舉高，舉到舒服的高度');
-  txt(`校正 ${c.step+1}／2`,W/2,190,44,'#BFE3F4');
-  txt(line1,W/2,290,84,'#fff','center','rgba(15,40,55,.95)',12);
-  const dur=c.st==='prep'?(low?2.6:3.2):(low?2.4:3), p=clamp(c.t/dur);
-  txt(c.st==='prep'?`準備 ${Math.ceil(dur-c.t)}`:'保持不動…',W/2,410,60,'#FFD84D');
-  rr(W/2-420,470,840,40,20,'rgba(255,255,255,.2)');
-  rr(W/2-420,470,Math.max(40,840*p),40,20,c.st==='prep'?'#8FD3F0':'#FFD84D');
-  if(cfg.input==='cam'){ ctx.save(); ctx.translate(800,0); drawSkeleton(0,540,360); ctx.restore(); }
+  const low=c.step===0, near=!low&&cfg.input==='cam'&&postureHints(P.lm,sigT.aspect).nearTop;
+  const line1=near?'請往後坐一點，手才拍得到':c.retry&&!low?'看不到您的手，請再舉一次':(low?'雙手放在大腿上，放輕鬆':'把手舉到最高，不會痛就好');
+  txt(`校正 ${c.step+1}／2`,W/2,70,44,'#BFE3F4');
+  txt(line1,W/2,160,84,near?'#FFD84D':'#fff','center','rgba(15,40,55,.95)',12);
+  const dur=c.st==='prep'?(low?2.6:3.8):(low?2.4:3), p=clamp(c.t/dur);
+  txt(c.st==='prep'?`準備 ${Math.ceil(dur-c.t)}`:'保持不動…',W/2,262,60,'#FFD84D');
+  rr(W/2-420,310,840,36,18,'rgba(255,255,255,.2)');
+  rr(W/2-420,310,Math.max(36,840*p),36,18,c.st==='prep'?'#8FD3F0':'#FFD84D');
+  if(cfg.input==='cam')drawCam(W/2-520,372,1040,670,{big:true});
 }
 
 /* ========== 啟動 ========== */
-window.__fish={get s(){return{phase,score,elapsed,combo,rush,today:today.id,T:T&&{id:T.id,st:T.st,hidden:T.hidden,limit:T.limit,t:T.t},stat,P:{s:P.s,valid:P.valid,calMin:P.calMin,calMax:P.calMax,seq:P.seq},cfg,paused,loosen,th:det.thresholds(1),cal:cal&&{step:cal.step,st:cal.st,low:cal.low.length,high:cal.high.length},cap:cap.until>performance.now()?cap.text:'',music:AE.cur&&AE.cur.name,musicLoaded:Object.keys(AE.mb)}},
+window.__fish={rig,setS:v=>{forceS=v;},get s(){return{phase,score,elapsed,combo,rush,today:today.id,T:T&&{id:T.id,st:T.st,hidden:T.hidden,deep:T.deep,p:T.p,x:T.x,y:T.y,dur:T.dur,limit:T.limit,t:T.t,peak:T.peak,highDone:T.highDone},stat,P:{s:P.s,valid:P.valid,calMin:P.calMin,calMax:P.calMax,seq:P.seq},cfg,paused,loosen,th:det.thresholds(1),cal:cal&&{step:cal.step,st:cal.st,low:cal.low.length,high:cal.high.length},drill:drill&&{st:drill.st,rep:drill.rep,line:drill.line,peak:drill.peak,best:drill.best,miss:drill.miss,msg:drillMsg.text},card:card&&{id:card.id,pts:card.pts,hb:card.hb},cap:cap.until>performance.now()?cap.text:'',music:AE.cur&&AE.cur.name,musicLoaded:Object.keys(AE.mb)}},
   /* 測試用：用假骨架走鏡頭路線，不需要真鏡頭 */
-  stubCam:fn=>{ let c=0; poseLandmarker={detectForVideo:()=>({landmarks:fn()})}; video={readyState:2,get currentTime(){return ++c;}}; camReady=true; },cfg,start:()=>$('btnStart').click(),P,voices:()=>Object.keys(AE.voice).length,spawn:id=>spawn(id),setElapsed:v=>{elapsed=v;},setToday:id=>{today=TODAY.find(t=>t.id===id);},setChest:v=>{chestDone=v;},saveGet,savePut,RANK,RANK_API,board:B};
+  stubCam:(fn,vid)=>{ let c=0; poseLandmarker={detectForVideo:()=>({landmarks:fn()})}; video=vid||{readyState:2,get currentTime(){return ++c;}}; camReady=true; },cfg,start:()=>$('btnStart').click(),P,voices:()=>Object.keys(AE.voice).length,spawn:id=>spawn(id),setElapsed:v=>{elapsed=v;},setToday:id=>{today=TODAY.find(t=>t.id===id);},setChest:v=>{chestDone=v;},saveGet,savePut,RANK,RANK_API,board:B};
 loadAssets().then(()=>{
   enter('setup'); refreshSetup(); show($('setup'));
   if(AUTO)$('btnStart').click();

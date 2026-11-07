@@ -181,6 +181,40 @@ export function isLowered(s, base, peak) {
   return s <= base + (peak - base) * 0.5 || s < 0.08;
 }
 
+/* 動作校正：看姿勢點，回報鏡頭看得出來的三種問題（練習時用，不影響判定）。
+   nearTop＝手快超出畫面上緣；lean＝身體歪一邊；bent＝手舉過肩但手肘彎著。 */
+export function postureHints(lm, aspect = 16 / 9) {
+  const out = { nearTop: false, lean: false, bent: false };
+  if (!lm) return out;
+  const ls = lm[11], rs = lm[12];
+  if (!seen(ls) || !seen(rs)) return out;
+  for (const side of [SIDES.L, SIDES.R]) for (const i of side.pts) {
+    const p = lm[i];
+    if (p && p.y < 0.035) out.nearTop = true;
+  }
+  const lh = lm[23], rh = lm[24];
+  if (seen(lh, 0.5) && seen(rh, 0.5)) {
+    const dx = (((ls.x + rs.x) - (lh.x + rh.x)) / 2) * aspect;
+    const torso = Math.max(0.08, Math.abs((lh.y + rh.y) / 2 - (ls.y + rs.y) / 2));
+    out.lean = Math.abs(dx) / torso > 0.3;
+  } else {
+    out.lean = Math.abs(ls.y - rs.y) / Math.max(0.02, Math.abs(ls.x - rs.x) * aspect) > 0.42;
+  }
+  /* 手肘：看舉比較高的那隻手。正面看手往前舉時上臂會變短、角度不準，上臂太短就不判斷 */
+  const lw = lm[15], rw = lm[16];
+  const arm = (!seen(rw) || (seen(lw) && lw.y < rw.y)) ? SIDES.L : SIDES.R;
+  const sh = lm[arm.sh], el = lm[arm.el], wr = lm[arm.pts[0]];
+  if (seen(sh) && seen(el) && seen(wr) && wr.y < sh.y - 0.02) {
+    const ux = (sh.x - el.x) * aspect, uy = sh.y - el.y, fx = (wr.x - el.x) * aspect, fy = wr.y - el.y;
+    const nu = Math.hypot(ux, uy), nf = Math.hypot(fx, fy);
+    if (nu > nf * 0.4 && nf > 0.01) {
+      const deg = (Math.acos(Math.max(-1, Math.min(1, (ux * fx + uy * fy) / (nu * nf)))) * 180) / Math.PI;
+      out.bent = deg < 115;
+    }
+  }
+  return out;
+}
+
 /* 校正：回傳 {min,max}；動作範圍太小時用最小範圍，避免雜訊被放大 */
 export function calibrate(lowSamples, highSamples, { minRange = 0.7, defaultLow = -1 } = {}) {
   const sorted = (a) => [...a].sort((x, y) => x - y);
