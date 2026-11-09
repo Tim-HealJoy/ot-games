@@ -163,6 +163,44 @@ function makeMarkAtlas() {
   return {t, uv: i => rect((i % 4) * s + 2, (i >> 2) * s + 2, s - 4, s - 4, W, H)};
 }
 
+/* 路邊水溝蓋：一格一格的鐵柵 */
+function makeGutterTex() {
+  const s = 128, [c, g] = cv(s, s);
+  g.fillStyle = '#74767a'; g.fillRect(0, 0, s, s);
+  g.fillStyle = '#232427'; for (let i = 0; i < 6; i++) g.fillRect(13, 7 + i * 20, s - 26, 11);
+  g.fillStyle = '#505155'; g.fillRect(0, 0, s, 4); g.fillRect(0, s - 4, s, 4);
+  g.fillStyle = 'rgba(0,0,0,.4)'; g.fillRect(0, 0, 6, s); g.fillRect(s - 6, 0, 6, s);
+  return tex(c, true);
+}
+/* 凹凸路面：市區是破碎柏油，鄉間是泥巴碎石。邊緣故意不整齊，一眼看出路壞了 */
+function makeRoughTex(kind) {
+  const W = 256, H = 640, [c, g] = cv(W, H), dirt = kind === 'dirt', r = mulberry(dirt ? 71 : 57);
+  const C = dirt ? {base: '#5f4b33', mid: '#7a6345', hi: '#97805a', pit: '#37291a', wet: '#6d5a3e'} : {base: '#27282c', mid: '#44454a', hi: '#6a6b70', pit: '#121215', wet: '#3f6e8a'};
+  const blob = (cx, cy, rx, ry, fill, n, wob) => { g.fillStyle = fill; g.beginPath(); for (let i = 0; i < n; i++) { const a = i / n * 6.283, k = 1 + (r() - .5) * wob * 2; g.lineTo(cx + Math.cos(a) * rx * k, cy + Math.sin(a) * ry * k); } g.closePath(); g.fill(); };
+  const spot = () => { for (;;) { const x = r() * W, y = r() * H, u = (x - W / 2) / (W * .43), v = (y - H / 2) / (H * .43); if (u * u + v * v < 1) return [x, y]; } };
+  blob(W / 2, H / 2, W * .47, H * .47, C.base, 34, .09);
+  g.lineJoin = 'round'; g.strokeStyle = C.pit; g.lineWidth = 3.5;
+  for (let i = 0; i < 40; i++) {   // 裂開翹起的碎塊
+    const [x, y] = spot(), n = 5 + (r() * 3 | 0), rx = 13 + r() * 25, ry = 11 + r() * 26;
+    g.fillStyle = i % 3 ? C.mid : C.hi; g.beginPath();
+    for (let k = 0; k < n; k++) { const a = k / n * 6.283 + r() * .5; g.lineTo(x + Math.cos(a) * rx, y + Math.sin(a) * ry); }
+    g.closePath(); g.fill(); g.stroke();
+  }
+  for (let i = 0; i < 7; i++) {   // 深坑，有的積水
+    const [x, y] = spot(), rx = 17 + r() * 18, ry = 15 + r() * 22;
+    blob(x, y, rx, ry, C.pit, 13, .24);
+    if (i % 2) { g.globalAlpha = .6; blob(x - 2, y + 2, rx * .55, ry * .5, C.wet, 10, .15); g.globalAlpha = 1; }
+  }
+  if (!dirt) {   // 養護單位噴的黃色圈：路壞了的記號，暗路面上遠遠也看得到
+    g.strokeStyle = '#ffd21f'; g.lineWidth = 8; g.setLineDash([30, 17]); g.beginPath(); g.ellipse(W / 2, H / 2, W * .445, H * .455, 0, 0, 7); g.stroke(); g.setLineDash([]);
+  }
+  for (let i = 0; i < 520; i++) {  // 碎石
+    const [x, y] = spot(), v = 120 + r() * 95 | 0;
+    g.fillStyle = dirt ? `rgb(${v + 22},${v},${v - 34})` : `rgb(${v},${v},${v + 4})`; g.fillRect(x, y, 1.5 + r() * 3.5, 1.5 + r() * 3);
+  }
+  return tex(c);
+}
+
 function makeAsphalt() {
   const s = 512, [c, g] = cv(s, s), r = mulberry(7);
   g.fillStyle = '#5b5c61'; g.fillRect(0, 0, s, s);
@@ -231,7 +269,7 @@ function makeRoadAtlas() {
 }
 function makeMiscAtlas() {
   const cw = 256, ch = 128, W = cw * 4, H = ch * 2, [c, g] = cv(W, H);
-  [['垃圾車', '#f5c518', '#1c1c1c'], ['請隨手做環保', '#f5c518', '#1c5a2c'], ['計程車', '#fff6d0', '#1c1c1c'], ['檳榔', '#10241a', '#7dff8a'], ['呷飽未', '#e8622c', '#ffffff'], ['公車站', '#1f6fb2', '#ffffff'], ['307', '#20242a', '#ffa21f'], ['平安', '#c8102e', '#ffe14d']].forEach(([t, bg, fg], i) => {
+  [['垃圾車', '#f5c518', '#1c1c1c'], ['請隨手做環保', '#f5c518', '#1c5a2c'], ['計程車', '#fff6d0', '#1c1c1c'], ['檳榔', '#10241a', '#7dff8a'], ['呷飽未', '#e8622c', '#ffffff'], ['公車站', '#1f6fb2', '#ffffff'], ['307', '#20242a', '#ffa21f']].forEach(([t, bg, fg], i) => {
     const x = (i % 4) * cw, y = (i >> 2) * ch;
     g.fillStyle = bg; g.fillRect(x + 2, y + 2, cw - 4, ch - 4);
     g.fillStyle = fg; g.textAlign = 'center'; g.textBaseline = 'middle';
@@ -239,6 +277,18 @@ function makeMiscAtlas() {
     if (i === 3) { g.strokeStyle = '#ff5fb0'; g.lineWidth = 7; g.strokeRect(x + 10, y + 10, cw - 20, ch - 20); }
   });
   return {t: tex(c), uv: i => rect((i % 4) * cw + 2, (i >> 2) * ch + 2, cw - 4, ch - 4, W, H)};
+}
+/** 終點布條：兩頭方格旗、中間大字。ratio＝寬÷高，要和貼上去的面一樣，字才不會被拉長 */
+function finishBannerMat(txt, bg, fg, ratio) {
+  const h = 128, w = Math.round(h * ratio), [c, g] = cv(w, h), sq = h / 4;
+  g.fillStyle = bg; g.fillRect(0, 0, w, h);
+  for (const x0 of [0, w - sq * 2]) for (let i = 0; i < 2; i++) for (let k = 0; k < 4; k++) { g.fillStyle = (i + k) % 2 ? '#fffdf6' : '#17181b'; g.fillRect(x0 + i * sq, k * sq, sq, sq); }
+  g.fillStyle = fg; g.textAlign = 'center'; g.textBaseline = 'middle';
+  let px = h * .66; g.font = `900 ${px}px ${FONT}`;
+  const room = w - sq * 4 - 28, tw = g.measureText(txt).width;   // 字不能壓到兩頭的方格
+  if (tw > room) { px *= room / tw; g.font = `900 ${px}px ${FONT}`; }
+  g.fillText(txt, w / 2, h * .54);
+  return new THREE.MeshBasicMaterial({map: tex(c)});
 }
 function makeFabric() { // 客家花布：紅底牡丹
   const [c, g] = cv(256, 256), r = mulberry(77);
@@ -376,13 +426,14 @@ function limb(b, mat, a, c, r, o = .02) {
 
 /* ───────── 工具組 ───────── */
 export function makeKit(style) {
-  const A = shared(), M = makeMats(style);
+  const A = shared(), M = makeMats(style), ROUGHC = {}, ROUGHT = {};
   const ink = new THREE.MeshBasicMaterial({color: 0x33261f, side: THREE.BackSide});
   const nb = () => new Batch(style, ink);
   const facadeMat = M(0xffffff, {map: A.facade.t}), shopMat = M(0xffffff, {map: A.shop.t}), signMat = M(0xffffff, {map: A.sign.t, unlit: true});
   const markMat = M(0xffffff, {map: A.mark.t, alpha: true, unlit: false});
   const roadMat = M(0xffffff, {map: A.asphalt, rough: .92}), pavingMat = M(0xffffff, {map: A.paving, rough: .85});
-  const patchMat = M(0xc4c5ca, {map: A.asphalt, rough: .95});
+  const patchMat = M(0xe2e3e6, {map: A.asphalt, rough: .95});   // 修補過的路面只是顏色淡淡不同，真的會扣血的破損路面另外畫
+  const gutterMat = M(0xffffff, {map: makeGutterTex(), rough: .55});
   const plateMat = M(0xffffff, {map: A.plate.t, unlit: true}), roadSignMat = M(0xffffff, {map: A.road.t, unlit: true}), miscMat = M(0xffffff, {map: A.misc.t, unlit: true});
   const fabricMat = M(0xffffff, {map: A.fabric}), stripeMat = M(0xffffff, {map: A.stripe});
   let plateI = 0; const plateUv = () => A.plate.uv(plateI++ % 8);
@@ -610,6 +661,118 @@ export function makeKit(style) {
   function makeBox() { const g = new THREE.Group(), b = nb(); b.add(box(1, .6, .8), M(0xd49a4d), null, .025); b.add(box(1.02, .06, .1), M(0x8a5a2b)); b.into(g); return g; }
   function makePerson(o = {}) { const g = new THREE.Group(), b = nb(); person(b, 0, 0, o); if (o.cart) cart(b, .1, -.55); b.into(g); return g; }
 
+  /* ─── 會動的人和動物：零件分開放（腳、上身、手、扁擔兩半、鴨翅膀、牛腳），動作在 folk.js ─── */
+  const part = fn => { const g = new THREE.Group(), b = nb(); fn(b); b.into(g); return g; };
+  /** 人：腳底是原點、臉朝 -z。tip 用來整個人倒下，face 放身體，upper 以髖關節為軸 */
+  function makeRig(o = {}) {
+    const k = o.scale ?? 1, hipY = .84 * k;
+    const skin = M(o.skin ?? 0xe6b48c), shirt = M(o.shirt ?? 0x4f86c6), pants = M(o.pants ?? 0x34383f), hair = M(o.hair ?? 0x2a2522);
+    const root = new THREE.Group(), tip = new THREE.Group(), face = new THREE.Group();
+    root.add(tip); tip.add(face);
+    const leg = s => {
+      const g = part(b => { limb(b, pants, new V3(0, 0, 0), new V3(0, -(hipY - .1), 0), .075 * k); b.add(box(.13 * k, .07, .22 * k), M(o.shoes ?? 0x2b2622), T(0, -(hipY - .035), -.04 * k)); });
+      g.position.set(s * .1 * k, hipY, 0); face.add(g); return g;
+    };
+    const legL = leg(-1), legR = leg(1);
+    const upper = new THREE.Group(); upper.position.y = hipY; face.add(upper);
+    upper.add(part(b => {
+      limb(b, shirt, new V3(0, .06 * k, 0), new V3(0, .48 * k, 0), .175 * k, .025);
+      b.add(sph(.135 * k), skin, T(0, .78 * k, 0), .02);
+      b.add(sph(.142 * k, 10, 6), hair, T(0, .82 * k, .015));
+      if (o.hat) b.add(cyl(.05, .28 * k, .14, 12), M(o.hat), T(0, .92 * k, 0), .02);
+      if (o.straw) b.add(cyl(.03, .42 * k, .17, 16), M(0xd9b866), T(0, .94 * k, 0), .02);   // 斗笠
+    }));
+    const arm = s => {
+      const g = part(b => { limb(b, shirt, new V3(0, 0, 0), new V3(s * .03 * k, -.36 * k, 0), .055 * k); b.add(sph(.05 * k, 8, 6), skin, T(s * .035 * k, -.43 * k, 0)); });
+      g.position.set(s * .25 * k, .52 * k, 0); upper.add(g); return g;
+    };
+    const armL = arm(-1), armR = arm(1);
+    root.userData.rig = {k, hipY, tip, face, legL, legR, upper, armL, armR};
+    return root;
+  }
+  /** 扁擔＋兩頭竹簍：前後兩半各自會彎，竹簍吊在繩子上會晃 */
+  function makePoleLoad(o = {}) {
+    const g = new THREE.Group(), wood = M(0xb88a4a), bam = M(0xc9a35a), rope = M(0x8a6a3c), load = M(o.load ?? 0x6aa84f);
+    const half = s => {
+      const h = new THREE.Group(); g.add(h);
+      h.add(part(b => b.add(cyl(.028, .028, .9, 6), wood, T(0, 0, s * .45, 0, Math.PI / 2), .012)));
+      const hang = new THREE.Group(); hang.position.z = s * .84; h.add(hang);
+      hang.add(part(b => {
+        for (const dx of [-.12, .12]) b.add(cyl(.008, .008, .48, 4), rope, T(dx, -.24, 0));
+        b.add(cyl(.22, .17, .26, 12), bam, T(0, -.6, 0), .015);
+        b.add(sph(.19, 10, 6), load, new M4().compose(new V3(0, -.47, 0), new Q(), new V3(1, .45, 1)));
+      }));
+      return {h, hang};
+    };
+    g.userData.pole = {F: half(-1), B: half(1)};
+    return g;
+  }
+  /** 趕鴨子的竹竿：從手往前下方伸出去 */
+  function makeStick() { return part(b => { limb(b, M(0x9c8a4a), new V3(0, 0, 0), new V3(0, -.95, -1.15), .018, .008); b.add(box(.14, .1, .1), M(0x5f9c48), T(0, -.97, -1.19)); }); }
+  function makeCart() { return part(b => cart(b, 0, 0)); }
+  /** 鴨子：身體、頭、兩片翅膀分開，走路會左右搖、被嚇到會拍翅膀 */
+  function makeDuck(o = {}) {
+    const g = new THREE.Group(), col = M(o.col ?? 0xf4f2ea), bill = M(0xf0a020), wingM = M(o.wing ?? (o.col ? 0x8a6440 : 0xe2ddd0));
+    const bodyG = new THREE.Group(); g.add(bodyG);
+    bodyG.add(part(b => {
+      b.add(sph(.16, 10, 8), col, new M4().compose(new V3(0, .2, 0), new Q(), new V3(.95, .8, 1.35)), .015);
+      b.add(box(.09, .07, .12), col, T(0, .27, .21, 0, -.5));
+      for (const s of [-1, 1]) b.add(box(.06, .1, .07), bill, T(s * .06, .05, 0));
+    }));
+    const head = new THREE.Group(); head.position.set(0, .31, -.17); bodyG.add(head);
+    head.add(part(b => {
+      b.add(sph(.085, 8, 6), col, T(0, .06, 0), .012);
+      b.add(box(.07, .03, .11), bill, T(0, .05, -.11));
+      for (const s of [-1, 1]) b.add(sph(.014, 6, 4), M(0x161616), T(s * .06, .09, -.05));
+    }));
+    const wing = s => { const w = new THREE.Group(); w.position.set(s * .14, .25, .02); w.add(part(b => b.add(box(.03, .11, .25), wingM, T(s * .012, -.03, 0)))); bodyG.add(w); return w; };
+    g.userData.duck = {bodyG, head, wL: wing(-1), wR: wing(1)};
+    return g;
+  }
+  /** 水牛：身體、頭、四隻腳、尾巴分開，走路時對角的腳一起動 */
+  function makeBuffalo() {
+    const g = new THREE.Group(), hide = M(0x4b4a47), dark = M(0x2f2e2b), horn = M(0xd9cfb4);
+    const body = new THREE.Group(); g.add(body);
+    body.add(part(b => {
+      limb(b, hide, new V3(0, 1.0, -.48), new V3(0, 1.02, .5), .39, .03);   // 圓滾滾的身體
+      b.add(sph(.41, 12, 10), hide, new M4().compose(new V3(0, 1.12, -.5), new Q(), new V3(.98, .92, 1.05)), .02);   // 肩頭隆起
+      b.add(sph(.36, 10, 8), hide, new M4().compose(new V3(0, .9, .02), new Q(), new V3(1.02, .7, 1.7)));   // 肚子
+    }));
+    const head = new THREE.Group(); head.position.set(0, 1.12, -.84); body.add(head);
+    head.add(part(b => {
+      b.add(box(.36, .34, .5), hide, T(0, -.12, -.22), .025);
+      b.add(box(.31, .2, .16), dark, T(0, -.22, -.49), .02);
+      for (const s of [-1, 1]) {
+        limb(b, horn, new V3(s * .12, .06, -.12), new V3(s * .44, .13, .06), .045, .012);
+        limb(b, horn, new V3(s * .44, .13, .06), new V3(s * .52, .02, .26), .03, .01);
+        b.add(box(.16, .06, .08), hide, T(s * .24, -.04, -.14));
+        b.add(sph(.025, 6, 4), M(0x111111), T(s * .17, -.04, -.36));
+      }
+    }));
+    const leg = (x, z) => { const l = new THREE.Group(); l.position.set(x, .78, z); l.add(part(b => { limb(b, hide, new V3(0, 0, 0), new V3(0, -.64, 0), .09, .02); b.add(box(.17, .08, .19), dark, T(0, -.74, -.01)); })); g.add(l); return l; };
+    const legs = [leg(-.25, -.55), leg(.25, -.55), leg(-.25, .55), leg(.25, .55)];
+    const tail = new THREE.Group(); tail.position.set(0, 1.18, .8); body.add(tail);
+    tail.add(part(b => { limb(b, hide, new V3(0, 0, 0), new V3(0, -.55, .08), .025, .008); b.add(sph(.05, 6, 4), dark, T(0, -.6, .09)); }));
+    g.userData.buffalo = {body, head, legs, tail};
+    return g;
+  }
+  /** 頭上的鈴鐺提示：還沒按鈴的人頭上冒一個 */
+  let bellMat = null;
+  function makeBellIcon() {
+    if (!bellMat) {
+      const [c, g] = cv(128, 128);
+      g.fillStyle = '#fffdf6'; g.strokeStyle = '#2b2622'; g.lineWidth = 7;
+      g.beginPath(); g.arc(64, 60, 50, 0, 7); g.fill(); g.stroke();
+      g.beginPath(); g.moveTo(52, 104); g.lineTo(64, 122); g.lineTo(76, 104); g.fill(); g.stroke();
+      g.fillStyle = '#f2b705'; g.lineWidth = 5;
+      g.beginPath(); g.moveTo(40, 80); g.quadraticCurveTo(44, 74, 44, 58); g.quadraticCurveTo(44, 30, 64, 28); g.quadraticCurveTo(84, 30, 84, 58); g.quadraticCurveTo(84, 74, 88, 80); g.closePath(); g.fill(); g.stroke();
+      g.beginPath(); g.arc(64, 86, 8, 0, 7); g.fill(); g.stroke();
+      g.beginPath(); g.arc(64, 24, 5, 0, 7); g.fill(); g.stroke();
+      bellMat = new THREE.SpriteMaterial({map: tex(c), depthTest: false, transparent: true, sizeAttenuation: false, fog: false});   // 遠近都一樣大，30 公尺外也看得到
+    }
+    const s = new THREE.Sprite(bellMat); s.scale.set(.075, .075, 1); s.renderOrder = 6; return s;
+  }
+
   /* 街道元件 */
   function wire(b, a, c, sag = .4, seg = 6, r = .022) {
     const mat = M(0x2a2a2e); let p = a.clone();
@@ -711,6 +874,7 @@ export function makeKit(style) {
       strip(yel, .12, -.14, a, c); strip(yel, .12, .14, a, c);
       strip(o.curbR === 'yellow' ? yel : red, .17, 6.82, a, c);
       strip(o.curbL === 'red' ? red : yel, .17, -6.82, a, c);
+      for (const s of [-1, 1]) b.add(flat(.62, a - c, .62), gutterMat, T(s * 6.46, .014, (a + c) / 2));
     }
     for (let z = -2; z > -CHUNK; z -= 10) if (!inGap(z) && !inGap(z - 4)) for (const x of [-3.5, 3.5]) strip(white, .14, x, z, z - 4);
     for (const s of [-1, 1]) {
@@ -1058,7 +1222,7 @@ export function makeKit(style) {
     for (const x of [-16, 16]) b.add(cyl(.28, .28, 5.6, 10), M(0xdfe3e3), T(x, 2.8, Zh + 6.4), .02);
     b.add(quad(14, 2), new THREE.MeshBasicMaterial({map: textTex('打卡上班處', 512, 74, '#2c6fb3', '#ffffff')}), T(0, 7.2, Zh + .1));
     b.add(box(30, 5, .4), M(0x1f4f8f), T(0, H - 4, Zh + .2), .04);
-    b.add(quad(29, 4.4), new THREE.MeshBasicMaterial({map: textTex('平安企業大樓', 1024, 156, '#1f4f8f', '#ffffff')}), T(0, H - 4, Zh + .44));
+    b.add(quad(29, 4.4), new THREE.MeshBasicMaterial({map: textTex('寶島企業大樓', 1024, 156, '#1f4f8f', '#ffffff')}), T(0, H - 4, Zh + .44));
     // 旗子、花台、上班的人
     for (const [x, col] of [[-24, 0xd8362f], [-20, 0x2c6fb3], [20, 0x2f9a63], [24, 0xf3bd2b]]) {
       b.add(cyl(.06, .07, 8, 6), M(0xd8dcdc), T(x, 4, Zh + 3.6), .012);
@@ -1191,7 +1355,7 @@ export function makeKit(style) {
     baseRoad(b, {}); row(b, r, 1, 0, -CHUNK); row(b, r, -1, 0, -CHUNK); furnish(b, r, {});
     for (const x of [-.3, 7.6]) b.add(box(.3, 6, .3), M(0x1f4f8f), T(x, 3, -24), .03);
     b.add(box(8.3, 1.3, .2), M(0x1f4f8f), T(3.65, 6, -24), .03);
-    b.add(quad(8, 1.2, A.sign.h(15)), signMat, T(3.65, 6, -23.88));
+    b.add(quad(8, 1.2), finishBannerMat('終點．到公司打卡', '#1f4f8f', '#ffffff', 8 / 1.2), T(3.65, 6, -23.88));
     for (let x = 0; x < 7; x += 1) for (let k = 0; k < 2; k++) if ((x + k) % 2 === 0) b.add(flat(1, .7), M(0x222224), T(x + .5, .022, -24 + k * .7));
     for (let x = 0; x < 7; x += 1) for (let k = 0; k < 2; k++) if ((x + k) % 2 === 1) b.add(flat(1, .7), M(0xf4f2ea), T(x + .5, .022, -24 + k * .7));
     b.into(g);
@@ -1202,7 +1366,7 @@ export function makeKit(style) {
     withOpts(o, fn) { BO = o || {}; try { return fn(); } finally { BO = {}; } },
     tree, wire, cart, busStop, streetFood, hydrant, planters, signMat, markMat, pavingMat, roadMat,
     bendSigns, parts: {roundStrip: tRoundStrip, island: tIsland, quadrant: tQuadrant, leg: tLeg, legPad: tLegPad, cap: tCap},
-    style, M, ink, nb, A, person, scooterBody, addLamp, plateUv, plateMat, miscMat, fabricMat, stripeMat, makeGarbageTruck, makeScooter, makeSedan, makePickup, makeBus, makeTruck, makeBox, makePerson, setCountdown,
+    style, M, ink, nb, A, finishBannerMat, person, makeRig, makePoleLoad, makeStick, makeCart, makeDuck, makeBuffalo, makeBellIcon, scooterBody, addLamp, plateUv, plateMat, miscMat, fabricMat, stripeMat, makeGarbageTruck, makeScooter, makeSedan, makePickup, makeBus, makeTruck, makeBox, makePerson, setCountdown,
     templates: {
       ord1: () => tOrd(101), ord2: () => tOrd(202, {arrow: true}), ord3: () => tOrd(303, {curbR: 'yellow'}), ord4: () => tOrd(404),
       alley: () => tOrd(505, {alley: true}), market: () => tMarket(606), market2: () => tMarket(616), temple: () => tTemple(707), school: () => tSchool(808),
@@ -1210,6 +1374,33 @@ export function makeKit(style) {
     },
     potholeMesh() {
       const m = new THREE.Mesh(flat(2.6, 2.6, null, A.mark.uv(6)), markMat); return m;
+    },
+    roughMesh(w, len, kind = 'asphalt') {   // 破損路面：貼圖加上幾顆凸起的碎石，遠看才看得出不平
+      const key = `${kind}|${w}|${len}`;
+      if (ROUGHC[key]) return ROUGHC[key].clone(true);
+      const g = new THREE.Group(), b = nb(), r = mulberry(len * 13 + w * 7), dirt = kind === 'dirt';
+      ROUGHT[kind] ??= makeRoughTex(kind);
+      b.add(flat(w + .5, len + .8), M(0xffffff, {map: ROUGHT[kind], alpha: true}), T(0, 0, 0));
+      const rock = new THREE.IcosahedronGeometry(1, 0); rock.scale(1, .6, 1.25);
+      const mats = dirt ? [M(0x8d7a5c), M(0xa39272), M(0x6e5c44)] : [M(0x5e5f64), M(0x77787d), M(0x424347)];
+      for (let i = 0; i < 16; i++) { const sz = .07 + r() * .11; b.add(rock, mats[i % 3], T((r() - .5) * w * .8, sz * .35, (r() - .5) * len * .85, r() * 3, 0, 0, sz), .012); }
+      b.into(g, {cast: false});
+      return (ROUGHC[key] = g).clone(true);
+    },
+    roughSign() {   // 路邊的警告牌：紅邊三角形＋「路面不平」
+      if (ROUGHC.sign) return ROUGHC.sign.clone(true);
+      const g = new THREE.Group(), b = nb(), [c, x] = cv(256, 300);
+      x.lineJoin = 'round'; x.fillStyle = '#d8362f'; x.strokeStyle = '#d8362f'; x.lineWidth = 26;
+      const tri = () => { x.beginPath(); x.moveTo(128, 22); x.lineTo(238, 212); x.lineTo(18, 212); x.closePath(); };
+      tri(); x.fill(); x.stroke();
+      x.fillStyle = '#fbf7ea'; x.save(); x.translate(128, 138); x.scale(.72, .72); x.translate(-128, -138); tri(); x.fill(); x.restore();
+      x.strokeStyle = '#1c1c20'; x.lineWidth = 12; x.lineCap = 'round'; x.beginPath(); x.moveTo(66, 176); x.quadraticCurveTo(88, 118, 110, 176); x.quadraticCurveTo(128, 196, 146, 176); x.quadraticCurveTo(168, 118, 190, 176); x.stroke();
+      x.fillStyle = '#fbf7ea'; x.fillRect(16, 234, 224, 60); x.strokeStyle = '#1c1c20'; x.lineWidth = 5; x.strokeRect(16, 234, 224, 60);
+      x.fillStyle = '#1c1c20'; x.font = '900 44px "PingFang TC","Noto Sans TC",sans-serif'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText('路面不平', 128, 266);
+      b.add(box(.1, 2.6, .1), M(0x55565a), T(0, 1.3, -.03));
+      b.add(quad(1.5, 1.76), M(0xffffff, {map: tex(c), alpha: true, unlit: true}), T(0, 2.25, .02));
+      b.into(g, {cast: false});
+      return (ROUGHC.sign = g).clone(true);
     },
   };
 }

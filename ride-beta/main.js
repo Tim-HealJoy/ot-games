@@ -17,6 +17,7 @@ const CLOUD = window.RIDE_CLOUD || {}, LOCAL_CLOUD = LOCALHOST && !qs.has('lan')
 // 雲端中繼；空的＝連提供這個網頁的伺服器。本機試玩也走雲端，手機才能開 https 頁讀傾斜
 let RELAY = (LOCALHOST && qs.get('relay')) || window.RIDE_RELAY || (LOCAL_CLOUD ? CLOUD.relay : '');
 const tilt = window.createTilt();
+const awake = window.createAwake({video: TOUCH});   // 手機在操作時電腦沒人碰，螢幕一樣不能暗
 
 const canvas = $('c');
 const renderer = new THREE.WebGLRenderer({canvas, antialias: true, powerPreference: 'high-performance'});
@@ -62,6 +63,10 @@ const Snd = {
   ok() { this.beep(659, .14, 'triangle', .06); },
   crash() { this.beep(170, .45, 'sawtooth', .13, -120); this.beep(90, .55, 'square', .1, -40); },
   bump() { this.beep(120, .18, 'square', .1, -50); },
+  rumble() { this.beep(68 + Math.random() * 34, .08, 'square', .06); },
+  bell() { [0, .14].forEach(d => { this.beep(2350, .42, 'sine', .07, 0, d); this.beep(3130, .3, 'sine', .035, 0, d); this.beep(4700, .12, 'triangle', .012, 0, d); }); },   // 鐵馬鈴：叮叮
+  quack() { [0, .16, .3].forEach(d => this.beep(560, .08, 'sawtooth', .035, -220, d)); },
+  moo() { this.beep(118, .75, 'sawtooth', .045, -22); this.beep(236, .6, 'triangle', .02, -40, .05); },
   flash() { this.beep(1900, .08, 'square', .05); this.beep(1100, .22, 'square', .05, 0, .09); },
   engine(v, off) { if (this.eng) { this.eng.o.frequency.value = 52 + v * 7.5; this.eng.g.gain.value = this.on && !off ? .012 : 0; } },
 };
@@ -100,6 +105,7 @@ function showScreen(name) {
   app.screen = name;
   for (const id of ['home', 'howPhone', 'routes', 'pick', 'lobby', 'result']) $(id).classList.toggle('on', id === name);
   document.body.classList.toggle('riding', name === 'race');
+  if (name === 'home' || name === 'howPhone') awake.stop(); else awake.start();
 }
 const LEVEL = {1: '新手', 2: '普通', 3: '挑戰', 5: '魔王'};
 const medalsOf = id => { try { return JSON.parse(store.get('medals', '{}'))[id] || {}; } catch (e) { return {}; } };
@@ -112,7 +118,7 @@ function renderRoutes() {
   const html = ['bike', 'moto'].map(p => {
     const P = PACKS[p], rs = Object.entries(ROUTES).filter(([, r]) => r.pack === p);
     const cards = rs.map(([id, r]) => {
-      const md = medalsOf(id), arr = [['safe', '平安'], ['see', r.kind === 'valley' ? '撿穗' : '預判'], ['time', '準時']];
+      const md = medalsOf(id), arr = [['safe', '平安'], ['see', r.kind === 'valley' ? '按鈴' : '預判'], ['time', '準時']];
       arr.forEach(([k]) => { all++; if (md[k]) got++; });
       return `<button class="rc" data-r="${id}"><div class="th"><img src="art/route_${id}.jpg" alt="${r.name}" onerror="this.style.display='none'"><span class="lvl">${LEVEL[r.stars]}<i>${'★'.repeat(r.stars)}</i></span>${r.stars === 1 ? '<span class="startTag" hidden>從這裡開始</span>' : ''}</div><div class="tt"><b>${r.name}</b><span class="rtag">${r.tag}</span><span class="rinfo">${routeText(id)}</span><div class="medals">${arr.map(([k, t]) => `<span class="medal ${md[k] ? 'on' : ''}">${t}</span>`).join('')}</div></div></button>`;
     }).join('');
@@ -138,7 +144,7 @@ function gridHtml(list, prefix, cur) { return list.map(x => `<button class="pc $
 function renderPick() {
   const p = app.picks[1], pk = app.pack;
   $('pickTitle').textContent = ROUTES[app.routeId].name;
-  $('pickHelp').textContent = IS_PHONE ? '' : (pk === 'moto' ? '　鍵盤：← → 或 A、D 轉向，↓、S 或空白鍵煞車。' : '　鍵盤：← → 或 A、D 轉向。');
+  $('pickHelp').textContent = IS_PHONE ? '' : (pk === 'moto' ? '　鍵盤：← → 或 A、D 轉向，↓、S 或空白鍵煞車。' : '　鍵盤：← → 或 A、D 轉向，空白鍵按鈴。');
   $('pickBack').textContent = IS_PHONE ? '← 換路線' : '← 改用手機騎';
   $('charGrid').innerHTML = gridHtml(CHARS[pk], 'char', p.char);
   $('vehGrid').innerHTML = gridHtml(VEHICLES[pk], 'veh', p.veh);
@@ -148,7 +154,7 @@ function renderPick() {
 }
 
 /* ───────── 雙人連線 ───────── */
-const net = {ws: null, ok: false, idle: false, last: null, room: '', key: '', links: {}, lastN: {1: 0, 2: 0}, players: [{slot: 1}, {slot: 2}], keyboard: {1: false, 2: false}, input: {1: {tilt: 0, brake: false, t: 0}, 2: {tilt: 0, brake: false, t: 0}}};
+const net = {ws: null, ok: false, idle: false, last: null, room: '', key: '', links: {}, lastN: {1: 0, 2: 0}, players: [{slot: 1}, {slot: 2}], keyboard: {1: false, 2: false}, checked: {1: false, 2: false}, swing: {1: {l: false, r: false}, 2: {l: false, r: false}}, input: {1: {tilt: 0, brake: false, t: 0}, 2: {tilt: 0, brake: false, t: 0}}};
 function pickRoom(fresh) {
   if (!fresh) try { net.room = sessionStorage.getItem('ride_room') || ''; net.key = sessionStorage.getItem('ride_key') || ''; } catch (e) {}
   if (fresh || !net.room || !net.key) {
@@ -207,7 +213,26 @@ function slotInfo(n) {
   return {src: p.online ? 'phone' : null, ready: !!p.ready, char: p.char || null, veh: p.veh || null, online: p.online};
 }
 const seats = () => app.mode === 'solo' ? [1] : [1, 2];
+/* 認位子：兩個人比的時候，按準備後要把手機往左、往右各傾一次，螢幕上自己這邊的車會跟著晃。
+   手機也用同一個門檻算，兩邊都以「有沒有按準備」為重來的依據，所以不用多傳訊息。 */
+const CHECK = .45, SEAT = {1: '◀ 站螢幕左邊', 2: '站螢幕右邊 ▶'}, SIDE = {1: '左邊', 2: '右邊'};
+const resetCheck = n => { net.checked[n] = false; net.swing[n] = {l: false, r: false}; };
+const needsCheck = n => app.mode === 'duel' && app.screen === 'lobby' && !app.skipCheck && slotInfo(n).src === 'phone' && !net.checked[n];
+function tickCheck() {
+  if (app.screen !== 'lobby' || app.mode !== 'duel') return;
+  for (const n of [1, 2]) {
+    const s = slotInfo(n), el = $('slot' + n), i = net.input[n], fresh = performance.now() - i.t < 1500;
+    const pic = el.querySelector('img'); if (pic) pic.style.transform = s.src === 'phone' && s.ready && fresh ? `rotate(${(i.tilt * 13).toFixed(1)}deg)` : '';
+    if (!needsCheck(n) || !s.ready || !fresh) continue;
+    const w = net.swing[n];
+    if (i.tilt < -CHECK) w.l = true;
+    if (i.tilt > CHECK) w.r = true;
+    el.querySelector('.sL')?.classList.toggle('on', w.l); el.querySelector('.sR')?.classList.toggle('on', w.r);
+    if (w.l && w.r) { net.checked[n] = true; Snd.good(); if (!net.links[n]?.send({buzz: 160})) send({t: 'buzz', slot: n, ms: 160}); renderLobby(); maybeStart(); }
+  }
+}
 function onPlayers() {
+  for (const n of [1, 2]) if (!net.players.find(x => x.slot === n)?.ready) resetCheck(n);
   for (const n of [1, 2]) if (net.links[n] && !net.players.find(x => x.slot === n)?.online) { net.links[n].close(); delete net.links[n]; }
   if (app.screen === 'lobby') { renderLobby(); maybeStart(); }
   else if (app.screen === 'result') maybeStart();   // 手機按「再騎一次」
@@ -215,6 +240,7 @@ function onPlayers() {
 function maybeStart() {
   if (app.starting || (app.screen !== 'lobby' && app.screen !== 'result')) return;
   const ss = seats().map(slotInfo);
+  if (seats().some(needsCheck)) return;
   if (ss.every(s => s.ready) && (app.screen === 'lobby' ? ss.some(s => s.src) : ss.some(s => s.src === 'phone'))) {
     app.starting = true;
     seats().forEach((n, i) => { if (ss[i].char && CHARS[app.pack].some(c => c.id === ss[i].char)) app.picks[n] = {char: ss[i].char, veh: ss[i].veh}; });
@@ -254,24 +280,32 @@ async function showHowPhone() {
 function renderLobby() {
   const isSolo = app.mode === 'solo', Rt = ROUTES[app.routeId];
   $('lobbyTitle').textContent = `${isSolo ? '一個人騎' : '兩個人比'}：${Rt.name}`;
-  $('lobbyStep1').textContent = isSolo ? '① 手機掃這裡，手機就是方向盤' : '① 兩個人各用手機掃這裡';
+  const allReady = seats().every(n => slotInfo(n).ready), checking = !isSolo && allReady && seats().some(needsCheck);
+  $('lobbyGrid').classList.toggle('duel', !isSolo);
+  $('lobbyStep1').innerHTML = isSolo ? '① 手機掃這裡，手機就是方向盤' : '① 兩個人各用手機掃這裡<small>先掃的站左邊，後掃的站右邊</small>';
+  $('lobbyStep2').textContent = isSolo ? '② 在手機上選角色和車，按準備' : allReady ? '③ 把手機往左傾、再往右傾，自己這邊的車會跟著晃' : '② 站到自己那一邊，在手機上選角色和車，按準備';
+  $('skipCheck').style.display = checking ? '' : 'none';
   $('lobbyTip').innerHTML = `<b>這條路：</b>${Rt.tip}`;
-  $('lobbyNote').textContent = isSolo ? `血條滿分 ${HP.start}，摔車扣 ${HP.crash}；血條歸零就回起點重騎。` : `同一條路，分數高的贏，先到再加 150 分。血條歸零的人要回起點重騎。`;
+  $('lobbyNote').textContent = isSolo ? `血條滿分 ${HP.start}，摔車扣 ${HP.crash}，騎進田埂或不平的路面會一直扣；歸零就回起點重騎。` : `同一條路，分數高的贏，先到再加 150 分。騎進田埂或不平的路面會一直扣血，歸零的人要回起點重騎。`;
   $('kbGo').style.display = isSolo ? '' : 'none'; $('kbGo').textContent = TOUCH ? '不用手機，直接在這台玩 →' : '不用手機，直接用鍵盤騎 →';
   $('slot2').style.display = isSolo ? 'none' : '';
   for (const n of seats()) {
     const s = slotInfo(n), el = $('slot' + n), pk = app.pack;
     const c = CHARS[pk].find(x => x.id === s.char), v = VEHICLES[pk].find(x => x.id === s.veh);
-    const st = s.src === 'kb' ? `鍵盤（${n === 1 ? 'A / D 轉向、S 煞車' : '← / → 轉向、↓ 煞車'}）` : !net.ok ? '正在連線，請稍等…' : !s.src ? '等手機掃碼…' : s.ready ? '準備好了！' : c ? '選好了，等按準備' : '手機連上了，正在選角色…';
-    el.className = `slot p${n} ${s.ready ? 'ready' : ''}`;
-    el.innerHTML = `<img src="${c ? `art/char_${c.id}.jpg` : 'art/char_' + CHARS[pk][n - 1].id + '.jpg'}" alt="" style="${c ? '' : 'opacity:.3'}"><div><div class="num">${isSolo ? '' : n + 'P '}<span style="font-size:19px;color:var(--ink)">${c ? `${c.name}${v ? '＋' + v.name : ''}` : isSolo ? '等你上車' : ''}</span></div><div class="st">${s.ready ? '✔ ' : ''}${st}</div>${isSolo ? '' : `<div class="kb"><button class="btn ghost" data-kb="${n}">${net.keyboard[n] ? '取消鍵盤' : '改用鍵盤'}</button>${net.keyboard[n] ? `<button class="btn ghost" data-cc="${n}">換角色</button><button class="btn ghost" data-vv="${n}">換車</button>` : ''}</div>`}</div>`;
+    const waitTilt = s.src === 'phone' && s.ready && needsCheck(n), done = s.ready && !waitTilt;
+    const st = s.src === 'kb' ? `鍵盤（${n === 1 ? 'A / D 轉向、S 煞車' : '← / → 轉向、↓ 煞車'}）` : !net.ok ? '正在連線，請稍等…' : !s.src ? '等手機掃碼…' : waitTilt ? `傾斜手機，這台車會跟著晃` : s.ready ? (isSolo ? '準備好了！' : '位子確認好了！') : c ? '選好了，等按準備' : '手機連上了，正在選角色…';
+    el.className = `slot p${n} ${isSolo ? '' : 'side'} ${done ? 'ready' : ''}`;
+    if (!isSolo) {
+      const w = net.swing[n];
+      el.innerHTML = `<div class="seatHead">${SEAT[n]}</div><div class="num">${n}P</div><img src="art/char_${(c || CHARS[pk][n - 1]).id}.jpg" alt="" style="${c ? '' : 'opacity:.3'}"><div class="nm">${c ? `${c.name}${v ? '＋' + v.name : ''}` : ''}</div><div class="st">${done ? '✔ ' : ''}${st}</div>${waitTilt ? `<div class="swing"><span class="sL ${w.l ? 'on' : ''}">◀ 往左</span><span class="sR ${w.r ? 'on' : ''}">往右 ▶</span></div>` : ''}<div class="kb"><button class="btn ghost" data-kb="${n}">${net.keyboard[n] ? '取消鍵盤' : '改用鍵盤'}</button>${net.keyboard[n] ? `<button class="btn ghost" data-cc="${n}">換角色</button><button class="btn ghost" data-vv="${n}">換車</button>` : ''}</div>`;
+    } else el.innerHTML = `<img src="${c ? `art/char_${c.id}.jpg` : 'art/char_' + CHARS[pk][n - 1].id + '.jpg'}" alt="" style="${c ? '' : 'opacity:.3'}"><div><div class="num">${isSolo ? '' : n + 'P '}<span style="font-size:19px;color:var(--ink)">${c ? `${c.name}${v ? '＋' + v.name : ''}` : isSolo ? '等你上車' : ''}</span></div><div class="st">${s.ready ? '✔ ' : ''}${st}</div>${isSolo ? '' : `<div class="kb"><button class="btn ghost" data-kb="${n}">${net.keyboard[n] ? '取消鍵盤' : '改用鍵盤'}</button>${net.keyboard[n] ? `<button class="btn ghost" data-cc="${n}">換角色</button><button class="btn ghost" data-vv="${n}">換車</button>` : ''}</div>`}</div>`;
     el.querySelector('[data-kb]')?.addEventListener('click', () => { net.keyboard[n] = !net.keyboard[n]; Snd.init(); renderLobby(); maybeStart(); });
     el.querySelector('[data-cc]')?.addEventListener('click', () => { const L = CHARS[pk], i = L.findIndex(x => x.id === app.picks[n].char); app.picks[n].char = L[(i + 1) % L.length].id; renderLobby(); });
     el.querySelector('[data-vv]')?.addEventListener('click', () => { const L = VEHICLES[pk], i = L.findIndex(x => x.id === app.picks[n].veh); app.picks[n].veh = L[(i + 1) % L.length].id; renderLobby(); });
   }
 }
 function enterLobby() {
-  app.starting = false; net.keyboard = {1: false, 2: false};
+  app.starting = false; app.skipCheck = false; net.keyboard = {1: false, 2: false}; resetCheck(1); resetCheck(2);
   showScreen('lobby'); connect(); setupQR(); renderLobby();
   syncRoom({phase: 'lobby', reset: true});
   clearInterval(app.qrT); app.qrT = setInterval(() => { if (app.screen === 'lobby') setupQR(); }, 5000);
@@ -299,9 +333,6 @@ function syncPads() {
 }
 function askTilt() { const p = tilt.ask(); clearTimeout(app.padT); app.padT = setTimeout(syncPads, 1200); return p; }
 if (TOUCH) tilt.listen();   // 不用等點擊，Android 這樣就讀得到；iPhone 要按了才有
-const wake = {lock: null,
-  async on() { try { if (!this.lock && navigator.wakeLock) { const l = await navigator.wakeLock.request('screen'); this.lock = l; l.addEventListener('release', () => { if (this.lock === l) this.lock = null; }); } } catch (e) {} },
-  off() { try { this.lock?.release(); } catch (e) {} this.lock = null; }};
 const phoneFresh = n => performance.now() - net.input[n].t < 1500;
 const soloInput = () => {
   let k = ((keys.r || solo.r) ? 1 : 0) - ((keys.l || solo.l) ? 1 : 0);
@@ -318,15 +349,18 @@ const duelInput = n => () => {
 
 /* ───────── 比賽 ───────── */
 const PCOL = {1: '#e8622c', 2: '#2c6fb3'};
-function clearRace() { app.rides.forEach(r => r.dispose()); app.rides = []; $('hudLayer').innerHTML = ''; app.racing = false; app.paused = false; $('pauseBox').classList.remove('on'); $('brief').classList.remove('on'); wake.off(); }
+function clearRace() { app.rides.forEach(r => r.dispose()); app.rides = []; $('hudLayer').innerHTML = ''; app.racing = false; app.paused = false; $('pauseBox').classList.remove('on'); $('brief').classList.remove('on'); document.body.classList.remove('counting'); app.phoneGone = false; app.resuming = false; app.ignoreLost = false; app.phoneKey = ''; $('phoneBox').classList.remove('on'); }
 function helpFor(n, duel) {
-  if (slotInfo(n).src === 'phone') return {steer: '傾斜手機轉向，眼睛看電腦螢幕', brake: '按住手機上的「煞車」'};
-  if (TOUCH && !duel) return {steer: tilt.live ? '左右傾斜手機轉向' : '按畫面左下的 ◀ ▶ 轉向', brake: '按住右下角「煞車」'};
-  if (duel) return n === 1 ? {steer: 'A、D 轉向', brake: '按住 S 煞車'} : {steer: '←、→ 轉向', brake: '按住 ↓ 煞車'};
-  return {steer: '← → 或 A、D 轉向', brake: '按住 ↓、S 或空白鍵煞車'};
+  if (slotInfo(n).src === 'phone') return {steer: duel ? '傾斜手機轉向，眼睛看這半邊' : '傾斜手機轉向，眼睛看電腦螢幕', brake: '按住手機上的「煞車」', bell: '前面有人！按手機上的「按鈴」'};
+  if (TOUCH && !duel) return {steer: tilt.live ? '左右傾斜手機轉向' : '按畫面左下的 ◀ ▶ 轉向', brake: '按住右下角「煞車」', bell: '前面有人！按右下角的「按鈴」'};
+  if (duel) return n === 1 ? {steer: 'A、D 轉向', brake: '按住 S 煞車', bell: '前面有人！按 S 按鈴'} : {steer: '←、→ 轉向', brake: '按住 ↓ 煞車', bell: '前面有人！按 ↓ 按鈴'};
+  return {steer: '← → 或 A、D 轉向', brake: '按住 ↓、S 或空白鍵煞車', bell: '前面有人！按空白鍵按鈴'};
 }
+/* 暫停時「對手到了，還有 20 秒」的倒數也要跟著停 */
+function holdClock(on) { const t = performance.now(); if (on) app.heldAt = t; else if (app.finishedAt != null && app.heldAt) app.finishedAt += t - app.heldAt; }
 function setPause(v) {
-  if (!app.racing || app.counting) return;
+  if (!app.racing || app.counting || app.phoneGone || app.resuming) return;
+  holdClock(v);
   app.paused = v; $('pauseBox').classList.toggle('on', v);
   try { if (v) Snd.ctx?.suspend(); else Snd.ctx?.resume(); } catch (e) {}
 }
@@ -341,7 +375,7 @@ async function startRace() {
   document.body.classList.toggle('duelOn', duel);
   $('divider').style.display = duel ? 'block' : 'none';
   const mk = (n, rival) => {
-    const hud = makeHud(duel ? (n === 1 ? 'left' : 'right') : 'solo'); if (duel) hud.classList.add('duel');
+    const hud = makeHud(duel ? (n === 1 ? 'left' : 'right') : 'solo'); if (duel) { hud.classList.add('duel'); hud.querySelector('.seatTag').textContent = n === 1 ? '◀ 1P 看這邊' : '2P 看這邊 ▶'; }
     const c = CHARS[app.pack].find(x => x.id === app.picks[n].char);
     return createRide({kit, routeId: app.routeId, seed, hud, snd: Snd, demo: demoN, player: app.picks[n], label: `${n}P ${c?.name || ''}`, laneOffset: duel ? (n === 1 ? -.55 : .55) : 0,
       rival: rival ? {...app.picks[rival], tag: rival + 'P', color: PCOL[rival]} : null, shadow: duel ? 1024 : TOUCH ? 1024 : 2048, low: perf.lvl >= 2, fineScale: IS_PHONE ? .7 : 1,
@@ -353,15 +387,14 @@ async function startRace() {
   showScreen('race');
   syncRoom({phase: 'race'});
   const P = ROUTES[app.routeId].pack;
-  $('brake').classList.toggle('show', P === 'moto' && ownDevice());
+  $('brake').classList.toggle('show', ownDevice()); $('brake').textContent = P === 'bike' ? '按鈴' : '煞車'; $('brake').classList.toggle('bell', P === 'bike');   // 鐵馬的按鈕是鈴
   syncPads();
-  if (TOUCH) wake.on();
   tilt.setFollow(true);   // 倒數時手機怎麼拿都算正中間，出發才定下來
   $('load').classList.remove('on');
   // 出發前先講這條路要注意什麼，再倒數
   const Rt = ROUTES[app.routeId], hp = helpFor(1, duel);
-  app.counting = true;
-  $('brief').innerHTML = `<b>${Rt.name}</b><span>${Rt.tip}</span><em>${duel ? '手機或鍵盤轉向' + (P === 'moto' ? '＋煞車' : '') : hp.steer + (P === 'moto' ? '；' + hp.brake : '')}</em>`;
+  app.counting = true; document.body.classList.add('counting');
+  $('brief').innerHTML = `<b>${Rt.name}</b><span>${Rt.tip}</span><em>${duel ? '手機或鍵盤轉向' + (P === 'moto' ? '＋煞車' : '＋按鈴') : hp.steer + '；' + (P === 'moto' ? hp.brake : hp.bell.replace('前面有人！', '看到人就'))}</em>`;
   $('brief').classList.add('on');
   const cd = $('count'); cd.textContent = ''; cd.classList.add('on');
   await new Promise(r => setTimeout(r, 1500)); if (!app.racing) { cd.classList.remove('on'); $('brief').classList.remove('on'); return; }
@@ -369,7 +402,7 @@ async function startRace() {
   $('brief').classList.remove('on');
   cd.textContent = '出發！'; Snd.beep(990, .3, 'triangle', .1); Snd.song(app.routeId);
   tilt.setFollow(false); syncRoom({phase: 'race', go: true}); syncPads();
-  app.rides.forEach(r => r.begin()); app.counting = false;
+  app.rides.forEach(r => r.begin()); app.counting = false; document.body.classList.remove('counting');
   app.cdHideAt = performance.now() + 650; setTimeout(() => cd.classList.remove('on'), 650);
 }
 function onRideFinish(n, r) {
@@ -383,17 +416,18 @@ function onRideFinish(n, r) {
   } else endRace();
 }
 function endRace() {
-  if (!app.racing) return; app.racing = false; Snd.stopSong(); Snd.engine(0, true); wake.off();
+  if (!app.racing) return; app.racing = false; Snd.stopSong(); Snd.engine(0, true);
   showResult();
   $('divider').style.display = 'none'; document.body.classList.remove('duelOn');
 }
 function cardFor(n, r, win) {
   const c = CHARS[app.pack].find(x => x.id === app.picks[n].char), v = VEHICLES[app.pack].find(x => x.id === app.picks[n].veh), vl = r.valley;
-  const stat = (vl ? `稻穗 ${r.rice}／${r.riceAll}．撞到 ${r.bumps} 次` : `提早反應 ${r.early}．摔車 ${r.crashes}．紅單 ${r.tickets}`) + (r.restarts ? `．血條歸零 ${r.restarts} 次` : '');
+  const stat = (vl ? `提早按鈴 ${r.early}／${r.walkers}．撞到 ${r.bumps} 次` : `提早反應 ${r.early}．摔車 ${r.crashes}．紅單 ${r.tickets}`) + (r.restarts ? `．血條歸零 ${r.restarts} 次` : '');
+  const loss = Object.entries(r.loss || {}).sort((p, q) => q[1] - p[1]).slice(0, 3).map(([k, v]) => `${LABEL[k] || k} −${Math.round(v)}`).join('．');
   const bonus = [r.bonusSafe ? `平安 +${r.bonusSafe}` : '', r.bonusTime ? `準時 +${r.bonusTime}` : '', r.first ? '先到 +150' : ''].filter(Boolean).join('．');
   const stamp = (got, name, how) => `<div class="sc"><div class="stamp ${got ? 'got' : ''}">${name}</div><small>${how}</small></div>`;
   return `<div class="rCol ${win ? 'win' : ''}"><img src="art/char_${c?.id}.jpg" alt=""><div style="font-weight:900;font-size:18px;margin-top:4px">${app.mode === 'duel' ? n + 'P ' : ''}${c?.name}＋${v?.name}${win ? ' 👑' : ''}</div><div class="rScore">${r.score} 分</div><div class="rTitle">${r.title}</div><div class="rDesc">${r.desc}</div>
-    <div class="stamps">${stamp(r.safe, '平安', vl ? '一路沒撞到' : '沒摔車沒紅單')}${stamp(r.see, vl ? '撿穗' : '預判', vl ? '撿到七成' : '七成提早反應')}${stamp(r.onTime, '準時', vl ? '天黑前到厝' : '8:30 前打卡')}</div><div class="stats">${stat}</div>${bonus ? `<div class="stats">${bonus}</div>` : ''}</div>`;
+    <div class="stamps">${stamp(r.safe, '平安', '血條沒扣過')}${stamp(r.see, vl ? '按鈴' : '預判', vl ? '七成提早按鈴' : '七成提早反應')}${stamp(r.onTime, '準時', vl ? '天黑前到厝' : '8:30 前打卡')}</div><div class="stats">${stat}</div>${loss ? `<div class="stats lossLine">血條扣在：${loss}</div>` : ''}${bonus ? `<div class="stats">${bonus}</div>` : ''}</div>`;
 }
 function showResult() {
   const duel = app.mode === 'duel', R = app.results, id = app.routeId, ids = Object.keys(ROUTES), nextId = ids[ids.indexOf(id) + 1];
@@ -406,7 +440,9 @@ function showResult() {
   } else {
     if (!DEMO_N) saveMedals(id, R[1]);
     syncRoom({phase: 'result', result: {solo: true, score: R[1].score, title: R[1].title, arrived: R[1].arrived}, reset: true});
-    const tips = R[1].valley ? '' : (R[1].seen || []).slice(0, 2).map(t => `<div><b>${LABEL[t]}：</b>${TIPS[t]}</div>`).join('');
+    // 先講這趟真的扣血的地方，沒扣血才講一般提醒
+    const hurt = Object.entries(R[1].loss || {}).sort((p, q) => q[1] - p[1]).map(e => e[0]);
+    const tips = [...new Set([...hurt, ...(R[1].seen || [])])].filter(t => TIPS[t]).slice(0, 2).map(t => `<div><b>${LABEL[t]}：</b>${TIPS[t]}</div>`).join('');
     head = `<div class="rHead"><div class="rWin">${R[1].arrived ? (R[1].valley ? '到厝了！' : '打卡成功！') : (R[1].valley ? '天黑了…' : '這趟結束了')}</div><div class="stats">${ROUTES[id].name}</div></div><div class="soloGrid"><div>${cardFor(1, R[1], false)}</div><div class="soloSide">@@BTNS@@${tips ? `<div class="tips">${tips}</div>` : ''}</div></div>`;
   }
   const btns = `<div class="rBtns"><button class="btn pri" id="again">再騎一次</button>${nextId ? `<button class="btn" id="toNext">下一條：${ROUTES[nextId].name} ▶</button>` : ''}<button class="btn" id="toRoutes">選路線</button><button class="btn ghost" id="toHome">回首頁</button></div>${app.usesPhone?.[1] || app.usesPhone?.[2] ? '<div class="fb" style="color:var(--mut)">也可以直接在手機按「再騎一次」。</div>' : ''}`;
@@ -447,7 +483,10 @@ addEventListener('keydown', e => {
   if (e.code === 'Escape' && app.screen === 'race') setPause(!app.paused);
   if (e.code === 'Enter' && app.screen === 'pick' && document.activeElement?.tagName !== 'BUTTON') { Snd.init(); startRace(); }
 });
-document.addEventListener('visibilitychange', () => { if (document.hidden && app.screen === 'race' && !NOPAUSE && !app.paused) setPause(true); if (!document.hidden && app.screen === 'race' && TOUCH) wake.on(); });
+document.addEventListener('visibilitychange', () => { if (document.hidden && app.screen === 'race' && !NOPAUSE && !app.paused) setPause(true); });
+$('skipCheck').onclick = () => { app.skipCheck = true; renderLobby(); maybeStart(); };
+$('phoneSkip').onclick = () => { app.ignoreLost = true; phoneBack(); };
+$('phoneQuit').onclick = () => $('quit').click();
 $('quit').onclick = () => { try { Snd.ctx?.resume(); } catch (e) {} clearRace(); Snd.stopSong(); Snd.engine(0, true); $('count').classList.remove('on'); $('divider').style.display = 'none'; document.body.classList.remove('duelOn'); syncRoom({phase: 'lobby', reset: true}); renderRoutes(); showScreen('routes'); };
 if (IS_PHONE) {   // 手機首頁：直接在手機玩，或接到電腦螢幕當方向盤
   $('goSolo').innerHTML = '用這支手機玩<small>看手機螢幕，傾斜手機轉向</small>';
@@ -488,10 +527,33 @@ function frame(now) {
     if (W >= 900) show.draw(W, H, dt, .27, 0); else if (W > H) show.draw(W, H, dt, .26, 0); else show.draw(W, H, dt, 0, .3);
   } else if (app.screen === 'home') {
     if (W >= 760) show.draw(W, H, dt, -.2, 0); else show.draw(W, H, dt, 0, -.22);
-  } else show.draw(W, H, dt);
+  } else { show.draw(W, H, dt); tickCheck(); }
+}
+/* 手機暗掉或斷線就先停下來等，不讓那位玩家白白摔車；手機回來倒數 3 秒再繼續 */
+const PHONE_LOST = 3000;
+function watchPhones() {
+  if (app.resuming || (app.paused && !app.phoneGone) || !app.racing || app.counting) return;
+  const now = performance.now(), lost = app.ignoreLost ? [] : [1, 2].filter(n => app.usesPhone?.[n] && !app.rides[n - 1]?.S.finished && now - net.input[n].t > PHONE_LOST);
+  if (lost.length && !app.phoneGone) { app.phoneGone = true; holdClock(true); app.paused = true; try { Snd.ctx?.suspend(); } catch (e) {} app.rides.forEach(r => r.notice('')); $('phoneBox').classList.add('on'); }
+  if (!app.phoneGone) return;
+  if (!lost.length) { phoneBack(); return; }
+  const key = lost.join();
+  if (key !== app.phoneKey) {
+    app.phoneKey = key;
+    $('phoneT').textContent = app.mode === 'solo' ? '手機沒有訊號' : lost.length === 2 ? '兩支手機都沒有訊號' : `${lost[0]}P（螢幕${SIDE[lost[0]]}）的手機沒有訊號`;
+    $('phoneT').style.color = lost.length === 1 && app.mode !== 'solo' ? PCOL[lost[0]] : '';
+  }
+}
+async function phoneBack() {
+  app.phoneGone = false; app.phoneKey = ''; app.resuming = true; $('phoneBox').classList.remove('on');
+  try { Snd.ctx?.resume(); } catch (e) {}
+  const cd = $('count'); cd.classList.add('on');
+  for (const t of ['3', '2', '1']) { cd.textContent = t; Snd.beep(660, .13, 'triangle', .08); await new Promise(r => setTimeout(r, 700)); if (!app.racing) { cd.classList.remove('on'); return; } }
+  cd.classList.remove('on'); cd.textContent = ''; app.resuming = false; app.paused = false; holdClock(false);
 }
 function step(dt) {
   if (tilt.live !== app.tiltLive) { app.tiltLive = tilt.live; syncPads(); }
+  watchPhones();
   if (app.paused || (!app.racing && !app.rides.every(r => r.S.finished))) return;
   if (app.cdHideAt && performance.now() > app.cdHideAt) { app.cdHideAt = 0; $('count').classList.remove('on'); }
   const n = Math.max(1, Math.ceil(dt / .017));
@@ -500,7 +562,7 @@ function step(dt) {
   // 雙人：第一位到了之後，另一位還有 20 秒
   if (app.finishedAt != null && performance.now() - app.finishedAt > 20000) app.rides.forEach(r => r.finish());
   else if (app.finishedAt != null && app.rides.length === 2) { const left = Math.max(1, Math.ceil(20 - (performance.now() - app.finishedAt) / 1000)); app.rides.forEach(r => r.banner(r.S.finished ? `到了！等對手，還有 ${left} 秒` : `對手到了！還有 ${left} 秒`)); }
-  if (app.racing) app.rides.forEach((r, i) => { const n = i + 1; if (app.usesPhone?.[n]) r.notice(performance.now() - net.input[n].t > 2500 ? '手機連線中斷了，請檢查手機網路或重新掃碼' : ''); });
+  if (app.racing) app.rides.forEach((r, i) => { const n = i + 1; if (app.usesPhone?.[n]) r.notice(performance.now() - net.input[n].t > 1500 ? '手機沒有訊號：請點亮手機，回到遊戲頁面' : ''); });
 }
 function syncRivals() {
   const [a, b] = app.rides, f = a.FINISH_A;
@@ -517,7 +579,7 @@ setTimeout(() => { const pre = ['moto', 'office', 's125']; show.set(...pre); }, 
 setInterval(() => { if (app.screen === 'home') { const p = Math.random() < .5 ? 'bike' : 'moto', c = CHARS[p][Math.random() * 4 | 0], v = VEHICLES[p][Math.random() * 4 | 0]; show.set(p, c.id, v.id); } }, 3500);
 
 /* 驗證用介面 */
-window.__app = {kit, app, net, tilt, perf, Snd, startRace, enterLobby, chooseRoute, setRoute, setPause, slotInfo, IS_PHONE, get rides() { return app.rides; }, keys, step, showScreen, renderRoutes, renderer,
+window.__app = {kit, app, net, tilt, awake, perf, Snd, startRace, enterLobby, chooseRoute, setRoute, setPause, slotInfo, IS_PHONE, get rides() { return app.rides; }, keys, step, showScreen, renderRoutes, renderer,
   drawNow(dt = .016) { const W = $('stage').clientWidth, H = $('stage').clientHeight, duel = app.rides.length === 2; renderer.setScissorTest(false); renderer.clear(); app.rides.forEach((r, i) => r.draw(renderer, duel ? {x: i * W / 2, y: 0, w: W / 2, h: H} : {x: 0, y: 0, w: W, h: H}, dt)); }};
 const auto = qs.get('auto');
 if (auto) { app.mode = qs.get('duel') ? 'duel' : 'solo'; if (app.mode === 'duel') chooseRoute(auto); else { setRoute(auto); startRace(); } }

@@ -41,15 +41,26 @@ h1{margin:0 0 3px;font-size:27px;font-weight:900}.sub{color:var(--mut);font-weig
 .ctrls{flex:1;display:flex;gap:12px;min-height:0}
 .ctrl{flex:1;appearance:none;border:4px solid var(--ink);border-radius:22px;background:var(--paper);font:900 34px var(--f);color:var(--ink);touch-action:none;box-shadow:0 5px 0 rgba(43,38,34,.85)}
 .ctrl.down{background:var(--gold);transform:translateY(3px)}
-#brk{background:#ff7a5c;color:#fff;flex:1.4}#brk.down{background:var(--red)}
+#brk{background:#ff7a5c;color:#fff;flex:1.4}#brk.down{background:var(--red)}#brk.bell{background:var(--gold);color:var(--ink)}#brk.bell.down{background:#e8b400}
 #tiltHelp{text-align:center;font-weight:800;font-size:16px;color:var(--mut)}
 #eyes{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:10px;min-height:0}#eyes b{font-size:clamp(26px,8vw,38px);font-weight:900}#eyes span{font-size:clamp(16px,5vw,21px);font-weight:700;color:var(--mut);line-height:1.5}
 body.hasBtn #eyes{display:none}
+/* 兩個人比：手機顏色＝螢幕上自己那半邊的框色 */
+body.p1{--col:#e8622c}body.p2{--col:#2c6fb3}body.p1 #ride{background:#ffe3d3}body.p2 #ride{background:#d6e6f7}
+.seat{display:flex;align-items:center;gap:12px;background:var(--col,#e8622c);color:#fff;border:3px solid var(--ink);border-radius:14px;padding:9px 12px;box-shadow:0 3px 0 rgba(43,38,34,.85);margin-bottom:10px;flex:none}
+.tv{display:flex;flex:none;width:76px;height:48px;border:4px solid #fff;border-radius:7px;overflow:hidden;background:rgba(0,0,0,.25)}.tv i{flex:1}.tv i.on{background:#fff}
+.seatTx b{display:block;font-size:24px;font-weight:900;line-height:1.15}.seatTx span{display:block;font-size:17px;font-weight:800;line-height:1.3}
+#ride .seat{margin:0;padding:5px 10px}#ride .tv{width:50px;height:32px;border-width:3px}#ride .seatTx b{font-size:17px}#ride .seatTx span{font-size:15.5px}
+#sWait .seat:not(.hide)~.big{margin-top:12px;font-size:24px}
+.chkT{text-align:center;font-size:22px;font-weight:900;margin:8px 0 10px}.chkRow{display:flex;gap:10px;margin:10px 0 2px}.chkRow span{flex:1;text-align:center;border:3px solid #b9ad97;border-radius:12px;padding:9px 4px;font-size:19px;font-weight:900;color:#8d8270;background:var(--paper)}.chkRow span.on{background:var(--grn);border-color:var(--ink);color:#fff}
+.chkPads{display:flex;gap:12px;height:96px;margin-top:6px}
+.awakeNote{background:#fff3c9;border:2px solid var(--ink);border-radius:11px;padding:7px 11px;font-size:15px;font-weight:800;line-height:1.4;margin-bottom:10px;flex:none}#ride .awakeNote{margin:0;padding:4px 9px;font-size:14px}
 .ctrls:empty{display:none}body:not(.hasBtn) .ctrls{flex:none}
 </style>
 </head>
 <body>
 <main id="m">
+  <div class="awakeNote hide"></div>
   <section id="sCode" class="hide">
     <h1>接電腦螢幕玩</h1>
     <p class="sub">輸入電腦畫面上 QR 下方的 4 位數房間碼。</p>
@@ -64,6 +75,7 @@ body.hasBtn #eyes{display:none}
   </section>
   <section id="sFull" class="hide"><div class="big" id="fullT">已經兩個人了</div><div class="mid">等這場結束再掃一次</div></section>
   <section id="sPick" class="hide">
+    <div class="seat hide"></div>
     <h1><span class="me" id="meTag"></span><span id="rName"></span></h1>
     <p class="sub" id="rHelp"></p>
     <div class="lab">誰來騎？</div><div class="g" id="gc"></div>
@@ -71,11 +83,19 @@ body.hasBtn #eyes{display:none}
     <button class="btn" id="readyBtn">選好了，準備！</button>
   </section>
   <section id="sWait" class="hide">
-    <div class="big"><span class="me" id="meTag2"></span>準備好了</div>
+    <div class="seat hide"></div>
+    <div class="big"><span class="me" id="meTag2"></span><span id="waitT">準備好了</span></div>
+    <div id="chk" class="hide">
+      <div class="chkT">把手機往左傾，再往右傾</div>
+      <div class="meter"><u></u><i id="mi2"></i></div>
+      <div class="chkRow"><span id="chkL">◀ 往左</span><span id="chkR">往右 ▶</span></div>
+      <div class="chkPads hide" id="chkPads"><button class="ctrl" id="clb">◀</button><button class="ctrl" id="crb">▶</button></div>
+      <div class="mid" id="chkS" style="margin-bottom:6px"></div>
+    </div>
     <div class="mid" id="waitMsg">等另一位…</div>
     <div class="mid" id="waitSensor"></div>
     <button class="btn hide" id="waitSensorBtn" style="background:var(--gold);color:var(--ink)">開啟傾斜感測</button>
-    <div class="mid"><b>橫拿手機，像握機車龍頭</b><br>看電腦螢幕騎，傾斜手機就會轉彎。</div>
+    <div class="mid"><b>橫拿手機，像握機車龍頭</b><br><span id="waitHow">看電腦螢幕騎，傾斜手機就會轉彎。</span></div>
     <button class="btn ghost" id="unready">重新選</button>
   </section>
   <section id="sEnd" class="hide">
@@ -85,16 +105,19 @@ body.hasBtn #eyes{display:none}
   </section>
 </main>
 <section id="ride" class="hide">
+  <div class="seat hide"></div>
+  <div class="awakeNote hide"></div>
   <div class="rtop"><span><span class="me" id="meTag3"></span><span id="rName2"></span></span><button class="btn ghost" id="zero" style="width:auto;margin:0;padding:5px 12px;font-size:15px">方向歸零</button></div>
   <div class="meter"><u></u><i id="mi"></i></div>
   <div id="tiltHelp">傾斜手機轉向</div>
   <div id="netKind"></div>
   <button class="btn hide" id="sensorBtn">開啟傾斜感測</button>
-  <div id="eyes"><b>眼睛看電腦螢幕</b><span>橫拿手機像握龍頭<br>往左傾就往左，往右傾就往右</span></div>
+  <div id="eyes"><b id="eyesT">眼睛看電腦螢幕</b><span>橫拿手機像握龍頭<br>往左傾就往左，往右傾就往右</span></div>
   <div class="ctrls"><button class="ctrl hide" id="lb">◀</button><button class="ctrl hide" id="rb">▶</button><button class="ctrl hide" id="brk">煞車</button></div>
 </section>
 <script src="net-config.js"></script>
 <script src="tilt.js"></script>
+<script src="awake.js"></script>
 <script src="rtc.js"></script>
 <script>
 const $ = id => document.getElementById(id);
@@ -107,6 +130,14 @@ if (!id) { id = Math.random().toString(36).slice(2, 12); try { sessionStorage.se
 const qs = new URLSearchParams(location.search);
 const RELAY = (/^(localhost|127\.)/.test(location.hostname) && qs.get('relay')) || window.RIDE_RELAY || '';
 const tilt = window.createTilt();
+const IOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+// iPhone 的 Wake Lock 不一定可靠，這一頁沒有其他聲音，影片備援一起開
+const awake = window.createAwake({both: IOS, onChange: syncAwake});
+const AWAKE_HELP = IOS ? '請到「設定 → 螢幕顯示與亮度 → 自動鎖定」改成「永不」，也請關掉低電量模式。' : '請到「設定 → 顯示 → 螢幕逾時」調到最長，也請關掉省電模式。';
+function syncAwake() {
+  for (const el of document.querySelectorAll('.awakeNote')) { el.classList.toggle('hide', awake.state !== 'fail'); el.textContent = `⚠️ 這支手機可能會自動暗掉，暗掉就偵測不到動作。${AWAKE_HELP}`; }
+  syncNetKind();
+}
 let room = /^\d{4}$/.test(qs.get('room') || '') ? qs.get('room') : '';
 let ws = null, st = {}, pick = {char: null, veh: null}, brake = false, l = false, r = false, sendT = null, lastPack = null, last = {v: null, b: false, t: 0}, seq = 0, linkYou = 0, oneWay = 0;
 const link = window.createLink({
@@ -114,7 +145,7 @@ const link = window.createLink({
   onData: m => { if (m.buzz) navigator.vibrate?.(m.buzz); if (m.q != null) oneWay = Math.round((performance.now() - m.q) / 2); },
   onChange: () => { oneWay = 0; syncNetKind(); },
 });
-function syncNetKind() { $('netKind').textContent = `傾斜：${tilt.live ? '有訊號' : '沒有訊號'}．連線：${link.open ? `直連${oneWay ? ` 約 ${oneWay} ms` : ''}` : '雲端轉傳'}`; }
+function syncNetKind() { $('netKind').textContent = `傾斜：${tilt.live ? '有訊號' : '沒有訊號'}．連線：${link.open ? `直連${oneWay ? ` 約 ${oneWay} ms` : ''}` : '雲端轉傳'}．螢幕：${awake.state === 'lock' ? '保持亮著' : awake.state === 'video' ? '保持亮著（影片）' : awake.state === 'fail' ? `可能會暗掉（${awake.why || '原因不明'}）` : '碰一下就會開啟'}`; }
 /* 電腦在線就試著直連；電腦離開或座位換了就重來 */
 function ensureLink(retry) {
   if (!st.host) { if (linkYou) { link.close(); linkYou = 0; } return; }
@@ -128,14 +159,15 @@ function connMsg(title, msg, retry, code) {
 }
 function connect() {
   if (ws) { ws.onclose = null; ws.close(); }
+  awake.start();
   connMsg('連線中…', '請稍等', false, false);
   const wsBase = RELAY || `${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}`;
   ws = new WebSocket(`${wsBase}/ws?role=phone&room=${room}&id=${id}`);
   ws.onmessage = e => {
     const m = JSON.parse(e.data);
     if (m.t === 'full') { $('fullT').textContent = m.max === 1 ? '這場是一個人騎' : '已經兩個人了'; show('sFull'); ws.onclose = null; return; }
-    if (m.t === 'kicked') { connMsg('這場結束了', '要再玩，請重新掃電腦上的 QR', false, true); ws.onclose = null; stopSending(); return; }
-    if (m.t === 'idle') { connMsg('連線先休息了', '很久沒有動作。電腦那邊還開著的話，按下面就能接回去。', true, true); ws.onclose = null; stopSending(); return; }
+    if (m.t === 'kicked') { connMsg('這場結束了', '要再玩，請重新掃電腦上的 QR', false, true); ws.onclose = null; stopSending(); awake.stop(); return; }
+    if (m.t === 'idle') { connMsg('連線先休息了', '很久沒有動作。電腦那邊還開著的話，按下面就能接回去。', true, true); ws.onclose = null; stopSending(); awake.stop(); return; }
     if (m.t === 'buzz') { navigator.vibrate?.(m.ms || 200); return; }
     if (m.t === 'rtc') { link.onSignal(m.d); return; }
     if (m.t === 'state') { st = m; ensureLink(false); render(); }
@@ -145,7 +177,7 @@ function connect() {
 }
 function askCode(msg) {
   if (ws) { ws.onclose = null; ws.close(); ws = null; }
-  stopSending(); room = ''; history.replaceState(null, '', location.pathname);
+  stopSending(); awake.stop(); room = ''; history.replaceState(null, '', location.pathname);
   $('codeErr').textContent = msg || ''; $('codeIn').value = ''; show('sCode');
 }
 function submitCode() {
@@ -156,6 +188,33 @@ function submitCode() {
 }
 const send = o => { if (ws?.readyState === 1) ws.send(JSON.stringify(o)); };
 function tag(el) { el.textContent = st.you + 'P'; el.style.background = COL[st.you]; }
+/* 兩個人比：一打開就講清楚「你是誰、站哪邊」，手機顏色和螢幕上那半邊的框色一樣 */
+const sideOf = () => st.you === 1 ? '左' : '右';
+function syncSeat() {
+  const duel = st.max === 2, L = st.you === 1;
+  document.body.classList.toggle('p1', duel && L); document.body.classList.toggle('p2', duel && !L);
+  for (const el of document.querySelectorAll('.seat')) {
+    el.classList.toggle('hide', !duel);
+    if (duel) el.innerHTML = `<div class="tv"><i class="${L ? 'on' : ''}"></i><i class="${L ? '' : 'on'}"></i></div><div class="seatTx"><b>你是 ${st.you}P</b><span>${L ? '◀ 站螢幕左邊，看左半邊' : '站螢幕右邊，看右半邊 ▶'}</span></div>`;
+  }
+  $('eyesT').textContent = !duel ? '眼睛看電腦螢幕' : L ? '◀ 眼睛看螢幕左邊' : '眼睛看螢幕右邊 ▶';
+  $('waitHow').textContent = duel ? `看螢幕${sideOf()}半邊騎，傾斜手機就會轉彎。` : '看電腦螢幕騎，傾斜手機就會轉彎。';
+  $('chkS').textContent = `看螢幕${sideOf()}邊那台車，有跟著晃就對了`;
+}
+/* 認位子：往左、往右各傾一次。門檻和電腦端一樣，讀不到傾斜就給左右按鈕 */
+const CHECK = .45;
+let chk = {l: false, r: false};
+const checking = () => st.ready && st.max === 2 && st.phase === 'lobby';
+function syncCheck(v) {
+  if (!checking()) return;
+  $('mi2').style.left = (50 + v * 45) + '%';
+  const was = chk.l && chk.r;
+  if (v < -CHECK) chk.l = true;
+  if (v > CHECK) chk.r = true;
+  $('chkL').classList.toggle('on', chk.l); $('chkR').classList.toggle('on', chk.r);
+  $('chkPads').classList.toggle('hide', tilt.live || !window.__btnReady);
+  if (!was && chk.l && chk.r) render();
+}
 function grid(host, list, pre, cur, fn) {
   host.innerHTML = list.map(([i, n, d]) => `<button class="pc ${i === cur ? 'on' : ''}" data-i="${i}"><img src="art/${pre}_${i}.jpg" alt="${n}"><b>${n}</b><small>${d}</small></button>`).join('');
   host.querySelectorAll('.pc').forEach(b => { b.onclick = () => fn(b.dataset.i); });
@@ -163,20 +222,22 @@ function grid(host, list, pre, cur, fn) {
 function renderPick() {
   const p = st.pack || 'moto';
   tag($('meTag')); $('rName').textContent = NAMES[st.route] || '';
-  $('rHelp').textContent = p === 'bike' ? '騎鐵馬：傾斜手機撿稻穗、閃竹簍，趕在天黑前到厝。' : '騎機車：傾斜手機轉向、按住煞車，平安打卡。';
+  $('rHelp').textContent = p === 'bike' ? '騎鐵馬：傾斜手機轉向，看到路上有人就按「按鈴」，趕在天黑前到厝。' : '騎機車：傾斜手機轉向、按住煞車，平安打卡。';
   grid($('gc'), CHARS[p], 'char', pick.char, i => { pick.char = i; send({t: 'pick', char: i}); renderPick(); });
   grid($('gv'), VEHS[p], 'veh', pick.veh, i => { pick.veh = i; send({t: 'pick', veh: i}); renderPick(); });
 }
 function render() {
   const p = st.pack || 'moto';
   if (!st.host) { stopSending(); connMsg(`房間 ${room} 還沒開`, '請確認電腦畫面上的房間碼。電腦選好路線就會自動接上。', false, true); return; }
+  syncSeat();
+  if (!st.ready) chk = {l: false, r: false};
   if (p !== lastPack) { lastPack = p; pick = {char: CHARS[p][st.you === 2 ? 1 : 0][0], veh: VEHS[p][st.you === 2 ? 1 : 0][0]}; send({t: 'pick', char: pick.char, veh: pick.veh}); }
   if (st.phase === 'race') {
     tag($('meTag3')); $('rName2').textContent = NAMES[st.route] || '';
-    $('brk').classList.toggle('hide', p !== 'moto'); document.body.classList.toggle('hasBtn', p === 'moto');
-    show('ride'); startSending(); keepAwake(); tilt.setFollow(!st.go); syncGoText(); return;
+    $('brk').classList.remove('hide'); $('brk').textContent = p === 'bike' ? '按鈴' : '煞車'; $('brk').classList.toggle('bell', p === 'bike'); document.body.classList.add('hasBtn');   // 鐵馬的按鈕是鈴
+    show('ride'); startSending(); tilt.setDrift(false); tilt.setFollow(!st.go); syncGoText(); return;
   }
-  stopSending();
+  if (!checking()) stopSending();
   if (st.phase === 'result' && st.result && !st.ready && window.__seenEnd !== JSON.stringify(st.result)) {
     window.__seenEnd = JSON.stringify(st.result);
     window.__endDone = false;
@@ -185,7 +246,14 @@ function render() {
     show('sEnd'); return;
   }
   if (st.phase === 'result' && !st.ready && !window.__endDone) { show('sEnd'); return; }
-  if (st.ready) { tag($('meTag2')); const o = (st.players || []).find(x => x.slot !== st.you); $('waitMsg').textContent = st.max === 1 ? '馬上開始！' : o?.ready ? '兩位都好了，馬上開始！' : o?.online ? '等另一位按準備…' : '等另一位掃碼…'; show('sWait'); syncSensor(); }
+  if (st.ready) {
+    tag($('meTag2')); const o = (st.players || []).find(x => x.slot !== st.you), asking = checking() && !(chk.l && chk.r);
+    $('waitT').textContent = st.max === 1 || st.phase !== 'lobby' ? '準備好了' : asking ? '確認位子' : '✔ 位子確認好了';
+    $('chk').classList.toggle('hide', !asking);
+    $('waitMsg').textContent = asking ? '' : st.max === 1 ? '馬上開始！' : o?.ready ? (st.phase === 'lobby' ? '等另一位確認位子…' : '兩位都好了，馬上開始！') : o?.online ? '等另一位按準備…' : '等另一位掃碼…';
+    show('sWait'); syncSensor();
+    if (checking()) { startSending(); tilt.setFollow(false); tilt.setDrift(true); syncCheck(0); }
+  }
   else { renderPick(); show('sPick'); }
 }
 /* 感測器 */
@@ -205,7 +273,7 @@ function syncSensor() {   // 等待畫面也講清楚感測器狀態，不用等
 function syncGoText() {
   const pads = !!window.__btnReady && !tilt.live;
   $('lb').classList.toggle('hide', !pads); $('rb').classList.toggle('hide', !pads);
-  document.body.classList.toggle('hasBtn', pads || (st.pack || 'moto') === 'moto');
+  document.body.classList.add('hasBtn');
   $('sensorBtn').classList.toggle('hide', tilt.live || !canAsk());
   $('tiltHelp').textContent = !tilt.live ? sensorText() : !st.go ? '手機拿好，出發時會自動歸零' : '傾斜手機轉向';
   syncNetKind();
@@ -241,17 +309,26 @@ function startSending() {
     }
     if (now - pingAt > 1000) { pingAt = now; link.send({p: now}); syncGoText(); }
     $('mi').style.left = (50 + v * 45) + '%';
+    syncCheck(v);
   }, 50);
 }
-function stopSending() { clearInterval(sendT); sendT = null; clearTimeout(window.__btnT); tilt.setFollow(false); brake = false; l = false; r = false; }
+function stopSending() { clearInterval(sendT); sendT = null; clearTimeout(window.__btnT); tilt.setFollow(false); tilt.setDrift(false); brake = false; l = false; r = false; }
 function hold(el, on, off) { el.addEventListener('pointerdown', e => { e.preventDefault(); on(); el.classList.add('down'); navigator.vibrate?.(15); }); for (const ev of ['pointerup', 'pointercancel', 'pointerleave']) el.addEventListener(ev, e => { e.preventDefault(); off(); el.classList.remove('down'); }); }
 hold($('brk'), () => { brake = true; }, () => { brake = false; });
 hold($('lb'), () => { l = true; }, () => { l = false; });
 hold($('rb'), () => { r = true; }, () => { r = false; });
-let wake = null; async function keepAwake() { try { if (!wake) wake = await navigator.wakeLock.request('screen'); } catch (e) {} }
-document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') { wake = null; if (st.phase === 'race') keepAwake(); } });
+hold($('clb'), () => { l = true; }, () => { l = false; });
+hold($('crb'), () => { r = true; }, () => { r = false; });
+/* 手機暗掉又點亮：連線多半已經斷了，只是還沒發現。計時器停過就直接接回去，電腦那邊才會馬上繼續 */
+let lastTick = Date.now();
+setInterval(() => {
+  if (document.visibilityState !== 'visible') return;
+  const t = Date.now();
+  if (t - lastTick > 4000 && room && ws) { stopSending(); connect(); }
+  lastTick = t;
+}, 1000);
 setInterval(() => send({t: 'ping'}), 25000);
-window.__phone = {get st() { return st; }, tilt, link, get oneWay() { return oneWay; }};
+window.__phone = {get st() { return st; }, tilt, link, awake, get chk() { return chk; }, get oneWay() { return oneWay; }};
 if (room) connect(); else askCode();
 </script>
 <script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "3df68cf5d6bd4975b97a157f7ff3cafb"}'></script>

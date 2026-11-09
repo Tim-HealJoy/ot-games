@@ -378,7 +378,7 @@ function barnChunk(kit) { // 穀倉與曬穀場
   });
 }
 function homeChunk(kit) { // 終點：土牆紅瓦三合院、紅布條、春聯、一家人在門口
-  const M = kit.M, misc = kit.miscMat, A = kit.A;
+  const M = kit.M;
   return chunk(kit, 1, (ob, gr, r) => {
     const x = 16, z = -26;
     ob.add(flat(26, 18, 3), M(0xd4c08a), T(x, .03, z + 1));
@@ -394,8 +394,10 @@ function homeChunk(kit) { // 終點：土牆紅瓦三合院、紅布條、春聯
     ob.add(box(1, 2.6, 1), M(0x8d7a62), T(x - 3.8, 4.6, z - 6), .03);
     // 跨路的竹竿紅布條
     for (const s of [-1, 1]) ob.add(cyl(.07, .09, 5.4, 8), M(0xa8843e), T(s * (RW + .7), 2.7, -22), .014);
-    ob.add(box(RW * 2 + 1.4, 1, .1), M(0xc8342a), T(0, 4.8, -22), .02);
-    ob.add(quad(RW * 2 + 1, .84, A.misc.uv(7)), misc, T(0, 4.8, -21.94));
+    ob.add(box(RW * 2 + 1.4, 1.3, .1), M(0xc8342a), T(0, 4.7, -22), .02);
+    ob.add(quad(RW * 2 + 1.2, 1.16), kit.finishBannerMat('終點．到厝呷飯', '#c8342a', '#ffe14d', (RW * 2 + 1.2) / 1.16), T(0, 4.7, -21.94));
+    // 地上的方格終點線
+    for (let i = 0; i < 8; i++) for (let k = 0; k < 2; k++) ob.add(flat(RW / 4, .7), M((i + k) % 2 ? 0xf4f2ea : 0x222224), T(-RW + (i + .5) * RW / 4, .05, -22 + k * .7));
     // 門口飯桌與一家人
     ob.add(cyl(.9, .9, .06, 18), M(0x8a5a35), T(x - 3, .86, z + 1), .014);
     ob.add(cyl(.09, .13, .8, 8), M(0x6a4630), T(x - 3, .44, z + 1));
@@ -496,5 +498,5 @@ export function buildValley(kit, scene, seq = [0, 1, 2, 3]) {
 /** 路上會動的物件：回傳可複製的模板 */
 export function itemTemplates(kit) {
   const M = kit.M, one = fn => { const g = new THREE.Group(), b = kit.nb(); fn(b); b.into(g); return g; };
-  return {rice: one(b => riceSheaf(M, b, 0, 0)), basket: one(b => basket(M, b, 0, 0))};
+  return {basket: one(b => basket(M, b, 0, 0)), rough: kit.roughMesh(2.6, 7, 'dirt')};
 }

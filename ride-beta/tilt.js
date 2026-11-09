@@ -10,7 +10,7 @@
  * 沒有陀螺儀的便宜手機沒有方向事件，改用重力感測（devicemotion）。 */
 (function (root) {
   'use strict';
-  var RAD = Math.PI / 180, DEAD = 2.5, FULL = 16, FLAT = .26, MIN_UP = .5;
+  var RAD = Math.PI / 180, DEAD = 2.5, FULL = 16, FLAT = .26, MIN_UP = .5, DRIFT_MS = 2500;
   function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
   function upVector(beta, gamma) {
     var b = beta * RAD, g = gamma * RAD;
@@ -39,18 +39,22 @@
     return /iPad|iPhone|iPod/.test(n.userAgent || '') || (n.platform === 'MacIntel' && n.maxTouchPoints > 1);
   }
   function createTilt() {
-    var listening = false, asking = null, lastOri = -1e9, gx = 0, gy = 0, gz = 0, gOn = false, gSign = isIOS() ? -1 : 1;
+    var listening = false, asking = null, lastOri = -1e9, lastUp = 0, gx = 0, gy = 0, gz = 0, gOn = false, gSign = isIOS() ? -1 : 1;
     function now() { return root.performance ? root.performance.now() : Date.now(); }
     function applyUp(u, angle) {
       var fb = angle == null ? screenAngle() : angle;
       if (t.hold == null || t.follow) t.hold = holdOf(u, fb);
+      else if (t.drift) { var h = holdOf(u, t.hold); if (h !== t.hold) { t.hold = h; t.zero = null; } }
+      var prev = t.roll, at = now();
       t.roll = rollOf(u, t.hold);
       if (t.zero == null || t.follow) t.zero = t.roll;
+      else if (t.drift && prev != null) t.zero += (prev - t.zero) * (1 - Math.exp(-(at - lastUp) / DRIFT_MS));
+      lastUp = at;
       t.value = steerOf(t.roll - t.zero);
       t.live = true;
     }
     var t = {
-      value: 0, live: false, roll: null, hold: null, zero: null, follow: false, state: root.isSecureContext === false ? 'insecure' : 'idle', source: '',
+      value: 0, live: false, roll: null, hold: null, zero: null, follow: false, drift: false, state: root.isSecureContext === false ? 'insecure' : 'idle', source: '',
       /** 方向感測器的一筆資料（測試也走這裡） */
       feed: function (beta, gamma, angle) {
         if (beta == null || gamma == null) return;
@@ -70,6 +74,8 @@
       rezero: function () { t.hold = null; t.zero = null; t.value = 0; },
       /** 倒數時打開：手機怎麼拿都算正中間，出發那一刻才定下來 */
       setFollow: function (on) { t.follow = !!on; if (on) t.value = 0; },
+      /** 認位子時打開：按完準備才把手機轉成橫拿也沒關係，拿法換了就重算，正中間慢慢跟著手走，快速傾斜才算數 */
+      setDrift: function (on) { t.drift = !!on; },
       /** 開始監聽。不需要點擊，Android 這樣就有資料；iPhone 要等 ask() 允許後才有 */
       listen: function () {
         if (listening || !root.addEventListener || root.isSecureContext === false) return;
