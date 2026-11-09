@@ -20,7 +20,12 @@ export const PACKS = {
   moto: {name: '上班打卡', era: '現在．機車', ctrl: '傾斜＋煞車', goal: '8:30 前打卡'},
 };
 export const ROUTES = {
-  rice: {pack: 'bike', name: '稻田回家路', stars: 1, kind: 'valley', mode: 'easy', song: 'bangchunhong', tag: '黃昏稻田，按鈴請人讓路', tip: '看到路上有人，遠遠就按鈴請他讓路；閃開竹簍和坑洞路，別騎進田埂', limit: 105, dens: 1, seq: [0, 1, 2, 'bridge', 3, 0, 1, 'shrine', 2, 3, 'rail', 0, 1, 'barn', 2, 'home'],
+  // 新手：路短、人少、車速慢、扣血減半、時間寬鬆；正午光線、沒有橋和平交道
+  lane: {pack: 'bike', name: '土地公廟小路', stars: 1, kind: 'valley', mode: 'easy', v: 7, song: 'wuhou', light: 'noon', field: 'green', goal: '午飯前到厝', tag: '正午秧苗田，路短人少慢慢騎', tip: '路上人不多，看到人就按鈴；騎在路中間，別騎進田埂', limit: 80,
+    gap: 26, mix: {basket: .08, rough: .16, npc: .22, npcMax: 1}, roughEvery: 240, troupes: ['pole', 'duck'], bellEarly: 1.8, bellOk: .8, dmg: .5,
+    seq: [0, 1, 'shrine', 2, 3, 0, 'barn', 1, 'home'],
+    zones: {0: '田間小路', 2: '土地公廟前', 6: '穀倉邊', 8: '回厝的路'}, says: {2: '跟土地公點個頭，繼續騎', 6: '聞到飯香了', 8: '看到炊煙，到厝了'}},
+  rice: {pack: 'bike', name: '稻田回家路', stars: 2, kind: 'valley', mode: 'easy', song: 'bangchunhong', tag: '黃昏稻田，按鈴請人讓路', tip: '看到路上有人，遠遠就按鈴請他讓路；閃開竹簍和坑洞路，別騎進田埂', limit: 105, dens: 1, seq: [0, 1, 2, 'bridge', 3, 0, 1, 'shrine', 2, 3, 'rail', 0, 1, 'barn', 2, 'home'],
     zones: {0: '田間小路', 3: '石橋', 7: '土地公廟前', 10: '五分車平交道', 13: '穀倉邊', 15: '回厝的路'}, says: {3: '過了石橋，快到半路了', 7: '土地公保佑，平安回家', 10: '小火車在等人', 13: '聞到飯香了', 15: '看到炊煙，到厝了'}},
   breakfast: {pack: 'moto', name: '巷口買早餐', stars: 1, kind: 'street', mode: 'easy', theme: 'dawn', song: 'diudiudang', tag: '清晨老社區，早餐攤冒白煙', tip: '巷子多：經過巷口先放慢；路面破損要繞開，騎上去會扣血',
     rough: 2, bag: ['parkPull', 'door', 'pedestrian', 'pothole'], crossBag: ['redLight', 'redRunner'], traffic: {opp: ['m1', 'car', 'm2', 'taxi', 'm3'], oppGap: 62, same: 1, flow: 2},
@@ -93,11 +98,12 @@ const ROUGH_GRACE = .12, ROUGH_EVERY = .8;
 export function createRide(cfg) {
   const {kit, routeId, seed = 1, hud = null, snd: Snd = NOOP_SND, demo: DEMO = 0, player: me = {}, rival: rivalInfo = null, label = '', help = {}} = cfg;
   const route = ROUTES[routeId], valley = route.kind === 'valley', pack = route.pack;
+  const DMG = route.dmg ?? 1, HIT = Math.round(HP.crash * DMG), RUB = Math.max(1, Math.round(HP.rough * DMG));   // 新手路線扣血減半
   const MODE = MODES[route.mode], NOM = route.v ?? MODE.v, TH = route.theme ? THEMES[route.theme] : null, CUE = route.cue ?? MODE.cue, GO = route.go ?? MODE.go;
   const $h = sel => hud?.querySelector(sel) ?? document.createElement('div');
   const el = {clock: $h('.clock'), clockL: $h('.clockL'), clockV: $h('.clockV'), speedL: $h('.speedL'), speedV: $h('.speedV'), scoreL: $h('.scoreL'), scoreV: $h('.scoreV'), gauge: $h('.gaugeFill'), prog: $h('.progressFill'), meDot: $h('.dotMe'), riDot: $h('.dotRi'), combo: $h('.combo'), zone: $h('.zone'), hint: $h('.hint'), toasts: $h('.toasts'), flash: $h('.flash'), vig: $h('.vig'), tint: $h('.tint'), lead: $h('.lead'), tag: $h('.tag'), gaugeBox: $h('.gauge'), gaugeV: $h('.gaugeV'), ko: $h('.ko'), koT: $h('.koT'), koS: $h('.koS'), banner: $h('.banner'), notice: $h('.notice')};
   el.tag.textContent = label;
-  el.clockL.textContent = valley ? '天黑前到厝' : '打卡 8:30 前'; el.speedL.textContent = '時速'; el.scoreL.textContent = '分數';
+  el.clockL.textContent = route.goal || (valley ? '天黑前到厝' : '打卡 8:30 前'); el.speedL.textContent = '時速'; el.scoreL.textContent = '分數';
   if (TH?.tint) { el.tint.style.background = TH.tint[0]; el.tint.style.opacity = TH.tint[1]; }
 
   /* ───────── 場景 ───────── */
@@ -107,7 +113,7 @@ export function createRide(cfg) {
   scene.fog = TH ? new THREE.Fog(TH.fog[0], TH.fog[1], TH.fog[2]) : MODE.rain ? new THREE.Fog(baseFog, 30, 165) : valley ? new THREE.Fog(baseFog, 150, 440) : new THREE.Fog(baseFog, 130, 345);
   const camera = new THREE.PerspectiveCamera(58, 16 / 9, .3, valley ? 950 : 430);
   const hemi = TH ? new THREE.HemisphereLight(TH.hemi[0], TH.hemi[1], TH.hemi[2]) : new THREE.HemisphereLight(0xffffff, 0xc9b99c, 1.75); scene.add(hemi);
-  const sun = TH ? new THREE.DirectionalLight(TH.sun[0], TH.sun[1]) : new THREE.DirectionalLight(0xfff1d6, 2.25), SUN_AT = TH?.sunAt || [34, 58, -34];
+  const sun = TH ? new THREE.DirectionalLight(TH.sun[0], TH.sun[1]) : new THREE.DirectionalLight(0xfff1d6, 2.25), SUN_AT = TH?.sunAt || (route.light === 'noon' ? [12, 80, -16] : [34, 58, -34]);
   let low = !!cfg.low; const fineScale = cfg.fineScale ?? 1;   // 手機畫質：近景小物件顯示距離、低畫質關影子
   sun.castShadow = !low; sun.shadow.mapSize.set(cfg.shadow ?? 2048, cfg.shadow ?? 2048);
   Object.assign(sun.shadow.camera, {left: -62, right: 62, top: 62, bottom: -62, near: 1, far: 190});
@@ -121,7 +127,7 @@ export function createRide(cfg) {
   const slots = [], tailSlots = []; let far = null, farHome = null;
   const frame = (g, a) => { const p = road.at(a); g.position.set(p.x, 0, p.z); g.rotation.y = -p.th; };
   if (valley) {
-    const v = buildValley(kit, scene, route.seq.concat(tailSeq));
+    const v = buildValley(kit, scene, route.seq.concat(tailSeq), {field: route.field});
     far = v.far; farHome = v.home;
     v.chunks.forEach((g, i) => {
       const slot = {i, a: i * CHUNK, g, fine: g.getObjectByName('fine'), type: 'valley', name: route.zones[i] || '', lamps: {R: [], Y: [], G: []}, sig: 'G', span: CHUNK}; g.visible = false;
@@ -568,17 +574,18 @@ function checkCollisions() {
     for (const e of ev.ents) if (e.live && overlap(e)) { crash(ev); return; }
     const ex = H[ev.type].extra?.(ev); if (ex && overlap(ex)) { crash(ev); return; }
   }
-  for (const e of AMB) if (e.solid && !(e.op && road.inRing(e.a)) && !(e.ringCar && e.wx == null) && overlap(e)) { crash(null, e); return; }
+  for (const e of AMB) if (e.flow && e.a < S.s - PLAYER_HL && overlap(e)) e.v = Math.min(e.v, S.v * .6);   // 後面的機車追上來：它自己煞車，不算玩家的錯
+  for (const e of AMB) if (e.solid && !(e.flow && e.a < S.s - PLAYER_HL) && !(e.op && road.inRing(e.a)) && !(e.ringCar && e.wx == null) && overlap(e)) { crash(null, e); return; }
   for (const slot of slots) if (slot.colliders && Math.abs(S.s - slot.a - 20) < 40) for (const c of slot.colliders) {
     const r = {x: (c.x0 + c.x1) / 2, hw: (c.x1 - c.x0) / 2, a: slot.a + (-c.z0 - c.z1) / 2, hl: (c.z0 - c.z1) / 2};
     if (overlap(r)) { const ev = EVENTS.find(v => v.slot === slot && v.type === 'work'); crash(ev, null, 2.2); return; }
   }
 }
 function crash(ev, amb, safeX) {
-  S.phase = 'crash'; S.crashT = 2.3; S.crashes++; S.combo = 0; addGauge(-HP.crash, ev ? ev.type : amb?.key || 'crash'); clearSurface(); S.shake = 1; S.crashDir = (valley ? S.x > 0 : S.x > 3) ? 1 : -1; S.safeX = safeX ?? (valley ? clamp(S.x, -RW + .3, RW - .3) : clamp(S.x, .8, 6));
+  S.phase = 'crash'; S.crashT = 2.3; S.crashes++; S.combo = 0; addGauge(-HIT, ev ? ev.type : amb?.key || 'crash'); clearSurface(); S.shake = 1; S.crashDir = (valley ? S.x > 0 : S.x > 3) ? 1 : -1; S.safeX = safeX ?? (valley ? clamp(S.x, -RW + .3, RW - .3) : clamp(S.x, .8, 6));
   if (ev) { ev.crashed = true; }
   noteWorst(ev ? LABEL[ev.type] : (amb?.label || '撞上前方來車'), 3 + S.crashes);
-  toast(amb?.toast || `摔車了！血條 −${HP.crash}`, 'bad'); vignette(); Snd.crash(); cfg.onHit?.();
+  toast(amb?.toast || `摔車了！血條 −${HIT}`, 'bad'); vignette(); Snd.crash(); cfg.onHit?.();
 }
 function bump() { S.v *= .5; S.bumps++; S.combo = 0; addGauge(-HP.bump, 'pothole'); cfg.onHit?.(.4); S.shake = .55; toast(`坑洞！血條 −${HP.bump}`, 'bad'); Snd.bump(); noteWorst('路面坑洞', 1.5); }
 /* 路面好不好騎：田埂、破損路面、水溝蓋都一樣，騎上去就會慢、會抖、會一直扣血 */
@@ -614,9 +621,9 @@ function tickSurface(dt) {
   S.shake = Math.max(S.shake, .16);
   if (S.invuln > 0 || S.surfIn < ROUGH_GRACE || S.surfHit > 0) return;
   S.surfHit = ROUGH_EVERY; S.roughs++; S.combo = 0;
-  addGauge(-HP.rough, sf.key); Snd.bump(); cfg.onHit?.(.3); noteWorst(LABEL[sf.key], 1.5);
+  addGauge(-RUB, sf.key); Snd.bump(); cfg.onHit?.(.3); noteWorst(LABEL[sf.key], 1.5);
   if (S.surfEv && !S.surfEv.crashed) { S.surfEv.crashed = true; S.bumps++; }
-  if (S.surfIn < .5) toast(`${sf.toast}血條 −${HP.rough}`, 'bad');
+  if (S.surfIn < .5) toast(`${sf.toast}血條 −${RUB}`, 'bad');
   if (sf.back && !S.warned.has(sf.key)) { S.warned.add(sf.key); hint(sf.back, 2.6); }
 }
 function ticket(why, ev) { S.tickets++; S.combo = 0; S.score -= 100; addGauge(-HP.ticket, 'ticket'); cfg.onHit?.(.4); flashWhite(.95); toast(`${why}：紅單 1 張 −100`, 'bad'); Snd.flash(); noteWorst(why, 2.5); if (ev) ev.ticketed = true; }
@@ -654,26 +661,40 @@ function flowBlockers(e) {
     if (ev.state === 'idle' || ev.state === 'dead') continue;
     for (const o of ev.ents) if (o.live) rs.push(o);
     const ex = H[ev.type].extra?.(ev); if (ex) rs.push(ex);
-    if (ev.type === 'pothole') rs.push({x: ev.cx, a: ev.anchor, hw: .75, hl: .75});
-    if (ev.type === 'rough') rs.push({x: ev.cx, a: ev.anchor, hw: ev.w / 2, hl: ev.len / 2});
+    if (ev.type === 'pothole') rs.push({x: ev.cx, a: ev.anchor, hw: .75, hl: .75, fixed: true});
+    if (ev.type === 'rough') rs.push({x: ev.cx, a: ev.anchor, hw: ev.w / 2, hl: ev.len / 2, fixed: true});
   }
-  for (const slot of slots) if (slot.colliders && Math.abs(e.a - slot.a - 20) < 50) for (const c of slot.colliders) rs.push({x: (c.x0 + c.x1) / 2, hw: (c.x1 - c.x0) / 2, a: slot.a + (-c.z0 - c.z1) / 2, hl: (c.z0 - c.z1) / 2});
+  for (const slot of slots) if (slot.colliders && Math.abs(e.a - slot.a - 20) < 50) for (const c of slot.colliders) rs.push({x: (c.x0 + c.x1) / 2, hw: (c.x1 - c.x0) / 2, a: slot.a + (-c.z0 - c.z1) / 2, hl: (c.z0 - c.z1) / 2, fixed: true});
   for (const o of AMB) if (o !== e && (o.same || o.flow)) rs.push(o);
-  if (S.phase === 'ride' || S.phase === 'crash') rs.push({x: S.x, a: S.s, hw: PLAYER_HW + .3, hl: PLAYER_HL});
+  if (S.phase === 'ride' || S.phase === 'crash') {   // 在玩家後面的車要多留空間，也預判玩家正在往哪邊偏
+    const behind = e.a < S.s + .5, px = S.x + clamp(S.vx, -3, 3) * (behind ? .45 : .2);
+    const ext = behind ? 0 : Math.min(8, S.v * .9);   // 在玩家前面的車，不要切進玩家接下來一秒會騎到的地方
+    rs.push({x: (S.x + px) / 2, a: S.s + ext / 2, hw: PLAYER_HW + Math.abs(px - S.x) / 2 + (behind ? .75 : .3), hl: PLAYER_HL + ext / 2 + (behind ? 1.2 : 0), player: true, behind});
+  }
   return rs.filter(near);
 }
-const FLOW_XS = [3.0, 2.6, 3.4, 2.2, 3.8, 4.2, 4.6, 5.0, 5.4, 5.8, 6.2, 1.9];
+const FLOW_XS = [3.0, 2.7, 3.4, 3.8, 4.2, 4.6, 5.0, 5.4, 5.8, 6.2, 2.3, 1.9, 1.55, 1.2];   // 最後四個是汽車道：施工縮減時只能借道
+function respawnFlow(e) {   // 從後面重新出現時找空位，不和別台疊在一起
+  e.v = NOM * 1.1; e.x = e.x0; e.yaw = 0;
+  for (let j = 0; j < 12; j++) {
+    e.a = S.s - 38 - j * 5 - Math.random() * 3;
+    if (!AMB.some(o => o !== e && (o.flow || o.same) && Math.abs(o.a - e.a) < o.hl + e.hl + 1.5 && Math.abs(o.x - e.x) < o.hw + e.hw + .3)) return;
+  }
+}
 function flowSteer(e, tgt, dt) {
-  const look = 3 + Math.max(e.v, 3) * 1.3, rs = flowBlockers(e);
-  const hits = (x, a0, a1, pad) => rs.filter(r => Math.abs(r.x - x) < r.hw + e.hw + pad && r.a + r.hl > a0 && r.a - r.hl < a1);
-  const sweep = x1 => { for (let k = 1; k <= 6; k++) if (hits(e.x + (x1 - e.x) * k / 6, e.a - e.hl - .2, e.a + e.hl + 1.5, .12).length) return false; return true; };
+  const look = 3 + Math.max(e.v, 3) * 1.3, st = e.stuck || 0;
+  // 塞住太久的保險：2.5 秒後不再禮讓其他車，5 秒後只避開玩家，避免整條路塞死、玩家也過不去
+  const rs = flowBlockers(e).filter(r => st > 5 ? r.player : st > 2.5 ? !(r.flow || r.same) : true);
+  const hits = (x, a0, a1, pad) => rs.filter(r => Math.abs(r.x - x) < r.hw + e.hw + (r.fixed ? Math.max(0, pad - .25) : pad) && r.a + r.hl > a0 && r.a - r.hl < a1);
+  const inside = new Set(hits(e.x, e.a - e.hl, e.a + e.hl, 0));   // 已經壓到的東西：允許往外移出來，不然會卡死在原地
+  const sweep = x1 => { for (let k = 1; k <= 6; k++) if (hits(e.x + (x1 - e.x) * k / 6, e.a - e.hl - .2, e.a + e.hl + 1.5, .12).some(r => !inside.has(r))) return false; return true; };
   const free = x => !hits(x, e.a - e.hl, e.a + e.hl + look, .3).length && sweep(x);
   let to = null;
   if (free(e.x0)) to = e.x0;
-  else { let bs = 1e9; for (const x of [e.x0, ...FLOW_XS]) { const sc = Math.abs(x - e.x) + Math.abs(x - e.x0) * .25; if (sc < bs && free(x)) { bs = sc; to = x; } } }
-  if (to == null) {   // 兩邊都塞住：停在後面等
-    to = e.x;
-    for (const r of hits(e.x, e.a, e.a + look + 6, .25)) if (r.a > e.a) tgt = Math.min(tgt, Math.max(0, (r.a - r.hl - e.a - e.hl - 1.2) * 1.3));
+  else { let bs = 1e9; for (const x of [e.x0, ...FLOW_XS]) { const sc = Math.abs(x - e.x) + Math.abs(x - e.x0) * .25 + (x < 2.6 ? 1.5 : 0); if (sc < bs && free(x)) { bs = sc; to = x; } } }
+  if (to == null) to = e.x;   // 兩邊都塞住：停在後面等
+  {   // 換線還沒換過去之前，眼前這條線上的東西照樣要減速
+    for (const r of hits(e.x, e.a - e.hl, e.a + look + 6, .1)) if ((!r.player || r.behind) && (r.fixed ? r.a - r.hl > e.a + e.hl - .3 : r.a > e.a)) tgt = Math.min(tgt, Math.max(0, (r.a - r.hl - e.a - e.hl - 1.2) * 1.3));
   }
   const vx = clamp((to - e.x) * 2.4, -2.2, 2.2);
   e.x += vx * dt;
@@ -689,9 +710,10 @@ function tickAmbient(dt) {
       const red = nextRed(e.a); let tgt = NOM * 1.12;
       if (red != null && red - e.a < 30) tgt = Math.max(0, (red - e.a - 1) * 1.1);
       tgt = flowSteer(e, tgt, dt);   // 前面有障礙：換到空的位置，換不過去就減速跟在後面
-      e.v += clamp(tgt - e.v, -9 * dt, 4 * dt); e.a += e.v * dt;
-      if (e.a > S.s + 190) { e.a = S.s - 40 - Math.random() * 30; e.v = NOM * 1.1; e.x = e.x0; e.yaw = 0; }
-      if (e.a < S.s - 90) { e.a = S.s - 36; e.v = NOM * 1.1; e.x = e.x0; e.yaw = 0; }
+      e.stuck = e.v < .3 && (red == null || red - e.a > 30) ? (e.stuck || 0) + dt : 0;
+      if (e.stuck > 4 && e.a < S.s - 15) { respawnFlow(e); e.stuck = 0; continue; }   // 落在後面卡住太久：換到後面重新出發
+      e.v += clamp(tgt - e.v, -(tgt < e.v * .4 ? 18 : 9) * dt, 4 * dt); e.a += e.v * dt;   // 前車急煞：跟著急煞
+      if (e.a > S.s + 190 || e.a < S.s - 90) respawnFlow(e);
       continue;
     }
     if (e.same) {
@@ -701,6 +723,9 @@ function tickAmbient(dt) {
       const red = nextRed(e.a); if (red != null) tgt = Math.min(tgt, Math.max(0, (red - e.a - 3.2) * 1.15));
       for (const ev of EVENTS) if ((ev.state === 'wait' || ev.state === 'cue' || ev.state === 'go') && ev.ents) for (const o of ev.ents) if (o.live && Math.abs(o.x - e.x) < o.hw + 1.05 && o.a > e.a) tgt = Math.min(tgt, Math.max(0, (o.a - e.a - o.hl - 4) * 1.1));
       if (Math.abs(S.x - e.x) < 1.25 && S.s > e.a) tgt = Math.min(tgt, Math.max(0, (S.s - e.a - 4.2) * 1.2));
+      let tF = 1e9; for (const o of AMB) if (o.flow && o.a > e.a && Math.abs(o.x - e.x) < e.hw + o.hw) tF = Math.min(tF, Math.max(0, (o.a - o.hl - e.a - e.hl - 2) * 1.2));
+      e.flowWait = tF < tgt && e.v < .3 ? (e.flowWait || 0) + dt : 0;   // 只因為機車擋著而停超過 2.5 秒：不再讓，免得互等塞死
+      if (e.flowWait < 2.5) tgt = Math.min(tgt, tF);
       e.v += clamp(tgt - e.v, -9 * dt, 3 * dt); e.a += e.v * dt;
       if (e.a < S.s - 45) { const top = Math.max(...same.map(q => q.a)); e.a = Math.max(S.s + 170, top + 40); e.v = e.base; }
       if (e.a > S.s + 290) { const low = Math.min(...same.map(q => q.a)); e.a = Math.min(S.s - 40, low - 20); e.v = e.base; }
@@ -728,13 +753,14 @@ function demoThink() {
   }
   for (const slot of slots) if (slot.colliders && S.s > slot.a - 26 && S.s < slot.a + 37) demoTarget = 2.0;
   for (const e of AMB) if (e.same && Math.abs(e.x - S.x) < 1.35 && e.a > S.s && e.a - S.s < 9 + e.hl) demoB = true;
+  for (const e of AMB) if (e.flow && Math.abs(e.x - S.x) < .8 && e.a > S.s && e.a - S.s < 4 + S.v * .5 && e.v < S.v) demoB = true;
 }
 const demoSteer = () => clamp((demoTarget - S.x) * 1.4, -1, 1);
 const demoBrake = () => demoB;
 
   /* ───────── 鐵馬路線：按鈴請路上的人讓路、閃竹簍、超慢車 ───────── */
   const ITEMS = [], NPCS = [], TROUPES = [];
-  const BELL_EARLY = 2.4, BELL_OK = 1.1;   // 按鈴時離撞上還有幾秒：2.4 秒以上算提早
+  const BELL_EARLY = route.bellEarly ?? 2.4, BELL_OK = route.bellOk ?? 1.1;   // 按鈴時離撞上還有幾秒：稻田 2.4 秒以上算提早，新手 1.8 秒
   const EDGE = {pole: 2.85, duck: 2.75, buffalo: 2.7};   // 讓路後站的位置，車道上的車剛好過得去
   /** 路上的一組人：挑扁擔的阿伯／趕鴨的小孩＋鴨群／牽牛的阿嬸＋水牛 */
   function makeTroupe(type, x, a, rng) {
@@ -816,7 +842,7 @@ const demoBrake = () => demoB;
       else if (m.kind === 'duck') { for (const q of t.members) if (q.kind === 'duck') { q.scat = 1; q.sx = Math.sign(q.dx + t.x - S.x) || 1; } t.flapT = 1.4; Snd?.quack?.(); }
       else { t.startle = 1.3; Snd?.moo?.(); }
       const [key, label, say] = m.kind === 'duck' ? ['duck', '撞進鴨群', '撞進鴨群了！'] : m.kind === 'buffalo' ? ['buffalo', '撞到水牛', '撞到水牛了！'] : ['walker', '撞到路上的人', '撞到人了！'];
-      S.bumps++; S.combo = 0; crash(null, {key, label, toast: `${say}血條 −${HP.crash}`});
+      S.bumps++; S.combo = 0; crash(null, {key, label, toast: `${say}血條 −${HIT}`});
       return true;
     }
     return false;
@@ -843,17 +869,17 @@ const demoBrake = () => demoB;
     }
   }
   if (valley) {
-    const r = mulberry(seed * 7 + 3), T = itemTemplates(kit), gap = [0, 15, 12, 10][route.dens] || 14;
+    const r = mulberry(seed * 7 + 3), T = itemTemplates(kit), gap = route.gap ?? ([0, 15, 12, 10][route.dens] || 14), MIX = route.mix || {basket: .18, rough: .3, npc: .42, npcMax: 3};
     // 障礙輪流出現在三條線上，走中間不動也躲不掉
     let hz = [], tb = [], a = 28, lastRough = -60;
     const bag = (arr, list) => { if (!arr.length) { arr.push(...list); for (let i = arr.length - 1; i > 0; i--) { const j = r() * (i + 1) | 0; [arr[i], arr[j]] = [arr[j], arr[i]]; } } return arr.pop(); };
-    const hazLane = () => bag(hz, [-LANE, 0, LANE]), troupeType = () => bag(tb, ['pole', 'duck', 'buffalo']);
+    const hazLane = () => bag(hz, [-LANE, 0, LANE]), troupeType = () => bag(tb, route.troupes || ['pole', 'duck', 'buffalo']);
     const plainDirt = (s0, s1) => typeof route.seq[Math.floor(s0 / CHUNK)] === 'number' && typeof route.seq[Math.floor(s1 / CHUNK)] === 'number';
     while (a < FINISH_A - 34) {
-      const roll = r(), dueRough = a - lastRough > 125;   // 每隔一段一定有坑洞路，不靠運氣
-      if (roll < .18 && !dueRough) { ITEMS.push({kind: 'basket', x: hazLane(), a, g: T.basket.clone(true)}); a += gap * .75; }
-      else if ((roll < .3 || dueRough) && plainDirt(a, a + 7)) { ITEMS.push({kind: 'rough', x: hazLane() * .88, a: a + 3.5, len: 7, w: 2.6, g: T.rough.clone(true)}); lastRough = a; a += 7 + gap * .75; }
-      else if (roll < .42 && NPCS.length < 3) { const lane = r() < .5 ? -LANE : LANE; NPCS.push({x: lane, x0: lane, a: a + 26, a0: a + 26, g: makePlayerMesh(kit, 'bike', ['boy', 'ama', 'girl', 'agong'][NPCS.length % 4], ['cargo', 'basket', 'iron', 'post'][NPCS.length % 4])}); a += gap; }
+      const roll = r(), dueRough = a - lastRough > (route.roughEvery ?? 125);   // 每隔一段一定有坑洞路，不靠運氣
+      if (roll < MIX.basket && !dueRough) { ITEMS.push({kind: 'basket', x: hazLane(), a, g: T.basket.clone(true)}); a += gap * .75; }
+      else if ((roll < MIX.rough || dueRough) && plainDirt(a, a + 7)) { ITEMS.push({kind: 'rough', x: hazLane() * .88, a: a + 3.5, len: 7, w: 2.6, g: T.rough.clone(true)}); lastRough = a; a += 7 + gap * .75; }
+      else if (roll < MIX.npc && NPCS.length < MIX.npcMax) { const lane = r() < .5 ? -LANE : LANE; NPCS.push({x: lane, x0: lane, a: a + 26, a0: a + 26, g: makePlayerMesh(kit, 'bike', ['boy', 'ama', 'girl', 'agong'][NPCS.length % 4], ['cargo', 'basket', 'iron', 'post'][NPCS.length % 4])}); a += gap; }
       else if (plainDirt(a, a + 30) && a < FINISH_A - 60) { makeTroupe(troupeType(), hazLane(), a + 6, r); a += 30 + gap; }   // 人會往前走，前面留空間
       else a += 6;
     }
@@ -893,7 +919,7 @@ const demoBrake = () => demoB;
       if (it.kind === 'basket') rs.push({x: it.x, a: it.a, hw: .5, hl: .5});
       else if (it.kind === 'rough') rs.push({x: it.x, a: it.a, hw: it.w / 2, hl: it.len / 2});
     }
-    for (const t of TROUPES) if (t.active) for (const m of t.members) rs.push({x: t.x + m.dx, a: t.a + m.da, hw: m.hw, hl: m.hl});
+    for (const t of TROUPES) if (t.active) for (const m of t.members) rs.push({x: t.x + m.dx + clamp(t.vx, -2, 2) * .35, a: t.a + m.da, hw: m.hw + .2 + Math.abs(t.vx) * .2, hl: m.hl + .25});   // 人和動物會橫著走，多留一點
     for (const o of NPCS) if (o !== n) rs.push({x: o.x, a: o.a, hw: NPC_HW, hl: NPC_HL});
     if (S.phase === 'ride' || S.phase === 'crash') rs.push({x: S.x, a: S.s, hw: PLAYER_HW + .15, hl: PLAYER_HL, me: true});
     return rs;
@@ -902,17 +928,16 @@ const demoBrake = () => demoB;
     const base = S.v * .55, look = 3 + Math.max(base, 2) * 1.6, rs = npcBlockers(n);
     const hits = (x, a0, a1, pad) => rs.filter(r => Math.abs(r.x - x) < r.hw + NPC_HW + pad && r.a + r.hl > a0 && r.a - r.hl < a1);
     const free = x => !hits(x, n.a - NPC_HL, n.a + NPC_HL + look, .25).length && sweep(n.x, x);
-    const sweep = (x0, x1) => { for (let k = 1; k <= 6; k++) if (hits(x0 + (x1 - x0) * k / 6, n.a - NPC_HL - .2, n.a + NPC_HL + 1.2, .12).length) return false; return true; };
+    const inside = new Set(hits(n.x, n.a - NPC_HL, n.a + NPC_HL, 0));
+    const sweep = (x0, x1) => { for (let k = 1; k <= 6; k++) if (hits(x0 + (x1 - x0) * k / 6, n.a - NPC_HL - .2, n.a + NPC_HL + 1.2, .12).some(r => !inside.has(r))) return false; return true; };
     const home = n.tx ?? n.x0;
     let tgt = null;
     if (free(home)) tgt = home;
     else { let bs = 1e9; for (const x of NPC_XS) { const sc = Math.abs(x - n.x) + Math.abs(x - home) * .3; if (sc < bs && free(x)) { bs = sc; tgt = x; } } }
     let v = base;
-    if (tgt == null) {   // 兩邊都過不去：在障礙物後面慢下來
-      tgt = n.x;
-      const ahead = hits(n.x, n.a, n.a + look + 4, .2).filter(r => r.a > n.a);
-      for (const r of ahead) v = Math.min(v, Math.max(0, (r.a - r.hl - n.a - NPC_HL - .8) * 1.4));
-    }
+    if (tgt == null) tgt = n.x;   // 兩邊都過不去：在障礙物後面慢下來
+    // 還沒換過去之前，眼前這條線上的東西照樣要減速；已經壓到的就繼續騎出去，不停在上面
+    for (const r of hits(n.x, n.a - NPC_HL, n.a + look + 4, .1)) if (r.a - r.hl > n.a + NPC_HL - .3) v = Math.min(v, Math.max(0, (r.a - r.hl - n.a - NPC_HL - .8) * 1.4));
     const vx = clamp((tgt - n.x) * 2.2, -1.7, 1.7);
     n.x += vx * dt; n.a += v * dt;
     n.yaw = follow(n.yaw || 0, Math.atan2(-vx, Math.max(1.2, v)) * .8, 6, dt);
@@ -927,17 +952,17 @@ const demoBrake = () => demoB;
     if (S.v < top) S.v = Math.min(top, S.v + ACCEL * dt); else S.v = Math.max(top, S.v - 6 * dt);
     // 從田埂直直衝上石橋會撞到橋頭；橋上只能走橋面
     const br = bridgeAt(), lim = br ? RW - .05 : RW + .35;
-    if (br && Math.abs(S.x) > RW + .05 && S.invuln <= 0) { S.bumps++; crash(null, {key: 'rail', label: '撞到橋頭', toast: `撞到橋頭！血條 −${HP.crash}`}); return; }
+    if (br && Math.abs(S.x) > RW + .05 && S.invuln <= 0) { S.bumps++; crash(null, {key: 'rail', label: '撞到橋頭', toast: `撞到橋頭！血條 −${HIT}`}); return; }
     steerStep(dt, steer, -lim, lim);
     tickSurface(dt);
     const off = Math.abs(S.x) > RW + .05;
-    S.dusk = clamp((S.t / route.limit - .35) / .65, 0, 1);
+    S.dusk = route.light === 'noon' ? 0 : clamp((S.t / route.limit - .35) / .65, 0, 1);   // 正午的路不會變暗
     for (const it of ITEMS) {
       if (it.done) continue;
       const d = it.a - S.s; it.g.visible = d > -8 && d < 200;
       if (it.kind === 'rough' && d > 0 && d < 34 && !S.warned.has('dirtAhead')) { S.warned.add('dirtAhead'); hint('前面路面坑坑洞洞，往旁邊閃', 2.4); }
       if (it.kind === 'basket' && Math.abs(d) < .9 && !off && Math.abs(it.x - S.x) < .78 && S.invuln <= 0) {
-        it.done = true; it.g.visible = false; S.baskets++; S.bumps++; crash(null, {key: 'basket', label: '撞到竹簍', toast: `撞到竹簍！血條 −${HP.crash}`}); return;
+        it.done = true; it.g.visible = false; S.baskets++; S.bumps++; crash(null, {key: 'basket', label: '撞到竹簍', toast: `撞到竹簍！血條 −${HIT}`}); return;
       }
       if (d < -8) { it.done = true; it.g.visible = false; }
     }
@@ -949,7 +974,7 @@ const demoBrake = () => demoB;
       // 整段都會撞：並排時往旁邊擠、從後面追上，都算
       if (!n.hit && S.invuln <= 0 && !off && Math.abs(n.x - S.x) < PLAYER_HW * 2 * .92 && Math.abs(n.a - S.s) < PLAYER_HL * 2 * .9) {
         n.hit = true; n.done = true; n.tx = (n.x >= S.x ? 1 : -1) * 2.55; S.bumps++;
-        crash(null, {key: 'npcBike', label: '撞到旁邊的鐵馬', toast: `撞到別人的鐵馬！血條 −${HP.crash}`}); return;
+        crash(null, {key: 'npcBike', label: '撞到旁邊的鐵馬', toast: `撞到別人的鐵馬！血條 −${HIT}`}); return;
       }
       if (!n.done && n.a < S.s - PLAYER_HL * 2) { n.done = true; S.score += 20; toast('追過去了！', 'ok'); Snd?.ok(); }
     }
@@ -988,7 +1013,10 @@ const demoBrake = () => demoB;
     camPos.set(S.x, 3, -S.s + 6); el.zone.classList.remove('on'); el.hint.classList.remove('on');
   }
   function sim(dt) {
-    if (S.phase === 'wait' || S.finished) return;
+    if (S.phase === 'wait') {   // 出發前的教學：車還沒走，車手跟著傾斜、煞車燈會亮，看得出動作有沒有被讀到
+      const inp = inputFn(); S.lean += (clamp(-(+inp.steer || 0) * .3, -.3, .3) - S.lean) * Math.min(1, dt * 8); S.brake = !!inp.brake; return;
+    }
+    if (S.finished) return;
     if (S.phase === 'redo') {
       S.redoT -= dt;
       el.koT.textContent = Math.max(1, Math.ceil(S.redoT)); el.koS.textContent = S.restarts > 1 ? `第 ${S.restarts + 1} 次出發` : '再來一次';
@@ -1061,7 +1089,7 @@ const demoBrake = () => demoB;
       onTime = !S.lateHome; safe = unhurt && !S.lateHome; see = S.walkersAll ? S.early / S.walkersAll >= .7 : false;
       if (safe) S.score += 300; if (onTime) S.score += 100;
       if (safe && see && onTime) { title = '全庄最會騎'; desc = '一路按鈴請人讓路，天還沒黑就到厝，飯還是熱的。'; }
-      else if (!onTime) { title = '天黑才到厝'; desc = '飯菜都涼了，明天再早點出發。'; }
+      else if (!onTime) { title = route.light === 'noon' ? '午飯涼了才到厝' : '天黑才到厝'; desc = '飯菜都涼了，明天再早點出發。'; }
       else if (see) { title = '鈴聲最響亮'; desc = '大家都被您提早叫開了，下次也閃過竹簍。'; }
       else if (safe) { title = '穩穩騎回家'; desc = '一路都沒撞到，下次看到人再早一點按鈴。'; }
       else { title = '騎鐵馬的少年仔'; desc = '再騎一趟，路就更熟了。'; }
@@ -1079,7 +1107,7 @@ const demoBrake = () => demoB;
       else { title = '還在練習的騎士'; desc = '每條路都有預兆，再騎一趟看得更清楚。'; }
     }
     const lead = S.leads.length ? S.leads.reduce((p, c) => p + c, 0) / S.leads.length : null;
-    result = {routeId, valley, score: Math.max(0, S.score), gauge: S.gauge, safe, see, onTime, title, desc, finishT: S.t, distance: Math.min(S.s, FINISH_A), arrived: S.s >= FINISH_A - 1,
+    result = {routeId, valley, score: Math.max(0, S.score), gauge: S.gauge, safe, see, onTime, title, desc, goal: route.goal || (valley ? '天黑前到厝' : '8:30 前打卡'), finishT: S.t, distance: Math.min(S.s, FINISH_A), arrived: S.s >= FINISH_A - 1,
       early: S.early, late: S.late, ok: S.ok, crashes: S.crashes, tickets: S.tickets, bumps: S.bumps, walkers: S.walkersAll, missed: S.missed, baskets: S.baskets, lead, worst: S.worst, seen: [...S.seen], maxCombo: S.maxCombo, restarts: S.restarts, roughs: S.roughs, loss: S.loss, bonusSafe: safe ? 300 : 0, bonusTime: onTime ? 100 : 0};
     el.toasts.innerHTML = '';
     cfg.onFinish?.(result);

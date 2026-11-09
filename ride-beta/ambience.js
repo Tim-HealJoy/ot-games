@@ -47,6 +47,7 @@
     };
     var RECIPES = {
       rice: {vol: 1.6, layers: [{f: 5200, q: 7, gain: .03, lfo: 15, depth: .02}, {type: 'lowpass', f: 520, q: .5, gain: .035, lfo: .17, depth: .02}], shots: [['bird', 4, 8]]},
+      lane: {vol: 1.5, layers: [{f: 4300, q: 5, gain: .03, lfo: 22, depth: .022}, {type: 'lowpass', f: 480, q: .5, gain: .025, lfo: .12, depth: .015}], shots: [['bird', 3, 6]]},   // 正午：蟬聲、微風、鳥
       breakfast: {vol: 2, layers: [{type: 'highpass', f: 3600, q: .4, gain: .012, lfo: .7, depth: .006}, {f: 620, q: .7, gain: .012, lfo: 1.7, depth: .006}], shots: [['bird', 1.8, 4.5], ['clink', 3, 6.5]]},
       market: {vol: 1.5, layers: [{f: 720, q: .8, gain: .05, lfo: 2.3, depth: .022}, {f: 1450, q: 1, gain: .024, lfo: 3.1, depth: .012}], shots: [['bell', 8, 13], ['wood', 5, 9]]},
       school: {vol: 1.6, layers: [{f: 1550, q: 1, gain: .024, lfo: 4.2, depth: .013}, {f: 2700, q: 1.6, gain: .008, lfo: 2.6, depth: .005}], intro: 'chime', shots: [['whistle', 7, 12], ['bird', 4, 8]]},

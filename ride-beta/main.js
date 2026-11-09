@@ -11,6 +11,7 @@ const store = {get(k, d) { try { return localStorage.getItem('ride_' + k) ?? d; 
 const TOUCH = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
 if (TOUCH) document.body.classList.add('touch');
 const MUTE = qs.get('mute') === '1', DEMO_N = +(qs.get('demo') || 0), NOPAUSE = qs.has('nopause') || DEMO_N > 0;
+const SKIP_TUT = qs.has('notut') || DEMO_N > 0 || qs.has('auto');   // 自動展示與測試不跑出發前教學
 const IS_PHONE = TOUCH && Math.min(screen.width, screen.height) < 820;   // 玩法二：手機自己當螢幕，手機感測器轉向
 const LOCALHOST = /^(localhost|127\.)/.test(location.hostname);
 const CLOUD = window.RIDE_CLOUD || {}, LOCAL_CLOUD = LOCALHOST && !qs.has('lan') && !qs.get('relay') && !window.RIDE_RELAY && !!CLOUD.relay;
@@ -286,7 +287,7 @@ function renderLobby() {
   $('lobbyStep2').textContent = isSolo ? '② 在手機上選角色和車，按準備' : allReady ? '③ 把手機往左傾、再往右傾，自己這邊的車會跟著晃' : '② 站到自己那一邊，在手機上選角色和車，按準備';
   $('skipCheck').style.display = checking ? '' : 'none';
   $('lobbyTip').innerHTML = `<b>這條路：</b>${Rt.tip}`;
-  $('lobbyNote').textContent = isSolo ? `血條滿分 ${HP.start}，摔車扣 ${HP.crash}，騎進田埂或不平的路面會一直扣；歸零就回起點重騎。` : `同一條路，分數高的贏，先到再加 150 分。騎進田埂或不平的路面會一直扣血，歸零的人要回起點重騎。`;
+  $('lobbyNote').textContent = isSolo ? `血條滿分 ${HP.start}，摔車扣 ${Math.round(HP.crash * (Rt.dmg ?? 1))}，騎進田埂或不平的路面會一直扣；歸零就回起點重騎。` : `同一條路，分數高的贏，先到再加 150 分。騎進田埂或不平的路面會一直扣血，歸零的人要回起點重騎。`;
   $('kbGo').style.display = isSolo ? '' : 'none'; $('kbGo').textContent = TOUCH ? '不用手機，直接在這台玩 →' : '不用手機，直接用鍵盤騎 →';
   $('slot2').style.display = isSolo ? 'none' : '';
   for (const n of seats()) {
@@ -349,7 +350,7 @@ const duelInput = n => () => {
 
 /* ───────── 比賽 ───────── */
 const PCOL = {1: '#e8622c', 2: '#2c6fb3'};
-function clearRace() { app.rides.forEach(r => r.dispose()); app.rides = []; $('hudLayer').innerHTML = ''; app.racing = false; app.paused = false; $('pauseBox').classList.remove('on'); $('brief').classList.remove('on'); document.body.classList.remove('counting'); app.phoneGone = false; app.resuming = false; app.ignoreLost = false; app.phoneKey = ''; $('phoneBox').classList.remove('on'); }
+function clearRace() { app.rides.forEach(r => r.dispose()); app.rides = []; $('hudLayer').innerHTML = ''; app.racing = false; app.paused = false; $('pauseBox').classList.remove('on'); $('brief').classList.remove('on'); endTut(false); document.body.classList.remove('counting'); app.phoneGone = false; app.resuming = false; app.ignoreLost = false; app.phoneKey = ''; $('phoneBox').classList.remove('on'); }
 function helpFor(n, duel) {
   if (slotInfo(n).src === 'phone') return {steer: duel ? '傾斜手機轉向，眼睛看這半邊' : '傾斜手機轉向，眼睛看電腦螢幕', brake: '按住手機上的「煞車」', bell: '前面有人！按手機上的「按鈴」'};
   if (TOUCH && !duel) return {steer: tilt.live ? '左右傾斜手機轉向' : '按畫面左下的 ◀ ▶ 轉向', brake: '按住右下角「煞車」', bell: '前面有人！按右下角的「按鈴」'};
@@ -364,6 +365,91 @@ function setPause(v) {
   app.paused = v; $('pauseBox').classList.toggle('on', v);
   try { if (v) Snd.ctx?.suspend(); else Snd.ctx?.resume(); } catch (e) {}
 }
+/* ───────── 出發前的教學：示範動作、自動校正；全部做到、按住按鈕 2 秒才出發 ───────── */
+const TUT_STEER = .45, TUT_HOLD = 2, TUT_STEPS = ['hold', 'left', 'right', 'btn'], tutKnown = {};
+/** 這位玩家怎麼操作：phone 手機方向盤、tilt 這台裝置傾斜、pad 這台裝置的按鈕、kb 鍵盤 */
+function tutKind(n) {
+  if (app.mode === 'duel') return net.keyboard[n] ? 'kb' : 'phone';
+  if (app.usesPhone?.[1]) return 'phone';
+  if (TOUCH) return tilt.live ? 'tilt' : 'pad';
+  return 'kb';
+}
+function tutText(kind, n, pack) {
+  const btn = pack === 'bike' ? '按鈴' : '煞車', duel = app.mode === 'duel';
+  if (kind === 'kb') {
+    const L = duel ? (n === 1 ? 'A' : '←') : '←', R = duel ? (n === 1 ? 'D' : '→') : '→', B = duel ? (n === 1 ? 'S' : '↓') : '空白鍵';
+    return {hold: '用鍵盤，不用校正', left: `按 ${L} 往左`, right: `按 ${R} 往右`, btn: `按 ${B} ${btn}`, ready: `都做到了！按住 ${B} 2 秒就出發`, keys: [L, R, B]};
+  }
+  if (kind === 'pad') return {hold: '讀不到傾斜，改用畫面上的按鈕', left: '按左下的 ◀', right: '按 ▶', btn: `按右下的「${btn}」`, ready: `都做到了！按住「${btn}」2 秒就出發`, keys: ['◀', '▶', btn]};
+  return {hold: '手機橫拿像握龍頭，拿好不動（自動校正）', left: '身體帶著手機往左傾', right: '再往右傾', btn: `按一下${kind === 'tilt' ? '右下角' : '手機上'}的「${btn}」`, ready: `都做到了！按住「${btn}」2 秒就出發`};
+}
+function figPhone(pack) {   // 示範的人：上半身和手機一起傾斜，手機右邊是煞車或鈴
+  const bc = pack === 'bike' ? '#f2b705' : '#e8622c';
+  return `<svg viewBox="0 0 160 130" aria-hidden="true"><text class="arL" x="6" y="58" font-size="26" font-weight="900" fill="#e8622c">◀</text><text class="arR" x="130" y="58" font-size="26" font-weight="900" fill="#e8622c">▶</text>
+<g class="lean"><path d="M46 128 Q48 72 80 68 Q112 72 114 128 Z" fill="#4f86c6" stroke="#2b2622" stroke-width="3"/>
+<path d="M60 80 L47 95 M100 80 L113 95" stroke="#4f86c6" stroke-width="13" stroke-linecap="round"/><path d="M60 80 L47 95 M100 80 L113 95" stroke="#2b2622" stroke-width="3" stroke-linecap="round" opacity=".25"/>
+<circle cx="80" cy="44" r="19" fill="#f0c7a2" stroke="#2b2622" stroke-width="3"/><path d="M61 39 Q63 22 80 22 Q97 22 99 39 Q90 30 80 30 Q70 30 61 39Z" fill="#2b2622"/>
+<rect x="44" y="82" width="72" height="30" rx="7" fill="#2b2622"/><rect x="49" y="86" width="62" height="22" rx="3" fill="#bfe3f5"/><rect x="92" y="89" width="15" height="16" rx="3" fill="${bc}"/>
+<circle cx="45" cy="97" r="9" fill="#f0c7a2" stroke="#2b2622" stroke-width="3"/><circle cx="115" cy="97" r="9" fill="#f0c7a2" stroke="#2b2622" stroke-width="3"/>
+<g class="thumb"><circle cx="100" cy="95" r="6.5" fill="#f0c7a2" stroke="#2b2622" stroke-width="2.5"/></g>
+<g class="ok"><circle cx="80" cy="64" r="0"/><text x="80" y="18" text-anchor="middle" font-size="15" font-weight="900" fill="#2f9a63">拿穩</text></g></g></svg>`;
+}
+const figKeys = k => `<div class="keys"><span class="k kl">${k[0]}</span><span class="k kr">${k[1]}</span><span class="k kb">${k[2]}</span></div>`;
+function buzzSeat(n, ms) { if (!net.links[n]?.send({buzz: ms})) send({t: 'buzz', slot: n, ms}); }
+function markTut(p, k, quiet) {
+  if (p.done[k]) return;
+  p.done[k] = true; p.el.querySelector(`li[data-k="${k}"]`).classList.add('ok');
+  if (!quiet) { Snd.ok(); if (p.kind === 'phone') buzzSeat(p.n, 60); else if (p.kind === 'tilt' || p.kind === 'pad') navigator.vibrate?.(40); }
+}
+function runTutorial(duel, pack, Rt) {
+  return new Promise(res => {
+    const seats = duel ? [1, 2] : [1];
+    $('tutRoute').textContent = Rt.name; $('tutTip').textContent = Rt.tip;
+    const cols = $('tutCols'); cols.style.setProperty('--n', seats.length); cols.innerHTML = '';
+    const players = seats.map(n => {
+      const kind = tutKind(n), tx = tutText(kind, n, pack), el = document.createElement('div');
+      el.className = 'tutCol' + (duel ? ' p' + n : '');
+      el.innerHTML = `<div class="demo" data-step="hold">${tx.keys ? figKeys(tx.keys) : figPhone(pack)}</div><div>${duel ? `<div class="tutWho">${n}P ${n === 1 ? '◀ 左邊' : '右邊 ▶'}</div>` : ''}<ol class="tutSteps">${TUT_STEPS.map((k, i) => `<li data-k="${k}"><i>${i + 1}</i><span>${tx[k]}</span></li>`).join('')}</ol><div class="tutMeter"><u></u><i></i></div><div class="tutReady"><span>${tx.ready}</span><div class="holdBar"><i></i></div></div></div>`;
+      cols.append(el);
+      const p = {n, kind, input: duel ? duelInput(n) : soloInput, done: {}, still: 0, holdT: 0, lastB: false, ready: false, el, demo: el.querySelector('.demo'), meter: el.querySelector('.tutMeter i'), readyEl: el.querySelector('.tutReady'), bar: el.querySelector('.holdBar i'), lis: [...el.querySelectorAll('.tutSteps li')]};
+      if (tutKnown[pack + n]) ['left', 'right', 'btn'].forEach(k => markTut(p, k, true));   // 這次開機已經練過：只要拿好、按住出發
+      return p;
+    });
+    app.tut = {players, pack, res}; $('tut').classList.add('on');
+  });
+}
+function tickTut() {
+  const T = app.tut; if (!T) return;
+  const now = performance.now(), dt = Math.min(.25, (now - (T.last || now)) / 1000); T.last = now;   // 用真實經過的時間：畫面卡的電腦也是拿穩 1.2 秒、按住 2 秒
+  for (const p of T.players) {
+    const inp = p.input(), s = clamp(+inp.steer || 0, -1, 1), b = !!inp.brake;
+    p.meter.style.left = (50 + s * 45) + '%';
+    if (!p.done.hold) {   // 校正：拿穩 1.2 秒；手機那邊同時把正中間慢慢對準
+      if (p.kind === 'kb' || p.kind === 'pad') markTut(p, 'hold', true);
+      else { p.still = Math.abs(s) < .2 ? p.still + dt : 0; if (p.still >= 1.2) markTut(p, 'hold'); }
+    }
+    if (s < -TUT_STEER) markTut(p, 'left');
+    if (s > TUT_STEER) markTut(p, 'right');
+    if (b && !p.lastB) { if (T.pack === 'bike') Snd.bell(); markTut(p, 'btn'); }
+    p.lastB = b;
+    const all = TUT_STEPS.every(k => p.done[k]), cur = p.ready ? 'ready' : TUT_STEPS.find(k => !p.done[k]) || 'ready';
+    if (p.demo.dataset.step !== cur) { p.demo.dataset.step = cur; p.lis.forEach(li => li.classList.toggle('cur', li.dataset.k === cur)); }
+    p.readyEl.classList.toggle('on', all);
+    if (p.ready) continue;
+    p.holdT = all && b ? p.holdT + dt : 0;
+    p.bar.style.width = Math.min(100, p.holdT / TUT_HOLD * 100) + '%';
+    if (p.holdT >= TUT_HOLD) { p.ready = true; p.readyEl.classList.add('go'); p.readyEl.firstElementChild.textContent = T.players.length > 1 ? '準備好了！等另一位' : '準備好了！'; Snd.good(); if (p.kind === 'phone') buzzSeat(p.n, 120); }
+  }
+  if (T.players.every(p => p.ready)) endTut(true);
+}
+function endTut(ok) {
+  const T = app.tut; if (!T) return;
+  app.tut = null; $('tut').classList.remove('on');
+  if (ok) T.players.forEach(p => { if (['left', 'right', 'btn'].every(k => p.done[k])) tutKnown[T.pack + p.n] = true; });
+  T.res(ok);
+}
+$('tutGo').onclick = () => { Snd.init(); endTut(true); };
+$('tutBack').onclick = () => $('quit').click();
 function makeHud(cls) { const n = $('hudT').content.firstElementChild.cloneNode(true); n.classList.add(cls); $('hudLayer').append(n); return n; }
 async function startRace() {
   $('load').classList.add('on');
@@ -389,19 +475,30 @@ async function startRace() {
   const P = ROUTES[app.routeId].pack;
   $('brake').classList.toggle('show', ownDevice()); $('brake').textContent = P === 'bike' ? '按鈴' : '煞車'; $('brake').classList.toggle('bell', P === 'bike');   // 鐵馬的按鈕是鈴
   syncPads();
-  tilt.setFollow(true);   // 倒數時手機怎麼拿都算正中間，出發才定下來
+  tilt.setFollow(false); tilt.setDrift(true);   // 教學和倒數時，正中間慢慢跟著手走（自動校正），出發那一刻才定下來
   $('load').classList.remove('on');
-  // 出發前先講這條路要注意什麼，再倒數
   const Rt = ROUTES[app.routeId], hp = helpFor(1, duel);
   app.counting = true; document.body.classList.add('counting');
+  if (!SKIP_TUT) {   // 先教學，不馬上出發；教的人有時間講解
+    const ok = await runTutorial(duel, P, Rt);
+    if (!ok || !app.racing) return;
+    const cd = $('count'); cd.classList.add('on');
+    for (const t of ['3', '2', '1']) { cd.textContent = t; Snd.beep(660, .13, 'triangle', .08); await new Promise(r => setTimeout(r, 750)); if (!app.racing) { cd.classList.remove('on'); return; } }
+    return go();
+  }
+  // 自動展示與測試：只講這條路要注意什麼，再倒數
   $('brief').innerHTML = `<b>${Rt.name}</b><span>${Rt.tip}</span><em>${duel ? '手機或鍵盤轉向' + (P === 'moto' ? '＋煞車' : '＋按鈴') : hp.steer + '；' + (P === 'moto' ? hp.brake : hp.bell.replace('前面有人！', '看到人就'))}</em>`;
   $('brief').classList.add('on');
   const cd = $('count'); cd.textContent = ''; cd.classList.add('on');
   await new Promise(r => setTimeout(r, 1500)); if (!app.racing) { cd.classList.remove('on'); $('brief').classList.remove('on'); return; }
   for (const t of ['3', '2', '1']) { cd.textContent = t; Snd.beep(660, .13, 'triangle', .08); await new Promise(r => setTimeout(r, 800)); if (!app.racing) { cd.classList.remove('on'); return; } }
   $('brief').classList.remove('on');
+  go();
+}
+function go() {
+  const cd = $('count'); cd.classList.add('on');
   cd.textContent = '出發！'; Snd.beep(990, .3, 'triangle', .1); Snd.song(app.routeId);
-  tilt.setFollow(false); syncRoom({phase: 'race', go: true}); syncPads();
+  tilt.setDrift(false); syncRoom({phase: 'race', go: true}); syncPads();
   app.rides.forEach(r => r.begin()); app.counting = false; document.body.classList.remove('counting');
   app.cdHideAt = performance.now() + 650; setTimeout(() => cd.classList.remove('on'), 650);
 }
@@ -427,7 +524,7 @@ function cardFor(n, r, win) {
   const bonus = [r.bonusSafe ? `平安 +${r.bonusSafe}` : '', r.bonusTime ? `準時 +${r.bonusTime}` : '', r.first ? '先到 +150' : ''].filter(Boolean).join('．');
   const stamp = (got, name, how) => `<div class="sc"><div class="stamp ${got ? 'got' : ''}">${name}</div><small>${how}</small></div>`;
   return `<div class="rCol ${win ? 'win' : ''}"><img src="art/char_${c?.id}.jpg" alt=""><div style="font-weight:900;font-size:18px;margin-top:4px">${app.mode === 'duel' ? n + 'P ' : ''}${c?.name}＋${v?.name}${win ? ' 👑' : ''}</div><div class="rScore">${r.score} 分</div><div class="rTitle">${r.title}</div><div class="rDesc">${r.desc}</div>
-    <div class="stamps">${stamp(r.safe, '平安', '血條沒扣過')}${stamp(r.see, vl ? '按鈴' : '預判', vl ? '七成提早按鈴' : '七成提早反應')}${stamp(r.onTime, '準時', vl ? '天黑前到厝' : '8:30 前打卡')}</div><div class="stats">${stat}</div>${loss ? `<div class="stats lossLine">血條扣在：${loss}</div>` : ''}${bonus ? `<div class="stats">${bonus}</div>` : ''}</div>`;
+    <div class="stamps">${stamp(r.safe, '平安', '血條沒扣過')}${stamp(r.see, vl ? '按鈴' : '預判', vl ? '七成提早按鈴' : '七成提早反應')}${stamp(r.onTime, '準時', r.goal || (vl ? '天黑前到厝' : '8:30 前打卡'))}</div><div class="stats">${stat}</div>${loss ? `<div class="stats lossLine">血條扣在：${loss}</div>` : ''}${bonus ? `<div class="stats">${bonus}</div>` : ''}</div>`;
 }
 function showResult() {
   const duel = app.mode === 'duel', R = app.results, id = app.routeId, ids = Object.keys(ROUTES), nextId = ids[ids.indexOf(id) + 1];
@@ -482,6 +579,7 @@ $('restartBtn').onclick = () => { try { Snd.ctx?.resume(); } catch (e) {} Snd.st
 addEventListener('keydown', e => {
   if (e.code === 'Escape' && app.screen === 'race') setPause(!app.paused);
   if (e.code === 'Enter' && app.screen === 'pick' && document.activeElement?.tagName !== 'BUTTON') { Snd.init(); startRace(); }
+  if (e.code === 'Enter' && app.tut) { e.preventDefault(); Snd.init(); endTut(true); }   // 教學時按 Enter＝直接出發
 });
 document.addEventListener('visibilitychange', () => { if (document.hidden && app.screen === 'race' && !NOPAUSE && !app.paused) setPause(true); });
 $('skipCheck').onclick = () => { app.skipCheck = true; renderLobby(); maybeStart(); };
@@ -554,6 +652,7 @@ async function phoneBack() {
 function step(dt) {
   if (tilt.live !== app.tiltLive) { app.tiltLive = tilt.live; syncPads(); }
   watchPhones();
+  if (app.tut) tickTut();
   if (app.paused || (!app.racing && !app.rides.every(r => r.S.finished))) return;
   if (app.cdHideAt && performance.now() > app.cdHideAt) { app.cdHideAt = 0; $('count').classList.remove('on'); }
   const n = Math.max(1, Math.ceil(dt / .017));
@@ -579,7 +678,7 @@ setTimeout(() => { const pre = ['moto', 'office', 's125']; show.set(...pre); }, 
 setInterval(() => { if (app.screen === 'home') { const p = Math.random() < .5 ? 'bike' : 'moto', c = CHARS[p][Math.random() * 4 | 0], v = VEHICLES[p][Math.random() * 4 | 0]; show.set(p, c.id, v.id); } }, 3500);
 
 /* 驗證用介面 */
-window.__app = {kit, app, net, tilt, awake, perf, Snd, startRace, enterLobby, chooseRoute, setRoute, setPause, slotInfo, IS_PHONE, get rides() { return app.rides; }, keys, step, showScreen, renderRoutes, renderer,
+window.__app = {kit, app, net, tilt, awake, endTut, get tut() { return app.tut; }, perf, Snd, startRace, enterLobby, chooseRoute, setRoute, setPause, slotInfo, IS_PHONE, get rides() { return app.rides; }, keys, step, showScreen, renderRoutes, renderer,
   drawNow(dt = .016) { const W = $('stage').clientWidth, H = $('stage').clientHeight, duel = app.rides.length === 2; renderer.setScissorTest(false); renderer.clear(); app.rides.forEach((r, i) => r.draw(renderer, duel ? {x: i * W / 2, y: 0, w: W / 2, h: H} : {x: 0, y: 0, w: W, h: H}, dt)); }};
 const auto = qs.get('auto');
 if (auto) { app.mode = qs.get('duel') ? 'duel' : 'solo'; if (app.mode === 'duel') chooseRoute(auto); else { setRoute(auto); startRace(); } }

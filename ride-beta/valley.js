@@ -33,19 +33,29 @@ function prism(w, h, len) { // 屋頂：沿 x 軸延伸的三角柱
 function cv(s) { const c = document.createElement('canvas'); c.width = c.height = s; return [c, c.getContext('2d')]; }
 function tex(c) { const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; t.wrapS = t.wrapT = THREE.RepeatWrapping; return t; }
 let TEX = null;
-function textures() {
-  if (TEX) return TEX;
+/* 稻田的兩種顏色：黃熟的稻子（稻田回家路）、綠油油的秧苗（新手的土地公廟小路） */
+const PALS = {
+  gold: {base: '#d9ad38', furrow: '#b48a2a', dabs: ['#efc853', '#e5bb42', '#caa02f', '#f6d76c'], ground: 0xd2a93c, heads: [0xe8c044, 0xdcb038, 0xf2cf5e, 0xd0a430], headBase: 0xbd9630, tex: 'rice'},
+  green: {base: '#6fae46', furrow: '#5a8f8a', dabs: ['#8cc95a', '#7dbb4c', '#9dd468', '#6aa83e'], ground: 0x6c9c44, heads: [0x86c254, 0x78b549, 0x96cf62, 0x6ba73f], headBase: 0x4f8a3c, tex: 'riceG'},
+};
+let PAL = PALS.gold;
+function paintRice(p) {
   // 稻田：順著路方向的稻列，近看一叢一叢，遠看收斂成線
   const [rc, rg] = cv(512), r = mulberry(21), rows = 8, rw = 512 / rows;
-  rg.fillStyle = '#d9ad38'; rg.fillRect(0, 0, 512, 512);
+  rg.fillStyle = p.base; rg.fillRect(0, 0, 512, 512);
   for (let i = 0; i < rows; i++) {
-    rg.fillStyle = '#b48a2a'; rg.fillRect(i * rw, 0, rw * .16, 512);
+    rg.fillStyle = p.furrow; rg.fillRect(i * rw, 0, rw * .16, 512);
     for (let k = 0; k < 150; k++) {
       const x = (i + .16) * rw + r() * rw * .84, y = r() * 512, w = 4 + r() * 7, h = 10 + r() * 16;
-      rg.fillStyle = ['#efc853', '#e5bb42', '#caa02f', '#f6d76c'][r() * 4 | 0];
+      rg.fillStyle = p.dabs[r() * 4 | 0];
       rg.beginPath(); rg.ellipse(x, y, w, h, (r() - .5) * .5, 0, 7); rg.fill();
     }
   }
+  return rc;
+}
+function textures() {
+  if (TEX) return TEX;
+  const rc = paintRice(PALS.gold), gc = paintRice(PALS.green);
   // 土路：壓實的黃土加碎石
   const [dc, dg] = cv(512), d = mulberry(33);
   dg.fillStyle = '#a58a60'; dg.fillRect(0, 0, 512, 512);
@@ -58,7 +68,7 @@ function textures() {
     dg.fillStyle = `rgba(${v + 18},${v},${v - 24},.7)`;
     dg.fillRect(d() * 512, d() * 512, 1 + d() * 3.4, 1 + d() * 2.6);
   }
-  TEX = {rice: tex(rc), dirt: tex(dc)};
+  TEX = {rice: tex(rc), riceG: tex(gc), dirt: tex(dc)};
   return TEX;
 }
 
@@ -229,8 +239,8 @@ const PLOT_X = [RW + .75, 20, 44, 78, 130];
 function chunk(kit, v, extra = null) {
   const M = kit.M, A = textures(), r = mulberry(1000 + v * 77);
   const g = new THREE.Group(), gr = kit.nb(), ob = kit.nb(), fine = kit.nb();
-  const mats = [M(0xffffff, {map: A.rice}), M(0xfff1c0, {map: A.rice}), M(0xe9efb4, {map: A.rice})];
-  gr.add(flat(1200, CHUNK), M(0xd2a93c), T(0, -.08, -CHUNK / 2));
+  const mats = [M(0xffffff, {map: A[PAL.tex]}), M(0xfff1c0, {map: A[PAL.tex]}), M(0xe9efb4, {map: A[PAL.tex]})];
+  gr.add(flat(1200, CHUNK), M(PAL.ground), T(0, -.08, -CHUNK / 2));
   for (const side of [-1, 1]) for (let c = 0; c < PLOT_X.length - 1; c++) for (let row = 0; row < 2; row++) {
     const x0 = PLOT_X[c], x1 = PLOT_X[c + 1], w = x1 - x0;
     gr.add(flat(w, 20, 4), mats[r() * 3 | 0], T(side * (x0 + x1) / 2, 0, -10 - row * 20));
@@ -257,7 +267,7 @@ function chunk(kit, v, extra = null) {
     ob.add(tuft, grass[i % 3], T(s * (RW + .05 + r() * .62), R * .4, -r() * CHUNK, r() * 3, 0, 0, R));
   }
   // 路旁幾排有體積的稻子：一排排順著路收斂，田才有高度與景深
-  const rice = [M(0xe8c044), M(0xdcb038), M(0xf2cf5e), M(0xd0a430)], riceBase = M(0xbd9630);
+  const rice = PAL.heads.map(c => M(c)), riceBase = M(PAL.headBase);
   const headGeo = new THREE.OctahedronGeometry(1, 0); headGeo.scale(1, .78, 1.7);
   for (const s of [-1, 1]) for (let col = 0; col < 7; col++) {
     const inner = s > 0 ? RW + 2.05 : RW + 1.25;           // 右側留給水圳
@@ -476,9 +486,11 @@ function homeFar(kit) {
 const BUILD = {0: k => chunk(k, 0), 1: k => chunk(k, 1), 2: k => chunk(k, 2), 3: k => chunk(k, 3), bridge: bridgeChunk, shrine: shrineChunk, rail: railChunk, barn: barnChunk, home: homeChunk};
 const CACHE = new WeakMap();
 /** seq＝段落序列（數字＝一般田野，字串＝地標段）。回傳區塊與遠景 */
-export function buildValley(kit, scene, seq = [0, 1, 2, 3]) {
+export function buildValley(kit, scene, seq = [0, 1, 2, 3], opts = {}) {
   if (!CACHE.has(kit)) CACHE.set(kit, {});
-  const c = CACHE.get(kit), chunks = [];
+  const pal = opts.field === 'green' ? 'green' : 'gold';
+  PAL = PALS[pal];   // 這次要蓋的路段用哪種稻田顏色；兩種顏色各自快取
+  const c = CACHE.get(kit)[pal] ??= {}, chunks = [];
   seq.forEach((v, i) => {
     const tpl = c[v] ??= BUILD[v](kit);
     const g = tpl.clone(true);

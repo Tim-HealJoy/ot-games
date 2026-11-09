@@ -54,6 +54,7 @@ body.p1{--col:#e8622c}body.p2{--col:#2c6fb3}body.p1 #ride{background:#ffe3d3}bod
 #sWait .seat:not(.hide)~.big{margin-top:12px;font-size:24px}
 .chkT{text-align:center;font-size:22px;font-weight:900;margin:8px 0 10px}.chkRow{display:flex;gap:10px;margin:10px 0 2px}.chkRow span{flex:1;text-align:center;border:3px solid #b9ad97;border-radius:12px;padding:9px 4px;font-size:19px;font-weight:900;color:#8d8270;background:var(--paper)}.chkRow span.on{background:var(--grn);border-color:var(--ink);color:#fff}
 .chkPads{display:flex;gap:12px;height:96px;margin-top:6px}
+#tutP{background:var(--paper);border:3px solid var(--ink);border-radius:14px;padding:7px 11px;flex:none}#tutP b{font-size:17px}#tutP ol{list-style:none;margin:4px 0 0;padding:0;display:grid;grid-template-columns:1fr 1fr;gap:3px 8px;font-weight:800;font-size:15px;color:#9a8f7c}#tutP li.ok{color:var(--grn)}#tutP li.ok::before{content:'✓ '}#tutP .go{margin-top:5px;font-weight:900;font-size:16px;color:#9a8f7c}#tutP .go.on{color:var(--org)}#tutP .bar{height:8px;border-radius:4px;background:#eadfca;overflow:hidden;margin-top:3px}#tutP .bar i{display:block;height:100%;width:0;background:var(--org)}
 .awakeNote{background:#fff3c9;border:2px solid var(--ink);border-radius:11px;padding:7px 11px;font-size:15px;font-weight:800;line-height:1.4;margin-bottom:10px;flex:none}#ride .awakeNote{margin:0;padding:4px 9px;font-size:14px}
 .ctrls:empty{display:none}body:not(.hasBtn) .ctrls{flex:none}
 </style>
@@ -110,6 +111,7 @@ body.p1{--col:#e8622c}body.p2{--col:#2c6fb3}body.p1 #ride{background:#ffe3d3}bod
   <div class="rtop"><span><span class="me" id="meTag3"></span><span id="rName2"></span></span><button class="btn ghost" id="zero" style="width:auto;margin:0;padding:5px 12px;font-size:15px">方向歸零</button></div>
   <div class="meter"><u></u><i id="mi"></i></div>
   <div id="tiltHelp">傾斜手機轉向</div>
+  <div id="tutP" class="hide"><b>騎車前練習，跟著螢幕做</b><ol><li data-k="hold">拿好不動（自動校正）</li><li data-k="left">往左傾</li><li data-k="right">往右傾</li><li data-k="btn" id="tutPBtn">按一下煞車</li></ol><div class="go" id="tutPGo">都做到了，按住「煞車」2 秒就出發</div><div class="bar"><i id="tutPBar"></i></div></div>
   <div id="netKind"></div>
   <button class="btn hide" id="sensorBtn">開啟傾斜感測</button>
   <div id="eyes"><b id="eyesT">眼睛看電腦螢幕</b><span>橫拿手機像握龍頭<br>往左傾就往左，往右傾就往右</span></div>
@@ -201,6 +203,24 @@ function syncSeat() {
   $('waitHow').textContent = duel ? `看螢幕${sideOf()}半邊騎，傾斜手機就會轉彎。` : '看電腦螢幕騎，傾斜手機就會轉彎。';
   $('chkS').textContent = `看螢幕${sideOf()}邊那台車，有跟著晃就對了`;
 }
+/* 出發前的教學：和電腦端一樣的門檻，手機上也看得到自己做到哪一步 */
+let tp = null, tpLast = performance.now();
+function syncTutP(v) {
+  const on = st.phase === 'race' && !st.go;
+  $('tutP').classList.toggle('hide', !on);
+  if (!on) { tp = null; return; }
+  const btn = (st.pack || 'moto') === 'bike' ? '按鈴' : '煞車';
+  if (!tp) { tp = {done: {}, still: 0, hold: 0}; $('tutPBtn').textContent = `按一下${btn}`; $('tutPGo').textContent = `都做到了，按住「${btn}」2 秒就出發`; document.querySelectorAll('#tutP li').forEach(li => li.classList.remove('ok')); $('tutPGo').classList.remove('on'); }
+  if (v == null) return;
+  const now = performance.now(), dt = Math.min(.2, (now - tpLast) / 1000); tpLast = now;
+  const mark = k => { if (!tp.done[k]) { tp.done[k] = true; document.querySelector(`#tutP li[data-k="${k}"]`).classList.add('ok'); } };
+  tp.still = Math.abs(v) < .2 ? tp.still + dt : 0; if (tp.still >= 1.2 || !tilt.live) mark('hold');
+  if (v < -.45) mark('left'); if (v > .45) mark('right'); if (brake) mark('btn');
+  const all = ['hold', 'left', 'right', 'btn'].every(k => tp.done[k]);
+  $('tutPGo').classList.toggle('on', all);
+  tp.hold = all && brake ? tp.hold + dt : 0;
+  $('tutPBar').style.width = Math.min(100, tp.hold / 2 * 100) + '%';
+}
 /* 認位子：往左、往右各傾一次。門檻和電腦端一樣，讀不到傾斜就給左右按鈕 */
 const CHECK = .45;
 let chk = {l: false, r: false};
@@ -235,7 +255,7 @@ function render() {
   if (st.phase === 'race') {
     tag($('meTag3')); $('rName2').textContent = NAMES[st.route] || '';
     $('brk').classList.remove('hide'); $('brk').textContent = p === 'bike' ? '按鈴' : '煞車'; $('brk').classList.toggle('bell', p === 'bike'); document.body.classList.add('hasBtn');   // 鐵馬的按鈕是鈴
-    show('ride'); startSending(); tilt.setDrift(false); tilt.setFollow(!st.go); syncGoText(); return;
+    show('ride'); startSending(); tilt.setFollow(false); tilt.setDrift(!st.go); syncTutP(null); syncGoText(); return;   // 出發前正中間慢慢跟著手走，出發才定下來
   }
   if (!checking()) stopSending();
   if (st.phase === 'result' && st.result && !st.ready && window.__seenEnd !== JSON.stringify(st.result)) {
@@ -275,7 +295,7 @@ function syncGoText() {
   $('lb').classList.toggle('hide', !pads); $('rb').classList.toggle('hide', !pads);
   document.body.classList.add('hasBtn');
   $('sensorBtn').classList.toggle('hide', tilt.live || !canAsk());
-  $('tiltHelp').textContent = !tilt.live ? sensorText() : !st.go ? '手機拿好，出發時會自動歸零' : '傾斜手機轉向';
+  $('tiltHelp').textContent = !tilt.live ? sensorText() : !st.go ? '跟著螢幕上的教學做，手機會自動校正' : '傾斜手機轉向';
   syncNetKind();
 }
 const askSensor = () => tilt.ask().then(() => { tilt.rezero(); syncGoText(); syncSensor(); setTimeout(() => { syncGoText(); syncSensor(); }, 500); });
@@ -309,7 +329,7 @@ function startSending() {
     }
     if (now - pingAt > 1000) { pingAt = now; link.send({p: now}); syncGoText(); }
     $('mi').style.left = (50 + v * 45) + '%';
-    syncCheck(v);
+    syncCheck(v); syncTutP(v);
   }, 50);
 }
 function stopSending() { clearInterval(sendT); sendT = null; clearTimeout(window.__btnT); tilt.setFollow(false); tilt.setDrift(false); brake = false; l = false; r = false; }
