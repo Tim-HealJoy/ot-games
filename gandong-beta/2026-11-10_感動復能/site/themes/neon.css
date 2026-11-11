@@ -1,0 +1,199 @@
+/* 風格 G 夜市霓虹（2026-11-11 樣張）
+   台灣夜市招牌與攤位燈：暖黑底、黃色霓虹管邊框（很淡的外光暈只在框，不在字）、大圓角。
+   頂部列上緣一排燈泡；今日點心卡＝攤位招牌（頂端黃色招牌條「第 N 攤」），完成＝黃色圓形「蓋好了」戳章；
+   全部活動的目標標題＝攤位布條。只用黑、黃、淺黃；動＝黃底黑字實心、感＝黑底黃框黃字。
+   只覆蓋 style.css，body[data-theme="neon"]。 */
+
+body[data-theme="neon"]{
+  --bg:#100C04;--card:#1C160A;--ink:#FFF6CC;--mut:#EADB98;--line:#6B5A1C;--soft:#2A2110;
+  --y:#FFD400;--y-d:#E6BE00;--blk:#100C04;
+  --acc:#FFD400;--acc-d:#FFD400;--ok:#FFD400;--red:#FFD400;--muted:#EADB98;
+  --mind:#FFD400;--mind-bg:#100C04;--move:#FFD400;--move-bg:#FFD400;
+  --glow:0 0 0 1px rgba(255,212,0,.25),0 0 14px rgba(255,212,0,.28);
+  --bulbs:radial-gradient(circle at 50% 50%,#FFF3A0 0 3px,#FFD400 3.5px 4.5px,rgba(255,212,0,.25) 5px 6px,transparent 7px);
+  --sh:0 6px 18px rgba(0,0,0,.45);
+  background-color:var(--bg);
+  background-image:radial-gradient(ellipse 80% 40% at 50% -10%,rgba(255,212,0,.10),transparent 70%);
+  background-attachment:fixed;
+  color:var(--ink);
+}
+body[data-theme="neon"] :is(h1,h2,h3,.page-h,.logo-txt){color:var(--y)}
+body[data-theme="neon"] .sub,body[data-theme="neon"] .foot,body[data-theme="neon"] .privacy{color:var(--mut)}
+body[data-theme="neon"] .link,body[data-theme="neon"] .link-btn{color:var(--y)}
+body[data-theme="neon"] :is(.btn,.link,.card,.chip,.snack a):focus-visible{outline:4px solid #fff;outline-offset:3px}
+
+/* 按鈕：一般＝黃框霓虹管；主要＝實心黃燈箱、黑字 */
+body[data-theme="neon"] .btn{border-radius:18px;border:3px solid var(--y);background:transparent;color:var(--y);box-shadow:var(--glow)}
+body[data-theme="neon"] .btn:hover{background:rgba(255,212,0,.12);border-color:#FFE766}
+body[data-theme="neon"] .btn.primary{background:var(--y);border-color:var(--y);color:#100C04;box-shadow:0 0 18px rgba(255,212,0,.45),inset 0 -5px 0 rgba(0,0,0,.18)}
+body[data-theme="neon"] .btn.primary:hover{background:#FFE14D;color:#100C04}
+body[data-theme="neon"] .btn[disabled]{opacity:.5}
+
+/* 頂部列：上緣一排燈泡 */
+body[data-theme="neon"] .appbar{background:rgba(16,12,4,.97);border-bottom:3px solid var(--y);box-shadow:0 4px 18px rgba(255,212,0,.18)}
+body[data-theme="neon"] .appbar::before{content:"";display:block;height:16px;background:var(--bulbs) 0 0/24px 16px repeat-x,#0A0702}
+body[data-theme="neon"] .logo{color:var(--y)}
+body[data-theme="neon"] .logo-mark{width:auto;padding:0 12px;border-radius:999px;font-size:17px;letter-spacing:0;background:var(--y);color:#100C04;box-shadow:0 0 0 3px #100C04,0 0 0 6px var(--y),0 0 18px rgba(255,212,0,.5)}
+body[data-theme="neon"] .tabs a{border-radius:16px;color:var(--ink);border:2px solid transparent}
+body[data-theme="neon"] .tabs a:hover{background:var(--soft);border-color:var(--line)}
+body[data-theme="neon"] .tabs a.on{background:var(--y);color:#100C04;border-color:var(--y);box-shadow:0 0 14px rgba(255,212,0,.45)}
+body[data-theme="neon"] .who-chip{border:2px solid var(--y);background:transparent;color:var(--ink)}
+body[data-theme="neon"] .who-chip b{color:var(--y)}
+body[data-theme="neon"] .who-chip span{background:var(--y);color:#100C04}
+
+/* 動／感：用形狀分，不用顏色分 */
+body[data-theme="neon"] .pill{border-radius:10px}
+body[data-theme="neon"] .pill.move{background:var(--y);color:#100C04;border:3px solid var(--y)}
+body[data-theme="neon"] .pill.mind{background:#100C04;color:var(--y);border:3px solid var(--y)}
+body[data-theme="neon"] :is(.axtags,.also) span{border-radius:10px}
+body[data-theme="neon"] :is(.axtags,.also) .v{background:var(--y);color:#100C04;border:2px solid var(--y)}
+body[data-theme="neon"] :is(.axtags,.also) .m{background:#100C04;color:var(--y);border:2px solid var(--y)}
+body[data-theme="neon"] .also{color:var(--mut)}
+body[data-theme="neon"] .tag{background:var(--soft);color:var(--ink);border:2px solid var(--line)}
+body[data-theme="neon"] .tag.phone{background:var(--y);color:#100C04;border-color:var(--y)}
+
+/* 今天 */
+body[data-theme="neon"] .hello .date{display:inline-block;color:#100C04;background:var(--y);padding:2px 16px;border-radius:999px;letter-spacing:.06em}
+body[data-theme="neon"] .hello h1{margin-top:8px}
+body[data-theme="neon"] :is(.first-box,.today){background:var(--card);border:3px solid var(--y);border-radius:26px;box-shadow:var(--glow),var(--sh)}
+body[data-theme="neon"] .snack-head h2::before,body[data-theme="neon"] .grp::before{content:"";display:inline-block;width:14px;height:14px;border-radius:50%;background:var(--y);box-shadow:0 0 10px rgba(255,212,0,.7);margin-right:10px;vertical-align:.12em}
+body[data-theme="neon"] .snack-prog{color:var(--ink)}
+body[data-theme="neon"] .snack-prog .bar{height:18px;background:#0A0702;border:2px solid var(--y)}
+body[data-theme="neon"] .snack-prog .bar i{background:var(--y);box-shadow:0 0 10px rgba(255,212,0,.6)}
+
+/* 攤位招牌卡 */
+body[data-theme="neon"] .snacks{counter-reset:stall}
+body[data-theme="neon"] .snack{counter-increment:stall}
+body[data-theme="neon"] :is(.snack a,.card,.peek,.radar-card,.pick,.tile,.ther-box,.empty,details.pro){background:var(--card);border:3px solid var(--y);border-radius:26px;box-shadow:var(--glow),var(--sh)}
+body[data-theme="neon"] :is(.snack a,.card):hover{border-color:#FFE766;box-shadow:0 0 0 2px rgba(255,212,0,.4),0 0 24px rgba(255,212,0,.4),var(--sh)}
+body[data-theme="neon"] .snack a{padding-top:50px}
+body[data-theme="neon"] .snack .no{top:0;left:0;right:0;width:auto;height:50px;border-radius:0;border:0;background:var(--y);color:#100C04;font-size:24px;letter-spacing:.08em;gap:.35em;box-shadow:inset 0 -4px 0 rgba(0,0,0,.15)}
+body[data-theme="neon"] .snack .no::before{content:"第"}
+body[data-theme="neon"] .snack .no::after{content:"攤"}
+body[data-theme="neon"] .snack.done .no{background:#2A2110;color:var(--y);box-shadow:inset 0 -3px 0 var(--y)}
+body[data-theme="neon"] .snack.done .no::before{content:"這一攤"}
+body[data-theme="neon"] .snack.done .no::after{content:"吃過了"}
+body[data-theme="neon"] .snack .pic{background-color:#2A2110}
+body[data-theme="neon"] .snack .kind,body[data-theme="neon"] .snack .meta{color:var(--mut)}
+body[data-theme="neon"] .snack b{color:var(--y)}
+body[data-theme="neon"] .snack .go{border-radius:18px;background:var(--y);color:#100C04;box-shadow:0 0 16px rgba(255,212,0,.45),inset 0 -5px 0 rgba(0,0,0,.18);letter-spacing:.08em}
+body[data-theme="neon"] .snack.done .go{background:transparent;color:var(--y);border:3px solid var(--y);box-shadow:none}
+body[data-theme="neon"] .snack.done .pic{filter:saturate(.5) brightness(.75)}
+/* 完成：黃色圓形「蓋好了」戳章 */
+body[data-theme="neon"] .snack.done a::after{content:"蓋好了";position:absolute;top:66px;right:16px;z-index:3;width:96px;height:96px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-weight:900;font-size:24px;letter-spacing:.04em;color:#100C04;background:var(--y);border:4px solid #100C04;box-shadow:0 0 0 3px var(--y),0 0 20px rgba(255,212,0,.6);transform:rotate(-12deg)}
+body[data-theme="neon"] .peek{border-style:dashed}
+body[data-theme="neon"] .peek h2{color:var(--y)}
+
+/* 全部活動：目標標題＝攤位布條 */
+body[data-theme="neon"] .chip{border:2px solid var(--y);background:transparent;color:var(--y);border-radius:999px}
+body[data-theme="neon"] .chip:hover{background:rgba(255,212,0,.12)}
+body[data-theme="neon"] .chip.on{background:var(--y);border-color:var(--y);color:#100C04;box-shadow:0 0 12px rgba(255,212,0,.5)}
+body[data-theme="neon"] .chip-sep{color:var(--ink)}
+body[data-theme="neon"] .grp{color:var(--y)}
+body[data-theme="neon"] .grp small{color:var(--mut)}
+body[data-theme="neon"] .goal{position:relative;background:#16110699;border:2px solid var(--line);border-radius:26px;padding:0 16px 18px;overflow:hidden}
+body[data-theme="neon"] .goal.move,body[data-theme="neon"] .goal.mind{border-left:2px solid var(--line)}
+body[data-theme="neon"] .goal-h{margin:0 -16px 16px;padding:12px 16px 14px;background:var(--y);color:#100C04;position:relative}
+/* 布條下緣的鋸齒 */
+body[data-theme="neon"] .goal-h::after{content:"";position:absolute;left:0;right:0;bottom:-10px;height:10px;background:linear-gradient(-45deg,transparent 7px,var(--y) 7px) 0 0/20px 10px repeat-x,linear-gradient(45deg,transparent 7px,var(--y) 7px) 0 0/20px 10px repeat-x}
+body[data-theme="neon"] .goal-h b{color:#100C04}
+body[data-theme="neon"] .goal-h small{color:#2A2008;font-weight:700}
+body[data-theme="neon"] .goal-h .gi{color:var(--y);background:#100C04;border-radius:50%;border:3px solid #100C04}
+body[data-theme="neon"] .goal-h .gn{color:var(--y);background:#100C04;border-radius:999px;padding:2px 12px}
+/* 感的布條：黑底黃框（跟 pill 一樣用形狀分） */
+body[data-theme="neon"] .goal.mind .goal-h{background:#100C04;color:var(--y);border-bottom:3px solid var(--y)}
+body[data-theme="neon"] .goal.mind .goal-h::after{display:none}
+body[data-theme="neon"] .goal.mind .goal-h b{color:var(--y)}
+body[data-theme="neon"] .goal.mind .goal-h small{color:var(--mut)}
+body[data-theme="neon"] .goal.mind .goal-h .gi{background:var(--soft);border-color:var(--y)}
+body[data-theme="neon"] .goal.mind .goal-h .gn{background:var(--y);color:#100C04}
+body[data-theme="neon"] .goal .cards{margin-top:6px}
+body[data-theme="neon"] .card b{color:var(--y)}
+body[data-theme="neon"] .card .train{color:var(--ink)}
+body[data-theme="neon"] .card .note,body[data-theme="neon"] .card .meta{color:var(--mut)}
+body[data-theme="neon"] .card .pic .pill.move{border-color:#100C04}
+body[data-theme="neon"] .card .pic .pill.mind{border-color:var(--y)}
+body[data-theme="neon"] .none{color:var(--mut)}
+
+/* 推薦、你是誰 */
+body[data-theme="neon"] .pick.first{border-width:4px}
+body[data-theme="neon"] :is(.pick .k,.pick .extra,.today-k){color:var(--y)}
+body[data-theme="neon"] .pick .nm,body[data-theme="neon"] .tile b{color:var(--y)}
+body[data-theme="neon"] .tile span{color:var(--mut)}
+body[data-theme="neon"] .diff{background:var(--y);color:#100C04}
+body[data-theme="neon"] .step,body[data-theme="neon"] .who-note,body[data-theme="neon"] .note{color:var(--mut)}
+body[data-theme="neon"] .seg button{background:transparent;border:2px solid var(--y);color:var(--ink)}
+body[data-theme="neon"] :is(.choices .choice.on,.seg button.on){background:var(--y);border-color:var(--y);color:#100C04}
+body[data-theme="neon"] .ther{border-top-color:var(--line)}
+
+/* 我的進步：雷達自己的線黃、第一週白色虛線、格線深灰 */
+body[data-theme="neon"] .me-line{color:var(--ink)}
+body[data-theme="neon"] .radar-card figcaption{color:var(--y)}
+body[data-theme="neon"] .radar .rg{stroke:#3A3A3A}
+body[data-theme="neon"] .radar .rg.out{stroke:#5A5A5A;stroke-width:2}
+body[data-theme="neon"] .radar .ax{stroke:#3A3A3A}
+body[data-theme="neon"] .radar .ps{fill:rgba(255,212,0,.22);stroke:#FFD400;stroke-width:4}
+body[data-theme="neon"] .radar .pf{fill:none;stroke:#FFFFFF;stroke-width:2.5;stroke-dasharray:7 6}
+body[data-theme="neon"] .radar .pd{fill:#FFD400}
+body[data-theme="neon"] .radar .lb{fill:#FFF6CC}
+body[data-theme="neon"] .radar .lv{fill:#FFD400}
+body[data-theme="neon"] .radar .lv.lk{fill:#BFB27A}
+body[data-theme="neon"] .legend{color:var(--mut)}
+body[data-theme="neon"] .lg{border-top:4px solid #FFD400}
+body[data-theme="neon"] .lg.first{border-top:3px dashed #FFFFFF}
+body[data-theme="neon"] .recent{gap:10px}
+body[data-theme="neon"] .rc{background:var(--card);border:2px solid var(--line);border-left:6px solid var(--y);border-radius:16px}
+body[data-theme="neon"] .rc .d{color:var(--y)}
+body[data-theme="neon"] .rc .m{color:var(--mut)}
+body[data-theme="neon"] details.pro{border-width:2px;border-color:var(--line);box-shadow:none}
+body[data-theme="neon"] details.pro summary{color:var(--y)}
+body[data-theme="neon"] details.pro table{font-size:20px}
+body[data-theme="neon"] details.pro th{color:var(--y);border-bottom:2px solid var(--y)}
+body[data-theme="neon"] details.pro td{border-bottom:1px solid var(--line)}
+body[data-theme="neon"] .empty{border-style:dashed}
+
+/* 小測全畫面：黑底黃字（只改顏色） */
+body[data-theme="neon"] .qz{background:#100C04;color:#FFF6CC}
+body[data-theme="neon"] .qz-k,body[data-theme="neon"] .qz-none,body[data-theme="neon"] .qz-meter .cap{color:#EADB98}
+body[data-theme="neon"] .qz-h,body[data-theme="neon"] .qz-rule{color:#FFD400}
+body[data-theme="neon"] .qz-side{background:#1C160A;color:#FFF6CC;border:3px solid #FFD400}
+body[data-theme="neon"] .qz-sd .nm{color:#EADB98}
+body[data-theme="neon"] .qz-sd.on .nm{color:#FFD400}
+body[data-theme="neon"] .qz-dots i{background:#100C04;border-color:#FFD400}
+body[data-theme="neon"] .qz-dots i.cur{background:#5A4A10}
+body[data-theme="neon"] .qz-dots i.ok{background:#FFD400;border-color:#FFD400}
+body[data-theme="neon"] .qz-restx,body[data-theme="neon"] .mirror{color:#EADB98}
+body[data-theme="neon"] .qz-cam{border-color:#FFD400}
+body[data-theme="neon"] .qz-meter{background:rgba(255,212,0,.12)}
+body[data-theme="neon"] .qz-meter b{background:#FFD400}
+body[data-theme="neon"] .qz-stim{background:#1C160A;border-color:#FFD400}
+body[data-theme="neon"] .qz-res.good{color:#FFD400}
+body[data-theme="neon"] .qz-res.bad{color:#FFFFFF}
+body[data-theme="neon"] .qz-gdots i{background:#100C04;border-color:#FFD400}
+body[data-theme="neon"] .qz-gdots i.ok{background:#FFD400}
+body[data-theme="neon"] .qz-msg.good{background:#FFD400;color:#100C04}
+body[data-theme="neon"] .qz-msg.bad{background:#FFFFFF;color:#100C04}
+body[data-theme="neon"] .qz-btns .btn{background:#100C04;color:#FFD400;border-color:#FFD400}
+body[data-theme="neon"] .qz-btns .btn.hurt{background:#FFFFFF;color:#100C04;border-color:#FFFFFF}
+body[data-theme="neon"] .qz-start{background:rgba(16,12,4,.95)}
+body[data-theme="neon"] .qz-card{background:#1C160A;color:#FFF6CC;border:3px solid #FFD400}
+body[data-theme="neon"] .qz-card h2{color:#FFD400}
+body[data-theme="neon"] .qz-card .qz-pain,body[data-theme="neon"] .qz-note{color:#FFD400}
+body[data-theme="neon"] .qz-rotate{background:#FFD400;color:#100C04}
+
+/* 只有一款的目標兩兩並排 */
+body[data-theme="neon"] .goals{display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:20px}
+body[data-theme="neon"] .goal:has(.cards > .card:nth-child(2)){grid-column:1/-1}
+body[data-theme="neon"] .goals.one{grid-template-columns:1fr}
+
+/* 手機 */
+@media (max-width:760px){
+  body[data-theme="neon"] .goals{grid-template-columns:1fr}
+  body[data-theme="neon"] .goal{padding:0 12px 14px}
+  body[data-theme="neon"] .goal-h{margin:0 -12px 14px;padding:10px 12px 12px}
+  body[data-theme="neon"] .appbar{background:#100C04}
+  body[data-theme="neon"] .tabs{background:#0A0702;border-top:3px solid var(--y);box-shadow:0 -4px 18px rgba(255,212,0,.2)}
+  body[data-theme="neon"] .tabs a{color:var(--ink)}
+  body[data-theme="neon"] .snack.done a::after{width:80px;height:80px;font-size:20px;top:62px;right:12px}
+}

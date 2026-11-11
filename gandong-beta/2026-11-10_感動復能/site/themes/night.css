@@ -1,0 +1,153 @@
+/* 感．動復能 風格樣張 C「大廳夜景」（2026-11-11）
+   參考家用遊戲主機大廳：深藍到黑的漸層底、今日點心第一樣做成寬幅主視覺、
+   全部活動每個目標一排可左右滑的卡片列、聚焦時發光外框。適合投影到電視給團體看。
+   只覆蓋 style.css，載在它後面；長輩底線（內文 ≥ 20px、按鈕 ≥ 56px、對比 ≥ 4.5:1）不變。 */
+body[data-theme="night"]{
+  --bg:#0A1222;--card:#141F37;--ink:#F2F5FA;--mut:#AEBBD2;--line:#26365A;--soft:#1D2B4A;
+  --acc:#3FC8E8;--acc-d:#8BE0F3;--gold:#F5C04A;--ok:#3DDC97;
+  --mind:#3D7BD6;--mind-bg:#1B2D52;--move:#D9573F;--move-bg:#3A2026;
+  --glow:0 0 0 3px #5FD4F0,0 0 30px rgba(95,212,240,.55);
+  --sh:0 10px 30px rgba(0,0,0,.45);
+  background:#070C18 radial-gradient(1200px 700px at 75% -10%,#1F3766 0%,rgba(31,55,102,0) 60%) no-repeat;
+  color:var(--ink);min-height:100vh;
+}
+html:has(body[data-theme="night"]){background:#070C18}
+body[data-theme="night"] .screen{max-width:1240px}
+
+/* 頂部列 */
+body[data-theme="night"] .appbar{background:rgba(7,12,24,.82);border-bottom:1px solid #1E2C4A}
+body[data-theme="night"] .logo{color:var(--ink)}
+body[data-theme="night"] .logo-mark{background:linear-gradient(135deg,#3FC8E8,#3D7BD6);color:#04121C;box-shadow:0 0 18px rgba(63,200,232,.45)}
+body[data-theme="night"] .tabs a{color:var(--mut)}
+body[data-theme="night"] .tabs a:hover{background:#1A2846;color:var(--ink)}
+body[data-theme="night"] .tabs a.on{background:#F2F5FA;color:#0A1222;box-shadow:0 0 18px rgba(242,245,250,.35)}
+body[data-theme="night"] .who-chip{background:#121C33;border-color:#2C3F66;color:var(--ink)}
+body[data-theme="night"] .who-chip span{background:#1D2B4A;color:var(--acc-d)}
+
+/* 按鈕 */
+body[data-theme="night"] .btn{background:#17233E;border-color:#2C3F66;color:var(--ink)}
+body[data-theme="night"] .btn:hover{border-color:var(--acc);box-shadow:0 0 16px rgba(63,200,232,.35)}
+body[data-theme="night"] .btn.primary{background:var(--acc);border-color:var(--acc);color:#04121C}
+body[data-theme="night"] .btn.primary:hover{background:var(--acc-d);border-color:var(--acc-d)}
+body[data-theme="night"] .link{color:var(--acc-d)}
+body[data-theme="night"] .choices .choice.on{background:#F2F5FA;border-color:#F2F5FA;color:#0A1222}
+body[data-theme="night"] .pill.mind{background:var(--mind)}
+body[data-theme="night"] .pill.move{background:var(--move)}
+
+/* 今天 */
+body[data-theme="night"] .hello .date{color:var(--gold);letter-spacing:.08em}
+body[data-theme="night"] .hello h1{text-shadow:0 2px 24px rgba(63,200,232,.25)}
+body[data-theme="night"] .first-box{background:linear-gradient(160deg,#18264A,#101A31);border:2px solid var(--acc);box-shadow:var(--glow)}
+body[data-theme="night"] .snack-head h2{letter-spacing:.04em}
+body[data-theme="night"] .snack-prog .bar{background:#22314F}
+body[data-theme="night"] .snack-prog .bar i{background:linear-gradient(90deg,var(--acc),var(--ok))}
+body[data-theme="night"] .snack-prog b{color:var(--gold)}
+body[data-theme="night"] .snacks{grid-template-columns:repeat(2,1fr);gap:20px}
+body[data-theme="night"] .snack a{background:linear-gradient(180deg,#17233F,#0F182C);border:1px solid #24365A;border-radius:20px;box-shadow:var(--sh);transition:transform .18s,box-shadow .18s,border-color .18s}
+body[data-theme="night"] .snack a:hover,body[data-theme="night"] .snack a:focus-visible{transform:translateY(-3px) scale(1.01);border-color:#5FD4F0;box-shadow:var(--glow),var(--sh);outline:none}
+body[data-theme="night"] .snack .no{background:#0A1222;border-color:#F2F5FA;color:#F2F5FA}
+body[data-theme="night"] .snack.done .no{background:var(--ok);border-color:#0A1222;color:#04121C}
+body[data-theme="night"] .snack .pic{background-color:#1D2B4A}
+body[data-theme="night"] .snack.done .pic{filter:saturate(.45) brightness(.7)}
+body[data-theme="night"] .snack .kind{color:var(--mut)}
+body[data-theme="night"] .snack .why{color:#D7DEEA}
+body[data-theme="night"] .snack .go{background:var(--acc);color:#04121C;box-shadow:0 0 18px rgba(63,200,232,.35)}
+body[data-theme="night"] .snack.done .go{background:transparent;color:var(--ok);border:2px solid var(--ok);box-shadow:none}
+/* 第一樣＝寬幅主視覺：圖鋪滿，字壓在底部漸層上 */
+body[data-theme="night"] .snack:first-child{grid-column:1/-1}
+body[data-theme="night"] .snack:first-child a{display:flex;flex-direction:column;justify-content:flex-end;position:relative;min-height:400px}
+body[data-theme="night"] .snack:first-child .pic{position:absolute;inset:0;aspect-ratio:auto;height:100%;min-height:0;font-size:140px}
+body[data-theme="night"] .snack:first-child .pic::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(5,9,18,.95) 0%,rgba(5,9,18,.82) 42%,rgba(5,9,18,.15) 78%),linear-gradient(0deg,rgba(5,9,18,.85) 0%,rgba(5,9,18,0) 55%)}
+body[data-theme="night"] .snack:first-child .pic{display:block}
+body[data-theme="night"] .snack:first-child .no{top:18px;left:18px;width:52px;height:52px;font-size:26px}
+body[data-theme="night"] .snack:first-child .txt{position:relative;z-index:1;flex:0 0 auto;max-width:640px;padding:20px 30px 0}
+body[data-theme="night"] .snack:first-child .kind{color:var(--gold)}
+body[data-theme="night"] .snack:first-child b{font-size:clamp(34px,4.2vw,48px);text-shadow:0 2px 16px rgba(0,0,0,.6)}
+body[data-theme="night"] .snack:first-child .why{font-size:22px}
+body[data-theme="night"] .snack:first-child .meta{color:#C9D3E3}
+body[data-theme="night"] .snack:first-child .go{position:relative;z-index:1;align-self:flex-start;margin:16px 30px 28px;padding:0 44px;min-height:68px;font-size:26px;background:#F2F5FA;color:#0A1222;box-shadow:0 0 24px rgba(242,245,250,.35)}
+body[data-theme="night"] .snack:first-child.done .go{background:transparent;color:var(--ok)}
+body[data-theme="night"] .peek{background:linear-gradient(160deg,#17233F,#0F182C);border:1px solid #24365A;box-shadow:var(--sh)}
+body[data-theme="night"] .foot{color:var(--mut)}
+body[data-theme="night"] .foot.strong{color:var(--ink);border-color:var(--line)}
+
+/* 全部活動：每個目標一排可左右滑 */
+body[data-theme="night"] .chip{background:#141F37;border-color:#2C3F66;color:var(--ink)}
+body[data-theme="night"] .chip:hover{border-color:var(--acc)}
+body[data-theme="night"] .chip.on{background:#F2F5FA;border-color:#F2F5FA;color:#0A1222;box-shadow:0 0 16px rgba(242,245,250,.3)}
+body[data-theme="night"] .chip-sep{color:var(--gold)}
+body[data-theme="night"] .grp{margin-top:34px;padding-bottom:8px;border-bottom:1px solid #22314F}
+body[data-theme="night"] .grp small{color:var(--mut)}
+body[data-theme="night"] .goals{gap:26px}
+body[data-theme="night"] .goal,body[data-theme="night"] .goal.move,body[data-theme="night"] .goal.mind{background:transparent;border:0;border-radius:0;padding:0;min-width:0}
+body[data-theme="night"] .goal-h{margin-bottom:4px}
+body[data-theme="night"] .goal-h .gi{background:#17233F;border:1px solid #2C3F66;width:52px;height:52px;font-size:30px}
+body[data-theme="night"] .goal.move .goal-h .gi{box-shadow:inset 0 -3px 0 var(--move)}
+body[data-theme="night"] .goal.mind .goal-h .gi{box-shadow:inset 0 -3px 0 var(--mind)}
+body[data-theme="night"] .goal-h small{color:var(--mut)}
+body[data-theme="night"] .goal-h .gn{color:var(--gold)}
+body[data-theme="night"] .goal .cards{display:flex;grid-template-columns:none;gap:18px;overflow-x:auto;scroll-snap-type:x mandatory;padding:14px 8px 20px;margin:0 -8px;scrollbar-width:thin;scrollbar-color:#2C3F66 transparent}
+body[data-theme="night"] .goal .cards::-webkit-scrollbar{height:8px}
+body[data-theme="night"] .goal .cards::-webkit-scrollbar-thumb{background:#2C3F66;border-radius:8px}
+body[data-theme="night"] .goal .card{flex:0 0 310px;scroll-snap-align:start}
+body[data-theme="night"] .card{background:linear-gradient(180deg,#17233F,#0F182C);border:1px solid #24365A;border-radius:18px;box-shadow:var(--sh);transition:transform .18s,box-shadow .18s,border-color .18s}
+body[data-theme="night"] .card:hover,body[data-theme="night"] .card:focus-visible{transform:translateY(-3px) scale(1.02);border-color:#5FD4F0;box-shadow:var(--glow),var(--sh);outline:none}
+body[data-theme="night"] .card .pic{background-color:#1D2B4A}
+body[data-theme="night"] .card .pic .pill{border-color:#0A1222}
+body[data-theme="night"] .card .train{color:#D7DEEA}
+body[data-theme="night"] .card .meta{color:var(--mut)}
+body[data-theme="night"] .also{color:var(--mut)}
+body[data-theme="night"] .also .m{background:#1B2D52;color:#A9C8F5}
+body[data-theme="night"] .also .v{background:#3A2026;color:#F5B3A6}
+body[data-theme="night"] .tag{background:#1D2B4A;color:#C9D3E3}
+body[data-theme="night"] .tag.phone{background:#3A2A12;color:var(--gold)}
+body[data-theme="night"] .none{color:var(--mut)}
+/* 只有一款的目標並排成格子，多款的目標整排橫滑 */
+body[data-theme="night"] .goals{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:26px 22px}
+body[data-theme="night"] .goal:has(.cards .card:nth-child(2)){grid-column:1/-1}
+body[data-theme="night"] .goal:not(:has(.cards .card:nth-child(2))) .card{flex:1 1 auto}
+/* 只看一個目標時，攤開成格子 */
+body[data-theme="night"] .goals.one .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));overflow:visible}
+
+/* 我的進步 */
+body[data-theme="night"] .me-line{color:var(--gold)}
+body[data-theme="night"] .radar-card{background:radial-gradient(500px 300px at 50% 40%,#18284A,#0F182C);border:1px solid #24365A;box-shadow:var(--sh)}
+body[data-theme="night"] .radar .rg{stroke:#2C3D63}
+body[data-theme="night"] .radar .rg.out{stroke:#4C6596;stroke-width:1.5}
+body[data-theme="night"] .radar .ax{stroke:#2C3D63}
+body[data-theme="night"] .radar .ps{fill:rgba(63,200,232,.28);stroke:var(--acc);filter:drop-shadow(0 0 6px rgba(63,200,232,.7))}
+body[data-theme="night"] .radar .pf{fill:rgba(245,192,74,.06);stroke:var(--gold)}
+body[data-theme="night"] .radar .pd{fill:#E9FAFF}
+body[data-theme="night"] .radar .lb{fill:#F2F5FA}
+body[data-theme="night"] .radar .lv{fill:var(--acc-d)}
+body[data-theme="night"] .radar .lv.lk{fill:var(--mut)}
+body[data-theme="night"] .legend{color:var(--mut)}
+body[data-theme="night"] .lg{border-top-color:var(--acc)}
+body[data-theme="night"] .lg.first{border-top-color:var(--gold)}
+body[data-theme="night"] .rc{background:#121C33;border:1px solid #24365A}
+body[data-theme="night"] .rc .d{color:var(--gold)}
+body[data-theme="night"] details.pro{background:#101A30;border:1px solid #24365A}
+body[data-theme="night"] details.pro summary{color:var(--acc-d)}
+body[data-theme="night"] details.pro th{color:var(--gold);border-bottom-color:#2C3F66}
+body[data-theme="night"] details.pro td{border-bottom-color:#1E2C4A;color:#E3E9F3}
+body[data-theme="night"] details.pro tr:nth-child(even) td{background:rgba(255,255,255,.025)}
+body[data-theme="night"] .pro .note{color:var(--mut)}
+body[data-theme="night"] .empty{background:#101A30;border-color:#2C3F66}
+
+@media (max-width:1000px){
+  body[data-theme="night"] .snacks{grid-template-columns:1fr}
+  body[data-theme="night"] .snack:first-child a{display:flex}
+}
+@media (max-width:760px){
+  body[data-theme="night"] .appbar{background:#070C18}
+  body[data-theme="night"] .tabs{background:#0A1222;border-top:1px solid #1E2C4A;box-shadow:0 -6px 20px rgba(0,0,0,.5)}
+  body[data-theme="night"] .tabs a.on{background:#1D2B4A;color:#F2F5FA;box-shadow:inset 0 3px 0 var(--acc)}
+  body[data-theme="night"] .snack:first-child a{min-height:420px}
+  body[data-theme="night"] .snack:first-child .pic::after{background:linear-gradient(0deg,rgba(5,9,18,.96) 0%,rgba(5,9,18,.8) 45%,rgba(5,9,18,.05) 80%)}
+  body[data-theme="night"] .snack:first-child .txt{padding:16px 18px 0}
+  body[data-theme="night"] .snack:first-child .go{margin:14px 18px 20px;align-self:stretch;padding:0 20px}
+  body[data-theme="night"] .goals{grid-template-columns:1fr}
+  body[data-theme="night"] .goal .card{flex:0 0 78%}
+  body[data-theme="night"] .goals.one .cards{grid-template-columns:1fr}
+}
+body[data-theme="night"] .goal:not(:has(.cards .card:nth-child(2))) .goal-h .gn{display:none}

@@ -1,0 +1,363 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>趕走山豬 2　守住阿公的田</title>
+<style>
+  :root{ --wood:#8a5a2b; --wood2:#6b4320; --woodLight:#c08a4f; --paper:#fbf3e1; --paper2:#f1e2c2; --ink:#3b2a1a; --sub:#7a6248;
+         --green:#4f8f3a; --red:#c0452f; --blue:#2f7fd8; --orange:#f08a24;
+         --fs:clamp(16px,2.4vmin + 6px,24px); }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html,body{height:100%;overflow:hidden;background:#3a2e20;color:var(--ink);
+    font-family:"PingFang TC","Noto Sans TC","Microsoft JhengHei",sans-serif;-webkit-user-select:none;user-select:none;}
+  #game{position:fixed;inset:0;}
+  #cv{position:absolute;inset:0;width:100%;height:100%;display:block;}
+  .hidden{display:none !important;}
+  button{font-family:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent;}
+
+  /* 木牌按鈕 */
+  .btn{border:none;border-radius:16px;padding:.55em 1.2em;font-size:var(--fs);font-weight:800;color:#fff8ea;
+    background:linear-gradient(#a8703a,#7a4b22);box-shadow:0 4px 0 #4e2f13,0 6px 14px rgba(0,0,0,.25);min-height:48px;}
+  .btn:active{transform:translateY(3px);box-shadow:0 1px 0 #4e2f13;}
+  .btn.big{font-size:calc(var(--fs)*1.3);padding:.6em 1.4em;min-height:64px;}
+  .btn.green{background:linear-gradient(#69a94b,#3f7a2b);box-shadow:0 4px 0 #2a531c,0 6px 14px rgba(0,0,0,.25);}
+  .btn.light{background:linear-gradient(#fff6e3,#ecd9b2);color:var(--ink);box-shadow:0 4px 0 #b99a68,0 6px 12px rgba(0,0,0,.18);}
+  .btn.small{font-size:calc(var(--fs)*.8);min-height:42px;padding:.4em .9em;}
+  .home-btn{position:absolute;top:10px;left:10px;z-index:6;}
+
+  .overlay{position:absolute;inset:0;z-index:5;display:flex;align-items:center;justify-content:center;padding:12px;overflow:auto;}
+  .paper{background:var(--paper);border-radius:18px;padding:clamp(14px,3vmin,28px);box-shadow:0 10px 30px rgba(0,0,0,.35);
+    border:3px solid #e2cfa6;max-width:min(720px,96vw);width:100%;max-height:calc(100% - 8px);overflow:auto;margin:auto;}
+  .paper h1{font-size:calc(var(--fs)*1.5);text-align:center;margin-bottom:.3em;}
+  .lead{font-size:var(--fs);text-align:center;color:var(--sub);line-height:1.6;}
+
+  /* 首頁 */
+  #title{flex-direction:column;gap:clamp(8px,2.5vmin,22px);background:linear-gradient(rgba(40,25,10,.05),rgba(40,25,10,.35));}
+  .plank{background:linear-gradient(#a8703a,#7a4b22);border-radius:20px;padding:.35em 1.1em .45em;color:#fff6dd;text-align:center;
+    box-shadow:0 6px 0 #4e2f13,0 10px 24px rgba(0,0,0,.35);border:3px solid #c99a5e;}
+  .plank h1{font-size:clamp(30px,9vmin,72px);letter-spacing:.06em;line-height:1.15;text-shadow:0 3px 0 rgba(0,0,0,.25);}
+  .plank h2{font-size:clamp(18px,4.6vmin,36px);font-weight:800;color:#ffe7a8;}
+  .title-btns{display:flex;gap:clamp(12px,3vw,28px);flex-wrap:wrap;justify-content:center;}
+  .title-btns .btn{min-width:min(260px,40vw);}
+  .tips-line{background:rgba(255,248,232,.92);border-radius:999px;padding:.35em 1em;font-size:calc(var(--fs)*.72);color:var(--ink);text-align:center;}
+  #credit{font-size:11px;color:#fff;opacity:.8;text-shadow:0 1px 2px #000;text-align:center;}
+
+  /* 設定 */
+  .row{margin:clamp(8px,2vmin,18px) 0;text-align:center;}
+  .row .label{font-size:var(--fs);font-weight:800;margin-bottom:.35em;}
+  .seg{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;}
+  .seg button{font-size:var(--fs);font-weight:800;padding:.45em 1.1em;border-radius:14px;border:3px solid #d8c29a;background:#fffaf0;color:var(--ink);min-height:52px;min-width:5.5em;}
+  .seg button.on{background:#ffe08a;border-color:#b07a2a;box-shadow:inset 0 0 0 2px #fff3c9;}
+  .note{font-size:calc(var(--fs)*.7);color:var(--sub);text-align:center;margin-top:.5em;line-height:1.5;}
+  .actions{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:clamp(8px,2vmin,16px);}
+
+  /* 日程 */
+  #days{flex-direction:column;justify-content:flex-start;padding-top:12px;}
+  .days-top{display:flex;align-items:center;gap:10px;width:100%;justify-content:space-between;}
+  .days-top .plank{padding:.2em .9em;} .days-top .plank h1{font-size:clamp(20px,5vmin,40px);}
+  #dayNodes{flex:1;display:flex;align-items:center;justify-content:center;gap:clamp(6px,1.6vw,22px);width:100%;padding:8px;position:relative;}
+  #dayNodes::before{content:"";position:absolute;left:6%;right:6%;top:50%;height:clamp(14px,3vmin,26px);transform:translateY(-50%);
+    background:repeating-linear-gradient(90deg,#c9a06a 0 30px,#b88d58 30px 60px);border-radius:999px;box-shadow:0 3px 0 rgba(0,0,0,.2);}
+  .day-node{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;gap:2px;background:var(--paper);border:4px solid #b07a2a;
+    border-radius:20px;padding:clamp(6px,1.6vmin,14px) clamp(6px,1.4vw,16px);width:clamp(118px,17vw,200px);box-shadow:0 6px 0 #6b4320,0 10px 20px rgba(0,0,0,.3);color:var(--ink);}
+  .day-node:nth-child(even){transform:translateY(clamp(-40px,-6vmin,-14px));}
+  .day-node:nth-child(odd){transform:translateY(clamp(14px,6vmin,40px));}
+  .day-node .dn{font-size:var(--fs);font-weight:900;}
+  .day-node .di{font-size:clamp(26px,7vmin,54px);line-height:1.1;}
+  .day-node .dt{font-size:calc(var(--fs)*.72);font-weight:700;color:var(--sub);}
+  .day-node .ds{font-size:calc(var(--fs)*.95);color:#e0a100;font-weight:900;letter-spacing:.05em;}
+  .day-node.locked{filter:grayscale(1);opacity:.7;cursor:default;}
+  .day-node .ds.wip{color:#777;font-size:calc(var(--fs)*.75);}
+  #daysSetting{font-weight:800;}
+
+  /* 劇情 */
+  #story{align-items:flex-end;justify-content:flex-start;padding:0;cursor:pointer;background:linear-gradient(rgba(0,0,0,0) 40%,rgba(40,25,10,.35));}
+  #story .gp-img{position:absolute;left:clamp(0px,2vw,30px);bottom:0;height:min(78vh,560px);max-width:40vw;object-fit:contain;object-position:bottom left;filter:drop-shadow(0 6px 12px rgba(0,0,0,.35));}
+  .dialog{position:absolute;left:clamp(110px,30vw,380px);right:clamp(10px,2vw,30px);bottom:clamp(10px,3vh,30px);background:var(--paper);
+    border:4px solid #8a5a2b;border-radius:20px;padding:clamp(10px,2.4vmin,22px) clamp(14px,3vmin,30px);box-shadow:0 8px 24px rgba(0,0,0,.35);}
+  .dialog .who{display:inline-block;background:var(--wood);color:#fff4d8;font-weight:900;border-radius:10px;padding:.1em .7em;font-size:calc(var(--fs)*.8);margin-bottom:.3em;}
+  #storyDay{float:right;font-size:calc(var(--fs)*.75);color:var(--sub);font-weight:700;}
+  #storyText{font-size:calc(var(--fs)*1.25);font-weight:800;line-height:1.5;min-height:3em;}
+  .dialog .hint{font-size:calc(var(--fs)*.68);color:var(--sub);text-align:right;margin-top:.2em;}
+  #btnStorySkip{position:absolute;top:10px;right:10px;}
+
+  /* 校正 */
+  .gp-mini{width:clamp(70px,16vmin,130px);float:left;margin-right:12px;}
+
+  /* 遊戲中 HUD */
+  #hud{position:absolute;left:0;right:0;top:0;z-index:4;display:flex;align-items:center;gap:10px;padding:8px 10px;pointer-events:none;}
+  #hud > *{pointer-events:auto;}
+  .pill{background:linear-gradient(#a8703a,#7a4b22);color:#fff6dd;border-radius:16px;padding:.15em .8em;display:flex;align-items:baseline;gap:.4em;
+    box-shadow:0 3px 0 #4e2f13;border:2px solid #c99a5e;white-space:nowrap;}
+  .pill small{font-size:calc(var(--fs)*.75);font-weight:700;} .pill b{font-size:calc(var(--fs)*1.5);font-weight:900;}
+  .pill.blue{background:linear-gradient(#4a93e0,#245fa8);border-color:#9cc6f2;box-shadow:0 3px 0 #173f70;}
+  .pill.orange{background:linear-gradient(#f5a14a,#c96a12);border-color:#ffd39c;box-shadow:0 3px 0 #7d420a;}
+  #timeWrap{flex:1;display:flex;align-items:center;gap:8px;max-width:520px;margin:0 auto;}
+  #timeWrap .sun{font-size:calc(var(--fs)*1.1);}
+  .tbar{flex:1;height:clamp(12px,2.4vmin,20px);background:rgba(255,248,232,.75);border-radius:999px;overflow:hidden;border:2px solid rgba(90,60,25,.6);}
+  #timeFill{height:100%;width:100%;background:linear-gradient(90deg,#ffd45a,#f6b23a);transition:width .2s linear;}
+  #timeWrap.late #timeFill{background:linear-gradient(90deg,#ff8a3a,#ff6a2a);animation:pulse .6s ease-in-out infinite alternate;}
+  @keyframes pulse{from{opacity:1}to{opacity:.55}}
+  .hud-icon{border:none;border-radius:12px;background:rgba(255,248,232,.92);font-size:calc(var(--fs)*.9);min-width:48px;min-height:44px;font-weight:800;color:var(--ink);box-shadow:0 3px 0 #b99a68;}
+
+  /* 練習提示列 */
+  #tip{position:absolute;left:50%;transform:translateX(-50%);bottom:clamp(8px,2vh,20px);z-index:4;display:flex;align-items:center;gap:12px;
+    background:rgba(251,243,225,.96);border:3px solid #8a5a2b;border-radius:18px;padding:.4em .6em .4em 1em;max-width:96vw;box-shadow:0 6px 18px rgba(0,0,0,.3);}
+  #tipText{font-size:calc(var(--fs)*1.05);font-weight:900;}
+  #tip .btn{white-space:nowrap;flex:none;}
+  @media (max-height:520px){ #tip{width:max-content;max-width:94vw;padding:.25em .4em .25em .8em;} #tipText{font-size:15px;} }
+
+  /* 收成單 */
+  .receipt{background:var(--paper);background-image:repeating-linear-gradient(transparent 0 34px,rgba(160,120,60,.13) 34px 35px);
+    border-radius:6px;position:relative;max-width:min(640px,96vw);}
+  .receipt::before{content:"";position:absolute;left:0;right:0;top:-10px;height:12px;background:radial-gradient(circle at 8px 12px,transparent 7px,var(--paper) 8px) repeat-x;background-size:16px 12px;}
+  .rc-head{display:flex;justify-content:space-between;align-items:center;gap:8px;border-bottom:2px dashed #c8ad7a;padding-bottom:.3em;margin-bottom:.4em;}
+  .rc-head h1{font-size:calc(var(--fs)*1.3);margin:0;text-align:left;}
+  .stars{font-size:calc(var(--fs)*1.8);color:#d9cbb0;letter-spacing:.05em;white-space:nowrap;} .stars .on{color:#f2b31b;}
+  .rc-rows{margin:.2em 0;} .rc-row{display:flex;justify-content:space-between;font-size:var(--fs);padding:.12em 0;}
+  .rc-row b{font-weight:900;} .rc-row.total{border-top:2px solid #c8ad7a;margin-top:.2em;padding-top:.25em;font-size:calc(var(--fs)*1.15);color:var(--green);}
+  .rc-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:.5em 0;}
+  .rc-stats div{background:rgba(255,255,255,.7);border:2px solid #e2cfa6;border-radius:12px;text-align:center;padding:.2em;}
+  .rc-stats small{display:block;font-size:calc(var(--fs)*.65);color:var(--sub);} .rc-stats b{font-size:calc(var(--fs)*1.05);}
+  #rcGrandpa{display:flex;align-items:center;gap:10px;font-size:calc(var(--fs)*.95);font-weight:800;background:#fff6dd;border-radius:14px;padding:.4em .6em;margin:.4em 0;}
+  #rcPreview{font-size:calc(var(--fs)*.85);color:var(--wood2);font-weight:800;text-align:center;margin:.3em 0;}
+  details.why{margin-top:.5em;font-size:calc(var(--fs)*.75);background:rgba(255,255,255,.6);border-radius:12px;padding:.4em .7em;}
+  details.why summary{font-weight:900;cursor:pointer;font-size:calc(var(--fs)*.85);}
+  details.why li{margin:.25em 0 .25em 1.2em;line-height:1.5;} details.why p{color:var(--sub);line-height:1.5;margin-top:.4em;}
+
+  /* 雙人 */
+  #duelSetup{padding:0;}
+  .ds-half{position:absolute;top:0;bottom:0;width:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;padding:10px;}
+  .ds-half.l{left:0;} .ds-half.r{right:0;}
+  .ds-card{background:rgba(251,243,225,.95);border-radius:18px;padding:clamp(10px,2.4vmin,22px);text-align:center;border:5px solid var(--blue);max-width:92%;}
+  .ds-half.r .ds-card{border-color:var(--orange);}
+  .ds-card h2{font-size:calc(var(--fs)*1.2);margin-bottom:.3em;}
+  .ds-card .seg button{min-width:4.2em;}
+  .ds-card .seg button.on{background:#cfe4fb;border-color:var(--blue);} .ds-half.r .seg button.on{background:#ffe2c0;border-color:var(--orange);}
+  .ds-center{position:absolute;left:50%;bottom:clamp(10px,4vh,40px);transform:translateX(-50%);z-index:2;display:flex;flex-direction:column;align-items:center;gap:6px;}
+  #duelReady{padding:0;}
+  .ready-side{position:absolute;top:22%;width:44%;text-align:center;font-size:clamp(22px,6vmin,50px);font-weight:900;color:#fff;
+    background:rgba(60,40,20,.55);border-radius:20px;padding:.3em .4em;border:5px solid transparent;}
+  #readyL{left:3%;} #readyR{right:3%;}
+  .ready-side.now{animation:pulse .7s ease-in-out infinite alternate;}
+  #readyL.now,#readyL.ok{border-color:var(--blue);} #readyR.now,#readyR.ok{border-color:var(--orange);}
+  #readyL.ok{background:rgba(47,127,216,.85);} #readyR.ok{background:rgba(240,138,36,.88);}
+  .ready-skip{position:absolute;left:50%;bottom:clamp(10px,4vh,40px);transform:translateX(-50%);}
+  #duelEnd .wrap{max-width:min(1000px,98vw);width:100%;margin:auto;}
+  .de-banner{text-align:center;font-size:clamp(24px,6.5vmin,52px);font-weight:900;color:#fff;border-radius:18px;padding:.15em .5em;margin-bottom:8px;box-shadow:0 6px 0 rgba(0,0,0,.25);}
+  .de-banner.blue{background:var(--blue);} .de-banner.orange{background:var(--orange);} .de-banner.tie{background:var(--green);}
+  .de-cols{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+  .de-cols .receipt{position:relative;padding:clamp(10px,2vmin,18px);} .de-cols h3{font-size:var(--fs);}
+  #deL{border:4px solid var(--blue);} #deR{border:4px solid var(--orange);}
+  .de-cols .rc-stats{grid-template-columns:repeat(2,1fr);}
+  .win{position:absolute;right:-14px;top:-20px;z-index:2;box-shadow:0 3px 0 rgba(0,0,0,.25);font-size:calc(var(--fs)*1.6);font-weight:900;color:#fff;background:var(--red);border-radius:50%;width:1.7em;height:1.7em;display:flex;align-items:center;justify-content:center;transform:rotate(-12deg);}
+
+  .hub-hint{color:#a85a00;font-weight:800;margin-top:2px;}
+  /* v0.2：這禮拜的累積 */
+  .week{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:center;background:rgba(251,243,225,.94);border:3px solid #b07a2a;border-radius:16px;padding:.3em .9em;margin-top:8px;font-weight:800;}
+  .wk-lab{font-size:var(--fs);} .wk-say{font-size:calc(var(--fs)*.75);color:var(--sub);}
+  .wk-bar{width:min(320px,34vw);height:clamp(14px,2.6vmin,22px);background:#eadcc0;border-radius:999px;overflow:hidden;border:2px solid #b07a2a;}
+  #weekFill{height:100%;width:0;background:linear-gradient(90deg,#e8b93c,#d18a1c);}
+  #weekNum{font-size:calc(var(--fs)*1.1);color:var(--wood2);}
+  /* v0.2：試手 */
+  #trial{align-items:flex-start;justify-content:center;padding:8px;pointer-events:none;background:none;}
+  #trial > *{pointer-events:auto;}
+  .trial-top{display:flex;align-items:center;gap:10px;max-width:96vw;}
+  .trial-gp{height:clamp(44px,11vh,90px);width:auto;}
+  .trial-head{font-size:calc(var(--fs)*1.05);font-weight:900;padding:.3em .9em;}
+  .trial-btns{position:absolute;right:10px;bottom:10px;display:flex;gap:10px;}
+  body.demo .trial-btns{bottom:30px;}   /* 不要被右下角「示範模式」標籤蓋到 */
+  /* v0.2：評估報告（共用模組的 .as- 樣式之外，本遊戲自己的區塊） */
+  #asWrap{margin-top:8px;}
+  .field{margin:0 0 10px;} .lab{font-size:var(--fs);font-weight:800;margin-bottom:.35em;text-align:center;}
+  .as-who{text-align:center;} .as-who .seg button small{display:block;font-size:.65em;font-weight:700;color:var(--sub);}
+  .link-btn{background:none;border:none;color:var(--wood2);text-decoration:underline;font-weight:800;font-size:calc(var(--fs)*.8);}
+  .btn.primary{background:linear-gradient(#69a94b,#3f7a2b);}
+  .as-report{border-color:#c9b27a;} .as-ther{font-size:15px;margin:6px 0;} .as-ther table{width:100%;border-collapse:collapse;} .as-ther td,.as-ther th{border-bottom:1px solid #e2cfa6;padding:2px 6px;text-align:left;}
+  .bx-block{background:#fff;border:3px solid #e2cfa6;border-radius:16px;padding:10px 14px;margin:8px 0;}
+  .bx-block h3{font-size:calc(var(--fs)*1.05);margin-bottom:6px;} .bx-block h3 small{font-size:.65em;color:var(--sub);}
+  .bx-grid{width:100%;border-collapse:separate;border-spacing:5px;}
+  .bx-grid th{font-size:calc(var(--fs)*.85);} .bx-grid th small{display:block;font-size:.75em;color:var(--sub);font-weight:700;}
+  .bx-grid td{position:relative;border-radius:10px;text-align:center;font-weight:900;font-size:calc(var(--fs)*.95);padding:.5em .3em;}
+  .bx-grid td small{display:block;font-size:.72em;font-weight:700;}
+  .bx-grid td i{position:absolute;right:4px;top:2px;font-style:normal;font-size:.6em;background:#fff;border-radius:8px;padding:0 5px;color:var(--sub);}
+  .bx-grid td i.up{color:#fff;background:#3f7a2b;}
+  .bx-grid .lv3{background:#4f8f3a;color:#fff;} .bx-grid .lv2{background:#a9d08e;} .bx-grid .lv1{background:#eef3d8;} .bx-grid .lv0{background:#f3ece0;color:#9a8a72;font-weight:700;font-size:calc(var(--fs)*.75);}
+  .bx-extra{display:flex;flex-wrap:wrap;gap:4px 16px;list-style:none;font-size:calc(var(--fs)*.85);margin:4px 0;}
+  .bx-note,.bx-src{font-size:calc(var(--fs)*.7);color:var(--sub);}
+  .bx-adv{list-style:none;} .bx-adv li{background:#ddf0e4;border-radius:12px;padding:.4em .7em;margin:4px 0;font-weight:800;font-size:calc(var(--fs)*.95);color:#17603a;}
+  .bx-adv small{display:block;font-size:.7em;opacity:.85;}
+  .bx-games{display:flex;gap:8px;flex-wrap:wrap;} .bx-game{flex:1 1 160px;background:#fff6dd;border:2px solid #e2cfa6;border-radius:12px;padding:.4em .7em;display:flex;flex-direction:column;}
+  .bx-game b{font-size:var(--fs);} .bx-game span{font-size:calc(var(--fs)*.8);} .bx-game em{font-style:normal;font-size:calc(var(--fs)*.7);color:var(--sub);}
+
+  /* 轉向提示、載入、示範標籤 */
+  #rotate{display:none;position:absolute;inset:0;z-index:20;align-items:center;justify-content:center;background:#3a2e20;color:#fff6dd;text-align:center;padding:20px;}
+  #rotate h2{font-size:24px;margin:14px 0 8px;} #rotate p{font-size:16px;line-height:1.7;margin-bottom:18px;}
+  @media (orientation:portrait) and (max-width:820px){ body.playing:not(.rot-ok) #rotate{display:flex;} }
+  #loading{display:none;position:absolute;inset:0;z-index:15;background:rgba(40,25,10,.75);color:#fff;flex-direction:column;align-items:center;justify-content:center;gap:14px;font-size:var(--fs);}
+  .spinner{width:46px;height:46px;border:5px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin 1s linear infinite;}
+  @keyframes spin{to{transform:rotate(360deg);}}
+  #demoBadge{display:none;position:absolute;right:8px;bottom:6px;z-index:9;background:rgba(255,214,90,.92);color:#4a3000;font-weight:900;font-size:13px;border-radius:8px;padding:2px 8px;pointer-events:none;}
+  body.demo #demoBadge{display:block;}
+
+  /* 矮螢幕（手機橫向） */
+  @media (max-height:520px){
+    :root{--fs:clamp(14px,3.6vmin,19px);}
+    .btn{min-height:42px;padding:.4em 1em;} .btn.big{min-height:50px;}
+    .seg button{min-height:44px;padding:.3em .9em;}
+    .rc-stats{grid-template-columns:repeat(4,1fr);}
+    .paper{padding:12px 16px;}
+    #story .gp-img{height:86vh;}
+    #duelEnd{align-items:flex-start;padding:6px;}
+    .de-banner{font-size:22px;margin-bottom:4px;}
+    .de-cols .receipt{padding:6px 10px;} .de-cols h3{font-size:15px;}
+    .de-cols .rc-row{font-size:13px;padding:0;} .de-cols .rc-row.total{font-size:15px;}
+    .de-cols .rc-stats{grid-template-columns:repeat(4,1fr);gap:4px;margin:.3em 0 0;}
+    .de-cols .rc-stats b{font-size:14px;} .de-cols .rc-stats small{font-size:11px;}
+    #duelEnd .actions{margin-top:6px;} .win{font-size:20px;}
+  }
+</style>
+</head>
+<body>
+<div id="game">
+  <canvas id="cv"></canvas>
+
+  <!-- 首頁 -->
+  <div class="overlay" id="title">
+    <div class="plank"><h1>趕走山豬 2</h1><h2>守住阿公的田</h2></div>
+    <div class="title-btns">
+      <button class="btn big green" id="btnStory">故事模式</button>
+      <button class="btn big" id="btnDuel">雙人競賽</button>
+    </div>
+    <div class="tips-line">💻 用電腦最好玩．📱 手機要架起來．🪑 坐著玩、坐遠一點</div>
+    <div id="credit"></div>
+  </div>
+
+  <!-- 故事模式設定 -->
+  <div class="overlay hidden" id="setup">
+    <div class="paper">
+      <h1>準備開始</h1>
+      <div class="row" id="rowHand"><div class="label">要練哪隻手？</div>
+        <div class="seg" id="segHand"><button data-hand="right">右手</button><button data-hand="left">左手</button><button data-hand="both" class="on">兩隻手</button></div></div>
+      <div class="row"><div class="label">難度</div>
+        <div class="seg" id="segDiff"><button data-diff="easy">輕鬆</button><button data-diff="normal" class="on">普通</button><button data-diff="hard">挑戰</button></div>
+        <p class="note" id="diffHint"></p>
+        <p class="note hub-hint hidden" id="hubHint"></p></div>
+      <div class="actions"><button class="btn light" data-home>🏠 回首頁</button><button class="btn big green" id="btnSetupGo">開啟鏡頭 →</button></div>
+      <p class="note">畫面只在你的電腦或手機上運算，不會上傳、不會存下來。</p>
+    </div>
+  </div>
+
+  <!-- 日程 -->
+  <div class="overlay hidden" id="days">
+    <div class="days-top">
+      <button class="btn light small" data-home>🏠 回首頁</button>
+      <div class="plank"><h1>阿公的田　這個禮拜</h1></div>
+      <button class="btn light small" id="btnDaysSetting">⚙ <span id="daysSetting"></span></button>
+    </div>
+    <div class="week"><span class="wk-lab">這禮拜保住的收成</span><div class="wk-bar"><div id="weekFill"></div></div><b id="weekNum"></b><span class="wk-say">謝平安要帶去拜土地公的</span></div>
+    <div id="dayNodes"></div>
+  </div>
+
+  <!-- 跟阿公伸伸懶腰（校正） -->
+  <div class="overlay hidden" id="calib">
+    <div class="paper">
+      <img class="gp-img gp-mini" alt="阿公">
+      <h1 id="calibTitle">跟阿公伸伸懶腰</h1>
+      <p class="lead" id="calibText"></p>
+      <div style="clear:both"></div>
+      <div class="actions">
+        <button class="btn light" data-home>🏠 回首頁</button>
+        <button class="btn light hidden" id="btnCalibAgain">再一次</button>
+        <button class="btn big green" id="btnCalibStart">開始</button>
+        <button class="btn big green hidden" id="btnCalibGo">去田裡 →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 劇情 -->
+  <div class="overlay hidden" id="story">
+    <button class="btn light small home-btn" data-home>🏠 回首頁</button>
+    <button class="btn light small" id="btnStorySkip">跳過 ⏭</button>
+    <img class="gp-img" alt="阿公">
+    <div class="dialog">
+      <span class="who">阿公</span><span id="storyDay"></span>
+      <p id="storyText"></p>
+      <p class="hint"><span id="storyCount"></span>　點一下換下一句</p>
+    </div>
+  </div>
+
+  <!-- 遊戲中 -->
+  <div id="hud" class="hidden">
+    <div class="pill" id="hudL"></div>
+    <div id="timeWrap"><span class="sun">☀️</span><div class="tbar"><div id="timeFill"></div></div><span class="sun">🌇</span></div>
+    <div class="pill hidden" id="hudR"></div>
+    <button class="hud-icon" id="btnSound" title="聲音">🔊</button>
+    <button class="hud-icon" data-home title="回首頁">🏠</button>
+  </div>
+  <div id="tip" class="hidden"><span id="tipText"></span><button class="btn small" id="btnTipSkip">跳過練習</button></div>
+
+  <!-- 收成單 -->
+  <div class="overlay hidden" id="receipt">
+    <div class="paper receipt">
+      <div class="rc-head"><h1 id="rcTitle">收成單</h1><div class="stars" id="rcStars"></div></div>
+      <div id="rcBody"></div>
+      <div id="rcGrandpa"></div>
+      <div id="rcPreview"></div>
+      <div id="asWrap" class="hidden"></div>
+      <div class="actions">
+        <button class="btn green" id="btnNextDay">下一天</button>
+        <button class="btn" id="btnAgainDay">再守一次</button>
+        <button class="btn light" data-home>🏠 回首頁</button>
+      </div>
+      <details class="why"><summary>剛剛你在練什麼？</summary>
+        <ul>
+          <li><b>手舉高趕麻雀、叫醒稻草人（高處）</b>：練肩膀抬高，還有手臂往旁邊揮。</li>
+          <li><b>伸手趕山豬（中間）</b>：練伸手拿東西的距離和準度。</li>
+          <li><b>手放低追老鼠（低處）</b>：練手放低，跟著會動的東西走。</li>
+          <li><b>手伸到另一邊</b>：練轉身和左右兩邊的協調。</li>
+          <li><b>看到就出手</b>：練眼睛和手的反應速度。</li>
+        </ul>
+        <p>白話說：復健的重點是「同一個動作，開心地做很多次」。遊戲把重複練習變成有回饋的事，比乾坐著抬手更容易撐下去。<br>
+          參考：Langhorne, P., Bernhardt, J., &amp; Kwakkel, G. (2011). Stroke rehabilitation. <i>The Lancet, 377</i>(9778), 1693–1702.<br>
+          ※ 本遊戲為健康促進與居家活動用途，不能取代治療師的評估與治療。身體不適請立刻停止。</p>
+      </details>
+    </div>
+  </div>
+
+  <!-- 雙人設定 -->
+  <div class="overlay hidden" id="duelSetup">
+    <button class="btn light small home-btn" data-home>🏠 回首頁</button>
+    <div class="ds-half l"><div class="ds-card"><h2>左邊的人</h2>
+      <div class="seg" id="dsL"><button data-diff="easy">輕鬆</button><button data-diff="normal">普通</button><button data-diff="hard">挑戰</button></div></div></div>
+    <div class="ds-half r"><div class="ds-card"><h2>右邊的人</h2>
+      <div class="seg" id="dsR"><button data-diff="easy">輕鬆</button><button data-diff="normal">普通</button><button data-diff="hard">挑戰</button></div></div></div>
+    <div class="ds-center"><button class="btn big green" id="btnDuelGo">開始比賽 →</button><span class="tips-line">兩人並肩坐，一局 60 秒</span></div>
+  </div>
+  <div class="overlay hidden" id="duelReady">
+    <div class="ready-side" id="readyL"></div><div class="ready-side" id="readyR"></div>
+    <button class="btn light ready-skip" id="btnReadySkip">跳過</button>
+  </div>
+  <div class="overlay hidden" id="duelEnd">
+    <div class="wrap">
+      <div class="de-banner" id="deBanner"></div>
+      <div class="de-cols"><div class="paper receipt" id="deL"></div><div class="paper receipt" id="deR"></div></div>
+      <div class="actions"><button class="btn green" id="btnDuelAgain">再比一局</button><button class="btn light" data-home>🏠 回首頁</button></div>
+    </div>
+  </div>
+
+  <!-- 試手（評估層量測關；畫面主體畫在畫布上） -->
+  <div class="overlay hidden" id="trial">
+    <div class="trial-top"><img class="gp-img trial-gp" alt="阿公"><div class="plank trial-head" id="trialHead"></div></div>
+    <div class="trial-btns"><button class="btn light small" data-home>🏠 回首頁</button><button class="btn light small" id="btnTrialPain">✋ 肩膀會痛</button><button class="btn small" id="btnTrialSkip">略過這段 ⏭</button></div>
+  </div>
+
+  <div id="rotate"><div><div style="font-size:60px">📱</div><h2>請把手機轉橫的</h2><p>橫著拿，才照得到你左右伸手的範圍。</p>
+    <button class="btn light" id="btnRotateSkip">還是要直向玩</button></div></div>
+  <div id="loading"><div class="spinner"></div><div id="loadMsg">載入中…</div></div>
+  <div id="demoBadge">示範模式</div>
+</div>
+<script type="module" src="game.js"></script>
+</body>
+</html>

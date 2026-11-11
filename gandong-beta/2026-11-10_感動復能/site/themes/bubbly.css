@@ -1,0 +1,142 @@
+/* 風格 B 圓圓闖關（2026-11-11 樣張）：白底、鮮綠主色＋暖橘＋天藍，圓胖按鈕帶立體底邊，今日點心像闖關。
+   只覆蓋 style.css；長輩底線：內文 ≥ 20px、按鈕 ≥ 56px、白字只放深綠／深藍上（對比 ≥ 4.5）。 */
+body[data-theme="bubbly"]{
+  --bg:#FFFFFF;--card:#FFFFFF;--ink:#3C3C3C;--mut:#5F6B73;--line:#E5E5E5;--soft:#F2F6EE;
+  --acc:#2F870C;--acc-d:#1F5E06;--ok:#2F870C;
+  --g:#58CC02;--g-d:#2F870C;--g-dd:#1F5E06;--g-bg:#E9F8DA;
+  --o:#FF9600;--o-d:#C26A00;--o-bg:#FFF1DC;
+  --b:#1CB0F6;--b-d:#0A6FA3;--b-bg:#DDF4FF;
+  --gold:#FFC800;--gold-d:#C79A00;
+  --mind:#0A6FA3;--mind-bg:#DDF4FF;--move:#C2410C;--move-bg:#FFEBDD;
+  --sh:none;
+  font-family:"Yuanti TC","PingFang TC","Noto Sans TC","Microsoft JhengHei",system-ui,sans-serif;
+  background:#FFFFFF;color:var(--ink)
+}
+
+/* ---------- 按鈕：圓胖＋立體底邊，按下往下沉 ---------- */
+body[data-theme="bubbly"] .btn{border-radius:18px;border:2px solid var(--line);border-bottom-width:6px;background:#fff;color:var(--ink);transition:transform .08s,border-bottom-width .08s;letter-spacing:.02em}
+body[data-theme="bubbly"] .btn:hover{border-color:#D0D0D0;background:#FAFAFA}
+body[data-theme="bubbly"] .btn:active{transform:translateY(4px);border-bottom-width:2px}
+body[data-theme="bubbly"] .btn.primary{background:var(--g-d);border-color:var(--g-dd);color:#fff}
+body[data-theme="bubbly"] .btn.primary:hover{background:#2A7A0A}
+body[data-theme="bubbly"] .btn:focus-visible,body[data-theme="bubbly"] .card:focus-visible{outline:4px solid var(--b);outline-offset:3px}
+
+/* ---------- 頂部列 ---------- */
+body[data-theme="bubbly"] .appbar{background:rgba(255,255,255,.96);border-bottom:2px solid var(--line)}
+body[data-theme="bubbly"] .logo-mark{background:var(--g-d);border-radius:18px;box-shadow:inset 0 -5px 0 var(--g-dd)}
+body[data-theme="bubbly"] .logo-txt{color:var(--g-dd);font-weight:900}
+body[data-theme="bubbly"] .tabs a{border-radius:16px;border:2px solid transparent;color:#6B6B6B}
+body[data-theme="bubbly"] .tabs a:hover{background:#F2F2F2}
+body[data-theme="bubbly"] .tabs a.on{background:var(--b-bg);border-color:var(--b);color:var(--b-d)}
+body[data-theme="bubbly"] .who-chip{border:2px solid var(--line);border-bottom-width:5px;background:#fff}
+body[data-theme="bubbly"] .who-chip span{background:var(--o-bg);color:var(--o-d)}
+
+/* 「感」「動」小標 */
+body[data-theme="bubbly"] .pill{border-radius:12px}
+body[data-theme="bubbly"] .pill.mind{background:var(--b-d)}
+body[data-theme="bubbly"] .pill.move{background:var(--move)}
+
+/* ---------- 今天 ---------- */
+body[data-theme="bubbly"] .hello .date{color:var(--o-d)}
+body[data-theme="bubbly"] .hello h1{color:var(--ink)}
+body[data-theme="bubbly"] .first-box{border:3px solid var(--g);border-bottom-width:8px;border-radius:26px;background:var(--g-bg)}
+
+body[data-theme="bubbly"] .snack-head h2::before{content:"🏁 ";}
+body[data-theme="bubbly"] .snack-prog .bar{width:200px;height:20px;background:#E5E5E5;border-radius:99px}
+body[data-theme="bubbly"] .snack-prog .bar i{background:var(--g);border-radius:99px;box-shadow:inset 0 -5px 0 rgba(0,0,0,.12),inset 0 4px 0 rgba(255,255,255,.35)}
+body[data-theme="bubbly"] .snack-prog b{color:var(--g-dd)}
+
+/* 三樣點心＝三個關卡，中間用虛線路徑串起來 */
+body[data-theme="bubbly"] .snacks{gap:28px;position:relative}
+body[data-theme="bubbly"] .snack{position:relative}
+body[data-theme="bubbly"] .snack a{border:3px solid var(--line);border-bottom-width:8px;border-radius:28px;box-shadow:none;padding-top:0}
+body[data-theme="bubbly"] .snack a:hover{transform:translateY(-3px);border-color:var(--b)}
+body[data-theme="bubbly"] .snack .pic{background-color:#F2F6EE;border-bottom:3px solid var(--line)}
+body[data-theme="bubbly"] .snack .no{width:62px;height:62px;top:12px;left:12px;font-size:28px;background:var(--b-d);border:4px solid #fff;box-shadow:0 5px 0 #075A85,0 0 0 4px var(--b-bg)}
+body[data-theme="bubbly"] .snack.done .no{background:var(--g-d);box-shadow:0 5px 0 var(--g-dd),0 0 0 4px var(--g-bg);font-size:32px}
+body[data-theme="bubbly"] .snack.done a{border-color:var(--g);background:var(--g-bg)}
+body[data-theme="bubbly"] .snack.done .pic{filter:none;opacity:.85}
+body[data-theme="bubbly"] .snack.done a::after{content:"過關！";position:absolute;top:14px;right:12px;background:var(--gold);color:#3C3C3C;font-weight:900;font-size:20px;padding:4px 14px;border-radius:99px;box-shadow:0 4px 0 var(--gold-d)}
+body[data-theme="bubbly"] .snack .kind{color:var(--mut)}
+body[data-theme="bubbly"] .snack b{color:var(--ink)}
+body[data-theme="bubbly"] .snack .go{border-radius:18px;background:var(--g-d);box-shadow:0 6px 0 var(--g-dd);margin:10px 16px 22px;letter-spacing:.06em;transition:transform .08s,box-shadow .08s}
+body[data-theme="bubbly"] .snack a:active .go{transform:translateY(5px);box-shadow:0 1px 0 var(--g-dd)}
+body[data-theme="bubbly"] .snack.done .go{background:#fff;color:var(--g-dd);border:2px solid var(--g);box-shadow:0 6px 0 var(--g)}
+body[data-theme="bubbly"] .peek{border:3px solid var(--line);border-bottom-width:8px;border-radius:28px;box-shadow:none;background:linear-gradient(180deg,#fff,#F7FBFF)}
+body[data-theme="bubbly"] .peek h2::before{content:"📈 "}
+
+/* ---------- 全部活動 ---------- */
+body[data-theme="bubbly"] .chip{border:2px solid var(--line);border-bottom-width:5px;border-radius:18px;background:#fff;min-height:52px}
+body[data-theme="bubbly"] .chip:active{transform:translateY(3px);border-bottom-width:2px}
+body[data-theme="bubbly"] .chip.on{background:var(--o-bg);border-color:var(--o);color:var(--o-d)}
+body[data-theme="bubbly"] .chip-sep{color:var(--mut);font-size:17px}
+body[data-theme="bubbly"] .grp .pill{width:40px;height:40px;font-size:21px}
+body[data-theme="bubbly"] .goals{gap:22px}
+body[data-theme="bubbly"] .goal{border:3px solid var(--line);border-bottom-width:8px;border-radius:28px;padding:16px 18px 20px;background:#fff}
+body[data-theme="bubbly"] .goal.move{border-left-width:3px;background:linear-gradient(180deg,#FFF6EC 0,#fff 120px)}
+body[data-theme="bubbly"] .goal.mind{border-left-width:3px;background:linear-gradient(180deg,#EEF9FF 0,#fff 120px)}
+body[data-theme="bubbly"] .goal-h .gi{width:62px;height:62px;border-radius:50%;font-size:32px;background:#fff;border:3px solid var(--line);box-shadow:0 5px 0 var(--line)}
+body[data-theme="bubbly"] .goal.move .goal-h .gi{border-color:var(--o);box-shadow:0 5px 0 var(--o)}
+body[data-theme="bubbly"] .goal.mind .goal-h .gi{border-color:var(--b);box-shadow:0 5px 0 var(--b)}
+body[data-theme="bubbly"] .goal-h .gn{background:#F2F2F2;border-radius:99px;padding:4px 12px;color:var(--mut)}
+body[data-theme="bubbly"] .card{border:3px solid var(--line);border-bottom-width:7px;border-radius:24px;box-shadow:none}
+body[data-theme="bubbly"] .card:hover{border-color:var(--b);transform:translateY(-3px)}
+body[data-theme="bubbly"] .card:active{transform:translateY(3px);border-bottom-width:3px}
+body[data-theme="bubbly"] .card .pic{border-bottom:3px solid var(--line)}
+body[data-theme="bubbly"] .card .pic .pill{border-radius:50%;width:44px;height:44px}
+body[data-theme="bubbly"] .card .pic .pill.mind{box-shadow:0 4px 0 #075A85}
+body[data-theme="bubbly"] .card .pic .pill.move{box-shadow:0 4px 0 #8A2E08}
+body[data-theme="bubbly"] .also span{border-radius:12px;border:2px solid transparent}
+body[data-theme="bubbly"] .also .m{border-color:#A9E0FB}
+body[data-theme="bubbly"] .also .v{border-color:#FFCFAD}
+body[data-theme="bubbly"] .tag{border-radius:10px;background:#F2F2F2;color:#555}
+body[data-theme="bubbly"] .tag.phone{background:var(--o-bg);color:var(--o-d)}
+
+/* ---------- 我的進步 ---------- */
+body[data-theme="bubbly"] .me-line{margin-bottom:18px;background:var(--g-bg);border:3px solid var(--g);border-radius:22px;padding:12px 18px;color:var(--g-dd)}
+body[data-theme="bubbly"] .radar-card{border:3px solid var(--line);border-bottom-width:8px;border-radius:28px;box-shadow:none}
+body[data-theme="bubbly"] .radar .rg{stroke:#E8E8E8}
+body[data-theme="bubbly"] .radar .rg.out{stroke:#CFCFCF;stroke-width:2}
+body[data-theme="bubbly"] .radar .ax{stroke:#E8E8E8}
+body[data-theme="bubbly"] .radar .ps{fill:rgba(88,204,2,.28);stroke:var(--g-d);stroke-width:4}
+body[data-theme="bubbly"] .radar .pf{fill:rgba(28,176,246,.08);stroke:var(--b);stroke-width:3;stroke-dasharray:8 6}
+body[data-theme="bubbly"] .radar .pd{fill:#fff;stroke:var(--g-d);stroke-width:3}
+body[data-theme="bubbly"] .radar .lb{fill:var(--ink)}
+body[data-theme="bubbly"] .radar .lv{fill:var(--g-dd)}
+body[data-theme="bubbly"] .radar .lv.lk{fill:#8A8A8A}
+body[data-theme="bubbly"] .lg{border-top-color:var(--g-d);border-top-width:4px}
+body[data-theme="bubbly"] .lg.first{border-top:3px dashed var(--b)}
+body[data-theme="bubbly"] .rc{border:2px solid var(--line);border-bottom-width:5px;border-radius:18px}
+body[data-theme="bubbly"] details.pro{border:3px solid var(--line);border-bottom-width:6px;border-radius:24px}
+body[data-theme="bubbly"] details.pro summary{color:var(--b-d)}
+body[data-theme="bubbly"] details.pro table{border-collapse:separate;border-spacing:0}
+body[data-theme="bubbly"] details.pro th{background:#F7F7F7;color:var(--mut);font-weight:800}
+body[data-theme="bubbly"] details.pro tr:first-child th:first-child{border-top-left-radius:12px}
+body[data-theme="bubbly"] details.pro tr:first-child th:last-child{border-top-right-radius:12px}
+body[data-theme="bubbly"] details.pro td,body[data-theme="bubbly"] details.pro th{border-bottom:2px solid #F0F0F0;padding:8px 8px}
+body[data-theme="bubbly"] .empty{border:3px dashed #D0D0D0;border-radius:28px}
+body[data-theme="bubbly"] .foot{color:var(--mut)}
+
+/* 電腦：只有一款的目標並排成三欄，兩款以上的目標佔整列（少捲動） */
+@media (min-width:761px){
+  body[data-theme="bubbly"] .goals{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));align-items:stretch}
+  body[data-theme="bubbly"] .goal:has(.card:nth-child(2)){grid-column:1/-1}
+  body[data-theme="bubbly"] .goal:not(:has(.card:nth-child(2))) .cards{grid-template-columns:1fr}
+  body[data-theme="bubbly"] .goal:not(:has(.card:nth-child(2))) .goal-h .gn{display:none}
+  body[data-theme="bubbly"] .goals.one{display:flex}
+  body[data-theme="bubbly"] .goal-h small{font-size:18px}
+}
+
+/* ---------- 手機：底部分頁像遊戲底欄 ---------- */
+@media (max-width:760px){
+  body[data-theme="bubbly"] .appbar{background:#fff}
+  body[data-theme="bubbly"] .logo-mark{font-size:13px;letter-spacing:-.06em}
+  body[data-theme="bubbly"] .tabs{background:#fff;border-top:2px solid var(--line);box-shadow:none}
+  body[data-theme="bubbly"] .tabs a{border-radius:16px}
+  body[data-theme="bubbly"] .tabs a.on{background:var(--b-bg);border-color:var(--b)}
+  body[data-theme="bubbly"] .snacks{gap:22px}
+  body[data-theme="bubbly"] .snack .no{width:54px;height:54px;font-size:24px}
+  body[data-theme="bubbly"] .snack-prog .bar{width:150px}
+  body[data-theme="bubbly"] .goal{padding:14px 12px 16px}
+  body[data-theme="bubbly"] .goal-h .gi{width:52px;height:52px;font-size:28px}
+}

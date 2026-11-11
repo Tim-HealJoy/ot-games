@@ -1,0 +1,165 @@
+/* 風格 F 黃底路牌（2026-11-11 樣張）
+   整頁黃底黑字，像台灣的警告標誌、計程車、工地看板。只用黑、黃，第三色淺黃。
+   卡片＝黃牌粗黑框、小圓角；主按鈕＝黑底黃字；分隔＝黑黃斜紋；目標圖示放在黑框菱形路牌裡；完成＝黑底黃字「完成 ✓」牌。
+   動／感不用顏色分，用形狀：動＝淺黃底黑框黑字（空心牌），感＝黑底黃字（實心牌）。
+   只覆蓋 style.css，body[data-theme="sign"]。 */
+
+body[data-theme="sign"]{
+  --bg:#FFD21F;--card:#FFE77A;--card2:#FFF0A8;--ink:#111;--mut:#2B2608;--line:#111;--soft:#FFF0A8;
+  --acc:#111;--acc-d:#111;--ok:#111;--red:#111;--muted:#2B2608;--y:#FFD400;
+  --mind:#111;--mind-bg:#111;--move:#111;--move-bg:#FFF0A8;
+  --stripe:repeating-linear-gradient(45deg,#111 0 14px,#FFD21F 14px 28px);
+  --sh:none;
+  background:var(--bg);color:var(--ink);
+}
+body[data-theme="sign"] :is(h1,h2,h3,.logo-txt,.snack b,.card b,.goal-h b,.page-h){letter-spacing:.04em}
+
+/* 按鈕：黑底黃字實心、方角 */
+body[data-theme="sign"] .btn{border-radius:8px;border:4px solid #111;background:var(--card2);color:#111}
+body[data-theme="sign"] .btn:hover{background:#fff6c8;border-color:#111}
+body[data-theme="sign"] .btn.primary{background:#111;border-color:#111;color:var(--y)}
+body[data-theme="sign"] .btn.primary:hover{background:#2a2a2a}
+body[data-theme="sign"] :is(.btn,.link,.card,.chip,.snack a):focus-visible{outline:5px solid #111;outline-offset:3px}
+body[data-theme="sign"] .link,body[data-theme="sign"] .link-btn{color:#111;font-weight:800}
+
+/* 頂部列：黑色、底下一條斜紋 */
+body[data-theme="sign"] .appbar{background:#111;border-bottom:0;color:var(--y)}
+body[data-theme="sign"] .appbar::after{content:"";display:block;height:10px;background:var(--stripe)}
+body[data-theme="sign"] .logo{color:var(--y)}
+body[data-theme="sign"] .logo-mark{border-radius:8px;background:var(--y);color:#111;font-size:14px;letter-spacing:-.08em;box-shadow:inset 0 0 0 3px var(--y),inset 0 0 0 6px #111}
+body[data-theme="sign"] .tabs a{border-radius:8px;color:#FFF0A8}
+body[data-theme="sign"] .tabs a:hover{background:#2a2a2a}
+body[data-theme="sign"] .tabs a.on{background:var(--y);color:#111}
+body[data-theme="sign"] .who-chip{border-radius:8px;border:3px solid var(--y);background:#111;color:var(--y)}
+body[data-theme="sign"] .who-chip span{background:var(--y);color:#111;border-radius:6px}
+
+/* 動／感：形狀區分 */
+body[data-theme="sign"] .pill{border-radius:6px}
+body[data-theme="sign"] .pill.mind{background:#111;color:var(--y)}
+body[data-theme="sign"] .pill.move{background:var(--card2);color:#111;box-shadow:inset 0 0 0 3px #111}
+body[data-theme="sign"] .card .pic .pill{border:3px solid #111}
+body[data-theme="sign"] .card .pic .pill.mind{border-color:var(--y);box-shadow:0 0 0 3px #111}
+body[data-theme="sign"] :is(.axtags,.also) span{border-radius:6px}
+body[data-theme="sign"] :is(.axtags,.also) .m{background:#111;color:var(--y)}
+body[data-theme="sign"] :is(.axtags,.also) .v{background:var(--card2);color:#111;box-shadow:inset 0 0 0 2px #111}
+body[data-theme="sign"] .also{color:#111}
+body[data-theme="sign"] .tag{border-radius:6px;background:#111;color:var(--y)}
+body[data-theme="sign"] .tag.phone{background:var(--card2);color:#111;box-shadow:inset 0 0 0 2px #111}
+
+/* 一般文字 */
+body[data-theme="sign"] :is(.sub,.sec-note,.privacy,.foot,.note,.snack .kind,.snack .meta,.card .meta,.legend,.rc .d,.rc .m,.goal-h small,.step,.who-note){color:var(--mut)}
+body[data-theme="sign"] :is(.today-k,.hello .date,.pick .k,.pick .extra,.card .note,.qz-card .qz-pain,.qz-note){color:#111}
+
+/* 今天 */
+body[data-theme="sign"] .hello .date{display:inline-block;background:#111;color:var(--y);padding:2px 14px;border-radius:6px;letter-spacing:.08em}
+body[data-theme="sign"] .hello h1{margin-top:8px}
+body[data-theme="sign"] .first-box,body[data-theme="sign"] .today{border:5px solid #111;border-radius:10px;background:var(--card);box-shadow:none;position:relative;padding-top:30px}
+body[data-theme="sign"] .first-box::before{content:"";position:absolute;left:0;right:0;top:0;height:14px;background:var(--stripe)}
+body[data-theme="sign"] .snack-head{background:var(--stripe) 0 0/100% 12px no-repeat;padding-top:26px}
+body[data-theme="sign"] .snack-prog .bar{height:18px;border-radius:4px;background:var(--card2);border:3px solid #111}
+body[data-theme="sign"] .snack-prog .bar i{border-radius:0;background:#111}
+
+/* 卡片：黃牌粗黑框 */
+body[data-theme="sign"] :is(.snack a,.card,.peek,.radar-card,.pick,.tile,.ther-box,details.pro,.rc,.empty){border:5px solid #111;border-radius:10px;background:var(--card);box-shadow:none}
+body[data-theme="sign"] :is(.snack a,.card):hover{transform:translateY(-2px);border-color:#111;box-shadow:6px 6px 0 #111}
+body[data-theme="sign"] .pick.first{border-width:6px}
+body[data-theme="sign"] :is(.snack,.card) .pic{border-bottom:5px solid #111}
+body[data-theme="sign"] .snack .no{border-radius:8px;background:#111;color:var(--y);border:3px solid var(--y);box-shadow:0 0 0 3px #111;width:48px;height:48px}
+body[data-theme="sign"] .snack .go{border-radius:8px;background:#111;color:var(--y);letter-spacing:.1em}
+body[data-theme="sign"] .snack.done .go{background:var(--card2);color:#111;border:4px solid #111}
+/* 完成：黑底黃字的牌子 */
+body[data-theme="sign"] .snack.done a::after{content:"完成 ✓";position:absolute;top:16px;right:14px;z-index:3;padding:6px 16px;border-radius:8px;background:#111;color:var(--y);font-weight:900;font-size:26px;letter-spacing:.06em;border:3px solid var(--y);box-shadow:0 0 0 3px #111;transform:rotate(-4deg)}
+body[data-theme="sign"] .snack.done .no{background:var(--y);color:#111;border-color:#111}
+body[data-theme="sign"] .snack.done .pic{filter:grayscale(.5) brightness(1.03)}
+
+body[data-theme="sign"] .peek{position:relative;padding-top:32px}
+body[data-theme="sign"] .peek::before{content:"";position:absolute;left:0;right:0;top:0;height:14px;background:var(--stripe)}
+
+/* 全部活動 */
+body[data-theme="sign"] .chip{border-radius:8px;border:3px solid #111;background:var(--card2);color:#111}
+body[data-theme="sign"] .chip.on{background:#111;border-color:#111;color:var(--y)}
+body[data-theme="sign"] .chip-sep{color:#111}
+body[data-theme="sign"] .grp{background:var(--stripe) 0 0/100% 12px no-repeat;padding-top:26px}
+body[data-theme="sign"] .goal{border:5px solid #111;border-radius:10px;background:var(--card);padding:16px 18px 18px}
+body[data-theme="sign"] .goal.move,body[data-theme="sign"] .goal.mind{border-left:5px solid #111}
+body[data-theme="sign"] .goal-h{padding-bottom:12px;border-bottom:4px solid #111}
+/* 圖示放在黑框菱形路牌裡 */
+body[data-theme="sign"] .goal-h .gi{position:relative;z-index:0;width:60px;height:60px;margin:4px 8px 4px 4px;background:transparent;border-radius:0;font-size:28px}
+body[data-theme="sign"] .goal-h .gi::before{content:"";position:absolute;inset:7px;z-index:-1;border-radius:5px;background:#FFFBE6;border:4px solid #111;box-shadow:0 0 0 3px var(--card),0 0 0 6px #111;transform:rotate(45deg)}
+body[data-theme="sign"] .goal-h .gn{color:var(--y);background:#111;border-radius:6px;padding:2px 10px}
+body[data-theme="sign"] .goal .card{background:var(--card2);border-width:4px}
+body[data-theme="sign"] .goals{display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:18px}
+body[data-theme="sign"] .goal:has(.cards > .card:nth-child(2)){grid-column:1/-1}
+body[data-theme="sign"] .goals.one{grid-template-columns:1fr}
+
+/* 我的進步：雷達卡做成黑底黃線，跟黃頁面拉開 */
+body[data-theme="sign"] figure.radar-card{background:#111;color:var(--y);border-color:#111}
+body[data-theme="sign"] .radar-card figcaption{color:var(--y)}
+body[data-theme="sign"] .radar-card .pill.mind{background:var(--y);color:#111}
+body[data-theme="sign"] .radar-card .pill.move{background:#111;color:var(--y);box-shadow:inset 0 0 0 3px var(--y)}
+body[data-theme="sign"] .radar .rg{stroke:#5A4E10}
+body[data-theme="sign"] .radar .rg.out{stroke:#9C8615;stroke-width:2}
+body[data-theme="sign"] .radar .ax{stroke:#5A4E10}
+body[data-theme="sign"] .radar .ps{fill:rgba(255,212,0,.28);stroke:var(--y);stroke-width:4}
+body[data-theme="sign"] .radar .pf{fill:none;stroke:#FFF6C8;stroke-width:2}
+body[data-theme="sign"] .radar .pd{fill:var(--y)}
+body[data-theme="sign"] .radar .lb{fill:#FFF6C8}
+body[data-theme="sign"] .radar .lv{fill:var(--y)}
+body[data-theme="sign"] .radar .lv.lk{fill:#CFC07A}
+/* 「今天」頁的小雷達在黃卡上：黑線 */
+body[data-theme="sign"] .peek .radar .rg,body[data-theme="sign"] .peek .radar .ax{stroke:#8A7410}
+body[data-theme="sign"] .peek .radar .ps{fill:rgba(17,17,17,.15);stroke:#111}
+body[data-theme="sign"] .peek .radar .pf{stroke:#111}
+body[data-theme="sign"] .peek .radar .pd{fill:#111}
+body[data-theme="sign"] .peek .radar .lb,body[data-theme="sign"] .peek .radar .lv{fill:#111}
+body[data-theme="sign"] .lg{border-top:4px solid #111}
+body[data-theme="sign"] .lg.first{border-top:3px dashed #111}
+body[data-theme="sign"] .recent{gap:10px}
+body[data-theme="sign"] .rc{border-width:4px}
+body[data-theme="sign"] details.pro table{font-size:20px}
+body[data-theme="sign"] details.pro th{background:#111;color:var(--y)}
+body[data-theme="sign"] details.pro td{border-bottom:2px solid #111}
+body[data-theme="sign"] .empty{border-style:dashed}
+
+/* 你是誰、推薦 */
+body[data-theme="sign"] :is(.choices .choice.on,.seg button.on){background:#111;border-color:#111;color:var(--y)}
+body[data-theme="sign"] .seg button{border:3px solid #111;background:var(--card2);color:#111;border-radius:8px}
+body[data-theme="sign"] .diff{background:#111;color:var(--y);border-radius:6px}
+body[data-theme="sign"] .ther,body[data-theme="sign"] .foot.strong{border-top:4px solid #111}
+
+/* 全畫面小測：黑底黃字 */
+body[data-theme="sign"] .qz{background:#111;color:var(--y)}
+body[data-theme="sign"] .qz-k,body[data-theme="sign"] .qz-meter .cap,body[data-theme="sign"] .qz-none{color:#FFF0A8}
+body[data-theme="sign"] .qz-side{background:var(--y);color:#111;border-radius:10px}
+body[data-theme="sign"] .qz-sd .nm{color:#2B2608}
+body[data-theme="sign"] .qz-sd.on .nm{color:#111}
+body[data-theme="sign"] .mirror,body[data-theme="sign"] .qz-restx{color:#2B2608}
+body[data-theme="sign"] .qz-dots i{background:#FFF0A8;border-color:#111}
+body[data-theme="sign"] .qz-dots i.cur{background:#fff}
+body[data-theme="sign"] .qz-dots i.ok{background:#111;border-color:#111}
+body[data-theme="sign"] .qz-cam{border:4px solid var(--y);border-radius:10px}
+body[data-theme="sign"] .qz-meter{background:#2a2a2a}
+body[data-theme="sign"] .qz-meter b{background:var(--y)}
+body[data-theme="sign"] .qz-stim{background:#1d1d1d;border:4px solid var(--y);border-radius:10px}
+body[data-theme="sign"] .qz-res.good{color:var(--y)}
+body[data-theme="sign"] .qz-res.bad{color:#fff}
+body[data-theme="sign"] .qz-gdots i{background:#2a2a2a;border-color:#FFF0A8}
+body[data-theme="sign"] .qz-gdots i.ok{background:var(--y);border-color:var(--y)}
+body[data-theme="sign"] .qz-msg.good{background:var(--y);color:#111}
+body[data-theme="sign"] .qz-msg.bad{background:#fff;color:#111}
+body[data-theme="sign"] .qz-btns .btn{background:var(--y);color:#111;border-color:var(--y)}
+body[data-theme="sign"] .qz-btns .btn.hurt{background:#111;color:var(--y);border-color:var(--y)}
+body[data-theme="sign"] .qz-start{background:rgba(17,17,17,.95)}
+body[data-theme="sign"] .qz-card{background:var(--y);color:#111;border-radius:10px;border:5px solid #111;box-shadow:0 0 0 4px var(--y)}
+body[data-theme="sign"] .qz-rotate{background:var(--y);color:#111}
+
+/* 手機 */
+@media (max-width:760px){
+  body[data-theme="sign"] .goals{grid-template-columns:1fr}
+  body[data-theme="sign"] .appbar{background:#111}
+  body[data-theme="sign"] .logo-mark{font-size:12px}
+  body[data-theme="sign"] .tabs{background:#111;border-top:0;box-shadow:none}
+  body[data-theme="sign"] .tabs::before{content:"";position:absolute;left:0;right:0;top:-10px;height:10px;background:var(--stripe)}
+  body[data-theme="sign"] .snack.done a::after{font-size:22px;padding:4px 12px;top:12px;right:12px}
+  body[data-theme="sign"] :is(.snack,.card) .pic{border-bottom-width:4px}
+}

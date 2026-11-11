@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+<meta name="robots" content="noindex,nofollow">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>感．動復能</title>
+<meta name="description" content="每天三樣點心：一樣動身體、兩樣動腦筋，用身體回答問題。">
+<meta name="theme-color" content="#100C04">
+<link rel="icon" href="data:,">
+<link rel="stylesheet" href="style.css?v=6">
+<link rel="stylesheet" href="themes/neon.css?v=2">
+</head>
+<body data-theme="neon">
+
+<!-- 頂部：品牌、誰在玩、分頁 -->
+<header class="appbar" id="appbar">
+  <div class="appbar-in">
+    <a class="logo" href="#today" aria-label="感．動復能 首頁"><span class="logo-mark" aria-hidden="true">感<i>．</i>動</span><span class="logo-txt">感．動復能</span></a>
+    <nav class="tabs" id="tabs" aria-label="主選單">
+      <a href="#today" data-tab="today"><span aria-hidden="true">☀️</span>今天</a>
+      <a href="#lib" data-tab="lib"><span aria-hidden="true">🧩</span>全部活動</a>
+      <a href="#me" data-tab="me"><span aria-hidden="true">📈</span>我的進步</a>
+    </nav>
+    <button type="button" class="who-chip" id="whoChip"></button>
+  </div>
+</header>
+
+<!-- 1 今天 -->
+<section id="scrHome" class="screen" hidden>
+  <div class="hello">
+    <p class="date" id="todayDate"></p>
+    <h1 id="hello"></h1>
+    <p class="sub">每天三樣點心：一樣動身體，兩樣動腦筋，約 10 到 15 分鐘。</p>
+  </div>
+
+  <div id="firstBox" class="first-box" hidden>
+    <h2>第一次來嗎？</h2>
+    <p>先回答 4 個小問題，再做 1 分鐘小測，幫你挑今天玩什麼、玩多難。不用填名字。</p>
+    <div class="row"><button type="button" class="btn primary huge" id="homeQuiz">開始，約 2 分鐘</button>
+      <a class="btn" href="#lib">先隨便看看</a></div>
+    <p class="privacy">影像只在這台裝置上處理，不上傳、不儲存。</p>
+  </div>
+
+  <div id="snackBox" hidden>
+    <div class="snack-head"><h2>今日點心</h2><div class="snack-prog" id="snackProg"></div></div>
+    <ol class="snacks" id="snacks"></ol>
+  </div>
+
+  <div id="peekBox" class="peek" hidden>
+    <div class="peek-txt"><h2>我的進步</h2><p id="peekLine"></p><a class="btn" href="#me">看兩張雷達圖</a></div>
+    <div class="peek-radars" id="peekRadars"></div>
+  </div>
+
+  <p class="foot">這是練習表現的紀錄，不能代替看醫生。紀錄只存在這台裝置。</p>
+</section>
+
+<!-- 2 全部活動 -->
+<section id="scrLib" class="screen" hidden>
+  <h1 class="page-h">全部活動</h1>
+  <p class="sub">依「想練什麼」分類。點上面的目標，就只看練那一項的活動。</p>
+  <div class="chips" id="chips"></div>
+  <div id="libBody"></div>
+  <p class="foot">每一款都有 5 級；玩完會建議下次玩第幾級。</p>
+</section>
+
+<!-- 3 我的進步 -->
+<section id="scrMe" class="screen" hidden>
+  <h1 class="page-h">我的進步</h1>
+  <p class="sub" id="meWho"></p>
+  <div id="meEmpty" class="empty" hidden>
+    <p>還沒有紀錄。玩幾樣之後，這裡會畫出兩張雷達圖：「感」看動腦，「動」看動身體。</p>
+    <a class="btn primary big" href="#today">去玩今天的點心</a>
+  </div>
+  <div id="meBody">
+    <p class="me-line" id="meLine"></p>
+    <div class="radars">
+      <figure class="radar-card"><figcaption><span class="pill mind">感</span>動腦</figcaption><div id="radarMind"></div></figure>
+      <figure class="radar-card"><figcaption><span class="pill move">動</span>動身體</figcaption><div id="radarMove"></div></figure>
+    </div>
+    <p class="legend"><span class="lg now"></span>最近 7 天　<span class="lg first"></span>第一週　🔒 再玩幾次就畫得出來</p>
+    <h2 class="grp">最近玩過</h2>
+    <div class="recent" id="recent"></div>
+    <details class="pro"><summary>給治療師、家屬看的細節</summary>
+      <div id="proBody"></div>
+      <p class="note">每一軸 1～5 級＝玩到的等級 × 第一次就答對的比例，取最近 5 次。數字只能跟自己比，還沒有同齡參考值；只是練習紀錄，不能代替看醫生。對照規則見《能力雷達與 App 架構 v0.2》。</p>
+    </details>
+  </div>
+  <p class="foot">這是練習表現的紀錄，不能代替看醫生。</p>
+</section>
+
+<!-- 4 你是誰（第一次才出現） -->
+<section id="scrWho" class="screen" hidden>
+  <div class="top-bar"><button type="button" class="btn" id="whoBack">← 回首頁</button><span class="step" id="whoStep"></span></div>
+  <h2 class="q-title" id="whoQ"></h2>
+  <p class="q-hint" id="whoHint" hidden></p>
+  <div class="choices" id="whoChoices"></div>
+  <div class="row"><button type="button" class="btn" id="whoPrev">上一題</button></div>
+  <p class="who-note">只問這幾題，用來挑遊戲。不用填名字，紀錄只存在這台裝置。</p>
+  <div class="ther">
+    <button type="button" class="link" id="whoTherBtn">治療師建檔／換人</button>
+    <div id="whoTher" class="ther-box" hidden>
+      <div id="whoTherAnchor"></div>
+      <button type="button" class="btn primary" id="whoTherGo" hidden>用這位開始小測</button>
+    </div>
+  </div>
+</section>
+
+<!-- 5 小測 -->
+<section id="scrQuiz" class="screen qz" hidden>
+  <div class="qz-rotate">請把手機橫放，或改用平板</div>
+  <p class="qz-k">小測：看看兩隻手和反應</p>
+  <h2 class="qz-h"></h2>
+  <div class="qz-body">
+    <div class="qz-side">
+      <div class="qz-sd" data-s="L"><span class="nm">左手</span><span class="qz-dots"><i></i><i></i><i></i></span><span class="qz-restx">先休息</span></div>
+      <div class="qz-sd" data-s="R"><span class="nm">右手</span><span class="qz-dots"><i></i><i></i><i></i></span><span class="qz-restx">先休息</span></div>
+      <p class="mirror">畫面是鏡子</p>
+    </div>
+    <div class="qz-cam"><video playsinline muted></video><div class="qz-none">展示模式（沒有開鏡頭）</div></div>
+    <div class="qz-meter" aria-hidden="true"><span class="cap">高度</span><b></b><i data-v="0"><span>肩膀</span></i><i data-v="0.6"><span>頭頂</span></i></div>
+    <div class="qz-stim">
+      <div class="qz-gdots"></div>
+      <img alt="">
+      <div class="qz-rule">魚 → 舉手<br>垃圾 → 不動</div>
+      <div class="qz-res"></div>
+    </div>
+  </div>
+  <div class="qz-msg" style="display:none"></div>
+  <div class="qz-btns"><button type="button" class="btn" data-q="back">← 回首頁</button><button type="button" class="btn hurt" data-q="hurt">肩膀會痛，先停</button><button type="button" class="btn" data-q="skip">略過</button></div>
+
+  <div class="qz-start">
+    <div class="qz-card">
+      <h2>小測，約 1 分鐘</h2>
+      <ol>
+        <li>左手舉 3 下，右手舉 3 下</li>
+        <li>看 8 張圖：魚就舉手，垃圾手不要動</li>
+      </ol>
+      <p class="qz-pain" hidden>手舉高比較吃力的話，舉到舒服、不會痛的高度就好。</p>
+      <p>坐在椅子上，讓鏡頭看得到上半身。慢慢來，不用急。</p>
+      <p class="privacy">影像只在這台裝置上處理，不上傳、不儲存。</p>
+      <div class="row"><button type="button" class="btn primary huge" data-q="go">開鏡頭，開始</button><button type="button" class="btn" data-q="back2">← 回首頁</button></div>
+      <p class="qz-note" role="status"></p>
+    </div>
+  </div>
+</section>
+
+<!-- 6 小測結果與推薦 -->
+<section id="scrResult" class="screen" hidden>
+  <div class="top-bar"><a class="btn" href="#today">← 回今天的點心</a><span class="step" id="resWho"></span></div>
+  <h2 class="res-title">今天的小測結果</h2>
+  <div class="tiles" id="resTiles"></div>
+  <h2 class="sec">今天的身體遊戲</h2>
+  <div id="resFirst"></div>
+  <div id="resMore"></div>
+  <div id="resHold"></div>
+  <p class="foot strong">這是動作表現紀錄，不是醫療診斷。</p>
+</section>
+
+<script type="module" src="app.js?v=6"></script>
+<script src="/open-in-browser.js" data-camera="1" defer></script>
+</body>
+</html>

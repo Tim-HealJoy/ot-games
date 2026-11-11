@@ -1,0 +1,140 @@
+/* 風格 A「明亮遊戲機」（2026-11-11 樣張）
+   參考遊戲商店首頁的設計語言：白與淺灰底、高彩度紅色重點、大圖圓角卡片、柔和陰影、粗黑標題、膠囊分頁。
+   今日點心第一樣做成主打大卡。只覆蓋 style.css，不改結構。長輩底線：內文 ≥ 20px、按鈕 ≥ 56px、文字對比 ≥ 4.5:1。 */
+body[data-theme="arcade"]{
+  --bg:#F2F3F5;--card:#FFFFFF;--ink:#16181D;--mut:#565B66;--line:#E3E5E9;--soft:#ECEEF1;
+  --acc:#E4002B;--acc-d:#B8001F;--ok:#12805C;
+  --mind:#2456C8;--mind-bg:#E6EDFC;--move:#D7262F;--move-bg:#FDE7E8;
+  --sh:0 1px 2px rgba(16,24,40,.05),0 8px 24px rgba(16,24,40,.08);
+  --sh-up:0 2px 4px rgba(16,24,40,.06),0 16px 36px rgba(16,24,40,.14);
+  background:var(--bg);color:var(--ink);
+}
+body[data-theme="arcade"] h1,body[data-theme="arcade"] h2,body[data-theme="arcade"] h3{letter-spacing:-.01em}
+
+/* 按鈕：膠囊 */
+body[data-theme="arcade"] .btn{border-radius:999px;border:0;background:var(--card);box-shadow:inset 0 0 0 2px var(--line);padding:8px 26px}
+body[data-theme="arcade"] .btn:hover{box-shadow:inset 0 0 0 2px #C9CDD4}
+body[data-theme="arcade"] .btn.primary{background:var(--acc);color:#fff;box-shadow:0 6px 16px rgba(228,0,43,.28)}
+body[data-theme="arcade"] .btn.primary:hover{background:var(--acc-d)}
+body[data-theme="arcade"] .btn:focus-visible,body[data-theme="arcade"] .card:focus-visible,body[data-theme="arcade"] .snack a:focus-visible{outline:4px solid #1F7AE0;outline-offset:3px}
+
+/* 頂部列：白底、膠囊分頁軌道 */
+body[data-theme="arcade"] .appbar{background:rgba(255,255,255,.92);border-bottom:0;box-shadow:0 1px 0 var(--line),0 4px 16px rgba(16,24,40,.04)}
+body[data-theme="arcade"] .logo-mark{border-radius:14px;background:var(--acc);box-shadow:0 4px 10px rgba(228,0,43,.3)}
+body[data-theme="arcade"] .logo-txt{font-weight:900;letter-spacing:.04em}
+body[data-theme="arcade"] .tabs{background:var(--soft);border-radius:999px;padding:5px;gap:4px}
+body[data-theme="arcade"] .tabs a{border-radius:999px;min-height:50px;padding:6px 20px;color:var(--mut)}
+body[data-theme="arcade"] .tabs a:hover{background:rgba(255,255,255,.7);color:var(--ink)}
+body[data-theme="arcade"] .tabs a.on{background:var(--card);color:var(--ink);box-shadow:0 2px 8px rgba(16,24,40,.12)}
+body[data-theme="arcade"] .who-chip{border:0;background:var(--soft)}
+body[data-theme="arcade"] .who-chip span{background:var(--acc);color:#fff}
+
+/* 標題 */
+body[data-theme="arcade"] .hello .date{color:var(--acc-d)}
+body[data-theme="arcade"] .hello h1,body[data-theme="arcade"] .page-h{font-weight:900}
+body[data-theme="arcade"] .first-box{border:0;border-radius:28px;box-shadow:var(--sh-up);position:relative;overflow:hidden;padding:26px 28px}
+body[data-theme="arcade"] .first-box::before{content:"";position:absolute;left:0;top:0;bottom:0;width:10px;background:var(--acc)}
+
+/* 今日點心：第一樣主打大卡，另外兩樣疊在右邊 */
+body[data-theme="arcade"] .snack-head h2{font-size:clamp(30px,3.4vw,36px)}
+body[data-theme="arcade"] .snack-prog .bar{background:#DADDE2;height:12px}
+body[data-theme="arcade"] .snack-prog .bar i{background:var(--acc)}
+body[data-theme="arcade"] .snacks{grid-template-columns:1.35fr 1fr;grid-template-rows:auto auto;gap:20px}
+body[data-theme="arcade"] .snack a{border:0;border-radius:26px;box-shadow:var(--sh);transition:transform .18s,box-shadow .18s}
+body[data-theme="arcade"] .snack a:hover{transform:translateY(-4px);box-shadow:var(--sh-up)}
+body[data-theme="arcade"] .snack .no{background:var(--ink);border:3px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.2)}
+body[data-theme="arcade"] .snack.done .no{background:var(--ok)}
+body[data-theme="arcade"] .snack .pic{background-color:#E3E5E9}
+body[data-theme="arcade"] .snack .go{border-radius:999px;background:var(--acc);box-shadow:0 6px 14px rgba(228,0,43,.25)}
+body[data-theme="arcade"] .snack.done .go{background:#E8F5EF;color:var(--ok);border:0;box-shadow:none}
+body[data-theme="arcade"] .snack:first-child{grid-row:1 / 3}
+body[data-theme="arcade"] .snack:first-child .pic{aspect-ratio:16/9}
+body[data-theme="arcade"] .snack:first-child b{font-size:clamp(32px,3.4vw,40px)}
+body[data-theme="arcade"] .snack:first-child .why{font-size:21px}
+body[data-theme="arcade"] .snack:first-child .go{min-height:68px;font-size:26px}
+body[data-theme="arcade"] .snack:first-child .kind::after{content:"今日主打";margin-left:10px;font-size:16px;font-weight:900;color:#fff;background:var(--acc);border-radius:999px;padding:2px 12px}
+body[data-theme="arcade"] .snack:not(:first-child) a{display:grid;grid-template-columns:40% 1fr;grid-template-rows:1fr auto}
+body[data-theme="arcade"] .snack:not(:first-child) .pic{grid-row:span 2;aspect-ratio:auto;height:100%;min-height:200px}
+body[data-theme="arcade"] .snack:not(:first-child) b{font-size:25px}
+body[data-theme="arcade"] .snack:not(:first-child) .go{margin:8px 16px 16px}
+
+/* 我的進步小卡 */
+body[data-theme="arcade"] .peek{border:0;border-radius:26px;box-shadow:var(--sh);margin-top:24px}
+body[data-theme="arcade"] .peek-radars svg{background:var(--bg);border-radius:20px}
+
+/* 全部活動：像商店的一排一排 */
+body[data-theme="arcade"] .chip{border:0;background:var(--card);box-shadow:inset 0 0 0 2px var(--line);min-height:52px;padding:4px 18px}
+body[data-theme="arcade"] .chip:hover{box-shadow:inset 0 0 0 2px #C9CDD4}
+body[data-theme="arcade"] .chip.on{background:var(--ink);color:#fff;box-shadow:none}
+body[data-theme="arcade"] .chip-sep{color:var(--mut);margin-left:12px}
+body[data-theme="arcade"] .grp{font-size:clamp(30px,3.4vw,36px);margin:34px 0 8px;padding-bottom:10px;border-bottom:3px solid var(--line)}
+body[data-theme="arcade"] .grp .pill{width:40px;height:40px;font-size:21px;border-radius:12px}
+body[data-theme="arcade"] .goals{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:30px 20px}
+/* 只有一款的目標三個並排；兩款以上的目標佔一整排（像商店的一列） */
+body[data-theme="arcade"] .goal:has(.cards > .card:nth-child(2)){grid-column:1 / -1}
+body[data-theme="arcade"] .goal:not(:has(.cards > .card:nth-child(2))) .cards{grid-template-columns:1fr}
+body[data-theme="arcade"] .goal:not(:has(.cards > .card:nth-child(2))) .goal-h .gn{display:none}
+body[data-theme="arcade"] .goals.one{grid-template-columns:1fr}
+body[data-theme="arcade"] .goals.one .goal .cards{grid-template-columns:repeat(auto-fill,minmax(260px,1fr))}
+body[data-theme="arcade"] .goal,body[data-theme="arcade"] .goal.move,body[data-theme="arcade"] .goal.mind{background:none;border:0;border-radius:0;padding:0}
+body[data-theme="arcade"] .goal-h{margin:0 0 14px}
+body[data-theme="arcade"] .goal.move .gi{background:var(--move-bg)}
+body[data-theme="arcade"] .goal.mind .gi{background:var(--mind-bg)}
+body[data-theme="arcade"] .goal-h .gi{border-radius:18px}
+body[data-theme="arcade"] .goal-h .gn{background:var(--card);border-radius:999px;padding:4px 14px;box-shadow:inset 0 0 0 2px var(--line);color:var(--ink)}
+body[data-theme="arcade"] .goal .cards{gap:20px}
+body[data-theme="arcade"] .card{border:0;border-radius:24px;box-shadow:var(--sh);transition:transform .18s,box-shadow .18s}
+body[data-theme="arcade"] .card:hover{transform:translateY(-4px);box-shadow:var(--sh-up)}
+body[data-theme="arcade"] .card .pic{background-color:#E3E5E9}
+body[data-theme="arcade"] .card .pic .pill{border-color:#fff;box-shadow:0 2px 6px rgba(0,0,0,.2)}
+body[data-theme="arcade"] .card b{font-size:26px}
+body[data-theme="arcade"] .tag{background:var(--soft);color:var(--ink)}
+body[data-theme="arcade"] .tag.phone{background:var(--move-bg);color:var(--acc-d)}
+
+/* 我的進步 */
+body[data-theme="arcade"] .radar-card{border:0;border-radius:26px;box-shadow:var(--sh);padding:18px 12px 8px}
+body[data-theme="arcade"] .radar .rg{stroke:#E3E5E9}
+body[data-theme="arcade"] .radar .rg.out{stroke:#C9CDD4}
+body[data-theme="arcade"] .radar .ax{stroke:#E3E5E9}
+body[data-theme="arcade"] .radar .ps{fill:rgba(228,0,43,.18);stroke:var(--acc)}
+body[data-theme="arcade"] .radar .pf{fill:rgba(36,86,200,.07);stroke:var(--mind)}
+body[data-theme="arcade"] .radar .pd{fill:var(--acc)}
+body[data-theme="arcade"] .radar .lb{fill:var(--ink)}
+body[data-theme="arcade"] .radar .lv{fill:var(--acc-d)}
+body[data-theme="arcade"] .radar .lv.lk{fill:var(--mut)}
+body[data-theme="arcade"] .lg{border-top-color:var(--acc)}
+body[data-theme="arcade"] .lg.first{border-top-color:var(--mind)}
+body[data-theme="arcade"] .me-line{background:var(--card);border-radius:20px;padding:14px 20px;box-shadow:var(--sh);border-left:8px solid var(--acc)}
+body[data-theme="arcade"] .recent{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+body[data-theme="arcade"] .rc{border:0;border-radius:18px;box-shadow:var(--sh);padding:12px 16px}
+body[data-theme="arcade"] details.pro{border:0;border-radius:22px;box-shadow:var(--sh);padding:14px 20px}
+body[data-theme="arcade"] details.pro th{background:var(--soft);font-weight:900}
+body[data-theme="arcade"] details.pro th:first-child{border-radius:10px 0 0 10px}
+body[data-theme="arcade"] details.pro th:last-child{border-radius:0 10px 10px 0}
+body[data-theme="arcade"] details.pro td,body[data-theme="arcade"] details.pro th{border-bottom-color:var(--line);padding:8px 8px}
+body[data-theme="arcade"] .empty{border-color:#C9CDD4;border-radius:26px}
+
+/* 中等寬度：點心一欄一張，橫式卡 */
+@media (max-width:1000px){
+  body[data-theme="arcade"] .goals{grid-template-columns:repeat(2,minmax(0,1fr))}
+  body[data-theme="arcade"] .recent{grid-template-columns:1fr}
+  body[data-theme="arcade"] .snacks{grid-template-columns:1fr;grid-template-rows:none}
+  body[data-theme="arcade"] .snack:first-child{grid-row:auto}
+  body[data-theme="arcade"] .snack:first-child a{display:flex;flex-direction:column}
+  body[data-theme="arcade"] .snack:first-child .pic{aspect-ratio:16/9;height:auto;min-height:0}
+}
+/* 手機 */
+@media (max-width:760px){
+  body[data-theme="arcade"] .appbar{background:var(--card)}
+  body[data-theme="arcade"] .tabs{background:var(--card);border-radius:0;padding:6px 8px calc(6px + env(safe-area-inset-bottom));box-shadow:0 -1px 0 var(--line),0 -6px 18px rgba(16,24,40,.08)}
+  body[data-theme="arcade"] .tabs a{border-radius:18px;min-height:60px}
+  body[data-theme="arcade"] .tabs a.on{background:var(--move-bg);color:var(--acc-d);box-shadow:none}
+  body[data-theme="arcade"] .snack:not(:first-child) a{display:flex;flex-direction:column}
+  body[data-theme="arcade"] .snack:not(:first-child) .pic{aspect-ratio:16/9;height:auto;min-height:0}
+  body[data-theme="arcade"] .snack:first-child b{font-size:30px}
+  body[data-theme="arcade"] .snack:first-child .kind{flex-wrap:wrap;gap:4px}
+  body[data-theme="arcade"] .snack:first-child .kind::after{margin-left:6px}
+  body[data-theme="arcade"] .grp{font-size:28px}
+  body[data-theme="arcade"] .goal-h .gn{display:none}
+  body[data-theme="arcade"] .goals{grid-template-columns:1fr;gap:26px}
+}

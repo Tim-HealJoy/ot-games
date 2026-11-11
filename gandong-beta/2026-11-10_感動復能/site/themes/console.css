@@ -1,0 +1,187 @@
+/* 風格 H 主機大廳（2026-11-11 樣張，黑黃高對比）
+   參考遊戲主機首頁：炭黑底、深灰大圖磚、沒有框線；手把選中（滑過／聚焦）＝5px 黃框＋微微放大。
+   標題黃、內文白；分頁像主機選單列，選中＝黃底黑字；完成＝右上角黃色圓形打勾。
+   動／感不用顏色分，用形狀：動＝黃底黑字實心；感＝黑底黃框黃字。
+   只覆蓋 style.css，body[data-theme="console"]。 */
+
+body[data-theme="console"]{
+  --bg:#121212;--card:#1E1E1E;--card2:#262626;--ink:#FFFFFF;--mut:#D9D9D9;--line:#3A3A3A;--soft:#2A2A2A;
+  --y:#FFD400;--y-d:#E6BF00;--acc:#FFD400;--acc-d:#FFD400;--ok:#FFD400;--red:#FFD400;--muted:#D9D9D9;
+  --mind:#121212;--mind-bg:#121212;--move:#FFD400;--move-bg:#FFD400;
+  --sel:0 0 0 5px #FFD400;
+  --sh:0 8px 24px rgba(0,0,0,.5);
+  background:var(--bg);color:var(--ink);min-height:100vh;
+}
+html:has(body[data-theme="console"]){background:#121212}
+body[data-theme="console"] .screen{max-width:1240px}
+body[data-theme="console"] :is(h1,h2,h3,.page-h,.snack-head h2,.grp,.sec,.first-box h2,.peek h2,.res-title,.q-title){color:var(--y)}
+body[data-theme="console"] .sub,body[data-theme="console"] .sec-note,body[data-theme="console"] .foot{color:var(--mut)}
+body[data-theme="console"] .foot.strong{color:var(--ink);border-color:var(--line)}
+
+/* 手把選中：黃框＋放大，滑過與鍵盤聚焦一樣 */
+body[data-theme="console"] :is(.btn,.card,.snack a,.chip,.tabs a,.who-chip,.seg button):focus-visible{outline:none;box-shadow:var(--sel)}
+body[data-theme="console"] .link{color:var(--y)}
+
+/* 按鈕：扁平膠囊，主要＝黃底黑字 */
+body[data-theme="console"] .btn{background:var(--card2);border:0;color:var(--ink);border-radius:999px;transition:transform .12s,box-shadow .12s}
+body[data-theme="console"] .btn:hover{box-shadow:var(--sel);transform:scale(1.03)}
+body[data-theme="console"] .btn.primary{background:var(--y);color:#111}
+body[data-theme="console"] .btn.primary:hover{background:var(--y);box-shadow:0 0 0 5px #fff}
+body[data-theme="console"] .choices .choice.on,body[data-theme="console"] .seg button.on{background:var(--y);border-color:var(--y);color:#111}
+body[data-theme="console"] .seg button{background:var(--card2);border-color:var(--line);color:var(--ink)}
+body[data-theme="console"] :is(.ther-box,.tile,.pick,.today){background:var(--card);border-color:var(--line);color:var(--ink)}
+body[data-theme="console"] .pick.first,body[data-theme="console"] .today{border-color:var(--y)}
+body[data-theme="console"] :is(.pick .k,.pick .extra,.today-k,.note,.tile span){color:var(--mut)}
+body[data-theme="console"] .diff{background:var(--y);color:#111}
+
+/* 動／感：用形狀分 */
+body[data-theme="console"] .pill.move{background:var(--y);color:#111;border:2px solid var(--y)}
+body[data-theme="console"] .pill.mind{background:#111;color:var(--y);border:2px solid var(--y)}
+body[data-theme="console"] :is(.axtags,.also) .v{background:var(--y);color:#111;border:2px solid var(--y)}
+body[data-theme="console"] :is(.axtags,.also) .m{background:#111;color:var(--y);border:2px solid var(--y)}
+body[data-theme="console"] .also{color:var(--mut)}
+body[data-theme="console"] .tag{background:var(--card2);color:var(--ink)}
+body[data-theme="console"] .tag.phone{background:var(--y);color:#111}
+
+/* 頂部列＝主機選單列 */
+body[data-theme="console"] .appbar{background:rgba(18,18,18,.96);border-bottom:0;box-shadow:0 1px 0 #2A2A2A}
+body[data-theme="console"] .logo{color:var(--ink)}
+body[data-theme="console"] .logo-mark{background:var(--y);color:#111;border-radius:50%}
+body[data-theme="console"] .logo-txt{color:var(--ink)}
+body[data-theme="console"] .tabs{gap:10px}
+body[data-theme="console"] .tabs a{color:var(--ink);border-radius:999px;padding:6px 22px}
+body[data-theme="console"] .tabs a:hover{background:var(--card2)}
+body[data-theme="console"] .tabs a.on{background:var(--y);color:#111}
+body[data-theme="console"] .who-chip{background:var(--card2);border:0;color:var(--ink)}
+body[data-theme="console"] .who-chip span{background:#111;color:var(--y);border:2px solid var(--y)}
+
+/* 今天 */
+body[data-theme="console"] .hello .date{color:var(--mut);letter-spacing:.08em}
+body[data-theme="console"] .hello h1{color:var(--ink)}
+body[data-theme="console"] .first-box{background:var(--card);border:0;border-left:10px solid var(--y);border-radius:20px;box-shadow:var(--sh);color:var(--ink)}
+body[data-theme="console"] .snack-prog{color:var(--ink)}
+body[data-theme="console"] .snack-prog .bar{background:#333;height:16px}
+body[data-theme="console"] .snack-prog .bar i{background:var(--y)}
+body[data-theme="console"] .snacks{grid-template-columns:repeat(2,1fr);gap:22px}
+body[data-theme="console"] .snack a{background:var(--card);border:0;border-radius:20px;box-shadow:var(--sh);transition:transform .15s,box-shadow .15s}
+body[data-theme="console"] .snack a:hover{transform:scale(1.025);box-shadow:var(--sel),var(--sh);border:0}
+body[data-theme="console"] .snack .no{background:#111;color:var(--y);border:3px solid var(--y)}
+body[data-theme="console"] .snack .pic{background-color:#2A2A2A}
+body[data-theme="console"] .snack.done .pic{filter:brightness(.55) saturate(.6)}
+body[data-theme="console"] .snack .kind,body[data-theme="console"] .snack .meta{color:var(--mut)}
+body[data-theme="console"] .snack b{color:var(--ink)}
+body[data-theme="console"] .snack .why{color:var(--ink)}
+body[data-theme="console"] .snack .go{background:var(--y);color:#111;border-radius:999px}
+body[data-theme="console"] .snack.done .go{background:transparent;color:var(--y);border:3px solid var(--y)}
+/* 完成：右上角黃色圓形打勾 */
+body[data-theme="console"] .snack.done a::after{content:"✓";position:absolute;top:14px;right:14px;z-index:3;width:64px;height:64px;border-radius:50%;background:var(--y);color:#111;font-size:40px;font-weight:900;display:flex;align-items:center;justify-content:center;box-shadow:0 0 0 4px #121212}
+body[data-theme="console"] .snack.done .no{display:none}
+/* 第一樣＝主打大磚：圖在左、字在右，橫跨兩欄 */
+body[data-theme="console"] .snack:first-child{grid-column:1/-1}
+body[data-theme="console"] .snack:first-child a{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);grid-template-rows:1fr auto;min-height:360px}
+body[data-theme="console"] .snack:first-child .pic{grid-row:span 2;aspect-ratio:auto;height:100%;min-height:0;font-size:130px}
+body[data-theme="console"] .snack:first-child .txt{padding:28px 30px 4px}
+body[data-theme="console"] .snack:first-child .kind{color:var(--y)}
+body[data-theme="console"] .snack:first-child b{font-size:clamp(34px,3.8vw,46px);color:var(--y)}
+body[data-theme="console"] .snack:first-child .why{font-size:22px}
+body[data-theme="console"] .snack:first-child .no{width:54px;height:54px;font-size:26px;top:16px;left:16px}
+body[data-theme="console"] .snack:first-child .go{margin:10px 30px 30px;min-height:72px;font-size:27px}
+body[data-theme="console"] .peek{background:var(--card);border:0;border-radius:20px;color:var(--ink)}
+
+/* 全部活動 */
+body[data-theme="console"] .chip{background:var(--card2);border:0;color:var(--ink);min-height:52px;padding:4px 20px}
+body[data-theme="console"] .chip:hover{box-shadow:var(--sel)}
+body[data-theme="console"] .chip.on{background:var(--y);color:#111}
+body[data-theme="console"] .chip-sep{color:var(--y)}
+body[data-theme="console"] .grp{border-bottom:2px solid #2A2A2A;padding-bottom:8px}
+body[data-theme="console"] .grp small{color:var(--mut)}
+body[data-theme="console"] .goal{background:transparent;border:0;border-radius:0;padding:4px 0 8px}
+body[data-theme="console"] .goal.move,body[data-theme="console"] .goal.mind{border-left:0}
+/* 只有一款的目標並排成一格一格（像主機的遊戲磚），兩款以上整排 */
+body[data-theme="console"] .goals{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:26px 22px}
+body[data-theme="console"] .goal:has(.cards > .card:nth-child(2)){grid-column:1/-1}
+body[data-theme="console"] .goal:not(:has(.cards > .card:nth-child(2))) .cards{grid-template-columns:1fr}
+body[data-theme="console"] .goals.one{grid-template-columns:1fr}
+body[data-theme="console"] .goal-h .gi{background:var(--card2);border-radius:50%}
+body[data-theme="console"] .goal-h b{color:var(--y)}
+body[data-theme="console"] .goal-h small{color:var(--mut)}
+body[data-theme="console"] .goal-h .gn{color:#111;background:var(--y);border-radius:999px;padding:2px 12px}
+body[data-theme="console"] .goal.mind .goal-h .gn{background:#111;color:var(--y);border:2px solid var(--y)}
+body[data-theme="console"] .card{background:var(--card);border:0;border-radius:18px;box-shadow:var(--sh);color:var(--ink);transition:transform .15s,box-shadow .15s}
+body[data-theme="console"] .card:hover{transform:scale(1.03);box-shadow:var(--sel),var(--sh)}
+body[data-theme="console"] .card b{color:var(--ink)}
+body[data-theme="console"] .card .train{color:var(--ink)}
+body[data-theme="console"] .card .note{color:var(--y)}
+body[data-theme="console"] .card .meta{color:var(--mut)}
+body[data-theme="console"] .card .pic .pill{border-color:#121212}
+body[data-theme="console"] .card .pic .pill.mind{border-color:var(--y)}
+
+/* 我的進步 */
+body[data-theme="console"] .me-line{color:var(--ink)}
+body[data-theme="console"] .radar-card{background:var(--card);border:0;border-radius:20px}
+body[data-theme="console"] .radar-card figcaption{color:var(--y)}
+body[data-theme="console"] .radar .rg{stroke:#3A3A3A}
+body[data-theme="console"] .radar .rg.out{stroke:#5A5A5A;stroke-width:2}
+body[data-theme="console"] .radar .ax{stroke:#3A3A3A}
+body[data-theme="console"] .radar .ps{fill:rgba(255,212,0,.22);stroke:#FFD400}
+body[data-theme="console"] .radar .pf{fill:none;stroke:#FFFFFF}
+body[data-theme="console"] .radar .pd{fill:#FFD400}
+body[data-theme="console"] .radar .lb{fill:#FFFFFF}
+body[data-theme="console"] .radar .lv{fill:#FFD400}
+body[data-theme="console"] .radar .lv.lk{fill:#BFBFBF}
+body[data-theme="console"] .legend{color:var(--mut)}
+body[data-theme="console"] .lg{border-top-color:#FFD400}
+body[data-theme="console"] .lg.first{border-top-color:#FFFFFF}
+body[data-theme="console"] .rc{background:var(--card);border:0;color:var(--ink)}
+body[data-theme="console"] .rc .d,body[data-theme="console"] .rc .m{color:var(--mut)}
+body[data-theme="console"] details.pro{background:var(--card);border:0;color:var(--ink)}
+body[data-theme="console"] details.pro summary{color:var(--y)}
+body[data-theme="console"] details.pro td,body[data-theme="console"] details.pro th{border-bottom-color:#333}
+body[data-theme="console"] details.pro th{color:var(--y)}
+body[data-theme="console"] .empty{background:var(--card);border-color:#444;color:var(--ink)}
+
+/* 全畫面小測：只換顏色 */
+body[data-theme="console"] .qz{background:#0A0A0A}
+body[data-theme="console"] .qz-k,body[data-theme="console"] .qz-cap,body[data-theme="console"] .qz-none{color:#E6E6E6}
+body[data-theme="console"] .qz-h{color:var(--y)}
+body[data-theme="console"] .qz-side,body[data-theme="console"] .qz-card{background:var(--card);color:var(--ink)}
+body[data-theme="console"] .qz-card h2{color:var(--y)}
+body[data-theme="console"] .qz-sd .nm{color:var(--mut)}
+body[data-theme="console"] .qz-sd.on .nm{color:var(--y)}
+body[data-theme="console"] .qz-dots i{background:#333;border-color:#777}
+body[data-theme="console"] .qz-dots i.cur{background:#fff;border-color:#fff}
+body[data-theme="console"] .qz-dots i.ok{background:var(--y);border-color:var(--y)}
+body[data-theme="console"] .qz-restx,body[data-theme="console"] .mirror{color:var(--mut)}
+body[data-theme="console"] .qz-cam{border-color:var(--y)}
+body[data-theme="console"] .qz-meter b{background:var(--y)}
+body[data-theme="console"] .qz-meter .cap{color:#E6E6E6}
+body[data-theme="console"] .qz-stim{background:#1A1A1A;border-color:#444}
+body[data-theme="console"] .qz-res.good{color:var(--y)}
+body[data-theme="console"] .qz-res.bad{color:#fff}
+body[data-theme="console"] .qz-gdots i.ok{background:var(--y);border-color:var(--y)}
+body[data-theme="console"] .qz-msg.good{background:var(--y);color:#111}
+body[data-theme="console"] .qz-msg.bad{background:#fff;color:#111}
+body[data-theme="console"] .qz-btns .btn{background:var(--card2);color:var(--ink)}
+body[data-theme="console"] .qz-btns .btn.hurt{background:#111;color:var(--y);border:3px solid var(--y)}
+body[data-theme="console"] .qz-start{background:rgba(10,10,10,.95)}
+body[data-theme="console"] .qz-card .qz-pain,body[data-theme="console"] .qz-note{color:var(--y)}
+body[data-theme="console"] .qz-rotate{background:var(--y);color:#111}
+
+/* 手機：底部分頁＝主機選單列 */
+@media (max-width:1000px){
+  body[data-theme="console"] .snacks{grid-template-columns:1fr}
+  body[data-theme="console"] .snack a{grid-template-columns:minmax(150px,38%) 1fr}
+}
+@media (max-width:760px){
+  body[data-theme="console"] .appbar{background:#121212}
+  body[data-theme="console"] .goals{grid-template-columns:1fr}
+  body[data-theme="console"] .tabs{background:#0A0A0A;border-top:2px solid #2A2A2A;box-shadow:none;gap:6px}
+  body[data-theme="console"] .tabs a{padding:4px;border-radius:16px}
+  body[data-theme="console"] .snack a,body[data-theme="console"] .snack:first-child a{display:flex;flex-direction:column;min-height:0}
+  body[data-theme="console"] .snack .pic,body[data-theme="console"] .snack:first-child .pic{aspect-ratio:16/9;height:auto;font-size:80px}
+  body[data-theme="console"] .snack:first-child .txt{padding:14px 18px 4px}
+  body[data-theme="console"] .snack:first-child b{font-size:32px}
+  body[data-theme="console"] .snack:first-child .go{margin:10px 16px 18px;min-height:64px;font-size:24px}
+  body[data-theme="console"] .snack.done a::after{width:56px;height:56px;font-size:34px}
+  body[data-theme="console"] .card:hover,body[data-theme="console"] .snack a:hover{transform:none}
+}

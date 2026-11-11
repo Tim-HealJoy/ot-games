@@ -1,0 +1,123 @@
+/* 風格 D 台式懷舊（2026-11-11 樣張）
+   柑仔店、硬紙火車票、紅磚與花磚、米黃紙張；朱紅＋墨綠＋墨黑三色。
+   卡片＝車票（虛線打孔＋兩側圓缺口）；完成＝紅色「完成」印章。標題宋體、內文黑體。
+   只覆蓋 style.css，body[data-theme="retro"]。 */
+
+body[data-theme="retro"]{
+  --bg:#F3EAD3;--card:#FFF9EC;--ink:#231F1A;--mut:#5E5446;--line:#D6C499;--soft:#F1E4C3;
+  --acc:#B8322A;--acc-d:#8E241D;--ok:#2F5D46;--red:#B8322A;--muted:#5E5446;
+  --mind:#2F5D46;--mind-bg:#DDE9DD;--move:#B8322A;--move-bg:#F6DDD5;
+  --serif:"Songti TC","STSong","Kaiti TC","Noto Serif TC",serif;
+  --brick:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='20'%3E%3Crect width='40' height='20' fill='%23A93A2C'/%3E%3Cpath d='M0 9.5H40M0 19.5H40M20 0V9.5M0.5 10V19.5M39.5 10V19.5' stroke='%23EBDDBE' stroke-width='1.6'/%3E%3C/svg%3E");
+  --tile:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24'%3E%3Crect width='24' height='24' fill='%232F5D46'/%3E%3Cpath d='M12 3L14.6 12L12 21L9.4 12Z M3 12L12 9.4L21 12L12 14.6Z' fill='%23EBDDB0'/%3E%3Ccircle cx='12' cy='12' r='2.4' fill='%23B8322A'/%3E%3Ccircle cx='0' cy='0' r='4' fill='%23EBDDB0'/%3E%3Ccircle cx='24' cy='0' r='4' fill='%23EBDDB0'/%3E%3Ccircle cx='0' cy='24' r='4' fill='%23EBDDB0'/%3E%3Ccircle cx='24' cy='24' r='4' fill='%23EBDDB0'/%3E%3C/svg%3E");
+  --sh:0 2px 0 rgba(90,60,20,.10),0 6px 16px rgba(90,60,20,.08);
+  background-color:var(--bg);
+  background-image:radial-gradient(rgba(120,90,40,.06) 1px,transparent 1.2px);
+  background-size:7px 7px;
+}
+
+/* 標題：宋體 */
+body[data-theme="retro"] :is(h1,h2,h3,.logo-txt,.snack b,.card b,.goal-h b,.radar-card figcaption,.page-h,.peek h2,.first-box h2){font-family:var(--serif);font-weight:900;letter-spacing:.03em}
+
+/* 按鈕：紅白機那種有厚度的實心鈕 */
+body[data-theme="retro"] .btn{border-radius:8px;border:2px solid var(--line);background:var(--card);box-shadow:inset 0 -3px 0 rgba(90,60,20,.12)}
+body[data-theme="retro"] .btn:hover{border-color:var(--acc)}
+body[data-theme="retro"] .btn.primary{background:var(--acc);border-color:var(--acc-d);color:#FFF6E5;box-shadow:inset 0 -5px 0 rgba(0,0,0,.22)}
+body[data-theme="retro"] .btn.primary:hover{background:var(--acc-d)}
+
+/* 頂部列：上緣一條花磚 */
+body[data-theme="retro"] .appbar{background:rgba(243,234,211,.97);border-bottom:2px solid var(--line)}
+body[data-theme="retro"] .appbar::before{content:"";display:block;height:10px;background:var(--tile) 0 0/10px 10px}
+body[data-theme="retro"] .logo-mark{border-radius:8px;background:var(--acc);color:#FFF6E5;font-size:15px;letter-spacing:-.06em;box-shadow:inset 0 0 0 3px var(--acc),inset 0 0 0 5px #FFF6E5}
+body[data-theme="retro"] .tabs a{border-radius:8px;color:var(--mut)}
+body[data-theme="retro"] .tabs a:hover{background:var(--soft)}
+body[data-theme="retro"] .tabs a.on{background:var(--ok);color:#FFF6E5;box-shadow:inset 0 -4px 0 rgba(0,0,0,.22)}
+body[data-theme="retro"] .who-chip{border-radius:10px;border-color:var(--line)}
+body[data-theme="retro"] .who-chip span{background:var(--move-bg);color:var(--acc-d)}
+body[data-theme="retro"] .pill{border-radius:5px;font-family:var(--serif)}
+
+/* 今天：日曆撕頁的日期 */
+body[data-theme="retro"] .hello .date{display:inline-block;background:var(--acc);color:#FFF6E5;padding:2px 14px;border-radius:4px;font-family:var(--serif);letter-spacing:.08em}
+body[data-theme="retro"] .hello h1{margin-top:8px}
+body[data-theme="retro"] .first-box{border:2px solid var(--line);border-top:10px solid var(--acc);border-radius:10px}
+body[data-theme="retro"] .snack-head h2::before,body[data-theme="retro"] .grp::before{content:"◆";color:var(--acc);font-size:.7em;margin-right:8px;vertical-align:.12em}
+body[data-theme="retro"] .snack-prog .bar{height:16px;border-radius:4px;background:repeating-linear-gradient(90deg,var(--line) 0 10px,transparent 10px 14px);border:2px solid var(--line)}
+body[data-theme="retro"] .snack-prog .bar i{border-radius:2px;background:var(--ok)}
+
+/* 車票卡：圖與文字之間虛線打孔，兩側圓缺口 */
+body[data-theme="retro"] .snack a,body[data-theme="retro"] .card,body[data-theme="retro"] .peek,body[data-theme="retro"] .radar-card{border-radius:10px;border:2px solid var(--line);background:var(--card)}
+body[data-theme="retro"] .snack a:hover,body[data-theme="retro"] .card:hover{border-color:var(--acc)}
+body[data-theme="retro"] :is(.snack,.card) .txt{position:relative;border-top:3px dashed var(--line)}
+body[data-theme="retro"] :is(.snack,.card) .txt::before,body[data-theme="retro"] :is(.snack,.card) .txt::after{content:"";position:absolute;top:-14px;width:24px;height:24px;border-radius:50%;background:var(--bg);border:2px solid var(--line)}
+body[data-theme="retro"] :is(.snack,.card) .txt::before{left:-14px}
+body[data-theme="retro"] :is(.snack,.card) .txt::after{right:-14px}
+body[data-theme="retro"] .goal .card .txt::before,body[data-theme="retro"] .goal .card .txt::after{background:var(--card)}
+body[data-theme="retro"] .snack .no{border-radius:6px;background:var(--ink);color:#FFF6E5;font-family:var(--serif);border:3px solid #FFF6E5;box-shadow:0 0 0 2px var(--ink)}
+body[data-theme="retro"] .snack.done .no{background:var(--ok);box-shadow:0 0 0 2px var(--ok)}
+body[data-theme="retro"] .snack .kind{color:var(--mut)}
+body[data-theme="retro"] .snack .go{border-radius:8px;background:var(--acc);color:#FFF6E5;box-shadow:inset 0 -5px 0 rgba(0,0,0,.22);font-family:var(--serif);letter-spacing:.1em}
+body[data-theme="retro"] .snack.done .go{background:var(--card);color:var(--ok);border:2px solid var(--ok);box-shadow:none}
+/* 完成：斜斜的紅色印章 */
+body[data-theme="retro"] .snack.done a::after{content:"完成";position:absolute;top:18px;right:16px;z-index:3;width:92px;height:92px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-family:var(--serif);font-weight:900;font-size:28px;letter-spacing:.08em;color:#B8322A;background:rgba(255,249,236,.82);border:4px solid #B8322A;box-shadow:inset 0 0 0 3px rgba(255,249,236,.82),inset 0 0 0 5px #B8322A;transform:rotate(-14deg);opacity:.92}
+body[data-theme="retro"] .snack.done .pic{filter:sepia(.35) saturate(.7)}
+
+body[data-theme="retro"] .peek{border-top:10px solid var(--ok)}
+
+/* 全部活動：動＝紅磚、感＝花磚 */
+body[data-theme="retro"] .chip{border-radius:8px;border-color:var(--line);background:var(--card)}
+body[data-theme="retro"] .chip.on{background:var(--ok);border-color:var(--ok);color:#FFF6E5}
+body[data-theme="retro"] .chip-sep{font-family:var(--serif);color:var(--acc-d);font-size:18px}
+body[data-theme="retro"] .goal{position:relative;border-radius:10px;border:2px solid var(--line);border-left:2px solid var(--line);padding-top:30px;overflow:hidden;background:var(--card)}
+body[data-theme="retro"] .goal::before{content:"";position:absolute;left:0;right:0;top:0;height:14px}
+body[data-theme="retro"] .goal.move::before{background:var(--brick) 0 0/28px 14px}
+body[data-theme="retro"] .goal.mind::before{background:var(--tile) 0 0/14px 14px}
+body[data-theme="retro"] .goal.move,body[data-theme="retro"] .goal.mind{border-left:2px solid var(--line)}
+body[data-theme="retro"] .goal-h{padding-bottom:10px;border-bottom:3px double var(--line)}
+body[data-theme="retro"] .goal-h .gi{border-radius:8px;background:var(--soft);border:2px solid var(--line)}
+body[data-theme="retro"] .goal-h .gn{font-family:var(--serif);color:var(--acc-d);border:2px solid var(--acc);border-radius:4px;padding:0 8px}
+body[data-theme="retro"] .goal .card{background:#FFFDF6}
+/* 只有一款的目標兩兩並排，頁面不會拉太長；兩款以上的整排 */
+body[data-theme="retro"] .goals{display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:18px}
+body[data-theme="retro"] .goal:has(.cards > .card:nth-child(2)){grid-column:1/-1}
+body[data-theme="retro"] .goal .cards{grid-template-columns:repeat(auto-fill,minmax(250px,1fr))}
+body[data-theme="retro"] .goals.one{grid-template-columns:1fr}
+body[data-theme="retro"] .card .pic .pill{border-radius:5px;border-color:#FFF6E5}
+body[data-theme="retro"] .also span,body[data-theme="retro"] .axtags span{border-radius:5px}
+body[data-theme="retro"] .tag{border-radius:5px;background:var(--soft);color:var(--mut)}
+
+/* 我的進步 */
+body[data-theme="retro"] .radar-card{border-top:10px solid var(--acc)}
+body[data-theme="retro"] .radar-card:nth-child(1){border-top-color:var(--ok)}
+body[data-theme="retro"] .radar .rg{stroke:#E2D3AE}
+body[data-theme="retro"] .radar .rg.out{stroke:#B9A578;stroke-width:2}
+body[data-theme="retro"] .radar .ax{stroke:#E2D3AE}
+body[data-theme="retro"] .radar .ps{fill:rgba(184,50,42,.2);stroke:#B8322A}
+body[data-theme="retro"] .radar .pf{fill:rgba(47,93,70,.08);stroke:#2F5D46}
+body[data-theme="retro"] .radar .pd{fill:#B8322A}
+body[data-theme="retro"] .radar .lb{fill:var(--ink);font-family:var(--serif)}
+body[data-theme="retro"] .radar .lv{fill:var(--acc-d)}
+body[data-theme="retro"] .radar .lv.lk{fill:var(--mut)}
+body[data-theme="retro"] .lg{border-top-color:#B8322A}
+body[data-theme="retro"] .lg.first{border-top-color:#2F5D46}
+/* 最近玩過：帳簿一行一行 */
+body[data-theme="retro"] .recent{gap:0;border:2px solid var(--line);border-radius:10px;background:var(--card);overflow:hidden}
+body[data-theme="retro"] .rc{border:0;border-radius:0;border-bottom:2px dashed var(--line);background:transparent}
+body[data-theme="retro"] .rc:last-child{border-bottom:0}
+body[data-theme="retro"] .rc .d{font-family:var(--serif);color:var(--acc-d)}
+body[data-theme="retro"] details.pro{border-radius:10px;border-color:var(--line)}
+body[data-theme="retro"] details.pro summary{font-family:var(--serif)}
+body[data-theme="retro"] details.pro table{font-size:20px}
+body[data-theme="retro"] details.pro th{background:var(--soft);font-family:var(--serif);border-bottom:2px solid var(--line)}
+body[data-theme="retro"] details.pro td{border-bottom:1px dashed var(--line)}
+body[data-theme="retro"] .empty{border-radius:10px}
+
+/* 手機：底部分頁上緣也有花磚 */
+@media (max-width:760px){
+  body[data-theme="retro"] .goals{grid-template-columns:1fr}
+  body[data-theme="retro"] .logo-mark{font-size:13px}
+  body[data-theme="retro"] .appbar{background:var(--bg)}
+  body[data-theme="retro"] .tabs{border-top:0;background:var(--card)}
+  body[data-theme="retro"] .tabs::before{content:"";position:absolute;left:0;right:0;top:-8px;height:8px;background:var(--tile) 0 0/8px 8px}
+  body[data-theme="retro"] .snack.done a::after{width:78px;height:78px;font-size:24px;top:14px;right:14px}
+}

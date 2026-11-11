@@ -1,0 +1,785 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>感．動復能｜用身體答題</title>
+<style>
+:root{--bg:#F4EFE3;--ink:#2B2621;--sub:#6B6258;--card:#FFFDF8;--line:#E2D8C4;--soft:#EFE6D2;--accent:#C8402E;--accent-d:#A3321F;--ok:#2E7D4F;--no:#b8463d;--blue:#2e6bb0;--mind:#2e5f8a;--mind-bg:#E3ECF5;--move:#A3321F;--move-bg:#F8E1DA}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family:"PingFang TC","Noto Sans TC","Microsoft JhengHei",sans-serif;overflow:hidden}
+button{font:inherit;cursor:pointer}
+.scr{position:fixed;inset:0;display:none}
+.scr.on{display:block}
+/* 設定頁（開始前） */
+#setup{overflow:auto;padding:0 0 40px}
+.topbar{position:sticky;top:0;z-index:5;background:rgba(244,239,227,.94);backdrop-filter:blur(6px);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:12px;padding:10px 16px}
+.topbar a,.topbar button{font:inherit;font-size:19px;font-weight:700;color:var(--ink);text-decoration:none;background:var(--card);border:2px solid var(--line);border-radius:12px;padding:8px 14px;min-height:48px;display:inline-flex;align-items:center}
+.topbar .brand{font-weight:900;font-size:22px;letter-spacing:.04em;margin-right:auto;border:0;background:none;padding:0}
+.topbar .who{font-size:17px;color:var(--sub);font-weight:700}
+.wrap{max-width:920px;margin:0 auto;padding:18px 16px 0}
+.hero{display:grid;grid-template-columns:minmax(220px,42%) 1fr;background:var(--card);border:2px solid var(--line);border-radius:22px;overflow:hidden}
+.hero .pic{background:#E8DCC5 center/cover no-repeat;min-height:210px;display:flex;align-items:center;justify-content:center;font-size:84px}
+.hero .txt{padding:18px 20px}
+.hero .kind{display:inline-block;font-size:16px;font-weight:800;color:var(--mind);background:var(--mind-bg);border-radius:999px;padding:2px 12px}
+.hero h1{font-size:clamp(30px,4vw,40px);margin:6px 0 4px;font-weight:900}
+.hero .line{font-size:21px;color:var(--sub);margin:0 0 10px}
+.axtags{display:flex;flex-wrap:wrap;gap:6px}
+.axtags span{font-size:16px;font-weight:800;border-radius:999px;padding:3px 12px}
+.axtags .m{background:var(--mind-bg);color:var(--mind)}.axtags .v{background:var(--move-bg);color:var(--move)}
+.lvbox{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.lvbox button{width:64px;height:64px;border-radius:16px;border:2px solid var(--line);background:var(--card);font-size:32px;font-weight:900;color:var(--ink)}
+.lvbox button:disabled{opacity:.35}
+.lvbox .lv{font-size:34px;font-weight:900;min-width:110px;text-align:center}
+.lvbox .lvh{font-size:19px;color:var(--sub);flex:1 1 220px}
+.dots5{display:flex;gap:6px;justify-content:center;margin-top:2px}.dots5 i{width:14px;height:14px;border-radius:50%;background:var(--line)}.dots5 i.on{background:var(--accent)}
+details.adv{max-width:920px;margin:6px auto 0;background:var(--card);border:2px solid var(--line);border-radius:16px;padding:10px 16px}
+details.adv summary{font-size:19px;font-weight:700;color:var(--sub);cursor:pointer;min-height:40px;display:flex;align-items:center}
+.actgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
+.actc{display:flex;flex-direction:column;text-align:left;border:2px solid var(--line);background:var(--card);border-radius:18px;overflow:hidden;padding:0;color:var(--ink)}
+.actc .pic{aspect-ratio:16/9;background:#E8DCC5 center/cover no-repeat;display:flex;align-items:center;justify-content:center;font-size:56px}
+.actc b{font-size:23px;padding:10px 14px 2px}.actc small{font-size:17px;color:var(--sub);padding:0 14px 12px}
+.actc.sel{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent) inset}
+.sec{max-width:920px;margin:18px auto 0}
+.sec h2,.sech{font-size:22px;margin:0 0 10px;font-weight:900}
+.sec{padding:0 16px}
+details.adv .sec{padding:0}
+.row{display:flex;flex-wrap:wrap;gap:10px}
+.pick{flex:1 1 180px;min-height:64px;border:2px solid var(--line);background:var(--card);border-radius:16px;padding:12px 14px;text-align:left;font-size:20px;color:var(--ink)}
+.pick small{display:block;font-size:15px;color:var(--sub);margin-top:2px}
+.pick.sel{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent) inset}
+.go{display:block;width:calc(100% - 32px);max-width:920px;margin:22px auto 0;border:0;border-radius:18px;background:var(--accent);color:#fff;font-size:26px;font-weight:700;padding:18px}
+.note{font-size:17px;color:var(--sub);max-width:920px;margin:10px auto 0;line-height:1.6;padding:0 2px}
+@media (max-width:700px){.hero{grid-template-columns:1fr}.hero .pic{min-height:0;aspect-ratio:16/9}}
+/* 準備頁 */
+#prep{display:none;align-items:center;justify-content:center;padding:20px}
+#prep.on{display:flex}
+.box{max-width:760px;width:100%;background:var(--card);border-radius:22px;padding:24px;border:1px solid var(--line);text-align:center}
+.box h2{font-size:28px;margin:0 0 10px}
+.box p{font-size:20px;line-height:1.6;margin:6px 0}
+.demo4{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:14px 0}
+.demo4 div{background:var(--bg);border-radius:12px;padding:10px 6px;font-size:16px;line-height:1.4}
+.demo4 b{display:block;font-size:30px}
+.demo4 .x{color:var(--no)}
+/* 答題頁 */
+#play{background:var(--bg)}
+#prompt{position:absolute;left:0;right:0;top:0;height:13vh;padding:0 max(90px,19vw) 0 90px;display:flex;flex-wrap:wrap;align-content:center;align-items:center;justify-content:center;column-gap:16px;row-gap:4px;font-size:min(6vh,6.4vw);font-weight:700;z-index:3;text-align:center;line-height:1.2}
+@media (orientation:portrait){#prompt{padding:0 12px 0 74px;font-size:min(4.2vh,6.2vw)}#prompt .tag{font-size:13px}}
+#prompt .tag{font-size:min(3vh,4vw);font-weight:500;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:4px 12px;color:var(--sub)}
+#prompt.slow{color:var(--blue)}
+#status{position:absolute;left:0;right:0;bottom:2vh;text-align:center;font-size:min(3.4vh,5vw);color:var(--sub);z-index:3;pointer-events:none}
+#status b{color:var(--ink)}
+.opt{position:absolute;transform:translate(-50%,-50%);background:var(--card);border:3px solid var(--line);border-radius:22px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:1.2vh;z-index:2;transition:opacity .25s,border-color .2s}
+.opt img{max-width:100%;max-height:72%;object-fit:contain;border-radius:12px;pointer-events:none}
+.opt .lab{font-size:min(4.2vh,6vw);font-weight:700;margin-top:.6vh;text-align:center;line-height:1.15}
+.opt .clue{font-size:min(2.8vh,4vw);color:var(--blue);margin-top:.4vh;min-height:1.2em;text-align:center}
+.opt .ring{position:absolute;left:10%;right:10%;bottom:-1.6vh;height:1.1vh;min-height:8px;border-radius:99px;background:var(--line);pointer-events:none;overflow:hidden;--p:0;opacity:0;transition:opacity .15s}
+.opt .ring::before{content:"";position:absolute;inset:0;width:calc(var(--p)*100%);background:var(--accent);border-radius:99px}
+.opt.hov .ring{opacity:1}
+.opt.hov{border-color:var(--accent)}
+.opt.ok{border-color:var(--ok);box-shadow:0 0 0 5px var(--ok)}
+.opt.no{opacity:.35;border-color:var(--no)}
+.opt.no::after{content:"✗";position:absolute;font-size:12vh;color:var(--no);font-weight:700}
+.opt.want{border-color:var(--ok);border-style:dashed}
+#list{position:absolute;left:6%;right:6%;display:flex;gap:2vw;justify-content:center;align-items:stretch;z-index:2;transition:opacity .4s}
+#list.hide{opacity:0}
+#list .li{flex:0 1 18%;background:var(--card);border:3px solid var(--accent);border-radius:20px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:1vh}
+#list .li img{max-width:100%;max-height:74%;object-fit:contain;border-radius:12px}
+#list .li b{font-size:min(3.8vh,5vw);margin-top:.5vh}
+@media (orientation:portrait){#list{flex-wrap:wrap;gap:8px}#list .li{flex:0 1 30%}}
+.opt.done .lab{color:var(--ok)}
+.opt .emo{font-size:min(9vh,11vw);line-height:1.1}
+.opt.txt .lab{font-size:min(4.6vh,6.2vw)}
+#seqbar{position:absolute;left:4%;right:4%;display:flex;align-items:center;justify-content:center;gap:1vw;z-index:2;pointer-events:none}
+#seqbar .st{flex:0 1 auto;min-width:min(9vw,120px);min-height:6.4vh;justify-content:center;background:var(--card);border:3px solid var(--ok);border-radius:16px;padding:.6vh 1.2vw;display:flex;align-items:center;gap:.6vw;font-size:min(3vh,3.6vw);font-weight:700;white-space:nowrap}
+#seqbar .st i{font-style:normal;font-size:1.3em}
+#seqbar .st.q{border:3px dashed var(--accent);color:var(--accent);background:transparent}
+#seqbar .st.end{border-color:var(--line);color:var(--sub)}
+#seqbar .ar{color:var(--sub);font-size:min(3vh,4vw)}
+#seqbar.fin .st{border-color:var(--ok)}
+@media (orientation:portrait){#seqbar{flex-wrap:wrap;gap:6px}#seqbar .ar{display:none}}
+.arrow{position:absolute;font-size:min(5vh,7vw);color:var(--accent);transform:translate(-50%,-50%);z-index:2;pointer-events:none}
+#clue{position:absolute;transform:translate(-50%,-50%);background:var(--card);border-radius:20px;border:1px solid var(--line);padding:1vh;z-index:1;display:flex;flex-direction:column;align-items:center}
+#clue img{max-width:100%;max-height:88%;object-fit:contain;border-radius:12px}
+#clue span{font-size:min(2.6vh,4vw);color:var(--sub);margin-top:.4vh}
+#cv{position:absolute;inset:0;width:100%;height:100%;z-index:4;pointer-events:none}
+#mini{position:absolute;right:1.2vw;top:1.5vh;width:min(17vw,200px);aspect-ratio:16/9;border-radius:12px;overflow:hidden;background:#000;z-index:5;border:2px solid var(--card)}
+#mini canvas{width:100%;height:100%}
+#mini.off{display:none}
+#veil{position:absolute;inset:0;display:none;align-items:center;justify-content:center;z-index:6;background:rgba(244,239,227,.86)}
+#veil.on{display:flex}
+#veil div{font-size:min(5vh,7vw);font-weight:700;text-align:center;line-height:1.5}
+#stopBtn{position:absolute;left:1.2vw;top:1.5vh;z-index:7;border:1px solid var(--line);background:var(--card);border-radius:12px;font-size:16px;padding:8px 12px;color:var(--sub)}
+.star{position:absolute;z-index:8;font-size:4vh;pointer-events:none;animation:fly .9s ease-out forwards}
+@keyframes fly{to{transform:translate(var(--dx),var(--dy)) scale(.4);opacity:0}}
+/* 結果頁 */
+#result{overflow:auto;padding:24px 20px 40px}
+.res{max-width:880px;margin:0 auto}
+.res h1{font-size:32px;margin:6px 0 14px}
+.big{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+.big div{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px}
+.big small{display:block;font-size:16px;color:var(--sub)}
+.big b{font-size:34px}
+.big p{margin:4px 0 0;font-size:17px;color:var(--sub);line-height:1.5}
+.chat{margin:16px 0;background:var(--card);border-left:6px solid var(--accent);padding:14px 16px;font-size:21px;line-height:1.6;border-radius:0 14px 14px 0}
+.tags{margin:10px 0 0;font-size:16px;color:var(--sub)}
+.tags span{display:inline-block;border-radius:999px;padding:3px 10px;margin:2px 4px 2px 0}
+.t-mind{background:#dfe9f6;color:#1d4b80}.t-move{background:#f6e2d3;color:#8a3f12}
+details{margin-top:18px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 16px;font-size:16px}
+summary{font-size:18px;cursor:pointer}
+table{border-collapse:collapse;width:100%;margin-top:10px;font-size:15px}
+td,th{border-bottom:1px solid var(--line);padding:6px 4px;text-align:left}
+.btns{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
+.btns button{flex:1 1 200px;border:2px solid var(--accent);background:var(--card);color:var(--accent);border-radius:16px;font-size:22px;font-weight:700;padding:14px}
+.btns button.pri{background:var(--accent);color:#fff}
+.fb{margin-top:18px;font-size:16px;color:var(--sub)}
+.radarline{margin:12px 0 0;background:var(--card);border:2px solid var(--line);border-radius:16px;padding:12px 16px;font-size:19px;line-height:1.6}
+.radarline b{font-weight:900}
+.nextc{display:grid;grid-template-columns:150px 1fr;gap:0;margin-top:16px;background:var(--card);border:3px solid var(--accent);border-radius:18px;overflow:hidden;text-decoration:none;color:var(--ink)}
+.nextc .pic{background:#E8DCC5 center/cover no-repeat;display:flex;align-items:center;justify-content:center;font-size:48px;min-height:110px}
+.nextc .t{padding:12px 16px}.nextc .k{font-size:17px;font-weight:800;color:var(--accent-d)}.nextc b{display:block;font-size:26px;font-weight:900}.nextc span{font-size:18px;color:var(--sub)}
+.donec{margin-top:16px;background:#E4F1E8;border:2px solid var(--ok);border-radius:16px;padding:14px 16px;font-size:21px;font-weight:800;color:var(--ok)}
+</style>
+</head>
+<body>
+
+<section id="setup" class="scr on">
+  <div class="topbar"><a id="homeLink" href="../site/">← 首頁</a><span class="brand">感．動復能</span><span class="who" id="whoTag"></span></div>
+  <div class="wrap">
+    <div id="pickWrap"><h2 class="sech">用身體答題：玩哪一個？</h2><div class="actgrid" id="pkAct"></div></div>
+    <div id="heroBox"></div>
+  </div>
+  <div class="sec"><h2>今天玩第幾級</h2><div class="lvbox"><button id="lvMinus" aria-label="降一級">−</button><div><div class="lv" id="lvNow"></div><div class="dots5" id="lvDots"></div></div><button id="lvPlus" aria-label="升一級">＋</button><div class="lvh" id="lvHint"></div></div><p class="note" id="lvNote"></p></div>
+  <div class="sec"><h2>怎麼回答</h2><div class="row" id="pkInput"></div></div>
+  <details class="adv" id="adv"><summary>進階設定（答案卡位置、肩膀）</summary>
+    <div class="sec" id="secLayout"><h2>答案卡放哪裡（練哪個動作）</h2><div class="row" id="pkLayout"></div><p class="note" id="painNote"></p></div>
+    <div class="sec"><h2>舉手時肩膀會痛嗎</h2><div class="row" id="pkPain"></div><p class="note" id="painSrc"></p></div>
+  </details>
+  <button class="go" id="btnGo">開始</button>
+  <p class="note">全程坐著玩。鏡頭的影像只在這台機器上算，不會上傳，也不會存下來。</p>
+</section>
+
+<section id="prep" class="scr"><div class="box" id="prepBox"></div></section>
+
+<section id="play" class="scr">
+  <button id="stopBtn">結束</button>
+  <div id="prompt"></div>
+  <div id="stage"></div>
+  <div id="mini" class="off"><canvas id="miniCv" width="320" height="180"></canvas></div>
+  <canvas id="cv"></canvas>
+  <div id="status"></div>
+  <div id="veil"><div id="veilTxt"></div></div>
+</section>
+
+<section id="result" class="scr"><div class="res" id="resBox"></div></section>
+
+<script type="module">
+import { bodyFrame, createAnswerer, LAYOUTS, EASIER, toScreen } from './engine/zones.js';
+import { upVector, anglesOf, createTiltAnswerer } from './engine/tilt3.js';
+import { buildSpeed, buildVeg, buildPrice, buildMemo, buildSeq, buildPlace, summarize, motionElements, rng } from './engine/levels.js';
+import { store } from './engine/record.js';
+import { SPEED } from './banks/speed.js';
+import { VEG } from './banks/veg.js';
+import { PRICE } from './banks/price.js';
+import { MEMO } from './banks/memo.js';
+import { SEQ } from './banks/seq.js';
+import { PLACE } from './banks/place.js';
+
+/* 接上感．動復能入口（同一個網址開才讀得到）：誰在玩、肩膀、雷達對照、今日點心。單獨開這一頁也能玩，只是少了這些。 */
+const SITE = await (async () => {
+  try {
+    const [st, cat, ab, hub, gm] = await Promise.all([import('../site/assess/store.js'), import('../site/catalog.js'), import('../site/ability.js'), import('../site/assess/hub.js'), import('../site/games.js')]);
+    return { store: st.createStore(), cat, ab, hub, gm };
+  } catch (e) { return null; }
+})();
+const SUBJ = SITE ? SITE.store.current() : null;
+const WHO = SUBJ ? SUBJ.code : '';
+
+const $ = (id) => document.getElementById(id);
+const Q = new URLSearchParams(location.search);
+const DEMO = Q.get('demo') === '1';
+let MUTED = Q.get('mute') === '1';
+const portrait = () => innerHeight > innerWidth;
+const BANKS = { speed: SPEED, price: PRICE, veg: VEG, memo: MEMO, seq: SEQ, place: PLACE };
+const BUILD = { speed: buildSpeed, veg: buildVeg, price: buildPrice, memo: buildMemo, seq: buildSeq, place: buildPlace };
+/* 單獨開時的備用說明；接上入口時以 site/catalog.js 為準 */
+const ACT_INFO = {
+  speed: { icon: '🚄', line: '高鐵和腳踏車，哪一個比較快？' },
+  price: { icon: '💰', line: '一斤比一斤，哪一個比較貴？' },
+  veg: { icon: '🥬', line: '看影子、看剖面，猜是什麼菜' },
+  memo: { icon: '📝', line: '家人交代要買什麼，記起來' },
+  seq: { icon: '🍵', line: '泡茶、寄信，先做哪一步？' },
+  place: { icon: '🗺️', line: '「台中」有名的是太陽餅還是牛舌餅？' },
+};
+const catOf = (id) => (SITE && SITE.cat.quizById(id)) || null;
+const coverOf = (id) => `../site/img/act_${id}.jpg`;
+const picStyle = (id) => `style="background-image:url('${coverOf(id)}')"`;
+
+/* ---------------- 設定 ---------------- */
+const isPhone = /iPhone|Android.+Mobile/.test(navigator.userAgent);
+const FIXED = !!Q.get('act');   // 從首頁點進來：只顯示這一款，不再問玩哪一個
+const PAIN0 = Q.get('pain') != null ? Q.get('pain') === '1' : !!(SUBJ && SUBJ.pain === 'yes');
+const cfg = {
+  act: BANKS[Q.get('act')] ? Q.get('act') : 'speed',
+  input: Q.get('input') || (DEMO ? 'cam' : isPhone ? 'tilt' : 'cam'),
+  layout: Q.get('layout') || 'low',
+  pain: PAIN0,
+  level: null,
+};
+function picker(el, items, key, after) {
+  el.innerHTML = items.map((it) => `<button class="pick" data-v="${it.v}">${it.t}${it.s ? `<small>${it.s}</small>` : ''}</button>`).join('');
+  const sync = () => el.querySelectorAll('.pick').forEach((b) => b.classList.toggle('sel', String(cfg[key]) === b.dataset.v));
+  el.onclick = (e) => { const b = e.target.closest('.pick'); if (!b) return; cfg[key] = isNaN(+b.dataset.v) || key === 'act' || key === 'input' || key === 'layout' ? b.dataset.v : +b.dataset.v; if (key === 'pain') cfg.pain = b.dataset.v === '1'; after && after(); renderSetup(); };
+  sync();
+}
+function renderSetup() {
+  $('whoTag').textContent = WHO ? `${WHO} 在玩` : '';
+  if (!SITE) $('homeLink').style.display = 'none';
+  /* 玩哪一個：從首頁點進來就只顯示那一款 */
+  $('pickWrap').style.display = FIXED ? 'none' : '';
+  const ids = Object.keys(BANKS);
+  $('pkAct').innerHTML = ids.map((id) => `<button class="actc${cfg.act === id ? ' sel' : ''}" data-v="${id}"><span class="pic" ${picStyle(id)}>${ACT_INFO[id].icon}</span><b>${BANKS[id].name}</b><small>${(catOf(id) || ACT_INFO[id]).line}</small></button>`).join('');
+  $('pkAct').onclick = (e) => { const b = e.target.closest('.actc'); if (!b) return; cfg.act = b.dataset.v; renderSetup(); };
+  const bank = BANKS[cfg.act], c = catOf(cfg.act);
+  const tags = c ? SITE.cat.axesOf(c.elements).map((a) => `<span class="m">感．${SITE.cat.AXIS_NAME[a]}</span>`).join('') : '';
+  const mv = cfg.input === 'cam' ? (cfg.layout === 'high' ? '舉高' : '伸取') : cfg.input === 'tilt' ? '軀幹' : '';
+  $('heroBox').innerHTML = `<div class="hero"><span class="pic" ${picStyle(cfg.act)}>${ACT_INFO[cfg.act].icon}</span><div class="txt">
+    <span class="kind">感｜用身體答題</span><h1>${bank.name}</h1><p class="line">${(c || ACT_INFO[cfg.act]).line}</p>
+    <div class="axtags">${tags}${mv ? `<span class="v">動．${mv}</span>` : ''}</div></div></div>`;
+  /* 封面圖載得到才把 emoji 拿掉（還沒生好的封面先用 emoji 頂著） */
+  document.querySelectorAll('#setup .pic').forEach((el) => { const m = /act_(\w+)\.jpg/.exec(el.style.backgroundImage || ''); if (!m) return; const img = new Image(); img.onload = () => { el.textContent = ''; }; img.src = coverOf(m[1]); });
+
+  picker($('pkInput'), [
+    { v: 'cam', t: '伸手到答案上', s: '用鏡頭；平板、電腦或電視' },
+    { v: 'tilt', t: '身體帶手機傾斜', s: '手機直拿貼胸口' },
+    { v: 'tap', t: '點螢幕', s: '動作做不到時用' },
+  ], 'input');
+  if (cfg.pain && cfg.layout !== 'low') cfg.layout = 'low';
+  $('secLayout').style.display = cfg.input === 'cam' ? '' : 'none';
+  picker($('pkLayout'), [
+    { v: 'low', t: '胸口高度', s: '基本伸手；肩膀會痛也可以' },
+    { v: 'high', t: '頭頂附近', s: '練把手舉高' },
+    { v: 'wide', t: '左右拉遠', s: '練伸遠、跨過身體中間' },
+  ].filter((x) => !cfg.pain || x.v === 'low'), 'layout');
+  $('painNote').textContent = cfg.pain ? '肩膀會痛：答案卡只放在胸口高度，伸到不痛的地方就好。' : '';
+  picker($('pkPain'), [{ v: '0', t: '不會痛' }, { v: '1', t: '會痛' }], 'pain');
+  $('pkPain').querySelectorAll('.pick').forEach((b) => b.classList.toggle('sel', (b.dataset.v === '1') === cfg.pain));
+  $('painSrc').textContent = SUBJ && SUBJ.pain === 'yes' ? `依 ${WHO} 的建檔（舉高會痛或做不到），預設只放胸口高度。` : '';
+
+  const last = store.lastLevel(cfg.act, WHO);
+  if (cfg.level == null || cfg._act !== cfg.act) { cfg.level = +(Q.get('level') || last || 2); cfg._act = cfg.act; }
+  cfg.level = Math.max(1, Math.min(5, cfg.level));
+  $('lvNow').textContent = `第 ${cfg.level} 級`;
+  $('lvDots').innerHTML = [1, 2, 3, 4, 5].map((v) => `<i class="${v <= cfg.level ? 'on' : ''}"></i>`).join('');
+  $('lvHint').textContent = levelHint(cfg.act, cfg.level);
+  $('lvMinus').disabled = cfg.level <= 1; $('lvPlus').disabled = cfg.level >= 5;
+  $('lvNote').textContent = last ? `上次玩完，建議這次玩第 ${last} 級。` : '第一次玩，建議從第 2 級開始。';
+}
+$('lvMinus').onclick = () => { cfg.level--; renderSetup(); };
+$('lvPlus').onclick = () => { cfg.level++; renderSetup(); };
+function levelHint(act, v) {
+  if (act === 'speed') return ['一看就知道', '加入生活經驗題', '兩個都不慢，要比較', '快、慢輪流問', '快、慢隨機問'][v - 1];
+  if (act === 'price') return ['差很多', '差兩、三倍', '差不多，要想一下', '貴、便宜輪流問', '貴、便宜隨機問'][v - 1];
+  if (act === 'memo') return ['記 2 樣、二選一', '記 3 樣、二選一', '記 3 樣、三選一', '記 4 樣、像的東西混在一起', '記 5 樣、像的東西混在一起'][v - 1];
+  if (act === 'seq') return ['排 3 步、二選一', '排 4 步、二選一', '排 4 步、三選一', '排 5 步、三選一', '排 5 步、混進別件事的步驟'][v - 1];
+  if (act === 'place') return ['美食、二選一', '美食和景點、二選一', '三選一（第三個離很遠）', '三選一（第三個在附近）', '三選一、只有名字'][v - 1];
+  return ['看清楚的照片、二選一', '看影子、剖面、二選一', '三選一', '三選一、只有名字', '三選一、三種關卡混著'][v - 1];
+}
+renderSetup();
+
+/* ---------------- 鏡頭 ---------------- */
+let poseLandmarker = null, video = null, camReady = false, lastVT = -1, stubFn = null;
+const P = { fr: null, lm: null, t: 0 };
+async function initCam() {
+  const { PoseLandmarker, FilesetResolver } = await import('https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14');
+  const vision = await FilesetResolver.forVisionTasks('https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm');
+  const mk = (d) => PoseLandmarker.createFromOptions(vision, { baseOptions: { modelAssetPath: 'https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/latest/pose_landmarker_lite.task', delegate: d },
+    runningMode: 'VIDEO', numPoses: 2, minPoseDetectionConfidence: 0.5, minPosePresenceConfidence: 0.5, minTrackingConfidence: 0.5 });
+  try { poseLandmarker = await mk('GPU'); } catch (e) { poseLandmarker = await mk('CPU'); }
+  video = document.createElement('video'); video.playsInline = true; video.muted = true;
+  const st = await navigator.mediaDevices.getUserMedia({ video: { width: { ideal: 960 }, height: { ideal: 540 }, frameRate: { ideal: 30 }, facingMode: 'user' }, audio: false });
+  video.srcObject = st; await video.play();
+  try { const tr = st.getVideoTracks()[0], c = tr.getCapabilities?.(); if (c && c.zoom && c.zoom.min != null) await tr.applyConstraints({ advanced: [{ zoom: c.zoom.min }] }); } catch (e) {}
+  camReady = true;
+}
+function trackPose(now) {
+  let lms;
+  if (stubFn) lms = stubFn(now);
+  else {
+    if (!camReady || !video || video.readyState < 2 || video.currentTime === lastVT) return;
+    lastVT = video.currentTime;
+    try { lms = poseLandmarker.detectForVideo(video, now).landmarks; } catch (e) { return; }
+  }
+  /* 多人入鏡：取最靠畫面中間的那位 */
+  let best = null, bd = 9;
+  for (const lm of lms || []) {
+    if (!lm[11] || !lm[12]) continue;
+    const d = Math.abs((lm[11].x + lm[12].x) / 2 - 0.5);
+    if (d < bd) { bd = d; best = lm; }
+  }
+  const aspect = video && video.videoWidth ? video.videoWidth / video.videoHeight : 16 / 9;
+  const fr = best ? bodyFrame(best, aspect) : null;
+  if (fr) { P.fr = fr; P.lm = best; P.t = now; }
+  else if (now - P.t > 600) { P.fr = null; P.lm = null; }
+}
+
+/* 展示模式：一隻假的手，看完題目伸向答案（八成選對），停住，選完放回膝上 */
+const demo = { goal: null, from: { u: 0.4, v: -1.8 }, t0: 0, hold: false, side: 'R' };
+function demoLandmarks(now) {
+  const sw = 0.12, cy = 0.45, A = 16 / 9, cxm = 0.5 * A;
+  const lm = Array.from({ length: 33 }, () => ({ x: 0.5, y: 0.95, visibility: 0.05 }));
+  const put = (i, u, v) => { lm[i] = { x: 1 - (cxm + u * sw) / A, y: cy - v * sw, visibility: 0.95 }; };
+  put(11, -0.5, 0); put(12, 0.5, 0); put(23, -0.4, -1.6); put(24, 0.4, -1.6); put(13, -0.9, -0.8); put(14, 0.9, -0.8);
+  let h = { u: 0.4, v: -1.8 };
+  if (demo.goal) {
+    const k = Math.min(1, (now - demo.t0) / 900), e = k * k * (3 - 2 * k);
+    h = { u: demo.from.u + (demo.goal.u - demo.from.u) * e, v: demo.from.v + (demo.goal.v - demo.from.v) * e };
+    h.u += Math.sin(now / 170) * 0.03; h.v += Math.cos(now / 230) * 0.03;
+  }
+  const rest = { u: -0.4, v: -1.8 };
+  const L = demo.side === 'L' ? h : rest, R = demo.side === 'R' ? h : { u: 0.4, v: -1.8 };
+  for (const i of [15, 17, 19, 21]) put(i, L.u, L.v);
+  for (const i of [16, 18, 20, 22]) put(i, R.u, R.v);
+  return [lm];
+}
+function demoAim(zone, now) {
+  const c = A.centers[zone];
+  demo.from = { u: demo.side === 'R' ? 0.4 : -0.4, v: -1.8 };
+  demo.side = c[0] < -0.2 ? 'L' : c[0] > 0.2 ? 'R' : (Math.random() < 0.5 ? 'L' : 'R');
+  demo.goal = { u: c[0], v: c[1] }; demo.t0 = now;
+}
+
+/* ---------------- 手機傾斜 ---------------- */
+const TL = { a: null, t: 0, perm: 'idle' };
+function onOri(e) { if (e.beta == null || e.gamma == null) return; TL.a = anglesOf(upVector(e.beta, e.gamma)); TL.t = performance.now(); }
+async function askTilt() {
+  try {
+    if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+      TL.perm = await DeviceOrientationEvent.requestPermission();
+    } else TL.perm = 'granted';
+  } catch (e) { TL.perm = 'denied'; }
+  addEventListener('deviceorientation', onOri);
+}
+
+/* ---------------- 聲音（答對和弦，低音量） ---------------- */
+let actx = null;
+function ding(ok) {
+  if (MUTED) return;
+  try {
+    actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+    if (actx.state === 'suspended') actx.resume();
+    const t0 = actx.currentTime, fs = ok ? [523.25, 659.25, 783.99, 1046.5] : [392, 349.23];
+    fs.forEach((f, i) => {
+      const o = actx.createOscillator(), g = actx.createGain();
+      o.type = 'triangle'; o.frequency.value = f;
+      const t = t0 + i * (ok ? 0.09 : 0.16);
+      g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(ok ? 0.15 : 0.07, t + 0.02); g.gain.exponentialRampToValueAtTime(0.001, t + 0.55);
+      o.connect(g).connect(actx.destination); o.start(t); o.stop(t + 0.6);
+    });
+  } catch (e) {}
+}
+
+/* ---------------- 一局 ---------------- */
+let G = null, A = null, raf = 0, wake = null;
+const W = () => innerWidth, H = () => innerHeight;
+
+/* 看清單的「記好了」只要基本伸手，不放高、不拉遠 */
+const layoutFor = (q) => (q && q.type === 'study' ? (G.layout === 'near' ? 'near' : 'low') : G.layout);
+function positions(n) {
+  if (cfg.input === 'cam') return LAYOUTS[layoutFor(G.cur && G.cur.q)][n].map(([u, v]) => toScreen(u, v));
+  const bare = G.cur && !G.cur.q.clues && G.cur.q.type !== 'study';   // 沒有線索圖：卡片放大、往上
+  if (portrait()) return n === 2 ? [{ x: 0.27, y: bare ? 0.55 : 0.7 }, { x: 0.73, y: bare ? 0.55 : 0.7 }] : [{ x: 0.22, y: 0.78 }, { x: 0.5, y: 0.52 }, { x: 0.78, y: 0.78 }];
+  return n === 2 ? [{ x: 0.24, y: 0.6 }, { x: 0.76, y: 0.6 }] : [{ x: 0.17, y: 0.66 }, { x: 0.5, y: 0.4 }, { x: 0.83, y: 0.66 }];
+}
+function cluePos(n) {
+  if (cfg.input !== 'cam' && portrait()) return n === 2 ? { x: 0.5, y: 0.34, h: 0.3 } : { x: 0.5, y: 0.27, h: 0.22 };
+  if (cfg.input !== 'cam') return n === 2 ? { x: 0.5, y: 0.55, h: 0.42 } : { x: 0.5, y: 0.78, h: 0.3 };
+  if (n === 2) return { x: 0.5, y: G.layout === 'high' ? 0.62 : 0.5, h: 0.4 };
+  return { x: 0.5, y: G.layout === 'high' ? 0.66 : 0.79, h: G.layout === 'high' ? 0.3 : 0.24 };
+}
+
+function startRound() {
+  const bank = BANKS[cfg.act];
+  const r = rng(DEMO && Q.get('seed') ? +Q.get('seed') : Date.now());
+  const qs = BUILD[cfg.act](bank, cfg.level, r);
+  G = { study: [], bank, qs, i: 0, log: [], layout: cfg.layout, layoutStart: cfg.layout, layoutChanges: [], stuckRun: 0, t0: performance.now(), cur: null, busy: false, ended: false };
+  show('play');
+  $('mini').classList.toggle('off', cfg.input !== 'cam' || DEMO);
+  resizeCv();
+  nextQuestion();
+  cancelAnimationFrame(raf); raf = requestAnimationFrame(loop);
+}
+
+function makeAnswerer(n) {
+  if (cfg.input === 'tilt') return createTiltAnswerer(n);
+  return createAnswerer(LAYOUTS[layoutFor(G.cur.q)][n]);
+}
+
+function nextQuestion() {
+  if (G.i >= G.qs.length) return finish();
+  const q = G.qs[G.i], n = q.options.length;
+  G.cur = { q, n, tries: 0, picks: [], stuck: 0, disabled: new Set(), clueStep: 0, reveal: false };
+  A = makeAnswerer(n); // 每一題都要先回休息區（手放膝上／手機回正）才開始
+  if (cfg.input === 'tap' || (cfg.input === 'cam' && !camReady && !stubFn && !DEMO)) A.forceBegin(performance.now());
+  renderQuestion();
+}
+
+function renderQuestion() {
+  const { q, n } = G.cur, pos = positions(n);
+  const pr = $('prompt');
+  pr.className = q.ask === 'slow' ? 'slow' : '';
+  const real = G.qs.filter((x) => x.type !== 'study'), no = G.qs.slice(0, G.i + 1).filter((x) => x.type !== 'study').length;
+  const tag = q.type === 'study' ? `清單 ${q.listNo}／${q.lists}` : q.seq ? `第 ${q.topicNo}／${q.topics} 件事` : `第 ${no}／${real.length} 題`;
+  pr.innerHTML = `${q.prompt}<span class="tag">${tag}</span>`;
+  const st = $('stage'); st.innerHTML = '';
+  if (q.type === 'study') {
+    const L = document.createElement('div'); L.id = 'list';
+    const top = cfg.input === 'cam' ? 0.21 : !portrait() ? 0.15 : 0.13, bot = cfg.input === 'cam' ? 0.5 : !portrait() ? 0.47 : 0.55;
+    L.style.top = top * 100 + '%'; L.style.height = (bot - top) * 100 + '%';
+    L.innerHTML = q.items.map((it) => `<div class="li"><img src="${it.img}" alt=""><b>${it.label}</b></div>`).join('');
+    st.appendChild(L);
+  }
+  if (q.seq) drawSeqBar(q, []);
+  const small = n === 3 ? 0.24 : 0.3, hasImg = q.options.some((o) => o.img), hasEmo = q.options.some((o) => o.emoji);
+  const ch = (hasImg ? (cfg.input === 'cam' ? small : (portrait() ? (!q.clues && n === 2 ? 0.3 : 0.22) : 0.3)) : hasEmo ? (cfg.input === 'cam' ? (n === 3 ? 0.22 : 0.26) : (portrait() ? 0.2 : 0.26)) : (q.type === 'study' ? 0.11 : 0.13)) * H();
+  const cw = Math.min(W() * (n === 3 ? (portrait() ? 0.31 : 0.26) : (portrait() ? 0.42 : 0.34)), hasImg || hasEmo ? ch * (portrait() ? 1.3 : 1.2) : W() * (portrait() ? 0.4 : 0.3));
+  q.options.forEach((o, k) => {
+    const d = document.createElement('div');
+    d.className = 'opt'; d.dataset.k = k;
+    d.style.left = pos[k].x * 100 + '%'; d.style.top = pos[k].y * 100 + '%';
+    d.style.width = cw + 'px'; d.style.height = ch + 'px';
+    if (q.type === 'study') d.classList.add('done');
+    if (!o.img) d.classList.add('txt');
+    d.innerHTML = `${o.img ? `<img src="${o.img}" alt="">` : ''}${o.emoji ? `<div class="emo">${o.emoji}</div>` : ''}<div class="lab">${o.label}</div>${q.retry === 'clue' ? '<div class="clue"></div>' : ''}<div class="ring"></div>`;
+    d.onclick = () => onTap(k);
+    st.appendChild(d);
+    if (cfg.input === 'tilt') {
+      const a = document.createElement('div'); a.className = 'arrow';
+      const dir = n === 2 ? (k === 0 ? '⬅' : '➡') : ['⬅', '⬆', '➡'][k];
+      a.textContent = dir; a.style.left = pos[k].x * 100 + '%'; a.style.top = (pos[k].y * 100 + (ch / H()) * 50 + 3) + '%';
+      st.appendChild(a);
+    }
+  });
+  if (q.clues) {
+    const cp = cluePos(n), c = document.createElement('div'); c.id = 'clue';
+    c.style.left = cp.x * 100 + '%'; c.style.top = cp.y * 100 + '%';
+    c.style.height = cp.h * H() + 'px'; c.style.width = Math.min(cp.h * H() * 1.1, W() * 0.4) + 'px';
+    st.appendChild(c); drawClue();
+  }
+  setStatus();
+}
+/* 排序王：上面一排已經排好的步驟，接著是「？」和還沒排的空格 */
+function drawSeqBar(q, extra, fin) {
+  let b = $('seqbar');
+  if (!b) { b = document.createElement('div'); b.id = 'seqbar'; $('stage').appendChild(b); }
+  const hi = cfg.input === 'cam' && G.layout === 'high';
+  const top = hi ? 0.8 : cfg.input === 'cam' ? 0.145 : 0.15;
+  b.style.top = top * 100 + '%'; b.style.height = '8%';
+  b.style.right = cfg.input === 'cam' && !hi ? 'max(4%, min(17vw, 200px) + 3vw)' : '4%';
+  const done = [...q.seq.done, ...extra];
+  const cells = done.map((x) => `<span class="st"><i>${x.emoji}</i>${x.label}</span>`);
+  for (let k = done.length; k < q.seq.total; k++) cells.push(`<span class="st ${k === done.length ? 'q' : 'end'}">${k === done.length ? '？' : '　'}</span>`);
+  b.className = fin ? 'fin' : '';
+  b.innerHTML = cells.join('<span class="ar">→</span>');
+}
+function drawClue() {
+  const q = G.cur.q, c = $('clue'); if (!c) return;
+  const s = Math.min(G.cur.clueStep, q.clues.length - 1);
+  c.innerHTML = `<img src="${q.clues[s]}" alt=""><span>${q.clueNames[s] || ''}</span>`;
+}
+function setStatus(msg) {
+  if (msg) { $('status').innerHTML = msg; return; }
+  const ph = A.state.phase;
+  if (ph === 'wait-rest') $('status').innerHTML = cfg.input === 'tilt' ? '手機拿正，準備好再傾斜' : '先把手放在膝上，準備好再伸手';
+  else if (ph === 'answer' && G.cur.q.type === 'study') $('status').innerHTML = cfg.input === 'tilt' ? '記好了，就把手機<b>往左或往右倒</b>' : cfg.input === 'tap' ? '記好了就點「記好了」' : '記好了，就<b>伸手到「記好了」</b>（左右都可以）';
+  else if (ph === 'answer') $('status').innerHTML = G.cur.reveal ? '<b>把手伸到正確答案，確認一下</b>' : cfg.input === 'tilt' ? '身體帶著手機，<b>往答案那邊倒</b>，停一下' : cfg.input === 'tap' ? '點一下答案' : '<b>手伸到答案上</b>，停一下就選好了';
+}
+
+function onTap(k) {
+  if (!A || G.busy) return;
+  if (A.state.phase !== 'answer') A.forceBegin(performance.now());
+  handle(A.tap(k, performance.now()));
+}
+/* 回到「等手放下」；點螢幕模式沒有感測，直接開始 */
+function rearm() { A.next(); if (cfg.input === 'tap' || (cfg.input === 'cam' && !camReady && !stubFn)) A.forceBegin(performance.now()); }
+
+function handle(evs) {
+  const opts = [...$('stage').querySelectorAll('.opt')];
+  let hovered = -1;
+  for (const e of evs) {
+    if (e.type === 'ready') setStatus();
+    if (e.type === 'hover') { hovered = e.zone; const o = opts[e.zone]; if (o) o.querySelector('.ring').style.setProperty('--p', e.progress); }
+    if (e.type === 'stuck') onStuck();
+    if (e.type === 'select') onSelect(e);
+  }
+  opts.forEach((o, k) => { o.classList.toggle('hov', k === hovered); if (k !== hovered) o.querySelector('.ring').style.setProperty('--p', 0); });
+}
+function demoPick() {
+  const { q, disabled, reveal } = G.cur;
+  if (q.type === 'study') return Math.random() < 0.5 ? 0 : 1;
+  if (reveal) return q.correct;
+  const right = Math.random() < 0.8;
+  const pool = q.options.map((_, k) => k).filter((k) => !disabled.has(k) && (right ? k === q.correct : k !== q.correct));
+  return pool.length ? pool[Math.floor(Math.random() * pool.length)] : q.correct;
+}
+
+function onStuck() {
+  G.cur.stuck++; G.stuckRun++;
+  if (cfg.input === 'cam' && G.stuckRun >= 2 && EASIER[G.layout] && LAYOUTS[EASIER[G.layout]]) {
+    const to = EASIER[G.layout];
+    G.layoutChanges.push({ at: G.i, from: G.layout, to }); G.layout = to; G.stuckRun = 0;
+    A.setCenters(LAYOUTS[layoutFor(G.cur.q)][G.cur.n].map((c, k) => (G.cur.disabled.has(k) ? [99, 99] : c)));
+    renderQuestion(); markCard();
+    setStatus('答案卡移近一點了，<b>伸到卡片上</b>就好');
+  } else if (cfg.input === 'cam' && G.layout === 'near' && G.stuckRun >= 2) setStatus('伸不過去也沒關係，<b>可以直接點答案</b>');
+  else setStatus(cfg.input === 'tilt' ? '再<b>多倒一點</b>，用身體帶著手機' : '手<b>再伸過去一點</b>，伸到卡片上');
+}
+
+function markCard() {
+  const opts = [...$('stage').querySelectorAll('.opt')];
+  opts.forEach((o, k) => { o.classList.toggle('no', G.cur.disabled.has(k)); o.classList.toggle('want', G.cur.reveal && k === G.cur.q.correct); });
+  if (G.cur.q.retry === 'clue' && (G.cur.reveal || G.cur.answered)) opts.forEach((o, k) => { const c = o.querySelector('.clue'); if (c) c.textContent = G.cur.q.options[k].clue; });
+}
+
+function onSelect(e) {
+  const cur = G.cur, q = cur.q, k = e.zone;
+  if (q.type === 'study') {
+    G.study.push({ list: q.listNo, size: q.items.length, ms: e.rtMs != null ? Math.round(e.rtMs) : null, hand: e.hand });
+    $('stage').querySelectorAll('.opt')[k].classList.add('ok');
+    const L = $('list'); if (L) L.classList.add('hide');
+    setStatus(`好，清單蓋起來了。${backTxt()}，開始認`);
+    G.busy = true;
+    setTimeout(() => { if (!G || G.ended) return; G.busy = false; G.i++; nextQuestion(); }, 1300);
+    return;
+  }
+  if (cur.disabled.has(k)) { rearm(); setStatus('這個剛剛選過了，<b>換另一個</b>'); return; }
+  G.stuckRun = 0;
+  if (cur.reveal) {
+    if (k !== q.correct) { rearm(); return; }
+    cur.picks.push({ ...e, confirm: true });
+    return correctFx(k, false);
+  }
+  cur.picks.push(e); cur.tries++;
+  if (k === q.correct) return correctFx(k, true);
+  /* 答錯 */
+  ding(false);
+  cur.disabled.add(k);
+  const left = q.options.length - cur.disabled.size;
+  const moreClue = q.retry === 'ladder' && !!q.clues && cur.clueStep < q.clues.length - 1;   // 排序王、地名沒有線索圖，答錯就劃掉再選
+  if (left >= 2 && (moreClue || q.retry === 'ladder')) {
+    if (moreClue) { cur.clueStep++; drawClue(); }
+    markCard(); syncCenters(); rearm();
+    setStatus(moreClue ? '再看一個線索，<b>再選一次</b>' : '<b>再選一次</b>');
+  } else {
+    cur.reveal = true; cur.tries = 0;
+    if (q.clues) { cur.clueStep = q.clues.length - 1; drawClue(); }
+    markCard(); syncCenters(); rearm();
+    setStatus('答案是綠框這個，<b>把手伸過去確認一下</b>');
+  }
+}
+const backTxt = () => (cfg.input === 'tilt' ? '手機拿正' : cfg.input === 'tap' ? '準備好' : '手放回膝上');
+function syncCenters() {
+  if (cfg.input !== 'cam') return;
+  A.setCenters(LAYOUTS[layoutFor(G.cur.q)][G.cur.n].map((c, k) => (G.cur.disabled.has(k) ? [99, 99] : c)));
+}
+function correctFx(k, scored) {
+  const cur = G.cur, o = $('stage').querySelectorAll('.opt')[k];
+  o.classList.add('ok'); ding(true); if (scored) burst(o);
+  if (cur.q.clues) { cur.clueStep = cur.q.clues.length - 1; drawClue(); }
+  cur.answered = true;
+  if (cur.q.retry === 'clue') markCard();
+  setStatus(scored ? (cur.tries === 1 ? `<b>答對了！</b>${backTxt()}，下一題` : `<b>對了！</b>${backTxt()}，下一題`) : `好，<b>記住了</b>。${backTxt()}，下一題`);
+  let pause = 1300;
+  if (cur.q.seq) {
+    const pickd = cur.q.options[cur.q.correct], lastStep = cur.q.seq.last;
+    drawSeqBar(cur.q, lastStep ? [pickd, lastStep] : [pickd], !!lastStep);
+    if (lastStep) { pause = 2600; setStatus(`<b>${cur.q.seq.title}，完成了！</b>最後一步是「${lastStep.label}」。${backTxt()}`); }
+  }
+  G.log.push({ qid: cur.q.qid, ask: cur.q.ask || null, tries: scored ? cur.tries : 0, picks: cur.picks.map(slimPick), stuck: cur.stuck, layout: G.layout });
+  G.busy = true;
+  setTimeout(() => { if (!G || G.ended) return; G.busy = false; G.i++; nextQuestion(); }, pause);
+}
+const slimPick = (p) => ({ zone: p.zone, hand: p.hand, rtMs: p.rtMs != null ? Math.round(p.rtMs) : null, reach: p.reach ? Object.fromEntries(Object.entries(p.reach).map(([a, b]) => [a, Math.round(b * 100) / 100])) : null, confirm: !!p.confirm });
+function burst(el) {
+  const r = el.getBoundingClientRect();
+  for (let i = 0; i < 10; i++) {
+    const s = document.createElement('div'); s.className = 'star'; s.textContent = '★';
+    s.style.color = ['#f2b33d', '#c96a2b', '#2f8f5b'][i % 3];
+    s.style.left = r.left + r.width / 2 + 'px'; s.style.top = r.top + r.height / 2 + 'px';
+    const a = (i / 10) * Math.PI * 2; s.style.setProperty('--dx', Math.cos(a) * r.width * 0.8 + 'px'); s.style.setProperty('--dy', Math.sin(a) * r.height * 0.8 + 'px');
+    document.body.appendChild(s); setTimeout(() => s.remove(), 950);
+  }
+}
+
+/* 每幀：讀感測 → 餵給作答狀態機 → 畫游標 */
+function loop(now) {
+  raf = requestAnimationFrame(loop);
+  if (!G || G.ended) return;
+  let ev = [];
+  if (cfg.input === 'cam') {
+    trackPose(now);
+    if (!P.fr && !stubFn && !DEMO && camReady && now - P.t > 1500) veil('請坐到鏡頭前面<br>看得到肩膀和兩隻手');
+    else veil(null);
+    if (!G.busy) ev = A.feed(P.fr, now);
+    if (DEMO && A.state.phase === 'wait-rest') demo.goal = null;
+    if (DEMO && A.state.phase === 'answer' && G.cur.reveal && !demo.goal) demoAim(G.cur.q.correct, now);
+    if (DEMO && A.state.phase === 'answer' && !demo.goal && !G.busy && !demo.pending) { demo.pending = true; setTimeout(() => { demo.pending = false; if (G && A.state.phase === 'answer' && !demo.goal) demoAim(demoPick(), performance.now()); }, 900); }
+    drawCursor(); drawMini();
+  } else if (cfg.input === 'tilt') {
+    const live = TL.a && now - TL.t < 1000;
+    if (!live && !stubFn) veil(TL.perm === 'denied' ? '讀不到手機傾斜<br>請允許「動作與方向」，或改用點螢幕' : '請拿起手機，直拿貼在胸口');
+    else veil(null);
+    if (!G.busy) ev = A.feed(live ? TL.a : null, now);
+  }
+  if (ev.length) handle(ev);
+}
+function veil(html) { const v = $('veil'); if (html) { v.classList.add('on'); $('veilTxt').innerHTML = html; } else v.classList.remove('on'); }
+function resizeCv() { const c = $('cv'); c.width = W() * devicePixelRatio; c.height = H() * devicePixelRatio; }
+addEventListener('resize', () => { resizeCv(); if (G && !G.ended && $('play').classList.contains('on')) { renderQuestion(); markCard(); } });
+function drawCursor() {
+  const c = $('cv'), x = c.getContext('2d'), k = devicePixelRatio;
+  x.clearRect(0, 0, c.width, c.height);
+  if (!P.fr) return;
+  for (const [side, col] of [['L', '#2e6bb0'], ['R', '#c96a2b']]) {
+    const p = P.fr[side]; if (!p || p.v < -1.25) continue;
+    const s = toScreen(p.u, p.v);
+    const px = Math.max(0.02, Math.min(0.98, s.x)) * W() * k, py = Math.max(0.05, Math.min(0.97, s.y)) * H() * k;
+    x.beginPath(); x.arc(px, py, 22 * k, 0, Math.PI * 2); x.fillStyle = col + 'cc'; x.fill();
+    x.lineWidth = 4 * k; x.strokeStyle = '#fff'; x.stroke();
+  }
+}
+function drawMini() {
+  const cv = $('miniCv'), x = cv.getContext('2d');
+  if (!video || !camReady) return;
+  x.save(); x.translate(cv.width, 0); x.scale(-1, 1); x.drawImage(video, 0, 0, cv.width, cv.height); x.restore();
+  if (P.lm) {
+    x.fillStyle = '#f2b33d';
+    for (const i of [11, 12, 13, 14, 15, 16]) { const p = P.lm[i]; if (!p) continue; x.beginPath(); x.arc((1 - p.x) * cv.width, p.y * cv.height, 4, 0, 7); x.fill(); }
+  }
+}
+
+function finish() {
+  G.ended = true; cancelAnimationFrame(raf); veil(null);
+  const sm = summarize(G.log, cfg.level);
+  const sess = {
+    ver: 1, at: Date.now(), who: WHO, activity: cfg.act, level: cfg.level, input: cfg.input,
+    layoutStart: G.layoutStart, layout: G.layout, layoutChanges: G.layoutChanges, pain: cfg.pain, demo: DEMO,
+    durationSec: Math.round((performance.now() - G.t0) / 1000),
+    elements: { mind: G.bank.elements(cfg.level), move: motionElements(cfg.input, G.layout) },
+    items: G.log, summary: sm, study: G.study,
+  };
+  if (!DEMO) store.add(sess);
+  window.__lastSession = sess;
+  renderResult(sess);
+  show('result');
+  releaseWake();
+}
+function renderResult(s) {
+  const sm = s.summary, b = BANKS[s.activity];
+  const good = sm.firstRate >= 0.85 ? '很穩！' : sm.firstRate >= 0.6 ? '不錯喔！' : '慢慢來，有在進步。';
+  const lvTxt = sm.nextLevel > s.level ? `下次可以挑戰第 ${sm.nextLevel} 級` : sm.nextLevel < s.level ? `下次先從第 ${sm.nextLevel} 級玩起，會更順` : `下次再玩第 ${sm.nextLevel} 級，多熟練一點`;
+  const mv = s.input === 'cam' ? `右手伸了 ${sm.hands.R || 0} 次，左手 ${sm.hands.L || 0} 次${sm.hands.both ? `，兩手一起 ${sm.hands.both} 次` : ''}` : s.input === 'tilt' ? `身體帶著手機傾斜 ${sm.hands.tilt || 0} 次` : '這次用點的，下次可以試試伸手作答';
+  const lastQ = G.log.length ? G.qs.find((q) => q.qid === G.log[G.log.length - 1].qid) : null;
+  const chatQ = (lastQ && lastQ.chat) || '';
+  const studyS = s.study && s.study.length ? s.study.map((x) => x.ms != null ? (x.ms / 1000).toFixed(1) : '—').join('、') : null;
+  const easier = s.layoutChanges.length ? `<p>答案卡途中移近了一點（${s.layoutStart === 'high' ? '頭頂' : s.layoutStart === 'wide' ? '拉遠' : '胸口'} → 更近），下次可以從近一點開始。</p>` : '';
+  $('resBox').innerHTML = `
+    <h1>${b.name}｜${good}</h1>
+    <div class="big">
+      <div><small>第一次就答對</small><b>${sm.first}／${sm.n} 題</b><p>${lvTxt}</p></div>
+      <div><small>這次動到的</small><b style="font-size:24px">${mv}</b>${easier}</div>
+    </div>
+    ${radarLine(s)}
+    ${nextCard(s)}
+    ${chatQ ? `<div class="chat">跟家人聊聊：${chatQ}</div>` : ''}
+    <div class="btns"><button id="again">再玩一次（第 ${sm.nextLevel} 級）</button>${SITE ? '<button id="home">回首頁</button>' : ''}<button id="back">換一個</button></div>
+    <details><summary>給治療師、家屬看的細節</summary>
+      <table>
+        <tr><th>項目</th><th>這次</th></tr>
+        <tr><td>等級／作答方式／答案卡</td><td>第 ${s.level} 級／${{ cam: '鏡頭伸手', tilt: '手機傾斜', tap: '點螢幕' }[s.input]}／${s.layout}</td></tr>
+        <tr><td>得分（第一次對 1、看線索後對 0.5）</td><td>${sm.score}／${sm.n}</td></tr>
+        <tr><td>反應時間中位數（只記錄，不計分）</td><td>${sm.rtMed != null ? (sm.rtMed / 1000).toFixed(1) + ' 秒' : '—'}</td></tr>
+        <tr><td>動作未完成次數</td><td>${sm.stuck}</td></tr>
+        <tr><td>伸手高度中位數（肩寬，0＝肩膀高度）</td><td>${sm.reachVMed ?? '—'}</td></tr>
+        <tr><td>手機傾斜中位數</td><td>${sm.tiltDegMed != null ? sm.tiltDegMed + ' 度' : '—'}</td></tr>
+        ${studyS ? `<tr><td>看清單花多久（每張，秒；不計分）</td><td>${studyS}</td></tr>` : ''}
+        <tr><td>花費時間</td><td>${Math.floor(s.durationSec / 60)} 分 ${s.durationSec % 60} 秒</td></tr>
+      </table>
+      <p style="color:var(--sub)">這些數字只能跟自己比，還沒有同齡參考值；只是練習紀錄，不能代替看醫生。</p>
+    </details>
+    <p class="fb">歡迎給我回饋與建議：<a href="https://www.facebook.com/shihyuting.OT" target="_blank" rel="noopener">職能治療師施昱廷 粉專</a></p>`;
+  $('again').onclick = () => { cfg.level = sm.nextLevel; cfg.layout = s.layoutChanges.length ? 'low' : cfg.layout; begin(); };
+  $('back').onclick = () => { cfg.level = null; renderSetup(); show('setup'); if (FIXED) $('pickWrap').style.display = ''; };
+  if ($('home')) $('home').onclick = () => { location.href = homeHref(); };
+}
+
+/* 玩完：這一局記到兩張雷達的哪幾軸 */
+function radarLine(s) {
+  if (!SITE) return `<p class="tags">這次練到：${s.elements.mind.map((t) => `<span class="t-mind">${t}</span>`).join('')}${s.elements.move.map((t) => `<span class="t-move">${t}</span>`).join('')}</p>`;
+  const nm = (els) => SITE.cat.axesOf(els).map((a) => SITE.cat.AXIS_NAME[a]);
+  const m = nm(s.elements.mind), v = nm(s.elements.move);
+  const lock = WHO ? SITE.ab.radars(store.all().filter((x) => x.who === WHO), SITE.store.history(WHO)).mind.filter((a) => m.includes(a.name) && a.need > 0) : [];
+  const tip = lock.length ? `「${lock[0].name}」再玩 ${lock[0].need} 次，雷達就畫得出來。` : WHO ? '已經記進「我的進步」雷達。' : '';
+  return `<div class="radarline">這次記到 <b>「感」${m.join('、') || '—'}</b>${v.length ? `、<b>「動」${v.join('、')}</b>` : ''}。${tip}</div>`;
+}
+const passQS = () => [DEMO ? 'demo=1' : '', MUTED ? 'mute=1' : ''].filter(Boolean).join('&');
+const homeHref = () => '../site/' + (passQS() ? '?' + passQS() : '');
+/* 今日點心的下一樣（沒有接上入口、或沒有建檔時不顯示） */
+function nextCard(s) {
+  if (!SITE || !WHO || DEMO) return '';
+  const snack = SITE.ab.todaySnack({ code: WHO, quizSessions: store.all(), assessSessions: SITE.store.history(WHO), plan: SITE.hub.planFor(WHO), lastLevel: (a) => store.lastLevel(a, WHO) });
+  const nx = snack.find((x) => !x.done && !(x.kind === 'quiz' && x.id === s.activity));
+  if (!nx) return `<div class="donec">✓ 今天的三樣點心都完成了，明天見！</div>`;
+  let name, href, pic, icon = '';
+  if (nx.kind === 'quiz') { name = BANKS[nx.id].name; href = `./?act=${nx.id}&level=${nx.level}${passQS() ? '&' + passQS() : ''}`; pic = coverOf(nx.id); icon = ACT_INFO[nx.id].icon; }
+  else if (nx.kind === 'game') { const g = SITE.gm.gameById(nx.id); name = g.name; href = nx.url || SITE.gm.urlFor(nx.id, { demo: DEMO, mute: MUTED }); pic = '../site/' + g.img; }
+  else { name = '1 分鐘小測'; href = homeHref() + '#quiz'; pic = ''; icon = '🙋'; }
+  const done = snack.filter((x) => x.done).length;   // 這一局已經存進紀錄，算在裡面
+  return `<a class="nextc" href="${href}"><span class="pic" style="${pic ? `background-image:url('${pic}')` : ''}">${pic ? '' : icon}</span><span class="t"><span class="k">今日點心完成 ${done}／${snack.length}．下一樣</span><b>${name}</b><span>${nx.why || ''}</span></span></a>`;
+}
+
+function show(id) { document.querySelectorAll('.scr').forEach((s) => s.classList.toggle('on', s.id === id)); }
+async function keepAwake() { try { wake = await navigator.wakeLock?.request('screen'); } catch (e) {} }
+function releaseWake() { try { wake && wake.release(); } catch (e) {} wake = null; }
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && G && !G.ended) keepAwake(); });
+
+/* 準備頁 → 開局 */
+async function begin() {
+  keepAwake();
+  if (cfg.input === 'cam' && !DEMO && !camReady && !stubFn) {
+    show('prep');
+    $('prepBox').innerHTML = `<h2>鏡頭準備中…</h2><p>請坐好，讓鏡頭看得到<b>肩膀和兩隻手</b>。</p><p>答題時，<b>哪一隻手伸到答案上都算</b>；選好後手放回膝上。</p>`;
+    try { await initCam(); }
+    catch (e) {
+      $('prepBox').innerHTML = `<h2>打不開鏡頭</h2><p>可能是沒有允許使用鏡頭，或這台機器沒有鏡頭。</p><div class="btns"><button class="pri" id="toTap">改用點螢幕</button><button id="toBack">回上一頁</button></div>`;
+      $('toTap').onclick = () => { cfg.input = 'tap'; startRound(); };
+      $('toBack').onclick = () => show('setup');
+      return;
+    }
+  }
+  if (DEMO && cfg.input === 'cam' && !stubFn) stubFn = demoLandmarks;
+  if (cfg.input === 'tilt' && !stubFn) {
+    show('prep');
+    $('prepBox').innerHTML = `<h2>手機這樣拿</h2>
+      <div class="demo4"><div><b>📱</b>手機直拿<br>貼在胸口</div><div><b>💪</b>手肘夾緊<br>身體旁邊</div><div><b>↔️</b>用身體帶<br>往左往右倒</div><div class="x"><b>✗</b>不要只<br>轉手腕</div></div>
+      <p>答案在哪一邊，身體就往哪一邊倒；三選一時，<b>往前倒</b>選上面那個。</p>
+      <div class="btns"><button class="pri" id="tiltGo">好，開始</button></div>`;
+    $('tiltGo').onclick = async () => { await askTilt(); startRound(); };
+    return;
+  }
+  startRound();
+}
+$('btnGo').onclick = begin;
+$('stopBtn').onclick = () => { if (!G) return; if (G.log.length) finish(); else { G.ended = true; show('setup'); releaseWake(); } };
+
+/* 測試用掛勾：stubCam(fn) 餵合成骨架走鏡頭路線；feedTilt(roll,pitch) 走傾斜路線 */
+window.__quiz = {
+  cfg, store,
+  get G() { return G; }, get A() { return A; },
+  stubCam(fn) { stubFn = fn; camReady = true; },
+  feedTilt(roll, pitch) { TL.a = { roll, pitch }; TL.t = performance.now(); },
+  begin, startRound,
+};
+</script>
+</body>
+</html>
