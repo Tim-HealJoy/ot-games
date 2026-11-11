@@ -72,7 +72,7 @@ body[data-theme="neon"] .snack .no::before{content:"第"}
 body[data-theme="neon"] .snack .no::after{content:"攤"}
 body[data-theme="neon"] .snack.done .no{background:#2A2110;color:var(--y);box-shadow:inset 0 -3px 0 var(--y)}
 body[data-theme="neon"] .snack.done .no::before{content:"這一攤"}
-body[data-theme="neon"] .snack.done .no::after{content:"吃過了"}
+body[data-theme="neon"] .snack.done .no::after{content:"玩過了"}
 body[data-theme="neon"] .snack .pic{background-color:#2A2110}
 body[data-theme="neon"] .snack .kind,body[data-theme="neon"] .snack .meta{color:var(--mut)}
 body[data-theme="neon"] .snack b{color:var(--y)}

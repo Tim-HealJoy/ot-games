@@ -203,9 +203,9 @@ function renderMe() {
   const actName = (c) => c.kind === 'entry' ? '1 分鐘小測' : c.kind === 'quiz' ? (quizById(c.activity) ? quizById(c.activity).name : c.activity) : (gameById(c.activity) ? gameById(c.activity).name : c.activity);
   const axTxt = (c) => c.axes.length ? [...new Map(c.axes.filter((a) => a.w >= 1).map((a) => [a.axis, a])).values()].map((a) => `${AXIS_NAME[a.axis] || a.axis} ${a.v}`).join('、') : (c.quality.flags.includes('copiedMeasure') ? '沿用小測的量測' : c.quality.flags.includes('noRate') ? '遊戲還沒回報成功率' : '—');
   const t2 = (t) => { const d = new Date(t); return `${d.getMonth() + 1}/${d.getDate()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`; };
-  const crow = (c) => `<tr><td>${t2(c.at)}</td><td>${esc(KIND[c.kind])}．${esc(actName(c))}</td><td>${c.level ?? '—'}</td><td>${c.rate != null ? Math.round(c.rate * 100) + '%' : '—'}</td><td>${END[c.end]}</td><td>${esc(axTxt(c))}</td><td>${c.task ? '第 ' + c.task.no + ' 樣' : ''}</td></tr>`;
+  const crow = (c) => `<tr><td>${t2(c.at)}</td><td>${esc(KIND[c.kind])}．${esc(actName(c))}</td><td>${c.level ?? '—'}</td><td>${c.rate != null ? Math.round(c.rate * 100) + '%' : '—'}</td><td>${END[c.end]}</td><td>${esc(axTxt(c))}</td><td>${c.task ? '第 ' + c.task.no + ' 個' : ''}</td></tr>`;
   $('proBody').innerHTML = `<table><tr><th>軸</th><th>最近</th><th>第一週</th><th>筆數</th></tr>${[...R.mind, ...R.move.filter((a) => !a.locked)].map(row).join('')}</table>
-<h3 class="pro-h">成績卡（最近 10 張）</h3><div class="pro-scroll"><table class="cards-t"><tr><th>時間</th><th>活動</th><th>等級</th><th>第一次就成功</th><th>結束</th><th>計入雷達</th><th>今日點心</th></tr>${cards.slice(-10).reverse().map(crow).join('')}</table></div>`;
+<h3 class="pro-h">成績卡（最近 10 張）</h3><div class="pro-scroll"><table class="cards-t"><tr><th>時間</th><th>活動</th><th>等級</th><th>第一次就成功</th><th>結束</th><th>計入雷達</th><th>今日遊戲</th></tr>${cards.slice(-10).reverse().map(crow).join('')}</table></div>`;
   window.__gd && (window.__gd.lastCards = cards);
 }
 
@@ -282,7 +282,7 @@ function pickCard(p, first) {
   return `<div class="pick${first ? ' first' : ''}">
     <span class="pic" style="background-image:url('${esc(g.img)}')"></span>
     <div class="txt">
-      ${first ? '<p class="k">第一推薦（今日點心第 1 樣）</p>' : ''}
+      ${first ? '<p class="k">第一推薦（今日遊戲第 1 個）</p>' : ''}
       <p class="nm">${esc(g.name)}${diffText(p) ? `<span class="diff">${esc(diffText(p))}</span>` : ''}</p>
       <p class="why">${esc(p.why)}</p>
       ${extra.map((x) => `<p class="extra">${esc(x)}</p>`).join('')}

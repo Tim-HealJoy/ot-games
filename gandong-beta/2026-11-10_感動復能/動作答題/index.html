@@ -729,13 +729,13 @@ function nextCard(s) {
   if (!SITE || !WHO || DEMO) return '';
   const snack = SITE.ab.todaySnack({ code: WHO, quizSessions: store.all(), assessSessions: SITE.store.history(WHO), plan: SITE.hub.planFor(WHO), lastLevel: (a) => store.lastLevel(a, WHO) });
   const nx = snack.find((x) => !x.done && !(x.kind === 'quiz' && x.id === s.activity));
-  if (!nx) return `<div class="donec">✓ 今天的三樣點心都完成了，明天見！</div>`;
+  if (!nx) return `<div class="donec">✓ 今天的三個遊戲都完成了，明天見！</div>`;
   let name, href, pic, icon = '';
   if (nx.kind === 'quiz') { name = BANKS[nx.id].name; href = `./?act=${nx.id}&level=${nx.level}${passQS() ? '&' + passQS() : ''}`; pic = coverOf(nx.id); icon = ACT_INFO[nx.id].icon; }
   else if (nx.kind === 'game') { const g = SITE.gm.gameById(nx.id); name = g.name; href = nx.url || SITE.gm.urlFor(nx.id, { demo: DEMO, mute: MUTED }); pic = '../site/' + g.img; }
   else { name = '1 分鐘小測'; href = homeHref() + '#quiz'; pic = ''; icon = '🙋'; }
   const done = snack.filter((x) => x.done).length;   // 這一局已經存進紀錄，算在裡面
-  return `<a class="nextc" href="${href}"><span class="pic" style="${pic ? `background-image:url('${pic}')` : ''}">${pic ? '' : icon}</span><span class="t"><span class="k">今日點心完成 ${done}／${snack.length}．下一樣</span><b>${name}</b><span>${nx.why || ''}</span></span></a>`;
+  return `<a class="nextc" href="${href}"><span class="pic" style="${pic ? `background-image:url('${pic}')` : ''}">${pic ? '' : icon}</span><span class="t"><span class="k">今日遊戲完成 ${done}／${snack.length}．下一個</span><b>${name}</b><span>${nx.why || ''}</span></span></a>`;
 }
 
 function show(id) { document.querySelectorAll('.scr').forEach((s) => s.classList.toggle('on', s.id === id)); }

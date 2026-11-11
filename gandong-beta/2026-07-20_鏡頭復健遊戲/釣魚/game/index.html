@@ -145,6 +145,35 @@
   .name-msg{min-width:7em;color:var(--red)}
   #rank .note{text-align:center;margin:4px 0 0}
   #rank .btn-row{margin-top:8px}
+  #dex .card{max-width:min(1300px,100%);padding:clamp(10px,1.8vh,22px) clamp(14px,2.2vw,28px)}
+  .dex-head{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap}
+  .dex-head h2{margin:0;font-size:clamp(28px,4.6vh,40px);color:var(--blue-d)}
+  .dex-count{margin:0;font-size:clamp(20px,3vh,26px);font-weight:900;color:var(--red)}
+  .dex-who{margin:2px 0 8px;font-size:clamp(15px,2vh,18px);color:var(--muted);font-weight:700}
+  .dex-layout{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(0,1fr);gap:clamp(10px,1.6vw,20px);align-items:start}
+  .dex-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(clamp(96px,9vw,128px),1fr));gap:clamp(5px,.7vw,9px)}
+  .dex-cell{background:var(--cream);border:3px solid transparent;border-radius:14px;padding:4px 3px 6px;text-align:center;font:inherit;font-weight:800;font-size:clamp(15px,2vh,18px);color:var(--ink);min-height:44px;cursor:pointer}
+  .dex-cell img{display:block;height:clamp(40px,7vh,72px);width:94%;object-fit:contain;margin:0 auto 2px}
+  .dex-cell small{display:block;font-size:.8em;color:var(--muted);font-weight:700}
+  .dex-cell.lock img{filter:brightness(0) opacity(.28)}
+  .dex-cell.lock{color:var(--muted)}
+  .dex-cell.rare{background:#FFF3CC;border-color:#E9B341}
+  .dex-cell.rare.lock{background:#22303A;border:3px dashed #E9B341;color:#FFE08A}
+  .dex-cell .q{display:flex;align-items:center;justify-content:center;height:clamp(40px,7vh,72px);font-size:clamp(36px,6vh,60px);font-weight:900;color:#FFD84D}
+  .dex-cell.sel{outline:4px solid var(--blue);outline-offset:1px}
+  .dex-detail{background:#EEF4F6;border:3px solid #B9CDD6;border-radius:18px;padding:clamp(10px,1.6vh,18px);min-height:200px}
+  .dex-detail h3{margin:0 0 4px;font-size:clamp(28px,4.4vh,40px);color:var(--blue-d)}
+  .dex-detail img{display:block;width:100%;max-height:clamp(110px,22vh,220px);object-fit:contain;margin:4px 0 8px}
+  .dex-detail .tag{display:inline-block;background:#C88A12;color:#fff;border-radius:10px;padding:2px 10px;font-weight:800;font-size:16px;margin-bottom:4px}
+  .dex-detail .meta{font-size:clamp(16px,2.2vh,20px);font-weight:800;color:var(--muted);margin:0 0 6px}
+  .dex-detail .fact{font-size:clamp(18px,2.6vh,23px);line-height:1.55;margin:0 0 8px}
+  .dex-detail .ask{font-size:clamp(20px,3vh,27px);font-weight:900;color:var(--red);margin:0}
+  .dex-detail .src{font-size:13px;color:var(--muted);margin:8px 0 0;word-break:break-all}
+  .dex-detail .hint{font-size:clamp(22px,3.4vh,30px);font-weight:900;color:var(--blue-d);margin:8px 0}
+  .dex-new{background:#FFF3CC;border:3px solid #E9B341;border-radius:14px;padding:6px 12px;margin:6px 0;font-size:clamp(17px,2.5vh,22px);font-weight:900;color:#7A4E00;display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:center}
+  .dex-new img{height:clamp(32px,5vh,52px)}
+  .dex-new .link-btn{color:#7A4E00}
+  @media (max-width:900px){ .dex-layout{grid-template-columns:minmax(0,1fr)} .dex-detail{order:-1} }
   .chat-q{font-size:clamp(30px,5vw,50px);font-weight:900;line-height:1.35;margin:18px 0 8px;text-align:center}
   @media (max-width:760px){ .adv{grid-template-columns:1fr} .rule-row{flex-direction:column} .catch-grid{grid-template-columns:repeat(4,minmax(0,1fr))} }
 </style>
@@ -188,7 +217,7 @@
       </div>
       <p class="note">調低門檻、拉長魚等的秒數或改局長，這局不會列入排行榜。金線依每個人校正的最高點計算，不必舉過頭。中風肩痛或半脫位者，請治療師評估後再玩，會痛就停。</p>
     </details>
-    <div class="btn-row"><button class="btn primary" id="btnStart">開始釣魚</button><button class="btn" id="btnRankSetup">🏆 排行榜</button></div>
+    <div class="btn-row"><button class="btn primary" id="btnStart">開始釣魚</button><button class="btn" id="btnRankSetup">🏆 排行榜</button><button class="btn" id="btnDexSetup">📖 漁獲圖鑑</button></div>
     <p class="err" id="setupErr"></p>
     <p class="note">坐姿即可，輪椅也可以玩，單手也算。第一次需要網路下載姿勢模型。鏡頭畫面只顯示在這台裝置，不會上傳，也不會錄影。</p>
   </div>
@@ -232,6 +261,7 @@
         </div>
       </aside>
       <div class="res-more">
+        <div class="dex-new hidden" id="resNew"></div>
         <div class="catch-grid many" id="resGrid"></div>
         <p class="summary" id="resSummary"></p>
         <p class="summary" id="resRank"></p>
@@ -241,6 +271,7 @@
     <div class="btn-row">
       <button class="btn primary" id="btnAgain">再釣一次</button>
       <button class="btn" id="btnChat">聊聊看</button>
+      <button class="btn" id="btnDexResult">📖 圖鑑</button>
       <button class="btn" id="btnRecal">重新校正</button>
       <button class="btn" id="btnBack">⚙ 回設定畫面</button>
     </div>
@@ -274,6 +305,18 @@
   </div>
 </section>
 
+<section id="dex" class="screen hidden">
+  <div class="card">
+    <div class="dex-head"><h2>📖 漁獲圖鑑</h2><p class="dex-count" id="dexCount"></p></div>
+    <p class="dex-who" id="dexWho"></p>
+    <div class="dex-layout">
+      <div class="dex-grid" id="dexGrid"></div>
+      <aside class="dex-detail" id="dexDetail" aria-live="polite"></aside>
+    </div>
+    <div class="btn-row"><button class="btn primary" id="btnDexBack">返回</button></div>
+  </div>
+</section>
+
 <section id="chat" class="screen hidden">
   <div class="card" style="text-align:center">
     <h2>聊聊看</h2>
@@ -291,7 +334,7 @@
 
 <script type="module">
 import {LiftDetector,HandSignal,isLowered,calibrate,postureHints} from './detector.js?v=16';
-import {ITEMS,FISH_ORDER,TRASH_ORDER,DIFF,TODAY,DOUBLE_SEC,HIGH_LINE,heightBonus,itemsFor,mixFor,scoreFor,comboBonus,starsFor,starLines,nextStarGap,titleFor} from './rules.js?v=15';
+import {ITEMS,FISH_ORDER,TRASH_ORDER,HIDDEN_ORDER,GOOD_ORDER,DEX_ORDER,DIFF,TODAY,DOUBLE_SEC,HIGH_LINE,heightBonus,itemsFor,mixFor,scoreFor,comboBonus,starsFor,starLines,nextStarGap,titleFor,pickHidden,firstDiff,fishCount} from './rules.js?v=16';
 import {createRank} from './rank.js?v=15';
 import {FisherRig,drawFisher,drawLine,makeSticker} from './fisher.js?v=15';
 import {Drill} from './drill.js?v=15';
@@ -347,11 +390,24 @@ const SAVE_KEY='fishing_v2';
 let memSave={};
 function saveGet(){ try{ return JSON.parse(localStorage.getItem(SAVE_KEY))||memSave; }catch(e){ return memSave; } }
 function savePut(o){ memSave=o; try{ localStorage.setItem(SAVE_KEY,JSON.stringify(o)); }catch(e){} }
+/* 漁獲圖鑑（v1.8）：每種魚釣過幾次。選了「誰在玩」就照人分開記，訪客記在這台裝置。展示模式不記。 */
+const dexOwner=()=>{ try{ const c=AS&&AS.store.current(); return c&&c.code?c.code:''; }catch(e){ return ''; } };
+function dexGet(owner=dexOwner()){ const sv=saveGet(); return (owner?(sv.dexBy||{})[owner]:sv.dex)||{}; }
+function dexAdd(counts){
+  if(cfg.input==='demo'&&!QS.get('dexdemo'))return [];
+  const owner=dexOwner(), sv=saveGet(), dex={...((owner?(sv.dexBy||{})[owner]:sv.dex)||{})}, fresh=[];
+  for(const k of DEX_ORDER){ const n=counts[k]||0; if(!n)continue; if(!dex[k])fresh.push(k); dex[k]=(dex[k]||0)+n; }
+  savePut(owner?{...sv,dexBy:{...(sv.dexBy||{}),[owner]:dex}}:{...sv,dex});
+  return fresh;
+}
+const dexHas=k=>!!dexGet()[k];
 const starText=n=>'★'.repeat(n)+'☆'.repeat(3-n);
 function refreshSetup(){
   const sv=saveGet();
   [0,1,2].forEach(d=>{ const b=sv.best&&sv.best[d]; $(`best${d}`).textContent=b!=null?`${starText((sv.stars&&sv.stars[d])||0)} 最高 ${b}`:''; });
-  const tt=titleFor(sv.total||0);
+  const tt=titleFor(sv.total||0), dx=dexGet(), got=DEX_ORDER.filter(k=>dx[k]).length;
+  $('btnDexSetup').textContent=`📖 漁獲圖鑑 ${got}／${DEX_ORDER.length}`;
+  [1,2].forEach(d=>{ const sm=$('segDiff').querySelector(`button[data-v="${d}"] small`); if(sm)sm.textContent=d===1?`${fishCount(1)} 種魚，魚等 2.5 秒，垃圾三成`:`${fishCount(2)} 種魚，從深水慢慢浮上來，1.3 秒決定`; });
   $('rankLine').textContent=sv.rounds?`目前稱號：${tt.name}，累計釣到 ${sv.total||0} 樣好東西`+(tt.next?`，再 ${tt.need} 樣升「${tt.next}」`:''):'';
 }
 
@@ -363,7 +419,7 @@ async function retry(fn,times=3){ for(let i=0;i<times;i++){ try{ const v=await f
 const loadOnce=src=>new Promise(r=>{ const i=new Image(); i.onload=()=>r(i); i.onerror=()=>r(null); i.src=src; });
 const loadImg=src=>retry(()=>loadOnce(src));
 async function loadAssets(){
-  META=await (await fetch('assets/sprites.json?v=15')).json();
+  META=await (await fetch('assets/sprites.json?v=16')).json();
   const rigParts=Object.keys(META.rig);
   const names=[...Object.keys(ITEMS),'bucket','bin','bobber','hook',...rigParts.map(n=>`fisher_${n}`),'bg_harbor'];
   await pool(names,async n=>{ IMG[n]=await loadImg(`assets/${n}.webp`); });
@@ -374,7 +430,7 @@ async function loadAssets(){
 }
 
 /* ========== 音訊 ========== */
-const VOICES=['intro1','intro2','cal1','cal3','caldone','tut1b','tut2','tutagain','tutdone','pull','nopull','hold','lower','fish0','fish1','fish2b','fish3b','fish4','fish5','fish6','fish7','fish8b','fish9','chest','trash','escape','high','end','record','double','today0','today1','today2b','today3','today4','today5','combo','near','star3','drill1','drillok','drillup','drillarm','drillmore','drilllow','drillgo','drillsit','drillback','drilldone',...ASSESS_VOICES];
+const VOICES=['intro1','intro2','intro_fish','intro_trash','cal1','cal3','caldone','tut1b','tut2','tutagain','tutdone','pull','nopull','hold','lower','fish0','fish1','fish2b','fish3b','fish4','fish5','fish6','fish7','fish8b','fish9','chest','trash','escape','high','end','record','double','today0','today1','today2b','today3','today4','today5','today6','rare_come','rare_new',...[...FISH_ORDER,...HIDDEN_ORDER].map(k=>ITEMS[k].voice).filter(v=>!/^fish\d+b?$|^chest$/.test(v)),'combo','near','star3','drill1','drillok','drillup','drillarm','drillmore','drilllow','drillgo','drillsit','drillback','drilldone',...ASSESS_VOICES];
 const MUSIC_VOL=.26, MUSIC_DUCK=.09;  /* 新曲 RMS −20 dB，這個音量約等於舊曲 */
 /* 配樂三首輪流（2026-11-10）：每打完一局換下一首，順序記在這台裝置；最後 10 秒換同一首的加速版（音高不變），從同一拍接下去 */
 const BGM_KEY='fishing_bgm_i';
@@ -433,6 +489,8 @@ const AE={ac:null,sfx:null,vg:null,mg:null,voice:{},mb:{},cur:null,want:null,voi
   bite(){ this.tone(1175,.32,.5,'triangle'); this.tone(1568,.42,.42,'triangle',0,.1); },
   clunk(){ this.tone(170,.2,.65,'square',90); this.tone(95,.25,.5,'sine',60,.05); },
   plop(){ this.tone(420,.14,.55,'sine',880); },
+  /* 隱藏魚出現：一串往上的亮晶晶音 */
+  rare(){ [1319,1568,1976,2349,2637].forEach((f,i)=>this.tone(f,.3,.2,'sine',0,i*.07)); },
   high(){ [880,1175,1568].forEach((f,i)=>this.tone(f,.22,.32,'triangle',0,i*.06)); },
   catch(pts){ const n=pts>=100?7:pts>=50?5:pts>=30?4:pts>=20?3:2, sc=[523,659,784,1047,1319,1568,2093];
     for(let i=0;i<n;i++) this.tone(sc[i],.36,.34,'triangle',0,i*.09); },
@@ -509,7 +567,7 @@ addEventListener('keyup',e=>{ if(e.code==='Space'||e.code==='ArrowUp') P.key=fal
 const det=new LiftDetector();
 const rig=new FisherRig(LAY);
 let phase='boot',T=null,uid=0,score=0,scoreShown=0,elapsed=0,rush=false,paused=false,today=TODAY[0],combo=0,comboSaid=false,comboPop=0,doubleAt=-9999;
-let stat=null,tut=null,storyT=0,storyStep=0,chestAt=0,chestDone=false,lastTrash=0,lastId=null,spawned=0,seqSeen=-1,pendHit=null,loosen=1,earlySaid=0;
+let rareGot=new Set(),rareAt=-9999,stat=null,tut=null,storyT=0,storyStep=0,chestAt=0,chestDone=false,lastTrash=0,lastId=null,spawned=0,seqSeen=-1,pendHit=null,loosen=1,earlySaid=0;
 let cap={text:'',until:0},card=null,parts=[],shake=0,bucketKick=0,binKick=0,lowerSaid=0,highSaid=-99,revealT=-9999;
 let rep={up:false,peak:0,lp:-9,rp:-9},cal=null,endAt=0,chatI=0;
 let bestNow=0,recordBeaten=false,recordAt=-9999,roundToken=null,rankBlocked=null;
@@ -543,6 +601,8 @@ function pickToday(){
 function pickId(){
   const mix=mixFor(cfg.diff,today.id);
   if(phase==='play'&&!chestDone&&elapsed>=chestAt&&spawned>0){ chestDone=true; return 'chest'; }
+  /* 隱藏魚：條件達成才有機會上鉤，每局每種最多一條（rules.js 的 HIDDEN） */
+  if(phase==='play'&&spawned>0&&!rareForce.off){ const h=rareForce.id||pickHidden({today:today.id,combo,double:isDouble(),hold:stat.hold,rounds:saveGet().rounds||0,spawned},rareGot); rareForce.id=null; if(h){ rareGot.add(h); return h; } }
   for(let tries=0;tries<30;tries++){
     const entries=Object.entries(mix), total=entries.reduce((a,[,v])=>a+v,0); let r=Math.random()*total,id=entries[0][0];
     for(const [k,v] of entries){ if(r<v){id=k;break;} r-=v; }
@@ -566,7 +626,9 @@ function spawn(forced){
   /* 困難：從深水斜斜浮上來，一開始是模糊的黑影，靠近水面才看得清楚 */
   if(deep){ T.sx=endX+dir*rand(240,520); T.sy=LAY.deep; T.x=T.sx; T.y=T.sy; }
   lastTrash=it.good?0:lastTrash+1; lastId=id; spawned++;
+  if(it.hidden){ T.rare=true; rareAt=performance.now(); AE.rare(); caption(dexHas(id)?`${it.name}來了！`:'咦？沒看過的魚！',2.2); setTimeout(()=>AE.sayIdle('rare_come'),200); }
 }
+const rareForce={id:null,off:QS.get('rare')==='0'};
 function toGap(sec){ const D=DIFF[cfg.diff]; T={st:'gap',wait:sec??rand(...D.gap)*(rush?.4:1)/pace(),uid:++uid}; }
 
 function enterBite(now){
@@ -606,7 +668,8 @@ function onLift(now,r){
     AE.catch(it.pts);
     if(phase==='play'&&combo>=3){ comboPop=now; AE.combo(combo); }
     const sayName=phase==='tut'||cfg.diff===0||it.pts>=(cfg.diff===1?30:50);
-    if(phase==='play'&&combo===3&&!comboSaid){ comboSaid=true; setTimeout(()=>AE.sayIdle('combo'),260); }
+    if(it.hidden){ const first=!dexHas(T.id); setTimeout(()=>AE.fanfare(),200); setTimeout(()=>AE.say(first?'rare_new':it.voice),300); if(first)card.isNew=true; burst(rig.tip.x,rig.tip.y+110,50); }
+    else if(phase==='play'&&combo===3&&!comboSaid){ comboSaid=true; setTimeout(()=>AE.sayIdle('combo'),260); }
     else if(sayName)setTimeout(()=>AE.sayIdle(it.voice),260);
     if(it.pts>=30)burst(rig.tip.x,rig.tip.y+110,it.pts>=100?40:22);
   }
@@ -713,7 +776,7 @@ function stepTurn(now,dt){
 }
 
 /* ========== 開場、校正、練習、回合 ========== */
-function enter(p){ phase=p; document.body.classList.toggle('hud-far',p==='drill'||p==='cal'||p==='assess'); ['setup','result','chat','rank'].forEach(i=>hide($(i))); hide($('btnSkip')); }
+function enter(p){ phase=p; document.body.classList.toggle('hud-far',p==='drill'||p==='cal'||p==='assess'); ['setup','result','chat','rank','dex'].forEach(i=>hide($(i))); hide($('btnSkip')); }
 function hudOn(on){ (on?show:hide)($('btnSet')); (on?show:hide)($('btnMute')); }
 function backToSetup(){ AS.cancel(); AE.music(null); det.stop(); pendHit=null; T=null; card=null; drill=null; cal=null; cap.until=0; enter('setup'); refreshSetup(); show($('setup')); hudOn(false); }
 $('btnSet').onclick=backToSetup; $('btnBack').onclick=backToSetup;
@@ -733,14 +796,27 @@ $('btnStart').onclick=async()=>{
   startStory();
 };
 function startStory(){ enter('story'); storyStep=0; storyT=0; show($('btnSkip')); $('btnSkip').onclick=afterStory; AE.say('intro1'); caption('今天天氣真好，我們到漁港來釣魚',3.4); AE.music('main'); }
+/* 引言（v1.8，11-11 老闆：開始前先說明遊戲怎麼設計，接著直接進金線練習）：魚→舉高、越高越多分；垃圾→不要動 */
+const STORY=[[3.6,'intro_fish','魚咬住了，就把手舉高；舉得越高，分數越多',4.4],[8.4,'intro_trash','勾到垃圾，手不要動，等它漂走',3.4],[12.2,null]];
 function stepStory(dt){ storyT+=dt;
-  if(storyStep===0&&storyT>3.6){ storyStep=1; AE.say('intro2'); caption('每種魚的分數不一樣，釣到垃圾會扣分',4); }
-  else if(storyStep===1&&storyT>7.8) afterStory();
+  const st=STORY[storyStep]; if(!st||storyT<st[0])return;
+  storyStep++; if(!st[1])return afterStory();
+  AE.say(st[1]); caption(st[2],st[3]);
 }
 function afterStory(){ storyT=-1; hide($('btnSkip')); cap.until=0; AE.music('main');
-  if(cfg.input==='cam'&&!P.calibrated) return startCal();
+  if(cfg.input==='cam'&&!P.calibrated){
+    if(willDrill()){   /* v1.8：引言完直接金線練習，不另外校正；手放下的低點、舉最高的高點都在練習中量 */
+      P.calMin=DRILL_LOW; P.calMax=DRILL_LOW+DRILL_RANGE; P.calibrated=true; P.drillCal={low:[],high:[],peak:-9}; sigT.euro.reset(); det.setRange(DRILL_RANGE);
+      return startDrill();
+    }
+    return startCal();
+  }
   afterCal();
 }
+/* 接著要做金線練習嗎（會痛、關掉練習、第二局起、重新校正都不做，照舊完整校正） */
+const willDrill=()=>cfg.practice&&!SKIP&&!tutDone()&&!AS.noPush();
+/* 金線練習時的暫定值（軀幹長度，0＝肩膀）：手放大腿約 −1，一般長輩可舉到肩膀上方約 0.3。練完換成這個人實際量到的 */
+const DRILL_LOW=-1, DRILL_RANGE=1.3;
 function startCal(){ enter('cal'); cal={step:0,st:'prep',t:0,low:[],high:[],said:false}; }
 function stepCal(now,dt){
   if(!cal)return; cal.t+=dt;
@@ -760,11 +836,25 @@ $('btnRecal').onclick=()=>{ hide($('result')); hudOn(true); P.calibrated=false; 
 function afterCal(){ if(cfg.practice&&!SKIP&&!tutDone()){ if(AS.noPush())startTut(); else startDrill(); } else startRound(); }  /* 建檔註記舉手會痛：不做「金線越來越高」的練習 */
 let tutSeen=false; const tutDone=()=>tutSeen;
 /* 開場動作練習：看著自己的鏡頭畫面，把手舉到金線 3 次，一次比一次高 */
-function startDrill(){ enter('drill'); T=null; hudOn(true); cap.until=0; drill=new Drill({first:HIGH_LINE}); drillHint=null; drillMsg={text:'',until:0}; show($('btnSkip')); $('btnSkip').onclick=()=>{ drill=null; startTut(); }; AE.say('drill1'); }
+function startDrill(){ enter('drill'); T=null; hudOn(true); cap.until=0; drill=new Drill({first:HIGH_LINE}); drillHint=null; drillMsg={text:'',until:0}; show($('btnSkip')); $('btnSkip').onclick=()=>{ if(drill)drillToCal(drill); drill=null; startTut(); }; AE.say('drill1'); }
+/* 練習量到的結果寫回校正：
+   - 沒有先校正（P.drillCal）：低點＝練習中手放下時的中位數，最高點＝舉到頂時的高位（與舊校正同一個 calibrate()），金線＝它的 85%
+   - 原本就有完整校正：只在練習舉得更高時往上調（v1.5 行為） */
+function drillToCal(d){
+  if(cfg.input!=='cam')return;
+  const range=P.calMax-P.calMin;
+  if(P.drillCal){ const dc=P.drillCal; P.drillCal=null;
+    const high=dc.high.length?dc.high:(dc.peak>-9?[dc.peak]:[]);
+    const r=calibrate(dc.low.length?dc.low:[P.calMin],high); P.calMin=r.min; P.calMax=r.max; sigT.euro.reset(); det.setRange(r.max-r.min); return; }
+  const nm=d.newMax(); if(nm){ P.calMax=P.calMin+nm*range; det.setRange(P.calMax-P.calMin); }
+}
 function stepDrill(now,dt){
   const d=drill; if(!d)return;
   if(d.finishAt){ if(now>=d.finishAt){ drill=null; startTut(); } return; }
   const s=P.s;
+  if(P.drillCal&&P.valid&&P.raw!=null&&now-P.t<300){ const dc=P.drillCal;
+    if(d.st==='low'&&s<d.o.lowLine)dc.low.push(P.raw); else if(d.st==='top')dc.high.push(P.raw);
+    if(d.st==='up'||d.st==='top')dc.peak=Math.max(dc.peak,P.raw); }
   if(cfg.input==='cam'&&P.lm&&s>=d.peak-.03)drillHint=postureHints(P.lm,sigT.aspect);
   /* 手快超出畫面就當場提醒，舉再高也量不到 */
   if(d.st==='up'&&cfg.input==='cam'&&P.lm&&postureHints(P.lm,sigT.aspect).nearTop){
@@ -782,8 +872,7 @@ function stepDrill(now,dt){
     else if(e==='remindLow')AE.sayIdle('drilllow');
     else if(e==='done'){
       AE.fanfare(); setTimeout(()=>AE.say('drilldone'),400); d.finishAt=now+3200;
-      const nm=d.newMax();
-      if(nm&&cfg.input==='cam'){ P.calMax=P.calMin+nm*(P.calMax-P.calMin); det.setRange(P.calMax-P.calMin); }
+      drillToCal(d);
     }
   }
 }
@@ -801,7 +890,7 @@ function tutNext(outcome){
 function startRound(){
   if(AS.gate(startRound))return;   /* 選了個案、這次還沒量：先試竿，量完再回來開局 */
   enter('play'); hudOn(true); score=0; scoreShown=0; elapsed=0; rush=false; stat=newStat(); spawned=0; lastTrash=0; lastId=null; combo=0; comboSaid=false; comboPop=0; doubleAt=-9999; pendHit=null;
-  chestAt=cfg.dur*rand(.45,.7); chestDone=false; highSaid=-99; rep={up:false,peak:0,lp:-9,rp:-9}; cap.until=0; card=null; parts=[];
+  chestAt=cfg.dur*rand(.45,.7); chestDone=false; rareGot=new Set(); highSaid=-99; rep={up:false,peak:0,lp:-9,rp:-9}; cap.until=0; card=null; parts=[];
   det.setRise(cfg.rise); det.stop(); P.disp=P.s; AE.music('main');
   today=pickToday(); const sv=saveGet(); savePut({...sv,today:today.id});
   bestNow=(sv.best&&sv.best[cfg.diff])||0; recordBeaten=false; recordAt=-9999;
@@ -816,7 +905,7 @@ function logAtEnd(){ if(T&&T.st==='bite')logTurn('timeup'); }
 function showResult(){
   enter('result'); T=null; hudOn(false); AE.music(null); AE.nextTrack(); card=null;
   const d=cfg.diff, sv=saveGet(), best=sv.best&&sv.best[d]!=null?sv.best[d]:null, isRecord=score>0&&(best==null||score>best);
-  const fishN=FISH_ORDER.reduce((a,k)=>a+stat.counts[k],0), trashN=TRASH_ORDER.reduce((a,k)=>a+stat.counts[k],0);
+  const fishN=GOOD_ORDER.reduce((a,k)=>a+stat.counts[k],0), trashN=TRASH_ORDER.reduce((a,k)=>a+stat.counts[k],0);
   const stars=starsFor(score,d,cfg.dur), prevStars=(sv.stars&&sv.stars[d])||0, gap=nextStarGap(score,d,cfg.dur);
   const before=titleFor(sv.total||0), total=(sv.total||0)+fishN, after=titleFor(total), leveled=after.name!==before.name;
   const recent=[score,...((sv.recent&&sv.recent[d])||[])].slice(0,5);
@@ -826,7 +915,17 @@ function showResult(){
   $('resNote').textContent=isRecord?(best==null?'第一次的紀錄！':`破紀錄！上次最高 ${best} 分`):`我的最高紀錄 ${best??0} 分，差 ${(best??0)-score} 分`;
   const nextName=DIFF[d+1]&&DIFF[d+1].name;
   $('resGoal').textContent=gap!=null?`再 ${gap} 分就 ${stars+1} 顆星`:(nextName?`三顆星！可以挑戰「${nextName}」了`:'三顆星！漁港傳說就是您');
-  const listed=itemsFor(d);
+  const fresh=dexAdd(stat.counts);
+  const rareCaught=HIDDEN_ORDER.filter(k=>stat.counts[k]);
+  const listed=itemsFor(d); listed.splice(listed.indexOf('chest')+1,0,...rareCaught);
+  /* 這局新收錄進圖鑑的魚；隱藏魚排前面 */
+  const freshSorted=[...fresh.filter(k=>ITEMS[k].hidden),...fresh.filter(k=>!ITEMS[k].hidden)];
+  $('resNew').innerHTML=freshSorted.length?`<span>📖 圖鑑新收錄${freshSorted.length>1?` ${freshSorted.length} 種`:''}：</span>`+freshSorted.map(k=>`<img src="assets/${k}.webp" alt="">${ITEMS[k].hidden?'隱藏魚 ':''}${ITEMS[k].name}`).join('、')+`<button class="link-btn" id="btnDexNew">看圖鑑</button>`:'';
+  $('resNew').classList.toggle('hidden',!freshSorted.length);
+  if(freshSorted.length)$('btnDexNew').onclick=()=>openDex('result',freshSorted[0]);
+  /* 聊聊看：先聊這局釣到的魚（隱藏魚、新收錄優先），再接通用題 */
+  const talk=[...new Set([...rareCaught,...freshSorted,...GOOD_ORDER.filter(k=>stat.counts[k])])].filter(k=>ITEMS[k].ask).map(k=>ITEMS[k].ask);
+  chatList=[...talk.slice(0,4),...CHATS]; chatI=0;
   $('resGrid').style.setProperty('--cols',Math.ceil(listed.length/2));
   $('resGrid').innerHTML=listed.map(k=>{ const it=ITEMS[k],n=stat.counts[k];
     return `<div class="catch ${it.good?'':'bad'} ${n?'':'none'}"><img src="assets/${k}.webp" alt="${it.name}">${it.name} <b>${n}</b></div>`; }).join('');
@@ -974,8 +1073,37 @@ $('btnNameSave').onclick=async()=>{
 };
 
 $('btnAgain').onclick=()=>{ AE.init(); hudOn(true); startRound(); };
-$('btnChat').onclick=()=>{ hide($('result')); $('chatQ').textContent=CHATS[chatI%CHATS.length]; show($('chat')); };
-$('btnNextQ').onclick=()=>{ chatI++; $('chatQ').textContent=CHATS[chatI%CHATS.length]; };
+let chatList=CHATS;
+$('btnChat').onclick=()=>{ hide($('result')); $('chatQ').textContent=chatList[chatI%chatList.length]; show($('chat')); };
+$('btnNextQ').onclick=()=>{ chatI++; $('chatQ').textContent=chatList[chatI%chatList.length]; };
+
+/* ========== 漁獲圖鑑畫面 ========== */
+const dexView={from:'setup',sel:null};
+function openDex(from,sel){
+  dexView.from=from; hide($('setup')); hide($('result'));
+  const dx=dexGet(); dexView.sel=sel||DEX_ORDER.find(k=>dx[k])||DEX_ORDER[0];
+  paintDex(); show($('dex'));
+}
+function paintDex(){
+  const dx=dexGet(), owner=dexOwner(), reg=DEX_ORDER.filter(k=>!ITEMS[k].hidden), rare=HIDDEN_ORDER;
+  const gotR=reg.filter(k=>dx[k]).length, gotH=rare.filter(k=>dx[k]).length;
+  $('dexCount').textContent=`收集 ${gotR+gotH}／${DEX_ORDER.length}　一般 ${gotR}／${reg.length}　隱藏 ${gotH}／${rare.length}`;
+  let who='這台裝置的紀錄'; try{ const c=AS.store.current(); if(owner&&c)who=`${c.name||c.code} 的紀錄`; }catch(e){}
+  $('dexWho').textContent=who+'。釣到過的魚會亮起來，點一下看介紹。';
+  $('dexGrid').innerHTML=DEX_ORDER.map(k=>{ const it=ITEMS[k], n=dx[k]||0, cls=['dex-cell',it.hidden?'rare':'',n?'':'lock',dexView.sel===k?'sel':''].join(' ');
+    const label=n?it.name:(it.hidden?it.hint:'？？？'), sub=n?`釣過 ${n} 次`:(it.hidden?'隱藏魚':`${DIFF[firstDiff(k)].name}以上`);
+    const pic=!n&&it.hidden?'<span class="q">？</span>':`<img src="assets/${k}.webp" alt="">`;
+    return `<button class="${cls}" data-k="${k}" aria-label="${n?it.name:'還沒釣到'}">${pic}${label}<small>${sub}</small></button>`; }).join('');
+  $('dexGrid').querySelectorAll('button').forEach(b=>b.onclick=()=>{ dexView.sel=b.dataset.k; paintDex(); });
+  const k=dexView.sel, it=ITEMS[k], n=dx[k]||0, el=$('dexDetail');
+  if(!n&&it.hidden){ el.innerHTML=`<span class="tag">隱藏魚</span><h3>？？？</h3><p class="hint">提示：${it.hint}</p><p class="fact">${it.hintLong||''}</p>`; return; }
+  if(!n){ el.innerHTML=`<h3>？？？</h3><img src="assets/${k}.webp" alt="" style="filter:brightness(0) opacity(.28)"><p class="hint">${DIFF[firstDiff(k)].name}難度以上會出現</p>`; return; }
+  el.innerHTML=`${it.hidden?'<span class="tag">隱藏魚</span>':''}<h3>${it.name}</h3><img src="assets/${k}.webp" alt="${it.name}">
+    <p class="meta">${it.pts} 分｜釣過 ${n} 次</p>${it.fact?`<p class="fact">${it.fact}</p>`:''}${it.ask?`<p class="ask">聊聊看：${it.ask}</p>`:''}${it.src?`<p class="src">資料來源：${it.src}</p>`:''}`;
+}
+$('btnDexSetup').onclick=()=>openDex('setup');
+$('btnDexResult').onclick=()=>openDex('result');
+$('btnDexBack').onclick=()=>{ hide($('dex')); if(dexView.from==='result')show($('result')); else { refreshSetup(); show($('setup')); } };
 $('btnChatBack').onclick=()=>{ hide($('chat')); show($('result')); };
 
 /* 抬手次數與高度（治療師報表用） */
@@ -1075,7 +1203,7 @@ function draw(now,dt){
   const kb=bucketKick?Math.sin(bucketKick*14)*.12*bucketKick:0, kt=binKick?Math.sin(binKick*14)*.12*binKick:0;
   spr('bin',LAY.binX,LAY.dock-62,104,{rot:kt});
   spr('bucket',LAY.bucketX,LAY.dock-58,128,{rot:kb});
-  if(stat&&(phase==='play'||phase==='ending')){ const n=FISH_ORDER.filter(k=>k!=='chest').reduce((a,k)=>a+stat.counts[k],0); txt(`${n} 條`,LAY.bucketX,LAY.dock-50,40,'#fff','center','rgba(15,40,55,.95)',9); }
+  if(stat&&(phase==='play'||phase==='ending')){ const n=GOOD_ORDER.filter(k=>k!=='chest').reduce((a,k)=>a+stat.counts[k],0); txt(`${n} 條`,LAY.bucketX,LAY.dock-50,40,'#fff','center','rgba(15,40,55,.95)',9); }
   /* 阿伯與釣竿、釣線、鉤子、浮標（動作都在 fisher.js） */
   const bite=T&&T.st==='bite', hookP=rig.hook;
   ctx.lineCap='round';
@@ -1100,7 +1228,8 @@ function draw(now,dt){
       const wig=(T.st==='bite'&&it.good)?Math.sin(now/80)*.05:Math.sin(now/300)*.03;
       const after=phase==='tut'?1.2:DIFF[cfg.diff].after, fade=(T.st==='escape'||T.st==='drift')?clamp(1.25-T.t/after):1;
       spr(T.id,T.x,T.y,T.w,{flip,rot:wig+(T.rot||0),alpha:fade});
-      if(tagOn()&&T.st!=='escape'&&T.st!=='drift'&&T.x>-T.w/2&&T.x<W+T.w/2) drawTag(it,T.x,T.y-T.h/2-44);
+      if(T.rare)drawRareGlow(T,now);
+      if(tagOn()&&T.st!=='escape'&&T.st!=='drift'&&T.x>-T.w/2&&T.x<W+T.w/2) drawTag(T.rare&&!dexHas(T.id)?{...it,name:'？？？'}:it,T.x,T.y-T.h/2-44);
     }
     const ra=(now-revealT)/260;
     if(T.st==='bite'&&ra<1){ ctx.save(); ctx.globalAlpha=(1-ra)*.9; ctx.strokeStyle='#fff'; ctx.lineWidth=16; ctx.beginPath(); ctx.arc(LAY.hookX,LAY.hookY,120+ra*220,0,7); ctx.stroke(); ctx.restore(); }
@@ -1176,6 +1305,16 @@ function drawDoubleBanner(now){
   const a=clamp(age/.12)*clamp((1.7-age)/.3), pop=1+(1-clamp(age/.25))*.4;
   ctx.save(); ctx.globalAlpha=a; ctx.translate(W/2,300); ctx.scale(pop,pop);
   txt('分數 ×2',0,0,170,'#FFD84D','center','rgba(90,40,0,.95)',20); ctx.restore();
+}
+/* 隱藏魚在水裡時，四周有一圈閃閃的金光，讓人知道這條不一樣 */
+function drawRareGlow(o,now){
+  ctx.save();
+  const pulse=.5+.5*Math.sin(now/220);
+  ctx.globalAlpha=.28+.22*pulse; ctx.fillStyle='#FFE27A'; ctx.beginPath(); ctx.ellipse(o.x,o.y,o.w*.62,Math.max(o.h*.75,90),0,0,7); ctx.fill();
+  for(let i=0;i<12;i++){ const a=now/700+i*Math.PI/6, r=o.w*.6+Math.sin(now/180+i)*14, x=o.x+Math.cos(a)*r, y=o.y+Math.sin(a)*Math.max(o.h*.8,100), s=22+Math.sin(now/120+i*2)*9;
+    ctx.globalAlpha=.95; ctx.fillStyle=i%2?'#FFE27A':'#FFFFFF'; ctx.beginPath();
+    for(let k=0;k<8;k++){ const rr2=k%2?s*.38:s, aa=k*Math.PI/4; ctx.lineTo(x+Math.cos(aa)*rr2,y+Math.sin(aa)*rr2); } ctx.closePath(); ctx.fill(); }
+  ctx.restore();
 }
 function drawTag(it,x,y){
   const text=`${it.name} ${ptsText(it)}`; ctx.font=`900 44px ${FONT}`; const tw=ctx.measureText(text).width+48;
@@ -1302,6 +1441,7 @@ function drawCard(now){
   ctx.save(); ctx.globalAlpha=a; ctx.translate(x+w/2,y+h/2); const pop=1+(1-clamp(age/.18))*.14; ctx.scale(pop,pop); ctx.translate(-x-w/2,-y-h/2);
   rr(x,y,w,h,26,it.good?'#FFFBF2':'#FBE3DE',it.good?'#C88A12':'#B92C1C',7);
   const im=IMG[card.id]; if(im){ const sc=Math.min(250/im.width,170/im.height),iw=im.width*sc,ih=im.height*sc; ctx.drawImage(im,x+18+(250-iw)/2,y+(h-ih)/2,iw,ih); }
+  if(it.hidden){ rr(x+6,y-30,250,52,16,'#C88A12'); txt(card.isNew?'新發現！隱藏魚':'隱藏魚',x+131,y-4,32,'#fff'); }
   txt(it.name,x+415,y+50,48,'#23303A');
   txt(gained>0?`+${gained} 分`:`扣 ${-gained} 分`,x+415,y+118,74,it.good?'#134F72':'#C02A18');
   const notes=[]; if(card.hb)notes.push(`舉得好高 加 ${card.hb}`); if(card.bonus)notes.push(`連擊加 ${card.bonus}`); if(card.dbl)notes.push('×2');
@@ -1325,9 +1465,9 @@ function drawCal(now){
 /* ========== 啟動 ========== */
 window.__fish={rig,setS:v=>{forceS=v;},get s(){return{phase,score,elapsed,combo,rush,today:today.id,T:T&&{id:T.id,st:T.st,hidden:T.hidden,deep:T.deep,p:T.p,x:T.x,y:T.y,dur:T.dur,limit:T.limit,t:T.t,peak:T.peak,highDone:T.highDone},stat,P:{s:P.s,valid:P.valid,calMin:P.calMin,calMax:P.calMax,seq:P.seq},cfg,paused,loosen,th:det.thresholds(1),cal:cal&&{step:cal.step,st:cal.st,low:cal.low.length,high:cal.high.length},drill:drill&&{st:drill.st,rep:drill.rep,line:drill.line,peak:drill.peak,best:drill.best,miss:drill.miss,msg:drillMsg.text},card:card&&{id:card.id,pts:card.pts,hb:card.hb},cap:cap.until>performance.now()?cap.text:'',music:AE.cur&&AE.cur.name,musicLoaded:Object.keys(AE.mb),track:AE.tracks[AE.ti]&&AE.tracks[AE.ti].id,trackIndex:AE.ti,musicPos:AE.cur&&AE.ac&&{off:+AE.cur.off.toFixed(3),t0:+AE.cur.t0.toFixed(3),now:+AE.ac.currentTime.toFixed(3),start:AE.cur.start,end:AE.cur.end}}},
   /* 測試用：用假骨架走鏡頭路線，不需要真鏡頭 */
-  stubCam:(fn,vid)=>{ let c=0; poseLandmarker={detectForVideo:()=>({landmarks:fn()})}; video=vid||{readyState:2,get currentTime(){return ++c;}}; camReady=true; },cfg,start:()=>$('btnStart').click(),P,voices:()=>Object.keys(AE.voice).length,spawn:id=>spawn(id),setElapsed:v=>{elapsed=v;},setToday:id=>{today=TODAY.find(t=>t.id===id);},setChest:v=>{chestDone=v;},saveGet,savePut,RANK,RANK_API,board:B};
+  stubCam:(fn,vid)=>{ let c=0; poseLandmarker={detectForVideo:()=>({landmarks:fn()})}; video=vid||{readyState:2,get currentTime(){return ++c;}}; camReady=true; },cfg,start:()=>$('btnStart').click(),P,voices:()=>Object.keys(AE.voice).length,spawn:id=>spawn(id),setElapsed:v=>{elapsed=v;},setToday:id=>{today=TODAY.find(t=>t.id===id);},setChest:v=>{chestDone=v;},forceRare:id=>{rareForce.id=id;},get rareGot(){return [...rareGot];},dexGet,openDex,saveGet,savePut,RANK,RANK_API,board:B};
 /* 評估層接頭：遊戲把需要的東西交給它，它不改遊戲規則 */
-const AS=createAssess({ver:'v1.7',P,sigT,cfg,AE,IMG,W,H,FONT,FISH_ORDER,TRASH_ORDER,$,show,hide,enter,hudOn,drawCam,txt,rr,
+const AS=createAssess({ver:'v1.8',P,sigT,cfg,AE,IMG,W,H,FONT,FISH_ORDER,TRASH_ORDER,$,show,hide,enter,hudOn,drawCam,txt,rr,
   stat:()=>stat, score:()=>score, warm:()=>({drill:cfg.practice&&!SKIP&&!AS.noPush(),tut:tutSeen}),
   resetForNewPlayer:()=>{ P.calibrated=false; sigT.reset(); tutSeen=false; loosen=1; det.setLoosen(1); }});
 window.__fish.assess=AS;

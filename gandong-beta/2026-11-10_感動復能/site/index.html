@@ -5,11 +5,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>感．動復能</title>
-<meta name="description" content="每天三樣點心：一樣動身體、兩樣動腦筋，用身體回答問題。">
+<meta name="description" content="每天三個遊戲：一個動身體、兩個動腦筋，用身體回答問題。">
 <meta name="theme-color" content="#100C04">
 <link rel="icon" href="data:,">
-<link rel="stylesheet" href="style.css?v=6">
-<link rel="stylesheet" href="themes/neon.css?v=2">
+<link rel="stylesheet" href="style.css?v=7">
+<link rel="stylesheet" href="themes/neon.css?v=3">
 </head>
 <body data-theme="neon">
 
@@ -31,7 +31,7 @@
   <div class="hello">
     <p class="date" id="todayDate"></p>
     <h1 id="hello"></h1>
-    <p class="sub">每天三樣點心：一樣動身體，兩樣動腦筋，約 10 到 15 分鐘。</p>
+    <p class="sub">每天三個遊戲：一個動身體，兩個動腦筋，約 10 到 15 分鐘。</p>
   </div>
 
   <div id="firstBox" class="first-box" hidden>
@@ -43,7 +43,7 @@
   </div>
 
   <div id="snackBox" hidden>
-    <div class="snack-head"><h2>今日點心</h2><div class="snack-prog" id="snackProg"></div></div>
+    <div class="snack-head"><h2>今日遊戲</h2><div class="snack-prog" id="snackProg"></div></div>
     <ol class="snacks" id="snacks"></ol>
   </div>
 
@@ -70,7 +70,7 @@
   <p class="sub" id="meWho"></p>
   <div id="meEmpty" class="empty" hidden>
     <p>還沒有紀錄。玩幾樣之後，這裡會畫出兩張雷達圖：「感」看動腦，「動」看動身體。</p>
-    <a class="btn primary big" href="#today">去玩今天的點心</a>
+    <a class="btn primary big" href="#today">去玩今天的遊戲</a>
   </div>
   <div id="meBody">
     <p class="me-line" id="meLine"></p>
@@ -147,7 +147,7 @@
 
 <!-- 6 小測結果與推薦 -->
 <section id="scrResult" class="screen" hidden>
-  <div class="top-bar"><a class="btn" href="#today">← 回今天的點心</a><span class="step" id="resWho"></span></div>
+  <div class="top-bar"><a class="btn" href="#today">← 回今天的遊戲</a><span class="step" id="resWho"></span></div>
   <h2 class="res-title">今天的小測結果</h2>
   <div class="tiles" id="resTiles"></div>
   <h2 class="sec">今天的身體遊戲</h2>
@@ -157,7 +157,7 @@
   <p class="foot strong">這是動作表現紀錄，不是醫療診斷。</p>
 </section>
 
-<script type="module" src="app.js?v=6"></script>
+<script type="module" src="app.js?v=7"></script>
 <script src="/open-in-browser.js" data-camera="1" defer></script>
 </body>
 </html>
