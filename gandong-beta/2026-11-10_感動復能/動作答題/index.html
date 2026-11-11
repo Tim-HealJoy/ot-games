@@ -140,6 +140,7 @@ td,th{border-bottom:1px solid var(--line);padding:6px 4px;text-align:left}
 .nextc .t{padding:12px 16px}.nextc .k{font-size:17px;font-weight:800;color:var(--accent-d)}.nextc b{display:block;font-size:26px;font-weight:900}.nextc span{font-size:18px;color:var(--sub)}
 .donec{margin-top:16px;background:#E4F1E8;border:2px solid var(--ok);border-radius:16px;padding:14px 16px;font-size:21px;font-weight:800;color:var(--ok)}
 </style>
+<link rel="stylesheet" href="neon.css?v=1">
 </head>
 <body>
 
@@ -242,7 +243,7 @@ function renderSetup() {
   $('pkAct').onclick = (e) => { const b = e.target.closest('.actc'); if (!b) return; cfg.act = b.dataset.v; renderSetup(); };
   const bank = BANKS[cfg.act], c = catOf(cfg.act);
   const tags = c ? SITE.cat.axesOf(c.elements).map((a) => `<span class="m">感．${SITE.cat.AXIS_NAME[a]}</span>`).join('') : '';
-  const mv = cfg.input === 'cam' ? (cfg.layout === 'high' ? '舉高' : '伸取') : cfg.input === 'tilt' ? '軀幹' : '';
+  const mv = cfg.input === 'cam' ? (cfg.layout === 'high' ? '舉得高' : '伸得遠') : cfg.input === 'tilt' ? '坐得穩' : '';   /* 畫面用生活說法；紀錄裡的要素名不變 */
   $('heroBox').innerHTML = `<div class="hero"><span class="pic" ${picStyle(cfg.act)}>${ACT_INFO[cfg.act].icon}</span><div class="txt">
     <span class="kind">感｜用身體答題</span><h1>${bank.name}</h1><p class="line">${(c || ACT_INFO[cfg.act]).line}</p>
     <div class="axtags">${tags}${mv ? `<span class="v">動．${mv}</span>` : ''}</div></div></div>`;

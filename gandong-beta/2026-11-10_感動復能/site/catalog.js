@@ -5,21 +5,23 @@
 
 /* 「感」雷達六軸、「動」雷達五軸。plain＝給長輩、家屬看的白話 */
 export const MIND_AXES = [
-  { id: 'att', name: '注意力', plain: '看得清、反應快' },
-  { id: 'mem', name: '記憶', plain: '記得住剛剛看過的' },
-  { id: 'exe', name: '執行功能', plain: '會排順序、會轉換' },
-  { id: 'lang', name: '語言', plain: '叫得出名字、說得出來' },
-  { id: 'vis', name: '視覺空間', plain: '看得懂形狀、位置' },
-  { id: 'calc', name: '生活計算', plain: '比得出大小、算得出錢' },
+  { id: 'att', name: '看得快', pro: '注意力', plain: '看得清、反應快' },
+  { id: 'mem', name: '記得住', pro: '記憶', plain: '記得住剛剛看過的' },
+  { id: 'exe', name: '有順序', pro: '執行功能', plain: '會排順序、會轉換' },
+  { id: 'lang', name: '說得出', pro: '語言', plain: '叫得出名字、說得出來' },
+  { id: 'vis', name: '認形狀', pro: '視覺空間', plain: '看得懂形狀、位置' },
+  { id: 'calc', name: '會算錢', pro: '生活計算', plain: '比得出大小、算得出錢' },
 ];
 export const MOVE_AXES = [
-  { id: 'lift', name: '舉高', plain: '手舉多高' },
-  { id: 'reach', name: '伸取', plain: '手伸多遠' },
-  { id: 'trunk', name: '軀幹', plain: '身體左右傾' },
-  { id: 'endure', name: '持續', plain: '一天連續動幾樣' },
-  { id: 'legs', name: '下肢', plain: '站起坐下', locked: '下一階段開放' },
+  { id: 'lift', name: '舉得高', pro: '舉高', plain: '手舉多高' },
+  { id: 'reach', name: '伸得遠', pro: '伸取', plain: '手伸多遠' },
+  { id: 'trunk', name: '坐得穩', pro: '軀幹', plain: '身體左右傾' },
+  { id: 'endure', name: '玩得久', pro: '持續', plain: '一天連續動幾樣' },
+  { id: 'legs', name: '腿有力', pro: '下肢', plain: '站起坐下', locked: '下一階段開放' },
 ];
+/* name＝長輩畫面用的生活說法（11-11 老闆：不要專業詞）；pro＝給治療師看的專業名稱 */
 export const AXIS_NAME = Object.fromEntries([...MIND_AXES, ...MOVE_AXES].map((a) => [a.id, a.name]));
+export const AXIS_PRO = Object.fromEntries([...MIND_AXES, ...MOVE_AXES].map((a) => [a.id, a.pro]));
 
 /* 訓練要素 → 能力（主要 1、次要 0.5） */
 export const ELEMENTS = {

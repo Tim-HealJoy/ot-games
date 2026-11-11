@@ -60,6 +60,10 @@
   /* 手機橫放：畫面矮，按鈕縮小 */
   @media (max-height:520px){ :root{--toolW:44px} .tool{top:4px;min-width:44px;min-height:42px;font-size:15px;padding:2px 6px;border-radius:10px} #btnSkip{bottom:6px;right:6px} }
   #btnSkip{top:auto;left:auto;right:14px;bottom:18px}
+  /* v1.9 示範動畫：動態 WebP 疊在畫布上（iPad Safari 的畫布不播動圖） */
+  .demo-img{position:fixed;z-index:3;pointer-events:none;object-fit:contain;border-radius:12px}
+  .cam-hint{background:#FFF3CC;border:3px solid #E9B341;border-radius:14px;padding:8px 14px;font-size:clamp(18px,2.6vh,24px);font-weight:900;color:#7A4E00;text-align:center;margin:10px 0 0}
+  .warm{text-align:center;font-weight:800;color:var(--ink);font-size:18px}
 
   #result .card{max-width:min(1340px,100%);padding:clamp(10px,1.8vh,22px) clamp(14px,2.2vw,28px)}
   .res-layout{display:grid;grid-template-columns:minmax(0,1.12fr) minmax(0,1fr);grid-template-areas:"main board" "more board";column-gap:clamp(14px,2vw,26px);align-items:start}
@@ -101,6 +105,7 @@
   .catch b{font-size:1.3em;color:var(--blue-d)}
   .catch.bad{background:#FBE3DE} .catch.bad b{color:var(--red)}
   .catch.none{opacity:.45}
+  .catch.mystery{background:#E4E8EC;color:#3A4A58} .catch.mystery img{filter:brightness(0);opacity:.72} .catch.mystery b{color:#C88A12}
   .summary{font-size:clamp(18px,2.7vh,23px);font-weight:800;text-align:center;margin:6px 0}
   table{border-collapse:collapse;width:100%;font-size:16px;margin-top:10px;background:#fff}
   th,td{border:1px solid var(--line);padding:7px 10px;text-align:left}
@@ -180,6 +185,7 @@
 </head>
 <body>
 <canvas id="cv"></canvas>
+<img id="demoImg" class="demo-img hidden" alt="示範動作：坐正，雙手打直往前舉過頭">
 
 <section id="setup" class="screen hidden">
   <div class="card">
@@ -193,7 +199,7 @@
     <div class="field">
       <div class="lab">難度</div>
       <div class="seg" id="segDiff">
-        <button data-v="0" class="on">簡單<small>魚等 8 秒，有語音帶您</small><em id="best0"></em></button>
+        <button data-v="0" class="on">簡單<small>慢慢來，魚會等您，有語音帶您</small><em id="best0"></em></button>
         <button data-v="1">普通<small>8 種魚，魚等 2.5 秒，垃圾三成</small><em id="best1"></em></button>
         <button data-v="2">困難<small>10 種魚，從深水慢慢浮上來，1.3 秒決定</small><em id="best2"></em></button>
       </div>
@@ -218,6 +224,8 @@
       <p class="note">調低門檻、拉長魚等的秒數或改局長，這局不會列入排行榜。金線依每個人校正的最高點計算，不必舉過頭。中風肩痛或半脫位者，請治療師評估後再玩，會痛就停。</p>
     </details>
     <div class="btn-row"><button class="btn primary" id="btnStart">開始釣魚</button><button class="btn" id="btnRankSetup">🏆 排行榜</button><button class="btn" id="btnDexSetup">📖 漁獲圖鑑</button></div>
+    <p class="cam-hint hidden" id="camHint">📷 等一下瀏覽器會問能不能使用相機，請按「允許」</p>
+    <p class="note warm hidden" id="warmNote">這台已經練習過，這次量一下手的高度就開始。<button class="link-btn" id="btnRelearn">要再練習一次</button></p>
     <p class="err" id="setupErr"></p>
     <p class="note">坐姿即可，輪椅也可以玩，單手也算。第一次需要網路下載姿勢模型。鏡頭畫面只顯示在這台裝置，不會上傳，也不會錄影。</p>
   </div>
@@ -334,7 +342,7 @@
 
 <script type="module">
 import {LiftDetector,HandSignal,isLowered,calibrate,postureHints} from './detector.js?v=16';
-import {ITEMS,FISH_ORDER,TRASH_ORDER,HIDDEN_ORDER,GOOD_ORDER,DEX_ORDER,DIFF,TODAY,DOUBLE_SEC,HIGH_LINE,heightBonus,itemsFor,mixFor,scoreFor,comboBonus,starsFor,starLines,nextStarGap,titleFor,pickHidden,firstDiff,fishCount} from './rules.js?v=16';
+import {ITEMS,FISH_ORDER,TRASH_ORDER,HIDDEN_ORDER,GOOD_ORDER,DEX_ORDER,DIFF,TODAY,DOUBLE_SEC,HIGH_LINE,heightBonus,itemsFor,mixFor,scoreFor,comboBonus,starsFor,starLines,nextStarGap,titleFor,pickHidden,firstDiff,fishCount,rareFish} from './rules.js?v=17';
 import {createRank} from './rank.js?v=15';
 import {FisherRig,drawFisher,drawLine,makeSticker} from './fisher.js?v=15';
 import {Drill} from './drill.js?v=15';
@@ -371,7 +379,7 @@ segBind('segInput',v=>{ cfg.input=v; $('setupErr').textContent=''; });
 $('rRise').oninput=e=>{ cfg.rise=+e.target.value/100; $('vRise').textContent=e.target.value; };
 $('rWin').oninput=e=>{ cfg.win=+e.target.value; $('vWin').textContent=e.target.value; };
 $('rDur').oninput=e=>{ cfg.dur=+e.target.value; $('vDur').textContent=e.target.value; };
-$('cPractice').onchange=e=>cfg.practice=e.target.checked;
+$('cPractice').onchange=e=>{ cfg.practice=e.target.checked; practiceTouched=true; warmNoteSync(); };
 $('cRank').onchange=e=>cfg.rank=e.target.checked;
 $('cShowCam').onchange=e=>cfg.showCam=e.target.checked;
 /* 這局為什麼不能上榜；null＝可以 */
@@ -402,12 +410,22 @@ function dexAdd(counts){
 }
 const dexHas=k=>!!dexGet()[k];
 const starText=n=>'★'.repeat(n)+'☆'.repeat(3-n);
+/* 記住練習過（v1.9，老闆 11-11 選「合併並記住」）：這台裝置練過一次（選了「誰在玩」就照人記），
+   下次不再練習與試釣，只量手的高度就開始；設定頁按「要再練習一次」或勾「開始前先練習動作」可以回來。 */
+let practiceTouched=false;
+const learnKey=()=>dexOwner()||'_guest';
+function learned(){ const sv=saveGet(); return !!(sv.learned&&sv.learned[learnKey()]); }
+function markLearned(){ if(SKIP||AUTO)return; const sv=saveGet(); savePut({...sv,learned:{...(sv.learned||{}),[learnKey()]:Date.now()}}); }
+function warmNoteSync(){ (learned()&&!cfg.practice?show:hide)($('warmNote')); }
+$('btnRelearn').onclick=()=>{ practiceTouched=true; cfg.practice=true; $('cPractice').checked=true; tutSeen=false; warmNoteSync(); };
 function refreshSetup(){
   const sv=saveGet();
   [0,1,2].forEach(d=>{ const b=sv.best&&sv.best[d]; $(`best${d}`).textContent=b!=null?`${starText((sv.stars&&sv.stars[d])||0)} 最高 ${b}`:''; });
   const tt=titleFor(sv.total||0), dx=dexGet(), got=DEX_ORDER.filter(k=>dx[k]).length;
   $('btnDexSetup').textContent=`📖 漁獲圖鑑 ${got}／${DEX_ORDER.length}`;
-  [1,2].forEach(d=>{ const sm=$('segDiff').querySelector(`button[data-v="${d}"] small`); if(sm)sm.textContent=d===1?`${fishCount(1)} 種魚，魚等 2.5 秒，垃圾三成`:`${fishCount(2)} 種魚，從深水慢慢浮上來，1.3 秒決定`; });
+  [1,2].forEach(d=>{ const sm=$('segDiff').querySelector(`button[data-v="${d}"] small`); if(sm)sm.textContent=d===1?`${fishCount(1)} 種魚，從深水浮上來，垃圾要自己認`:`${fishCount(2)} 種魚，從深水浮上來，要很快`; });
+  if(!practiceTouched&&!SKIP){ const l=learned(); cfg.practice=!l; $('cPractice').checked=!l; }
+  warmNoteSync();
   $('rankLine').textContent=sv.rounds?`目前稱號：${tt.name}，累計釣到 ${sv.total||0} 樣好東西`+(tt.next?`，再 ${tt.need} 樣升「${tt.next}」`:''):'';
 }
 
@@ -427,6 +445,7 @@ async function loadAssets(){
   FA={parts:META.rig,img:{},sticker:{}};
   for(const n of rigParts){ const im=IMG[`fisher_${n}`]; FA.img[n]=im; FA.sticker[n]=makeSticker(im,2.6/META.rig[n].k); }
   $('ruleFish').src='assets/snapper.webp'; $('ruleTrash').src='assets/shoe.webp';
+  Object.values(DEMO_IMG).forEach(src=>loadOnce(src));   /* 示範圖先載好，練習一開始就有 */
 }
 
 /* ========== 音訊 ========== */
@@ -776,7 +795,7 @@ function stepTurn(now,dt){
 }
 
 /* ========== 開場、校正、練習、回合 ========== */
-function enter(p){ phase=p; document.body.classList.toggle('hud-far',p==='drill'||p==='cal'||p==='assess'); ['setup','result','chat','rank','dex'].forEach(i=>hide($(i))); hide($('btnSkip')); }
+function enter(p){ phase=p; document.body.classList.toggle('hud-far',p==='drill'||p==='cal'||p==='assess'||p==='story'||p==='tut'); ['setup','result','chat','rank','dex'].forEach(i=>hide($(i))); hide($('btnSkip')); }
 function hudOn(on){ (on?show:hide)($('btnSet')); (on?show:hide)($('btnMute')); }
 function backToSetup(){ AS.cancel(); AE.music(null); det.stop(); pendHit=null; T=null; card=null; drill=null; cal=null; cap.until=0; enter('setup'); refreshSetup(); show($('setup')); hudOn(false); }
 $('btnSet').onclick=backToSetup; $('btnBack').onclick=backToSetup;
@@ -785,13 +804,14 @@ $('btnStart').onclick=async()=>{
   AE.init(); $('setupErr').textContent='';
   const btn=$('btnStart');
   if(cfg.input==='cam'){
-    btn.disabled=true; btn.textContent='準備鏡頭中，請稍候…';
+    btn.disabled=true; btn.textContent='準備鏡頭中，請稍候…'; if(!camReady)show($('camHint'));
     try{ if(!poseLandmarker)await initModel(); if(!camReady)await initCamera(); }
-    catch(e){ btn.disabled=false; btn.textContent='開始釣魚';
+    catch(e){ btn.disabled=false; btn.textContent='開始釣魚'; hide($('camHint'));
       $('setupErr').textContent='鏡頭或模型沒有準備好：請允許使用鏡頭、確認網路後再試，也可以先選「按鍵試玩」。'; return; }
-    btn.disabled=false; btn.textContent='開始釣魚';
+    btn.disabled=false; btn.textContent='開始釣魚'; hide($('camHint'));
   }
-  hide($('setup')); hudOn(true);
+  if(!practiceTouched&&!SKIP)cfg.practice=!learned();   /* 「誰在玩」可能剛換人 */
+  hide($('setup')); hudOn(true); planSteps();
   if(SKIP||storyT<0)return afterStory();
   startStory();
 };
@@ -813,6 +833,16 @@ function afterStory(){ storyT=-1; hide($('btnSkip')); cap.until=0; AE.music('mai
   }
   afterCal();
 }
+/* 開場步驟條（v1.9）：讓長輩知道還有幾步才開始釣魚 */
+let OB=null;
+function planSteps(){ const st=['聽說明']; if(cfg.input==='cam'&&!P.calibrated&&!willDrill())st.push('量手'); if(willDrill())st.push('練習動作'); if(cfg.practice&&!SKIP&&!tutDone())st.push('試釣'); st.push('開始釣魚'); OB=st.length>2?st:null; }
+function drawSteps(cur){ if(!OB)return false; const i=OB.indexOf(cur); if(i<0)return false;
+  ctx.font=`900 28px ${FONT}`; const ws=OB.map(t=>ctx.measureText(t).width+86), gap=30, tot=ws.reduce((a,b)=>a+b,0)+gap*(OB.length-1); let x=W/2-tot/2; const y=46;
+  OB.forEach((t,k)=>{ const w=ws[k], on=k===i, done=k<i;
+    rr(x,y-29,w,58,29,on?'#FFD84D':done?'#5BE08A':'rgba(15,40,55,.85)',on?'#8A5A00':'#fff6',on?4:2);
+    txt(`${done?'✓':k+1} ${t}`,x+w/2,y+1,28,on||done?'#1C2A33':'#fff','center','',0);
+    if(k<OB.length-1){ ctx.fillStyle='#fff9'; ctx.fillRect(x+w+5,y-2,gap-10,4); } x+=w+gap; });
+  return true; }
 /* 接著要做金線練習嗎（會痛、關掉練習、第二局起、重新校正都不做，照舊完整校正） */
 const willDrill=()=>cfg.practice&&!SKIP&&!tutDone()&&!AS.noPush();
 /* 金線練習時的暫定值（軀幹長度，0＝肩膀）：手放大腿約 −1，一般長輩可舉到肩膀上方約 0.3。練完換成這個人實際量到的 */
@@ -832,11 +862,11 @@ function stepCal(now,dt){
     }
   }
 }
-$('btnRecal').onclick=()=>{ hide($('result')); hudOn(true); P.calibrated=false; sigT.reset(); loosen=1; det.setLoosen(1); AE.music('main'); if(cfg.input==='cam')startCal(); else afterCal(); };
+$('btnRecal').onclick=()=>{ hide($('result')); hudOn(true); OB=null; P.calibrated=false; sigT.reset(); loosen=1; det.setLoosen(1); AE.music('main'); if(cfg.input==='cam')startCal(); else afterCal(); };
 function afterCal(){ if(cfg.practice&&!SKIP&&!tutDone()){ if(AS.noPush())startTut(); else startDrill(); } else startRound(); }  /* 建檔註記舉手會痛：不做「金線越來越高」的練習 */
 let tutSeen=false; const tutDone=()=>tutSeen;
 /* 開場動作練習：看著自己的鏡頭畫面，把手舉到金線 3 次，一次比一次高 */
-function startDrill(){ enter('drill'); T=null; hudOn(true); cap.until=0; drill=new Drill({first:HIGH_LINE}); drillHint=null; drillMsg={text:'',until:0}; show($('btnSkip')); $('btnSkip').onclick=()=>{ if(drill)drillToCal(drill); drill=null; startTut(); }; AE.say('drill1'); }
+function startDrill(){ demoNg=null; enter('drill'); T=null; hudOn(true); cap.until=0; drill=new Drill({first:HIGH_LINE}); drillHint=null; drillMsg={text:'',until:0}; show($('btnSkip')); $('btnSkip').onclick=()=>{ if(drill)drillToCal(drill); drill=null; startTut(); }; AE.say('drill1'); }
 /* 練習量到的結果寫回校正：
    - 沒有先校正（P.drillCal）：低點＝練習中手放下時的中位數，最高點＝舉到頂時的高位（與舊校正同一個 calibrate()），金線＝它的 85%
    - 原本就有完整校正：只在練習舉得更高時往上調（v1.5 行為） */
@@ -865,6 +895,7 @@ function stepDrill(now,dt){
     if(e==='reach'){ AE.high(); AE.say('drillok'); highFlash=now; drillMsg={text:'到了！很好',until:now+1100}; }
     else if(e==='miss'){
       const h=drillHint||{}, pick=h.lean?['drillsit','身體坐正，再舉一次']:h.bent?['drillarm','手臂打直，再高一點']:['drillup','再高一點！'];
+      if(h.lean||h.bent)demoNg={kind:h.lean?'lean':'bent',until:now+3200};
       AE.say(pick[0]); drillMsg={text:pick[1],until:now+2200}; drillHint=null;
     }
     else if(e==='idle')AE.sayIdle('drillgo');
@@ -876,7 +907,7 @@ function stepDrill(now,dt){
     }
   }
 }
-function startTut(){ enter('tut'); det.setRise(cfg.rise); tut={step:0,tries:0}; show($('btnSkip')); $('btnSkip').onclick=()=>{ tutSeen=true; startRound(); };
+function startTut(){ enter('tut'); det.setRise(cfg.rise); tut={step:0,tries:0}; show($('btnSkip')); $('btnSkip').onclick=()=>{ tutSeen=true; markLearned(); startRound(); };
   spawned=1; toGap(1.2); }
 function tutSpawn(){
   if(tut.step===0){ spawn('tilapia'); AE.say('tut1b'); caption('魚咬住了，手舉高',60); }
@@ -885,7 +916,7 @@ function tutSpawn(){
 function tutNext(outcome){
   if(tut.step===0){ tut.step=1; cap.until=0; toGap(1.2); return; }
   if(outcome==='trash'&&tut.tries<1){ tut.tries++; AE.say('tutagain'); cap.until=0; toGap(3); return; }
-  tutSeen=true; cap.until=0; AE.say('tutdone'); caption('學會了，開始釣魚囉',2.2); hide($('btnSkip')); T=null; setTimeout(()=>{ if(phase==='tut')startRound(); },2300);
+  tutSeen=true; markLearned(); cap.until=0; AE.say('tutdone'); caption('學會了，開始釣魚囉',2.2); hide($('btnSkip')); T=null; setTimeout(()=>{ if(phase==='tut')startRound(); },2300);
 }
 function startRound(){
   if(AS.gate(startRound))return;   /* 選了個案、這次還沒量：先試竿，量完再回來開局 */
@@ -927,7 +958,10 @@ function showResult(){
   const talk=[...new Set([...rareCaught,...freshSorted,...GOOD_ORDER.filter(k=>stat.counts[k])])].filter(k=>ITEMS[k].ask).map(k=>ITEMS[k].ask);
   chatList=[...talk.slice(0,4),...CHATS]; chatI=0;
   $('resGrid').style.setProperty('--cols',Math.ceil(listed.length/2));
+  /* 稀有魚沒釣過：黑影＋問號，引起好奇（釣到一次就現形） */
+  const rare=new Set(rareFish(d));
   $('resGrid').innerHTML=listed.map(k=>{ const it=ITEMS[k],n=stat.counts[k];
+    if(rare.has(k)&&!n&&!dexHas(k))return `<div class="catch mystery"><img src="assets/${k}.webp" alt="沒看過的魚">？？？ <b>？</b></div>`;
     return `<div class="catch ${it.good?'':'bad'} ${n?'':'none'}"><img src="assets/${k}.webp" alt="${it.name}">${it.name} <b>${n}</b></div>`; }).join('');
   $('resSummary').textContent=`釣到 ${fishN} 樣，${stat.high} 次舉到金線，最高連擊 ${stat.maxCombo}，忍住垃圾 ${stat.hold} 個${trashN?`，勾到垃圾 ${trashN} 個`:''}`;
   $('resRank').textContent=`今日：${today.name}｜`+(leveled?`升級了！現在是「${after.name}」`:`${after.name}`+(after.next?`，再 ${after.need} 樣升「${after.next}」`:''));
@@ -1175,6 +1209,7 @@ function stepRig(now,dt){
   if(rig.plop){ rig.plop=false; parts.push(...ripple(rig.hook.x,LAY.water)); AE.splash(.18); }
 }
 function draw(now,dt){
+  demoWant=null;
   ctx.setTransform(1,0,0,1,0,0); ctx.fillStyle='#0f2c3d'; ctx.fillRect(0,0,cv.width,cv.height);
   const sx=shake?Math.sin(now/22)*shake:0;
   ctx.setTransform(scale,0,0,scale,ox+sx*scale,oy);
@@ -1229,13 +1264,13 @@ function draw(now,dt){
       const after=phase==='tut'?1.2:DIFF[cfg.diff].after, fade=(T.st==='escape'||T.st==='drift')?clamp(1.25-T.t/after):1;
       spr(T.id,T.x,T.y,T.w,{flip,rot:wig+(T.rot||0),alpha:fade});
       if(T.rare)drawRareGlow(T,now);
-      if(tagOn()&&T.st!=='escape'&&T.st!=='drift'&&T.x>-T.w/2&&T.x<W+T.w/2) drawTag(T.rare&&!dexHas(T.id)?{...it,name:'？？？'}:it,T.x,T.y-T.h/2-44);
+      if(tagOn()&&(it.good||trashCueOn())&&T.st!=='escape'&&T.st!=='drift'&&T.x>-T.w/2&&T.x<W+T.w/2) drawTag(T.rare&&!dexHas(T.id)?{...it,name:'？？？'}:it,T.x,T.y-T.h/2-44);
     }
     const ra=(now-revealT)/260;
     if(T.st==='bite'&&ra<1){ ctx.save(); ctx.globalAlpha=(1-ra)*.9; ctx.strokeStyle='#fff'; ctx.lineWidth=16; ctx.beginPath(); ctx.arc(LAY.hookX,LAY.hookY,120+ra*220,0,7); ctx.stroke(); ctx.restore(); }
   }
   /* 大字提示 */
-  if(bite&&cueOn()){
+  if(bite&&cueOn()&&(ITEMS[T.id].good||trashCueOn())){
     const it=ITEMS[T.id], cx=T.dir>0?620:1400, pul=1+Math.sin(now/120)*.06;
     ctx.save(); ctx.translate(cx,640); ctx.scale(pul,pul);
     if(it.good){ txt('舉高！',0,30,170,'#FFD84D','center','rgba(90,40,0,.95)',20);
@@ -1250,6 +1285,7 @@ function draw(now,dt){
 
   ctx.setTransform(scale,0,0,scale,ox,oy);
   if(phase==='story'||phase==='tut'||phase==='play'||phase==='ending'){ drawMeter(now); drawCam(20,680,300,380,{line:HIGH_LINE}); }
+  if(phase==='story')drawSteps('聽說明'); else if(phase==='tut')drawSteps('試釣');
   if(phase==='play'||phase==='ending')drawScore(now);
   if(card)drawCard(now);
   drawDoubleBanner(now);
@@ -1259,6 +1295,7 @@ function draw(now,dt){
   if(phase==='assess')AS.draw(ctx,now);
   if(cap.until>now){ ctx.font=`900 52px ${FONT}`; const tw=ctx.measureText(cap.text).width; rr(W/2-tw/2-44,H-112,tw+88,88,20,'rgba(15,40,55,.92)'); txt(cap.text,W/2,H-68,52,'#fff'); }
   if(phase==='boot')txt('準備中…',W/2,H/2,64,'#fff','center','rgba(15,40,55,.9)',10);
+  demoSync();
 }
 const hangK=o=>Math.min(.86,215/Math.max(o.h,o.w*.6));
 /* 物件掛在鉤上的位置：剛被拉起時和水裡的大小、角度接得上，不會突然跳一下 */
@@ -1270,6 +1307,7 @@ function hangPos(o,now){
 }
 const tagOn=()=>phase==='tut'||DIFF[cfg.diff].tag;
 const cueOn=()=>phase==='tut'||DIFF[cfg.diff].text;
+const trashCueOn=()=>phase==='tut'||DIFF[cfg.diff].trashCue!==false;
 const mult=()=>isDouble()?2:1;
 const ptsText=it=>it.pts>0?`${it.pts*mult()} 分`:`扣 ${-it.pts*mult()} 分`;
 /* 深水裡的樣子：模糊黑影 → 清楚的黑色剪影 → 慢慢顯出顏色。每個物件第一次用到時才做 */
@@ -1353,7 +1391,7 @@ function drawCam(bx,by,w,h,{line=null,big=false}={}){
     ctx.fillStyle='rgba(10,30,45,.24)'; ctx.fillRect(bx,by,w,h);
   }
   const lw=big?9:6;
-  if(!lm||!P.valid){ ctx.restore(); txt('看不到人',bx+w/2,by+h/2,big?72:36,'#FFB4A8','center','rgba(15,40,55,.95)',8); rr(bx,by,w,h,16,null,'#fff5',3); return; }
+  if(!lm||!P.valid){ ctx.restore(); const wait=phase==='story'; txt(wait?'請坐到鏡頭前':'看不到人',bx+w/2,by+h/2,big?72:wait?32:36,wait?'#FFD84D':'#FFB4A8','center','rgba(15,40,55,.95)',8); rr(bx,by,w,h,16,null,'#fff5',3); return; }
   const seg=(a,b,c)=>{ if(!vis(lm,a)||!vis(lm,b))return; ctx.beginPath(); ctx.moveTo(X(lm[a].x),Y(lm[a].y)); ctx.lineTo(X(lm[b].x),Y(lm[b].y)); ctx.strokeStyle=c; ctx.lineWidth=lw; ctx.lineCap='round'; ctx.stroke(); };
   seg(L.LSH,L.RSH,'#fff'); seg(L.LSH,L.LHIP,'#fff'); seg(L.RSH,L.RHIP,'#fff'); seg(L.LHIP,L.RHIP,'#fff');
   seg(L.LSH,L.LEL,'#8FD3F0'); seg(L.LEL,L.LWR,'#8FD3F0'); seg(L.RSH,L.REL,'#8FD3F0'); seg(L.REL,L.RWR,'#8FD3F0');
@@ -1375,45 +1413,37 @@ function drawCam(bx,by,w,h,{line=null,big=false}={}){
   if(big&&ly!=null){ const tx=atLine?'到了':'舉到這裡'; ctx.font=`900 40px ${FONT}`; const tw=ctx.measureText(tx).width+36, yy=clamp(ly+36,by+30,by+h-30); rr(bx+w-tw-14,yy-28,tw,56,14,atLine?'#5BE08A':'#FFC400'); txt(tx,bx+w-14-tw/2,yy+1,40,'#1C2A33','center','',0); }
   rr(bx,by,w,h,16,null,'#fff5',3);
 }
-/* 示範人形：手臂打直、從大腿舉到過頭。手往前舉時正面看手臂會變短，和鏡頭看到的自己一樣 */
-function drawDemo(x,y,w,h,now){
-  rr(x,y,w,h,18,'#FFFBF2','#134F72',4);
-  txt('跟著做',x+w/2,y+48,44,'#134F72','center','',0);
-  const ph=((now/1000)%3.6)/3.6, ease=t=>t*t*(3-2*t), a=ph<.4?ease(ph/.4):ph<.62?1:ph<.9?1-ease((ph-.62)/.28):0;
-  const cx=x+w/2, sh=y+h*.36, hw=w*.15, arm=h*.22, hip=sh+h*.22, th=a*Math.PI*.97, ink='#134F72';
-  const line=(ax,ay,bx,by,c=ink,lw=14)=>{ ctx.beginPath(); ctx.moveTo(ax,ay); ctx.lineTo(bx,by); ctx.strokeStyle=c; ctx.lineWidth=lw; ctx.lineCap='round'; ctx.stroke(); };
-  /* 金線位置和遊戲同比例：放下到舉滿的 85% */
-  const lineY=sh+arm-HIGH_LINE*2*arm*.97, wy=sh+arm*Math.cos(th), reached=wy<=lineY;
-  ctx.fillStyle=reached?'#3CC277':'#FFC400'; ctx.fillRect(x+18,lineY-5,w-36,10);
-  for(const sgn of [-1,1]){
-    line(cx+sgn*hw,sh,cx+sgn*hw*.72,hip);
-    line(cx+sgn*hw*.72,hip,cx+sgn*hw*1.05,hip+h*.05);
-    line(cx+sgn*hw*1.05,hip+h*.05,cx+sgn*hw*1.05,hip+h*.2);
-  }
-  line(cx-hw,sh,cx+hw,sh); line(cx-hw*.72,hip,cx+hw*.72,hip);
-  ctx.beginPath(); ctx.arc(cx,sh-h*.07,h*.048,0,7); ctx.fillStyle='#FFFBF2'; ctx.fill(); ctx.strokeStyle=ink; ctx.lineWidth=12; ctx.stroke();
-  for(const sgn of [-1,1]){ const wx=cx+sgn*hw*(1+.1*Math.sin(th)); line(cx+sgn*hw,sh,wx,wy,'#1C6E9C',16); ctx.beginPath(); ctx.arc(wx,wy,17,0,7); ctx.fillStyle=reached?'#3CC277':'#FFC400'; ctx.fill(); }
-  txt('手臂打直',x+w/2,y+h-82,38,'#23303A','center','',0);
-  txt('舉過金線',x+w/2,y+h-36,38,'#23303A','center','',0);
+/* 示範（v1.9，11-11 老闆：示範要更清楚）：斜前 45 度的阿公，坐正、雙手打直往前舉過頭，循環播放（art/demo_raise/）。
+   練習時偵測到身體後仰或手肘彎，換成那個錯誤的圖（紅叉）停 3 秒，再回到正確動作。 */
+const DEMO_IMG={ok:'assets/raise_ok.webp',top:'assets/raise_top.webp',rest:'assets/raise_rest.webp',lean:'assets/raise_ng_lean.webp',bent:'assets/raise_ng_bent.webp'};
+let demoWant=null, demoNg=null;
+function demoAt(key,x,y,w,h){ demoWant={key,x,y,w,h}; }
+function demoSync(){ const el=$('demoImg'); if(!demoWant){ if(!el.classList.contains('hidden'))hide(el); return; }
+  const o=demoWant, d=Math.min(window.devicePixelRatio||1,2), k=scale/d;
+  if(el.dataset.k!==o.key){ el.dataset.k=o.key; el.src=DEMO_IMG[o.key]; }
+  el.style.left=(ox/d+o.x*k)+'px'; el.style.top=(oy/d+o.y*k)+'px'; el.style.width=(o.w*k)+'px'; el.style.height=(o.h*k)+'px';
+  if(el.classList.contains('hidden'))show(el); }
+function drawDemo(x,y,w,h,now,{key='ok',title='跟著阿公做',lines=['手臂打直、背坐正','慢慢舉過頭']}={}){
+  const ng=demoNg&&demoNg.until>now?demoNg:null;
+  rr(x,y,w,h,22,'#F4EFE3',ng?'#C02A18':'#134F72',ng?9:5);
+  txt(ng?'不要這樣':title,x+w/2,y+54,50,ng?'#C02A18':'#134F72','center','',0);
+  const sz=Math.min(w-40,h-220); demoAt(ng?ng.kind:key,x+(w-sz)/2,y+96,sz,sz);
+  const L=ng?[ng.kind==='lean'?'身體不要往後仰':'手肘不要彎','坐正、手臂打直再舉']:lines;
+  txt(L[0],x+w/2,y+h-90,46,ng?'#C02A18':'#23303A','center','',0);
+  if(L[1])txt(L[1],x+w/2,y+h-38,40,ng?'#1E7A47':'#46545E','center','',0);
 }
 function drawDrill(now){
   const d=drill; if(!d)return;
   ctx.fillStyle='rgba(8,34,50,.95)'; ctx.fillRect(0,0,W,H);
-  txt('先練習動作',W/2,52,38,'#BFE3F4');
+  if(!drawSteps('練習動作'))txt('先練習動作',W/2,52,38,'#BFE3F4');
   const head=d.st==='done'?'很好，釣魚也要舉這麼高':d.st==='intro'?'雙手舉到金線，越高越好':d.st==='low'?'手放下來':d.st==='top'?'很好，停一下':d.rep===0?'雙手舉到金線，越高越好':'這次再高一點';
   txt(head,W/2,118,74,'#fff','center','rgba(15,40,55,.95)',10);
   for(let i=0;i<d.o.reps;i++){ const cx=W/2+(i-(d.o.reps-1)/2)*86, on=i<d.rep; ctx.beginPath(); ctx.arc(cx,196,30,0,7); ctx.fillStyle=on?'#FFD84D':'rgba(255,255,255,.14)'; ctx.fill(); ctx.strokeStyle=on?'#8A5A00':'#fff6'; ctx.lineWidth=4; ctx.stroke(); txt(on?'✓':String(i+1),cx,198,36,on?'#5A3000':'#fff'); }
-  const by=244,bh=800;
-  drawDemo(40,by,410,bh,now);
-  drawCam(474,by,1190,bh,{line:d.line,big:true});
-  /* 高度條：比校正更高也看得到，金線跟著這次的目標走 */
-  const mx=1690,mw=110,top=1.35, s=clamp(P.disp/top), ly=by+bh-bh*clamp(d.line/top), ok=P.disp>=d.line;
-  rr(mx-6,by-6,mw+12,bh+12,18,'rgba(15,40,55,.9)');
-  if(s*bh>6)rr(mx,by+bh-s*bh,mw,s*bh,14,ok?'#5BE08A':'#8FD3F0');
-  if(d.peak>.04&&d.st!=='low'){ ctx.fillStyle='#fff'; ctx.fillRect(mx,by+bh-bh*clamp(d.peak/top)-3,mw,6); }
-  ctx.fillStyle=ok?'#5BE08A':'#FFC400'; ctx.fillRect(mx-16,ly-6,mw+32,12);
-  txt('高度',mx+mw/2,by-26,34,'#BFE3F4');
-  if(drillMsg.until>now&&drillMsg.text){ ctx.font=`900 66px ${FONT}`; const tw=ctx.measureText(drillMsg.text).width+80, good=drillMsg.text.startsWith('到了'); rr(474+595-tw/2,by+bh-120,tw,100,22,good?'#1E7A47':'#C8402E'); txt(drillMsg.text,474+595,by+bh-69,66,'#fff'); }
+  /* v1.9：左邊示範、右邊自己，各占一半，像照鏡子；拿掉右側高度條（金線已畫在自己的畫面上） */
+  const by=244,bh=800, cx0=900, cw=980;
+  drawDemo(40,by,840,bh,now);
+  drawCam(cx0,by,cw,bh,{line:d.line,big:true});
+  if(drillMsg.until>now&&drillMsg.text){ ctx.font=`900 62px ${FONT}`; const tw=ctx.measureText(drillMsg.text).width+80, good=drillMsg.text.startsWith('到了'); rr(cx0+cw/2-tw/2,by+bh-120,tw,100,22,good?'#1E7A47':'#C8402E'); txt(drillMsg.text,cx0+cw/2,by+bh-69,62,'#fff'); }
 }
 function drawScore(now){
   const remain=Math.max(0,Math.ceil(cfg.dur-elapsed)), x=W-560,y=14;
@@ -1453,13 +1483,16 @@ function drawCal(now){
   ctx.fillStyle='rgba(10,40,58,.72)'; ctx.fillRect(0,0,W,H);
   const low=c.step===0, near=!low&&cfg.input==='cam'&&postureHints(P.lm,sigT.aspect).nearTop;
   const line1=near?'請往後坐一點，手才拍得到':c.retry&&!low?'看不到您的手，請再舉一次':(low?'雙手放在大腿上，放輕鬆':'把手舉到最高，不會痛就好');
-  txt(`校正 ${c.step+1}／2`,W/2,70,44,'#BFE3F4');
+  if(!drawSteps('量手'))txt(`校正 ${c.step+1}／2`,W/2,70,44,'#BFE3F4');
   txt(line1,W/2,160,84,near?'#FFD84D':'#fff','center','rgba(15,40,55,.95)',12);
   const dur=c.st==='prep'?(low?2.6:3.8):(low?2.4:3), p=clamp(c.t/dur);
   txt(c.st==='prep'?`準備 ${Math.ceil(dur-c.t)}`:'保持不動…',W/2,262,60,'#FFD84D');
   rr(W/2-420,310,840,36,18,'rgba(255,255,255,.2)');
   rr(W/2-420,310,Math.max(36,840*p),36,18,c.st==='prep'?'#8FD3F0':'#FFD84D');
-  if(cfg.input==='cam')drawCam(W/2-520,372,1040,670,{big:true});
+  if(cfg.input==='cam'){
+    drawDemo(40,372,620,680,now,{key:low?'rest':'ok',title:'像這樣',lines:low?['雙手放在大腿上','背坐正、放輕鬆']:['手臂打直','舉到最高，不會痛就好']});
+    drawCam(690,372,1190,680,{big:true});
+  }
 }
 
 /* ========== 啟動 ========== */
@@ -1467,7 +1500,7 @@ window.__fish={rig,setS:v=>{forceS=v;},get s(){return{phase,score,elapsed,combo,
   /* 測試用：用假骨架走鏡頭路線，不需要真鏡頭 */
   stubCam:(fn,vid)=>{ let c=0; poseLandmarker={detectForVideo:()=>({landmarks:fn()})}; video=vid||{readyState:2,get currentTime(){return ++c;}}; camReady=true; },cfg,start:()=>$('btnStart').click(),P,voices:()=>Object.keys(AE.voice).length,spawn:id=>spawn(id),setElapsed:v=>{elapsed=v;},setToday:id=>{today=TODAY.find(t=>t.id===id);},setChest:v=>{chestDone=v;},forceRare:id=>{rareForce.id=id;},get rareGot(){return [...rareGot];},dexGet,openDex,saveGet,savePut,RANK,RANK_API,board:B};
 /* 評估層接頭：遊戲把需要的東西交給它，它不改遊戲規則 */
-const AS=createAssess({ver:'v1.8',P,sigT,cfg,AE,IMG,W,H,FONT,FISH_ORDER,TRASH_ORDER,$,show,hide,enter,hudOn,drawCam,txt,rr,
+const AS=createAssess({ver:'v1.9',P,sigT,cfg,AE,IMG,W,H,FONT,FISH_ORDER,TRASH_ORDER,$,show,hide,enter,hudOn,drawCam,txt,rr,
   stat:()=>stat, score:()=>score, warm:()=>({drill:cfg.practice&&!SKIP&&!AS.noPush(),tut:tutSeen}),
   resetForNewPlayer:()=>{ P.calibrated=false; sigT.reset(); tutSeen=false; loosen=1; det.setLoosen(1); }});
 window.__fish.assess=AS;

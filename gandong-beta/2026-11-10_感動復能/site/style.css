@@ -331,3 +331,22 @@ details.pro td,details.pro th{border-bottom:1px solid var(--line);padding:6px 4p
   .chips::-webkit-scrollbar{display:none}
   .chip,.chip-sep{flex:none;white-space:nowrap}
 }
+
+/* 11-11 長輩字級底線：說明、標籤一律 ≥ 19～20px（原本 15～18px） */
+.chip{font-size:20px;min-height:52px}
+.chip-sep{font-size:19px}
+.also,.also span,.axtags span{font-size:19px}
+.tag{font-size:19px}
+.snack .kind{font-size:19px}
+.snack .meta,.card .meta{font-size:19px}
+.snack .why{font-size:20px}
+.goal-h small{font-size:20px}
+.goal-h .gn{font-size:19px}
+.rc .m{font-size:19px}
+.legend{font-size:19px}
+.pill{font-size:18px;min-width:34px;height:34px}
+.who-chip span{font-size:18px}
+.note,.seg button small{font-size:18px}
+.grp small{font-size:20px}
+details.pro table{font-size:19px}
+@media (max-width:760px){.tabs a{font-size:18px}}

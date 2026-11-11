@@ -9,7 +9,7 @@ import { mountProfile } from './assess/ui.js?v=1';
 import { GAMES, gameById, urlFor, INPUT_NAME, diffNameOf } from './games.js?v=1';
 import { recommend } from './recommend.js?v=1';
 import { createQuiz } from './measure.js?v=1';
-import { MIND_AXES, MOVE_AXES, QUIZ, GAME_ELEMENTS, AXIS_NAME, axesOf, quizById, GOALS, GAME_GOAL, goalById } from './catalog.js?v=3';
+import { MIND_AXES, MOVE_AXES, QUIZ, GAME_ELEMENTS, AXIS_NAME, AXIS_PRO, axesOf, quizById, GOALS, GAME_GOAL, goalById } from './catalog.js?v=4';
 import { radarsFromCards, todaySnack, summaryLine } from './ability.js?v=3';
 import { buildCards, tagTasks } from './scorecard.js?v=1';
 import { store as quizStore } from '../動作答題/engine/record.js';
@@ -173,10 +173,10 @@ function radarSvg(axes, { size = 320, mini = false } = {}) {
   axes.forEach((a, i) => { if (a.score != null) { const [x, y] = pt(i, a.score); g += `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${mini ? 3 : 5}" class="pd"/>`; } });
   if (!mini) axes.forEach((a, i) => {
     const [x, y] = pt(i, 6.3), anchor = Math.abs(x - cx) < 8 ? 'middle' : x < cx ? 'end' : 'start';
-    const val = a.locked ? '下一階段' : a.score == null ? `🔒 再 ${a.need} 次` : `第 ${a.score.toFixed(1)} 級`;
+    const val = a.locked ? '下一階段' : a.score == null ? `🔒 再 ${a.need} 次` : `第 ${Math.round(a.score)} 級`;
     g += `<text x="${x.toFixed(1)}" y="${(y - 4).toFixed(1)}" text-anchor="${anchor}" class="lb">${esc(a.name)}</text><text x="${x.toFixed(1)}" y="${(y + 20).toFixed(1)}" text-anchor="${anchor}" class="lv${a.score == null ? ' lk' : ''}">${esc(val)}</text>`;
   });
-  const names = axes.map((a) => `${a.name}${a.score != null ? ` 第 ${a.score} 級` : a.locked ? ' 未開放' : ` 再玩 ${a.need} 次`}`).join('、');
+  const names = axes.map((a) => `${a.name}${a.score != null ? ` 第 ${Math.round(a.score)} 級` : a.locked ? ' 未開放' : ` 再玩 ${a.need} 次`}`).join('、');
   return `<svg viewBox="${mini ? 0 : -78} ${mini ? 0 : -20} ${size + (mini ? 0 : 156)} ${size + (mini ? 0 : 44)}" class="radar${mini ? ' mini' : ''}" role="img" aria-label="${esc(names)}">${g}</svg>`;
 }
 const fmtDay = (t) => { const d = new Date(t); return `${d.getMonth() + 1}/${d.getDate()}`; };
@@ -197,11 +197,11 @@ function renderMe() {
     ...as.map((x) => ({ at: x.at, name: x.game === 'hub' ? '1 分鐘小測' : (gameById(x.game) ? gameById(x.game).name : x.game), k: 'move', d: x.game === 'hub' && x.lift && x.lift.by ? `右手 ${x.lift.by.R && x.lift.by.R.n ? heightWord(x.lift.by.R.best) : '—'}、左手 ${x.lift.by.L && x.lift.by.L.n ? heightWord(x.lift.by.L.best) : '—'}` : '' })),
   ].sort((a, b) => b.at - a.at).slice(0, 8);
   $('recent').innerHTML = items.map((x) => `<div class="rc"><span class="d">${fmtDay(x.at)}</span><span class="pill ${x.k}">${x.k === 'mind' ? '感' : '動'}</span><b>${esc(x.name)}</b><span class="m">${esc(x.d)}</span></div>`).join('');
-  const row = (a) => `<tr><td>${esc(a.name)}</td><td>${a.score != null ? a.score : '—'}</td><td>${a.first != null ? a.first : '—'}</td><td>${a.n}</td></tr>`;
+  const row = (a) => `<tr><td>${esc(a.name)}（${esc(a.pro || '')}）</td><td>${a.score != null ? a.score : '—'}</td><td>${a.first != null ? a.first : '—'}</td><td>${a.n}</td></tr>`;
   const END = { done: '玩完', safe: '安全停止', started: '只開了頭' };
   const KIND = { quiz: '答題', game: '動作遊戲', entry: '小測' };
   const actName = (c) => c.kind === 'entry' ? '1 分鐘小測' : c.kind === 'quiz' ? (quizById(c.activity) ? quizById(c.activity).name : c.activity) : (gameById(c.activity) ? gameById(c.activity).name : c.activity);
-  const axTxt = (c) => c.axes.length ? [...new Map(c.axes.filter((a) => a.w >= 1).map((a) => [a.axis, a])).values()].map((a) => `${AXIS_NAME[a.axis] || a.axis} ${a.v}`).join('、') : (c.quality.flags.includes('copiedMeasure') ? '沿用小測的量測' : c.quality.flags.includes('noRate') ? '遊戲還沒回報成功率' : '—');
+  const axTxt = (c) => c.axes.length ? [...new Map(c.axes.filter((a) => a.w >= 1).map((a) => [a.axis, a])).values()].map((a) => `${AXIS_PRO[a.axis] || a.axis} ${a.v}`).join('、') : (c.quality.flags.includes('copiedMeasure') ? '沿用小測的量測' : c.quality.flags.includes('noRate') ? '遊戲還沒回報成功率' : '—');
   const t2 = (t) => { const d = new Date(t); return `${d.getMonth() + 1}/${d.getDate()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`; };
   const crow = (c) => `<tr><td>${t2(c.at)}</td><td>${esc(KIND[c.kind])}．${esc(actName(c))}</td><td>${c.level ?? '—'}</td><td>${c.rate != null ? Math.round(c.rate * 100) + '%' : '—'}</td><td>${END[c.end]}</td><td>${esc(axTxt(c))}</td><td>${c.task ? '第 ' + c.task.no + ' 個' : ''}</td></tr>`;
   $('proBody').innerHTML = `<table><tr><th>軸</th><th>最近</th><th>第一週</th><th>筆數</th></tr>${[...R.mind, ...R.move.filter((a) => !a.locked)].map(row).join('')}</table>

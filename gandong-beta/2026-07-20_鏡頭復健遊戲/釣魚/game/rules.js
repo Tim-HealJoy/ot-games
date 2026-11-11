@@ -76,7 +76,8 @@ export function heightBonus(pts, peak, doubled = false) {
 /* win＝魚咬鉤後可反應秒數；trashWin＝垃圾要忍住多久；approach／gap／hook／after 決定節奏 */
 /* trashArm＝垃圾出現多久後才開始判定（看得到垃圾時，體諒來不及收手）；困難版魚從深水浮上來才看得清楚，
    所以 trashArm 0 加 trashGrace：沒看清楚就拉，勾到垃圾要算，不能靠抓時機亂拉。
-   emerge＝困難版從深水浮到鉤子的秒數（取代 approach）；hook＝掛在鉤上的最短與最長秒數，最長要留時間把手舉到金線。 */
+   emerge＝從深水浮到鉤子的秒數（shadow 開時取代 approach；普通 1.9、困難 1.5）；
+   trashCue:false＝垃圾不顯示名牌、咬鉤也不出「不要拉」，要自己看出是垃圾（魚照常有名牌與「舉高！」）；hook＝掛在鉤上的最短與最長秒數，最長要留時間把手舉到金線。 */
 export const DIFF = [
   {
     name: '簡單', rise: 0.08, win: 8, trashWin: 3, trashArm: 0.35, dur: 90,
@@ -86,8 +87,8 @@ export const DIFF = [
   },
   {
     name: '普通', rise: 0.10, win: 2.5, trashWin: 1.8, trashArm: 0.25, dur: 60,
-    tag: true, voice: false, text: true, shadow: false,
-    approach: 1.25, gap: [0.25, 0.6], hook: [0.8, 2.0], after: 0.6,
+    tag: true, voice: false, text: true, shadow: true, trashCue: false,
+    approach: 1.25, emerge: 1.9, gap: [0.25, 0.6], hook: [0.8, 2.0], after: 0.6,
     mix: { tilapia: 10, scad: 7, milkfish: 9, mackerel: 7, hairtail: 7, butterfish: 5, snapper: 5, threadfin: 4, flying: 4, seabass: 3, grouper: 3, tuna: 2, mahi: 1, shoe: 12, can: 12, tire: 9 },
   },
   {
@@ -109,6 +110,15 @@ export const TODAY = [
   { id: 'storm', name: '颱風剛過', voice: 'today3', text: '颱風剛過，垃圾變多，大魚也靠岸', tint: { c: '#5A6B85', a: 0.42 }, mix: { shoe: 1.5, can: 1.5, tire: 1.5, tuna: 2 } },
 ];
 /* 結算要列的物件：這個難度會出現的魚＋寶箱＋垃圾，由低分到高分 */
+/* 稀有魚：這個難度裡最少出現的幾種（由少到多累加，同權重一起算，佔一般魚出現量 15% 以內）。
+   沒釣過前，結算頁顯示黑影＋「？？？」，引起好奇。簡單＝鮪魚；普通＝鬼頭刀、鮪魚、石斑魚、鱸魚；困難＝旗魚、鬼頭刀、白鯧 */
+export function rareFish(diff, share = 0.15) {
+  const m = DIFF[diff].mix, ks = FISH_ORDER.filter((k) => k !== 'chest' && m[k] > 0);
+  const tot = ks.reduce((a, k) => a + m[k], 0), ws = [...new Set(ks.map((k) => m[k]))].sort((a, b) => a - b);
+  let cum = 0, cut = 0;
+  for (const w of ws) { cum += ks.filter((k) => m[k] === w).reduce((a, k) => a + m[k], 0); if (cum > tot * share) break; cut = w; }
+  return ks.filter((k) => m[k] <= cut);
+}
 export function itemsFor(diff) {
   const m = DIFF[diff].mix;
   return [...FISH_ORDER.filter((k) => k === 'chest' || k in m), ...TRASH_ORDER];
