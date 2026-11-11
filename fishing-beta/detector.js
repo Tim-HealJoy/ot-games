@@ -55,7 +55,7 @@ export class HandSignal {
   }
 
   reset() {
-    this.torso = null; this.shRef = null; this.tPrev = null;
+    this.torso = null; this.shRef = null; this.tPrev = null; this.lastRaw = null;
     this.last = { L: null, R: null };
     this.euro.reset();
   }
@@ -96,7 +96,11 @@ export class HandSignal {
     const h = (side) => { const y = this.handY(side, lm, t); return y == null ? null : (this.shRef - y) / this.torso; };
     const l = h('L'), r = h('R');
     const raw = l == null && r == null ? null : Math.max(l ?? -9, r ?? -9);
-    const sig = this.euro.f((raw ?? low) * 1000, t) / 1000;
+    /* 11-10 修：手從畫面下緣消失時，不可以比最後看到的位置高。
+       原本直接填校正最低點，手放得比校正時低（例如放在畫面下緣）就會一閃一閃往上跳，垃圾被冤枉吊起來。 */
+    if (raw != null) this.lastRaw = raw;
+    const fill = this.lastRaw == null ? low : Math.min(low, this.lastRaw);
+    const sig = this.euro.f((raw ?? fill) * 1000, t) / 1000;
     return { raw, sig, lh: l, rh: r };
   }
 }
@@ -124,7 +128,8 @@ export class LiftDetector {
   }
 
   thresholds(strict = 1) {
-    const o = this.opt, k = this.loosen * strict;
+    /* 放寬只給魚用（避免一直冤枉沒釣到）；垃圾 strict>1 不放寬，否則越玩越容易被冤枉勾到垃圾（11-10 修） */
+    const o = this.opt, k = (strict > 1 ? 1 : this.loosen) * strict;
     const rise = Math.max(o.rise * k, (o.minRiseTorso * strict) / this.range);
     const fast = Math.max(Math.max(o.rise * o.fastRatio, o.fastFloor) * k, (o.minFastTorso * strict) / this.range);
     return { rise, fast };

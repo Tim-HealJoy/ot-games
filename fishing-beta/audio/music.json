@@ -1,12 +1,14 @@
 {
- "main": {
-  "file": "music_main.m4a",
-  "start": 1.73914,
-  "end": 57.39132
- },
- "final": {
-  "file": "music_final.m4a",
-  "start": 1.5,
-  "end": 25.5
- }
+ "_說明": "三首輪流，每打完一局換下一首。main＝平常（作者原速），final＝最後 10 秒加速 12%（音高不變）。start／end 是循環點（秒），檔頭尾各墊 1 秒同一輪的音樂，AAC 補零不影響接縫。全部 CC0，來源見 art/music/候選曲_2026-11-10/LICENSES.md",
+ "tracks": [
+  {"id": "beach", "title": "Beach Sports Theme", "by": "Trex0n（OpenGameArt，CC0）",
+   "main":  {"file": "bgm_beach.m4a",       "start": 1.0, "end": 32.97916},
+   "final": {"file": "bgm_beach_fast.m4a",  "start": 1.0, "end": 29.55281}},
+  {"id": "hawaii", "title": "vintage hawaii", "by": "Tarush Singhal（OpenGameArt，CC0）",
+   "main":  {"file": "bgm_hawaii.m4a",      "start": 1.0, "end": 101.0},
+   "final": {"file": "bgm_hawaii_fast.m4a", "start": 1.0, "end": 90.28571}},
+  {"id": "vibes", "title": "Happy Vibes", "by": "Ruskerdax（OpenGameArt，CC0）",
+   "main":  {"file": "bgm_vibes.m4a",       "start": 1.0, "end": 46.39662},
+   "final": {"file": "bgm_vibes_fast.m4a",  "start": 1.0, "end": 41.5327}}
+ ]
 }
