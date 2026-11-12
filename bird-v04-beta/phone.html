@@ -1,0 +1,319 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#b9382a">
+<title>拍鳥・手機</title>
+<meta name="robots" content="noindex">
+<script src="/open-in-browser.js"></script>
+<style>
+  :root{--paper:#f6eeda;--paper2:#fffaf0;--ink:#2d2118;--red:#b9382a;--redD:#7f2318;--mut:#6b5a44;--ok:#d7efd9;--warn:#fff3c9;
+    --kai:"Kaiti TC","BiauKai","DFKai-SB",serif;--sans:"PingFang TC","Noto Sans TC","Heiti TC","Microsoft JhengHei",system-ui,sans-serif}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;min-height:100%;background:var(--paper);color:var(--ink);font-family:var(--sans);font-size:24px;line-height:1.45}
+  body{display:flex;flex-direction:column;min-height:100dvh;padding:calc(env(safe-area-inset-top,0px) + 20px) 18px calc(env(safe-area-inset-bottom,0px) + 20px);-webkit-user-select:none;user-select:none}
+  .scr{display:flex;flex-direction:column;gap:20px;flex:1}
+  .hide{display:none!important}
+  h1{margin:0;font-family:var(--kai);font-size:34px;line-height:1.3;color:var(--redD)}
+  p{margin:0}
+  .big{font-size:30px;font-weight:700;line-height:1.4}
+  .note{font-size:22px;color:var(--mut)}
+  .btn{display:flex;align-items:center;justify-content:center;width:100%;min-height:96px;font:700 36px var(--kai);color:var(--paper2);background:var(--red);border:3px solid var(--paper2);outline:3px solid var(--redD);border-radius:22px;box-shadow:0 6px 0 var(--redD);cursor:pointer;padding:0 16px;touch-action:manipulation}
+  .btn:active{transform:translateY(4px);box-shadow:0 2px 0 var(--redD)}
+  .btn.soft{background:var(--paper2);color:var(--ink);outline-color:var(--ink);border-color:var(--ink);box-shadow:0 6px 0 rgba(45,33,24,.45);min-height:72px;font-size:28px}
+  .room{display:flex;align-items:center;gap:14px;font-size:26px;font-weight:700}
+  #roomIn{width:5.2em;font:700 52px var(--sans);letter-spacing:.15em;text-align:center;padding:6px 0;border:3px solid var(--ink);border-radius:16px;background:#fff;color:var(--ink);min-height:80px}
+  #err{color:var(--redD);font-weight:700;font-size:24px;min-height:1.4em}
+  .status{font-size:26px;font-weight:700;padding:14px 16px;border-radius:16px;border:3px solid var(--ink);background:var(--warn)}
+  .status.ok{background:var(--ok)}
+  .phoneArt{align-self:center;width:110px;height:170px;border:6px solid var(--ink);border-radius:22px;position:relative;background:#fff}
+  .phoneArt::after{content:"";position:absolute;left:50%;bottom:10px;width:30px;height:6px;margin-left:-15px;border-radius:3px;background:var(--ink)}
+  .phoneArt span{position:absolute;inset:18px 10px 26px;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;text-align:center;color:var(--mut)}
+  #done{font-size:26px;font-weight:700;color:#2f6a3a;text-align:center;min-height:1.4em}
+  .spacer{flex:1}
+</style>
+</head>
+<body>
+
+<!-- 第一步：確認房號，按開始 -->
+<section class="scr" id="sStart">
+  <h1>手機當轉身感測器</h1>
+  <p class="big">確認房號跟電腦畫面上的一樣，再按「開始」。</p>
+  <label class="room">房號 <input id="roomIn" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off" aria-label="房號，4 位數字"></label>
+  <p id="err"></p>
+  <button class="btn" id="go" type="button">開始</button>
+  <p class="note">如果手機問「能不能取用動作與方向」，請按「允許」。</p>
+</section>
+
+<!-- 第二步：連上了，只留一句話、連線狀態、回到正前方 -->
+<section class="scr hide" id="sLive">
+  <p class="big">把手機直直拿在胸前，<br>看電腦畫面</p>
+  <div class="phoneArt" aria-hidden="true"><span>螢幕<br>朝自己</span></div>
+  <div class="status" id="status">正在連電腦…</div>
+  <p class="note hide" id="help"></p>
+  <div class="spacer"></div>
+  <!-- 拍鳥：手機是相機機身 -->
+  <button class="btn" id="shot" type="button" style="min-height:150px;font-size:46px;border-radius:999px">喀嚓 拍照</button>
+  <button class="btn soft" id="zoom" type="button">拉近</button>
+  <button class="btn hide" id="next" type="button" style="background:#3f7566;outline-color:#24483e;box-shadow:0 6px 0 #24483e;min-height:110px;font-size:38px">往前走</button>
+  <p id="done"></p>
+  <button class="btn soft" id="center" type="button">回到正前方</button>
+  <p class="note">身體轉回正面，再按一下「回到正前方」。</p>
+</section>
+
+<!-- 有狀況：白話說明怎麼辦 -->
+<section class="scr hide" id="sProblem">
+  <h1 id="pT"></h1>
+  <p class="big" id="pMsg"></p>
+  <div class="spacer"></div>
+  <button class="btn soft" id="retry" type="button">再試一次</button>
+</section>
+
+<script>
+/* 從《騎遍台灣》awake.js 原樣複製：讓螢幕保持亮著。
+ *
+ * 手機當方向盤時沒有人碰螢幕，系統會以為沒人在用，過一下就暗掉、鎖定，傾斜訊號也跟著斷。
+ * 電腦螢幕也一樣：手機在操作，電腦這邊沒有滑鼠鍵盤動作。
+ *
+ * 第一層：瀏覽器的 Wake Lock。
+ * 第二層：要不到（舊手機、App 內建瀏覽器、http 網址）就放一段看不見、沒聲音的影片，影片播放時系統不會關螢幕。
+ *        影片是本專案自己產生的，4 秒、全黑、無聲（H.264＋AAC，約 3 KB）。
+ *        不用 loop 屬性：iPhone 遇到循環播放的影片不會讓螢幕保持亮著，所以用 timeupdate 自己跳回前面。
+ *
+ * iPhone 要在點擊裡才給開，所以每次點擊都補一次；被系統收回也會自己再要。
+ * 狀態：off 沒在用／wait 還沒碰過螢幕／lock Wake Lock／video 影片備援／fail 兩層都失敗。 */
+(function (root) {
+  'use strict';
+  var QUIET = 'data:video/mp4;base64,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AAlUAAAJwQAAAAFtZGF0AAAAAAAABAcA0AAHANAABwDQAAcA0AAHANAABwDQAAcA0AAHANAABwDQAAcA0AAHANAABwDQAAcA0AAHANAABwDQAAcA0AAHANAABwDQAAcA0AAHANAABwDQAAcA0AAHANAABwDQAAcA0AAHANAABwDQAAcA0AAHANAABwDQAAcA0AAHANAABwDQAAcA0AAHANAABwDQAAcA0AAHANAABwDQAAcA0AAHANAABwDQAAcA0AAHANAABwDQAAcA0AAHANAABwAAADYGBS1HVkrcXExDP5TvxRE80UOoAQAAAwABAwAAAwABAgAAC7gLAAADAAADAAADAzQMA5ErAYAAAABPJbggAIP//+HooD7xXw//w8EhfvvvvvvvvvqExWuoSrrrrrrrrr4//8PRfvrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrwAAAAB0h4QQHvwOGJ+bE/P5/PCkT/Mqi/51UX/qov/VRfwDQAAcA0AAHANAABwDQAAcA0AAHANAABwDQAAcA0AAHAAAAHCHiCAc6E8V8/n+bE/zILLzRX86qL/1UX/qov4AAAAAbIeMMBroTuK+fz8V/MgwvNFfzqov/VRf+qi/gANAABwDQAAcA0AAHANAABwDQAAcA0AAHANAABwDQAAcA0AAHANAABwDQAAcA0AAHAAAAGyHkEAY+BSxfxPn4r+ZBpeaK/nVRf+qi/9VF/AAAABkh5RQFuM+J8/FfzIOLzRX86qL/1UX/qov4ANAABwDQAAcA0AAHANAABwDQAAcA0AAHANAABwDQAAcA0AAHANAABwDQAAcA0AAHAAAAGSHmGAU4z4nz8V/Mg8vNFfzqov/VRf+qi/gAAAAcIeccBL4ErF/E+I4r+ZAgXmiv51UX/qov/VRfwADQAAcA0AAHANAABwDQAAcA0AAHANAABwDQAAcA0AAHANAABwDQAAcAAAAaBgUVR1ZK3FxMQz+U78URPNFDqAMAAAMAAYAAAABPJbgQAEP//+HooABv3+H/+HgRC/fffffffffUEddQRV111111118f/+Hov311111111111111111111111111111111111111111111114AAAABwh4QQO6icV8/n+bE/zIEi80V/Oqi/9VF/6qL+AAAAAFyHiCAzubE/6qL/0CZRf+qi/9VF/6qL+AAAAFiHjDArjP9VF/6BQov/VRf+qi/9VF/AAAAAWIeQQE4z/VRf+gXKL/1UX/qov/VRfwAAAABUh5RQ+M/1UX/oGqi/9VF/6qL/1UX8AAAAWIeYYCeM/1UX/oF6i/9VF/6qL/1UX8AAAABYh5xwJ4z/VRf+gXqL/1UX/qov/VRfw';
+  function createAwake(opt) {
+    opt = opt || {};
+    var doc = root.document, nav = root.navigator, want = false, lock = null, asking = false, vid = null, vidOn = false, blessed = false, touched = false, lockBad = false;
+    var a = {state: 'off', why: !nav.wakeLock ? (root.isSecureContext === false ? '網址不是 https' : '瀏覽器沒有 Wake Lock') : '', start: start, stop: stop, get locked() { return !!lock; }, get videoOn() { return vidOn; }};
+    var visible = function () { return doc.visibilityState === 'visible'; };
+    function report() {
+      var s = !want ? 'off' : lock ? 'lock' : vidOn ? 'video' : touched && !asking ? 'fail' : 'wait';
+      if (s !== a.state) { a.state = s; if (opt.onChange) opt.onChange(s); }
+    }
+    function makeVideo() {
+      if (vid) return vid;
+      vid = doc.createElement('video');
+      // 寫法跟 iPhone 上確定可行的做法一樣：source 標籤、不設大小、放在畫面外
+      vid.setAttribute('title', ''); vid.setAttribute('playsinline', ''); vid.setAttribute('webkit-playsinline', ''); vid.setAttribute('aria-hidden', 'true'); vid.setAttribute('tabindex', '-1');
+      var src = doc.createElement('source'); src.src = QUIET; src.type = 'video/mp4'; vid.appendChild(src);
+      vid.style.cssText = 'position:absolute;left:-100%;top:-100%;pointer-events:none';
+      vid.addEventListener('error', function () { a.why = '影片無法載入'; report(); });
+      vid.addEventListener('timeupdate', function () { if (vid.currentTime > 2.5) vid.currentTime = .2 + Math.random(); });
+      vid.addEventListener('ended', function () { if (want && needVideo()) vid.play().catch(function () {}); });
+      vid.addEventListener('playing', function () { vidOn = true; report(); });
+      vid.addEventListener('pause', function () { vidOn = false; report(); });
+      (doc.body || doc.documentElement).appendChild(vid);
+      return vid;
+    }
+    var needVideo = function () { return opt.video !== false && (!lock || opt.both); };
+    function playVideo() {
+      if (opt.video === false) return;
+      var p; try { p = makeVideo().play(); } catch (e) {}
+      if (p && p.catch) p.catch(function (e) { a.why = '影片：' + ((e && e.name) || '播不了'); report(); });
+    }
+    function pauseVideo() { if (vid && !vid.paused) vid.pause(); }
+    function askLock() {
+      if (asking || lock || !nav.wakeLock || !visible()) return;
+      asking = true;
+      nav.wakeLock.request('screen').then(function (l) {
+        asking = false; lockBad = false;
+        if (!want) { l.release(); return; }
+        lock = l;
+        l.addEventListener('release', function () { if (lock === l) lock = null; report(); if (want && visible()) ensure(); });
+        if (!opt.both) pauseVideo();
+        report();
+      }, function (e) {
+        asking = false; lockBad = true; a.why = 'Wake Lock：' + ((e && e.name) || '被拒絕');
+        if (want && blessed) playVideo();
+        report();
+      });
+    }
+    /** 平常的檢查：沒有 Wake Lock 就要一次，真的要不到才放影片 */
+    function ensure() {
+      if (!want || !visible()) return;
+      if (lock && lock.released) lock = null;
+      askLock();
+      if (needVideo() && blessed && (lockBad || !nav.wakeLock || opt.both)) playVideo();
+      report();
+    }
+    /** 使用者碰了螢幕：影片一定要先在點擊裡開過一次，之後才能自己播 */
+    function onGesture() {
+      if (!want) return;
+      touched = true;
+      if (!blessed && opt.video !== false) { blessed = true; playVideo(); if (nav.wakeLock && !opt.both && lock) pauseVideo(); }
+      else if (needVideo() && (lockBad || !nav.wakeLock || opt.both)) playVideo();
+      askLock();
+      setTimeout(report, 400);
+    }
+    function start() {
+      if (want) { ensure(); return; }
+      want = true; ensure();
+    }
+    function stop() {
+      want = false; pauseVideo();
+      if (lock) { try { lock.release(); } catch (e) {} lock = null; }
+      report();
+    }
+    ['touchend', 'pointerup', 'click', 'keydown'].forEach(function (ev) { doc.addEventListener(ev, onGesture, {capture: true, passive: true}); });
+    doc.addEventListener('visibilitychange', ensure);
+    root.addEventListener('pageshow', ensure);
+    root.addEventListener('focus', ensure);
+    setInterval(ensure, 5000);
+    return a;
+  }
+  root.createAwake = createAwake;
+})(window);
+</script>
+<script>
+'use strict';
+// 連線設定：和電腦端 pair-host.js 的 window.CAT_NET 填一樣的中繼網址。留空＝連提供這個網頁的伺服器
+window.CAT_NET = {relay: 'wss://ride-relay.j2hsi9123.workers.dev'};
+const $ = (id) => document.getElementById(id);
+const qs = new URLSearchParams(location.search);
+const LOCALHOST = /^(localhost|127\.|\[::1\]$)/.test(location.hostname);
+const RELAY = (LOCALHOST && qs.get('relay')) || window.CAT_NET.relay || '';
+const IOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+const AWAKE_HELP = IOS ? '這支手機可能會自動暗掉。請到「設定 → 螢幕顯示與亮度 → 自動鎖定」改成「永不」，也請關掉低電量模式。' : '這支手機可能會自動暗掉。請到「設定 → 顯示 → 螢幕逾時」調到最長，也請關掉省電模式。';
+let look = null, lookAt = 0, sensorOn = false, startedAt = 0, n = 0, ws = null, st = {}, sendT = null, listening = false, perm = '';
+const awake = window.createAwake({both: IOS, onChange: () => syncHelp()});
+awake.start();   // 先準備好，按「開始」那一下就會真的開啟
+
+let id = ''; try { id = sessionStorage.getItem('catPhoneId') || ''; } catch (e) {}
+if (!id) { id = Math.random().toString(36).slice(2, 12); try { sessionStorage.setItem('catPhoneId', id); } catch (e) {} }
+let room = /^\d{4}$/.test(qs.get('room') || '') ? qs.get('room') : '';
+$('roomIn').value = room;
+
+const show = (name) => { for (const s of ['sStart', 'sLive', 'sProblem']) $(s).classList.toggle('hide', s !== name); };
+function problem(title, msg, retry = true) { $('pT').textContent = title; $('pMsg').textContent = msg; $('retry').classList.toggle('hide', !retry); show('sProblem'); }
+
+/* ───────── 轉身方向：和遊戲原始碼 lookDir 一模一樣的算法 ───────── */
+const D2R = Math.PI / 180, r2d = 180 / Math.PI;
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+function lookDir(alpha, beta, gamma) {
+  const a = (alpha || 0) * D2R, b = (beta || 0) * D2R, g0 = (gamma || 0) * D2R
+  const cA = Math.cos(a), sA = Math.sin(a), cB = Math.cos(b), sB = Math.sin(b), cG = Math.cos(g0), sG = Math.sin(g0)
+  const vx = -(cG * sA * sB + cA * sG), vy = -(sA * sG - cA * cG * sB), vz = -(cB * cG)
+  return { yaw: Math.atan2(vx, vy) * r2d, pitch: Math.asin(clamp(vz, -1, 1)) * r2d }
+}
+
+const SENSOR_STALE = 3000;   // 這麼久沒有新的方向資料，就當成感測器停了（真手機一秒會來幾十筆）
+function onOrient(e) {
+  if (e.alpha == null && e.beta == null) return;
+  look = lookDir(e.alpha, e.beta, e.gamma); lookAt = performance.now(); sensorOn = true;
+}
+function listen() { if (listening) return; listening = true; addEventListener('deviceorientation', onOrient); }
+
+/** 一定要在按鈕的點擊裡直接呼叫：iPhone 只在這時候給問權限 */
+function askSensor() {
+  if (window.isSecureContext === false) return Promise.resolve('insecure');
+  if (typeof DeviceOrientationEvent === 'undefined') return Promise.resolve('unsupported');
+  const ask = DeviceOrientationEvent.requestPermission;
+  if (typeof ask !== 'function') { listen(); return Promise.resolve('granted'); }
+  return ask.call(DeviceOrientationEvent).then((r) => { if (r === 'granted') listen(); return r === 'granted' ? 'granted' : 'denied'; }).catch(() => 'denied');
+}
+
+$('go').addEventListener('click', () => {
+  const v = $('roomIn').value.trim();
+  if (!/^\d{4}$/.test(v)) { $('err').textContent = '房號是 4 個數字，請看電腦畫面'; return; }
+  $('err').textContent = '';
+  room = v; history.replaceState(null, '', `${location.pathname}?room=${room}`);
+  const p = askSensor();   // 先問權限（同一個點擊裡）
+  awake.start();
+  p.then((r) => {
+    perm = r;
+    if (r === 'insecure') { problem('這個網址讀不到轉動', '請重新用手機相機掃電腦上的圖，要開「https」開頭的網址。'); return; }
+    if (r === 'unsupported') { problem('這支手機讀不到轉動', '請換一支手機試試看，或請旁邊的人在電腦上按「不用手機了，改用滑鼠玩」。'); return; }
+    if (r === 'denied') { problem('剛剛按到「不允許」了', IOS ? '請把這個網頁整個關掉，重新掃一次電腦上的圖；跳出詢問時，請按「允許」。' : '請把這個網頁關掉，重新掃一次電腦上的圖，再按「允許」。'); return; }
+    startedAt = performance.now();
+    show('sLive'); connect(); startSending();
+  });
+});
+$('roomIn').addEventListener('keydown', (e) => { if (e.key === 'Enter') $('go').click(); });
+$('retry').addEventListener('click', () => { show('sStart'); });
+
+/* ───────── 連線（和騎遍台灣的中繼同一套） ───────── */
+const send = (o) => { if (ws && ws.readyState === 1) ws.send(JSON.stringify(o)); };
+function connect() {
+  if (ws) { ws.onclose = null; try { ws.close(); } catch (e) {} }
+  const base = RELAY || `${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}`;
+  let s; try { s = new WebSocket(`${base}/ws?game=cat&role=phone&room=${room}&id=${id}`); } catch (e) { setTimeout(connect, 1500); return; }
+  ws = s; st = {}; syncStatus();
+  s.onopen = () => { syncStatus(); send({t: 'rtc', d: {k: 'hello'}}); };
+  s.onmessage = (e) => {
+    let m; try { m = JSON.parse(e.data); } catch (x) { return; }
+    if (m.t === 'full') { s.onclose = null; stopSending(); problem('電腦已經連著另一支手機', '請先關掉另一支手機上的這個網頁，再按「再試一次」。'); return; }
+    if (m.t === 'kicked') { s.onclose = null; stopSending(); problem('這一場結束了', '要再玩，請重新掃電腦上的圖。', false); return; }
+    if (m.t === 'idle') { s.onclose = null; stopSending(); problem('連線先休息了', '很久沒有動作。電腦那邊還開著的話，按「再試一次」再按「開始」就會接回去。'); return; }
+    if (m.t === 'state') { st = m; syncStatus(); return; }
+    if (m.t === 'rtc' && m.d && m.d.k === 'centered') { try { navigator.vibrate && navigator.vibrate(80); } catch (x) {} flashDone(); }
+    // v8：回憶題時，電腦請手機顯示「說完了」大按鈕
+    if (m.t === 'rtc' && m.d && m.d.k === 'zoomed') { $('zoom').textContent = m.d.on ? '拉遠' : '拉近'; }
+    if (m.t === 'rtc' && m.d && m.d.k === 'ask') { const b = $('next'); b.textContent = m.d.label || '說完了'; b.classList.toggle('hide', !m.d.on); if (m.d.on) { try { navigator.vibrate && navigator.vibrate(60); } catch (x) {} } }
+  };
+  s.onclose = () => { if (ws !== s) return; st = {}; syncStatus(); setTimeout(() => { if (ws === s) connect(); }, 1500); };
+  s.onerror = () => {};
+}
+function startSending() {
+  clearInterval(sendT);
+  sendT = setInterval(() => {
+    syncStatus();
+    if (!look || document.visibilityState !== 'visible') return;
+    if (performance.now() - lookAt > SENSOR_STALE) return;   // 感測器停了就不送，電腦才知道要暫停
+    send({t: 'rtc', d: {k: 'look', y: +look.yaw.toFixed(2), p: +look.pitch.toFixed(2), n: ++n}});
+  }, 33);
+}
+function stopSending() { clearInterval(sendT); sendT = null; }
+
+let lastStatus = '';
+function syncStatus() {
+  const t = performance.now(), el = $('status');
+  let text, ok = false;
+  if (!ws || ws.readyState !== 1) text = '正在連電腦…';
+  else if (st.host === false) text = '電腦那邊的拍鳥還沒打開';
+  else if (!st.you) text = '正在連電腦…';
+  else if (!sensorOn) text = t - startedAt > 2500 ? '讀不到手機轉動' : '正在讀手機轉動…';
+  else if (t - lookAt > SENSOR_STALE) text = '手機轉動停住了，請拿起手機';
+  else { text = '已經連上電腦'; ok = true; }
+  const key = text + ok;
+  if (key !== lastStatus) { lastStatus = key; el.textContent = text; el.classList.toggle('ok', ok); syncHelp(); }
+}
+function syncHelp() {
+  const h = $('help'); if (!h) return;
+  let msg = '';
+  if (startedAt && !sensorOn && performance.now() - startedAt > 2500) msg = '這支手機好像沒有轉動感測器。可以換一支手機，或請旁邊的人在電腦上改用滑鼠玩。';
+  else if (awake.state === 'fail') msg = AWAKE_HELP;
+  h.textContent = msg; h.classList.toggle('hide', !msg);
+}
+let doneT = 0;
+function flashDone() { $('done').textContent = '好了，現在這裡是正前方'; clearTimeout(doneT); doneT = setTimeout(() => { $('done').textContent = ''; }, 2500); }
+$('center').addEventListener('click', () => { send({t: 'rtc', d: {k: 'center'}}); });
+$('next').addEventListener('click', () => { send({t: 'rtc', d: {k: 'next'}}); $('next').classList.add('hide'); });
+$('shot').addEventListener('click', () => { send({t: 'rtc', d: {k: 'shot'}}); try { navigator.vibrate && navigator.vibrate(40); } catch (x) {} });
+$('zoom').addEventListener('click', () => { send({t: 'rtc', d: {k: 'zoom'}}); });
+
+/* ───────── 螢幕暗掉／切到別的 App ───────── */
+document.addEventListener('visibilitychange', () => {
+  if (!sendT) return;
+  if (document.visibilityState === 'hidden') send({t: 'rtc', d: {k: 'away'}});
+  else { if (!ws || ws.readyState > 1) connect(); else send({t: 'rtc', d: {k: 'back'}}); }
+});
+// 手機暗掉又點亮：連線多半已經斷了，只是還沒發現。計時器停過就直接接回去
+let lastTick = Date.now();
+setInterval(() => {
+  if (document.visibilityState !== 'visible') return;
+  const t = Date.now();
+  if (t - lastTick > 4000 && sendT) connect();
+  lastTick = t;
+}, 1000);
+setInterval(() => send({t: 'ping'}), 25000);
+
+window.__phone = {get st() { return st; }, get look() { return look; }, get sensorOn() { return sensorOn; }, get perm() { return perm; }, get n() { return n; }, awake, lookDir};
+</script>
+<script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "3df68cf5d6bd4975b97a157f7ff3cafb"}'></script>
+</body>
+</html>
