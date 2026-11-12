@@ -45,6 +45,7 @@ export const ELEMENTS = {
   伸取: [['reach', 1]],
   伸取跨中線: [['reach', 1], ['att', 0.5]],
   軀幹傾斜: [['trunk', 1]],
+  軀幹轉身: [['trunk', 1]],
   持續: [['endure', 1]],
 };
 /* 一組要素主要練到哪幾軸（權重 1） */
@@ -72,6 +73,7 @@ export const GAME_ELEMENTS = {
   rhythm: ['選擇反應', '舉高', '記住順序'],
   ride: ['軀幹傾斜', '忍住不動', '視覺搜尋'],
   boar: ['伸取跨中線', '選擇反應'],
+  bird: ['軀幹轉身', '視覺搜尋'],   /* 2026-11-12 植物園拍鳥：坐著轉身找鳥 */
 };
 /* 11-11 全部活動依「訓練目標」分類（老闆指示）。目標＝雷達的軸，寫成生活裡的說法；
    每個活動只放在一個「主要目標」底下（goal），其他練到的列成「也練到」。 */
@@ -86,6 +88,6 @@ export const GOALS = [
   { id: 'vis', side: 'mind', name: '看得懂形狀', life: '認得出東西的樣子和擺的位置', icon: '🔍' },
   { id: 'calc', side: 'mind', name: '會比、會算', life: '買菜比價錢、找零錢', icon: '💰' },
 ];
-export const GAME_GOAL = { fishing: 'lift', netlift: 'lift', rhythm: 'lift', ride: 'trunk', boar: 'reach' };
+export const GAME_GOAL = { fishing: 'lift', netlift: 'lift', rhythm: 'lift', ride: 'trunk', boar: 'reach', bird: 'trunk' };
 export const goalById = (id) => GOALS.find((g) => g.id === id) || null;
 export const quizById = (id) => QUIZ.find((q) => q.id === id) || null;

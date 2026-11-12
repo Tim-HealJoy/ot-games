@@ -31,6 +31,11 @@ export function tiltLevel(deg) {
   if (deg == null || !isFinite(deg)) return null;
   return deg < 8 ? 1 : deg < 12 ? 2 : deg < 16 ? 3 : deg < 20 ? 4 : 5;
 }
+/* 坐著轉身的角度（左右兩邊都轉得到的，取小的那邊）→ 1～5 級〔暫定切點〕；植物園拍鳥回報 play.turnDeg */
+export function turnLevel(deg) {
+  if (deg == null || !isFinite(deg)) return null;
+  return deg < 20 ? 1 : deg < 35 ? 2 : deg < 50 ? 3 : deg < 70 ? 4 : 5;
+}
 export const REACH_BASE = { near: 1, low: 2, high: 3, wide: 4 };
 /* 動作遊戲的難度 → 等級〔暫定〕 */
 export const DIFF_LEVEL = { easy: 2, normal: 3, hard: 4 };
@@ -99,6 +104,7 @@ export function fromAssess(s) {
   const rate = play && fin(play.rate) ? clamp(play.rate, 0, 1) : null;
   if (play && rate == null) flags.push('noRate');
   if (!entry && level && rate != null) axes.push(...mindAxes(GAME_ELEMENTS[s.game], valueOf(level, rate)));
+  if (!entry && play && fin(play.turnDeg)) axes.push({ axis: 'trunk', v: turnLevel(play.turnDeg), w: 1 });
 
   const end = entry ? (best != null || s.gng ? (s.painNow ? 'safe' : 'done') : 'started')
     : play ? 'done' : s.painNow ? 'safe' : 'started';
@@ -106,7 +112,7 @@ export function fromAssess(s) {
   return card({
     id: s.id || `${s.game}:${s.at}`, who: s.code, at: s.at, kind: entry ? 'entry' : 'game', activity: s.game, level, rate, axes,
     raw: { liftL: L, liftR: R, gng: g ? { commission: g.commission ?? null, omission: g.omission ?? null, rtMed: g.rtMed ?? null } : null,
-      score: play ? play.score ?? null : null, diff: play ? play.diff ?? null : null, pain: s.pain || null, painNow: !!s.painNow },
+      score: play ? play.score ?? null : null, diff: play ? play.diff ?? null : null, turnDeg: play ? play.turnDeg ?? null : null, pain: s.pain || null, painNow: !!s.painNow },
     quality: { ok: best != null || !!g || !!play, flags }, end, demo: s.demo,
   });
 }
