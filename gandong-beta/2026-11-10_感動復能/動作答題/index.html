@@ -4,6 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>感．動復能｜用身體答題</title>
+<link rel="icon" type="image/png" sizes="32x32" href="../site/brand/favicon-32.png">
+<link rel="apple-touch-icon" href="../site/brand/apple-touch-icon.png">
 <style>
 :root{--bg:#F4EFE3;--ink:#2B2621;--sub:#6B6258;--card:#FFFDF8;--line:#E2D8C4;--soft:#EFE6D2;--accent:#C8402E;--accent-d:#A3321F;--ok:#2E7D4F;--no:#b8463d;--blue:#2e6bb0;--mind:#2e5f8a;--mind-bg:#E3ECF5;--move:#A3321F;--move-bg:#F8E1DA}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -15,7 +17,9 @@ button{font:inherit;cursor:pointer}
 #setup{overflow:auto;padding:0 0 40px}
 .topbar{position:sticky;top:0;z-index:5;background:rgba(244,239,227,.94);backdrop-filter:blur(6px);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:12px;padding:10px 16px}
 .topbar a,.topbar button{font:inherit;font-size:19px;font-weight:700;color:var(--ink);text-decoration:none;background:var(--card);border:2px solid var(--line);border-radius:12px;padding:8px 14px;min-height:48px;display:inline-flex;align-items:center}
-.topbar .brand{font-weight:900;font-size:22px;letter-spacing:.04em;margin-right:auto;border:0;background:none;padding:0}
+.topbar .brand{font-weight:900;font-size:22px;letter-spacing:.04em;margin-right:auto;border:0;background:none;padding:0;display:flex;align-items:center;gap:10px}
+.topbar .brand-img{display:block;height:52px;width:auto}
+@media (max-width:520px){.topbar .brand-img{height:40px}}
 .topbar .who{font-size:17px;color:var(--sub);font-weight:700}
 .wrap{max-width:920px;margin:0 auto;padding:18px 16px 0}
 .hero{display:grid;grid-template-columns:minmax(220px,42%) 1fr;background:var(--card);border:2px solid var(--line);border-radius:22px;overflow:hidden}
@@ -145,7 +149,7 @@ td,th{border-bottom:1px solid var(--line);padding:6px 4px;text-align:left}
 <body>
 
 <section id="setup" class="scr on">
-  <div class="topbar"><a id="homeLink" href="../site/">← 首頁</a><span class="brand">感．動復能</span><span class="who" id="whoTag"></span></div>
+  <div class="topbar"><a id="homeLink" href="../site/">← 首頁</a><span class="brand"><img class="brand-img" src="../site/brand/logo_h_dark.png" alt="感．動復能"></span><span class="who" id="whoTag"></span></div>
   <div class="wrap">
     <div id="pickWrap"><h2 class="sech">用身體答題：玩哪一個？</h2><div class="actgrid" id="pkAct"></div></div>
     <div id="heroBox"></div>
