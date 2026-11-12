@@ -369,3 +369,39 @@ details.pro table{font-size:19px}
   .qz-memo figcaption{font-size:28px}
   .snacks.res-mind{grid-template-columns:1fr}
 }
+/* 記菜改記 5 樣（2026-11-12 19:35）：一排 5 張，手機改 3＋2 */
+.qz-memo-row{flex-wrap:wrap;max-width:1240px}
+.qz-memo figure{flex:1 1 17%;padding:10px 10px 6px}
+.qz-memo figcaption{font-size:clamp(28px,4.4vh,46px);white-space:nowrap}
+@media (max-width:820px){
+  .qz-memo{align-items:flex-start}
+  .qz-memo-row{gap:8px}
+  .qz-memo figure{flex:0 1 31%}
+  .qz-memo figcaption{font-size:22px}
+}
+/* 小測：今天星期幾（2026-11-12）：大字卡放在看圖區 */
+.qz-wd{font-size:clamp(64px,13vh,140px);font-weight:900;line-height:1.2;color:#100C04;background:#FFFDF8;border:5px solid #FFD400;border-radius:26px;padding:.15em .6em;margin:auto 0}
+.qz-wd.dim{opacity:.45}
+@media (max-width:820px){ .qz-wd{font-size:64px} }
+/* 全部活動 ICF 簡化版（2026-11-12，老闆拍板 模擬圖 v0.2）：兩顆大按鈕＋12 項分段＋大字列表 */
+.lsws{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:8px 0 6px}
+.lsw{font:inherit;cursor:pointer;border:4px solid var(--y,#FFD400);border-radius:22px;background:transparent;color:var(--y,#FFD400);padding:16px 12px;display:flex;align-items:center;justify-content:center;gap:12px;min-height:96px}
+.lsw b{font-size:clamp(30px,4vw,40px);font-weight:900;letter-spacing:2px}
+.lsw span{font-size:clamp(18px,2vw,22px);font-weight:800;opacity:.85}
+.lsw.on{background:var(--y,#FFD400);color:#100C04;box-shadow:0 0 22px rgba(255,212,0,.5)}
+#scrLib .lead{font-size:22px;font-weight:700}
+.lsec{margin:30px 0 0}
+.lsec h2{font-size:clamp(28px,3.4vw,34px);font-weight:900;color:var(--y,#FFD400);margin:0;display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;border-bottom:3px solid var(--y,#FFD400);padding-bottom:8px}
+.lsec h2 small{font-size:clamp(19px,2.2vw,22px);font-weight:700;color:var(--ink)}
+.lrows{display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:14px;margin-top:14px}
+.lrow{display:flex;gap:16px;align-items:center;text-decoration:none;color:var(--ink);background:var(--card);border:3px solid var(--line);border-radius:20px;padding:12px}
+.lrow .th{width:120px;height:120px;border-radius:14px;background-size:cover;background-position:center;flex:none;display:flex;align-items:center;justify-content:center;font-size:56px;background-color:var(--soft)}
+.lrow .lt{min-width:0;flex:1}
+.lrow b{display:block;font-size:clamp(26px,2.8vw,30px);font-weight:900;color:var(--y,#FFD400);line-height:1.25}
+.lrow .how{display:inline-block;margin-top:8px;font-size:20px;font-weight:800;color:#100C04;background:var(--y,#FFD400);border-radius:999px;padding:3px 14px}
+.lrow .go{flex:none;margin-left:auto;font-size:34px;color:var(--y,#FFD400);font-weight:900;padding-right:6px}
+.lsoon{margin-top:30px;font-size:21px;font-weight:700;color:var(--mut);border:3px dashed var(--line);border-radius:18px;padding:14px 18px}
+@media (max-width:760px){
+  .lsws{gap:10px}.lsw{min-height:84px;flex-direction:column;gap:2px;padding:10px}
+  .lrows{grid-template-columns:1fr}.lrow .th{width:96px;height:96px}
+}

@@ -342,7 +342,7 @@
 
 <script type="module">
 import {LiftDetector,HandSignal,isLowered,calibrate,postureHints} from './detector.js?v=16';
-import {ITEMS,FISH_ORDER,TRASH_ORDER,HIDDEN_ORDER,GOOD_ORDER,DEX_ORDER,DIFF,TODAY,DOUBLE_SEC,HIGH_LINE,heightBonus,itemsFor,mixFor,scoreFor,comboBonus,starsFor,starLines,nextStarGap,titleFor,pickHidden,firstDiff,fishCount,rareFish} from './rules.js?v=17';
+import {ITEMS,FISH_ORDER,TRASH_ORDER,HIDDEN_ORDER,GOOD_ORDER,DEX_ORDER,DIFF,TODAY,DOUBLE_SEC,HIGH_LINE,lineFor,heightBonus,itemsFor,mixFor,scoreFor,comboBonus,starsFor,starLines,nextStarGap,titleFor,pickHidden,firstDiff,fishCount,rareFish} from './rules.js?v=18';
 import {createRank} from './rank.js?v=15';
 import {FisherRig,drawFisher,drawLine,makeSticker} from './fisher.js?v=15';
 import {Drill} from './drill.js?v=15';
@@ -588,6 +588,7 @@ const rig=new FisherRig(LAY);
 let phase='boot',T=null,uid=0,score=0,scoreShown=0,elapsed=0,rush=false,paused=false,today=TODAY[0],combo=0,comboSaid=false,comboPop=0,doubleAt=-9999;
 let rareGot=new Set(),rareAt=-9999,stat=null,tut=null,storyT=0,storyStep=0,chestAt=0,chestDone=false,lastTrash=0,lastId=null,spawned=0,seqSeen=-1,pendHit=null,loosen=1,earlySaid=0;
 let cap={text:'',until:0},card=null,parts=[],shake=0,bucketKick=0,binKick=0,lowerSaid=0,highSaid=-99,revealT=-9999;
+const gold=()=>lineFor(cfg.diff);   /* 這局的金線高度（依難度 60／75／90%） */
 let rep={up:false,peak:0,lp:-9,rp:-9},cal=null,endAt=0,chatI=0;
 let bestNow=0,recordBeaten=false,recordAt=-9999,roundToken=null,rankBlocked=null;
 let drill=null,drillHint=null,drillMsg={text:'',until:0},drillBackSaid=-99999,highFlash=-9999,lowSaid=-99999,camCx=.5;
@@ -777,7 +778,7 @@ function stepTurn(now,dt){
       const good=ITEMS[T.id].good;
       T.fly=clamp(T.fly+dt/.36);
       if(P.s>T.peak+.008){ T.peak=P.s; T.peakAt=now; }
-      if(good&&!T.highDone&&P.s>=HIGH_LINE&&!AS.noPush())onHigh(now);
+      if(good&&!T.highDone&&P.s>=gold()&&!AS.noPush())onHigh(now);
       const [hMin,hMax]=tutOn?[1,6.5]:D.hook;
       const down=T.t>hMin&&isLowered(P.s,T.base,T.peak);
       if((tutOn||cfg.diff===0)&&T.t>3&&now-lowerSaid>6000&&!down){ lowerSaid=now; AE.say('lower'); caption('手放下來，再釣下一條',2.4); }
@@ -972,7 +973,7 @@ function showResult(){
     <tr><th>難度／抬手門檻／魚等</th><td>${DIFF[d].name}／${Math.round(cfg.rise*100)}%／${cfg.win} 秒</td></tr>
     <tr><th>抬手次數</th><td>${stat.reps} 次</td></tr>
     <tr><th>平均舉高（占校正範圍）</th><td>${pct(avg(stat.peaks))}</td></tr>
-    <tr><th>釣到魚時舉到金線／沒舉到</th><td>${stat.high}／${stat.low} 次</td></tr>
+    <tr><th>釣到魚時舉到金線（${Math.round(gold()*100)}%）／沒舉到</th><td>${stat.high}／${stat.low} 次</td></tr>
     <tr><th>魚咬鉤後平均反應</th><td>${f(avg(stat.rts),2)} 秒</td></tr>
     <tr><th>魚跑掉</th><td>${stat.escape} 次（其中有抬但沒算到 ${stat.near} 次）</td></tr>
     <tr><th>垃圾：忍住／勾到</th><td>${stat.hold}／${trashN} 次</td></tr>
@@ -1284,7 +1285,7 @@ function draw(now,dt){
   ctx.restore();
 
   ctx.setTransform(scale,0,0,scale,ox,oy);
-  if(phase==='story'||phase==='tut'||phase==='play'||phase==='ending'){ drawMeter(now); drawCam(20,680,300,380,{line:HIGH_LINE}); }
+  if(phase==='story'||phase==='tut'||phase==='play'||phase==='ending'){ drawMeter(now); drawCam(20,680,300,380,{line:gold()}); }
   if(phase==='story')drawSteps('聽說明'); else if(phase==='tut')drawSteps('試釣');
   if(phase==='play'||phase==='ending')drawScore(now);
   if(card)drawCard(now);
@@ -1362,7 +1363,7 @@ function drawTag(it,x,y){
 }
 /* 左上的高度條：金線是目標，舉過就變金色 */
 function drawMeter(now){
-  const x=32,y=112,w=46,h=240, s=clamp(P.disp), fh=h*s, ly=y+h-h*HIGH_LINE, over=P.disp>=HIGH_LINE, fl=clamp(1-(now-highFlash)/500);
+  const x=32,y=112,w=46,h=240, s=clamp(P.disp), fh=h*s, ly=y+h-h*gold(), over=P.disp>=gold(), fl=clamp(1-(now-highFlash)/500);
   rr(x-4,y-4,w+8,h+8,14,'rgba(15,40,55,.82)',fl>0?`rgba(255,216,77,${fl})`:null,6);
   rr(x,y+h-Math.max(fh,6),w,Math.max(fh,6),10,over?'#FFD84D':'#8FD3F0');
   if(T&&T.st==='hooked'&&T.peak>.04){ ctx.fillStyle='#fff'; ctx.fillRect(x,y+h-h*clamp(T.peak)-2,w,4); }

@@ -529,7 +529,7 @@ const FIG = `<svg viewBox="0 0 170 130" aria-hidden="true"><g fill="none" stroke
 function showHowto() {
   const a = ACTS[cfg.act];
   show('prep');
-  $('howBox').innerHTML = `<span class="kind">${a.side === 'move' ? '動' : '感'}．第 ${cfg.level} 級．${a.hints[cfg.level - 1]}</span><div class="howhead"><span class="cover" style="background-image:url('${coverOf(cfg.act)}')"></span><div><h2>${a.name}</h2><p class="why">${a.why}</p></div></div>
+  $('howBox').innerHTML = `<span class="kind">${a.side === 'move' ? '動身體' : '動頭腦'}．第 ${cfg.level} 級．${a.hints[cfg.level - 1]}</span><div class="howhead"><span class="cover" style="background-image:url('${coverOf(cfg.act)}')"></span><div><h2>${a.name}</h2><p class="why">${a.why}</p></div></div>
     <ol class="howsteps">${a.steps.map((s) => `<li><span>${s}</span></li>`).join('')}</ol>
     <div class="howmove">${FIG}<div>平板用支架<b>立在桌上</b>，螢幕和眼睛差不多高。<b>坐正、背挺直</b>，<b>手舉起來</b>輕碰答案；<b>手指、指節、整個手掌</b>碰到都算。碰完<b>手放下來</b>，才算下一下。</div></div>
     <div class="btns"><button class="pri" id="howGo">開始</button><button id="howBack">回上一頁</button></div>`;

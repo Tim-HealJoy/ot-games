@@ -13,7 +13,7 @@
      end:'done'|'safe'|'started', task:null, demo }
    - end：done 玩完；safe 按了「肩膀會痛」提前停（算完成，不讓長者為了任務忍痛）；started 只開了頭。
    - task：今日點心或治療師指派的第幾樣，由呼叫端標上（tagTasks）。 */
-import { MIND_AXES, ELEMENTS, GAME_ELEMENTS } from './catalog.js';
+import { MIND_AXES, ELEMENTS, GAME_ELEMENTS, ICF_OF } from './catalog.js';
 
 export const CARD_VER = 1;
 const MIND = new Set(MIND_AXES.map((a) => a.id));
@@ -31,11 +31,12 @@ export function tiltLevel(deg) {
   if (deg == null || !isFinite(deg)) return null;
   return deg < 8 ? 1 : deg < 12 ? 2 : deg < 16 ? 3 : deg < 20 ? 4 : 5;
 }
-/* 入口記菜（6 樣答對幾樣）→ 「感．記得住」的值〔暫定〕
-   入口只記 3 樣、再認，題目比「菜市場記清單」第 2 級還簡單，全對只給 3 級，免得把雷達拉得比實際高。 */
-export function memLevel(correct) {
+/* 入口記菜（of 樣答對幾樣，19:35 起 of＝10：記 5 樣＋沒買 5 樣）→ 「感．記得住」的值〔暫定〕
+   用錯幾樣分級：記 5 樣、再認，難度約在記清單第 3～4 級之間，全對給 4 級。 */
+export function memLevel(correct, of = 10) {
   if (correct == null || !isFinite(correct)) return null;
-  return correct >= 6 ? 3 : correct >= 5 ? 2.5 : correct >= 4 ? 2 : 1;
+  const e = of - correct;
+  return e <= 0 ? 4 : e === 1 ? 3 : e === 2 ? 2.5 : e === 3 ? 2 : 1;
 }
 /* 坐著轉身的角度（左右兩邊都轉得到的，取小的那邊）→ 1～5 級〔暫定切點，等資料再調〕；植物園拍鳥回報 play.turnDeg */
 export function turnLevel(deg) {
@@ -56,6 +57,14 @@ function mindAxes(elements, v) {
   return out;
 }
 
+/* 上肢肌耐力（ICF b740，11-12 起）：主要練它的活動（節奏律動、拍拍看）一局給 1，也練到的（舉網）給 0.5；
+   值＝等級 × 成功率，跟其他軸同一套。取代舊的「一天玩完幾樣」（那是參與度，不是肌耐力）。 */
+function endureAxis(activity, v) {
+  const m = ICF_OF[activity];
+  if (!m || v == null) return [];
+  return m.main === 'end' ? [{ axis: 'endure', v, w: 1 }] : m.also.includes('end') ? [{ axis: 'endure', v, w: 0.5 }] : [];
+}
+
 function card(o) {
   return {
     ver: CARD_VER, id: o.id, who: o.who || '', at: o.at, kind: o.kind, activity: o.activity,
@@ -70,7 +79,7 @@ export function fromQuiz(s) {
   const has = !!sm.n;
   const level = s.level || 1;
   const rate = has ? (fin(sm.firstRate) ? sm.firstRate : 0) : null;
-  const axes = has ? mindAxes(s.elements && s.elements.mind, valueOf(level, rate)) : [];
+  const axes = has ? [...mindAxes(s.elements && s.elements.mind, valueOf(level, rate)), ...endureAxis(s.activity, valueOf(level, rate))] : [];
   const flags = [];
   if (!has) flags.push('noItems');
   if (s.input === 'cam' && REACH_BASE[s.layout]) {
@@ -109,22 +118,23 @@ export function fromAssess(s) {
   /* 各款遊戲回報 play.rate（這局成功的比例）後，才進「感」雷達；還沒回報就只記分數 */
   const rate = play && fin(play.rate) ? clamp(play.rate, 0, 1) : null;
   if (play && rate == null) flags.push('noRate');
-  if (!entry && level && rate != null) axes.push(...mindAxes(GAME_ELEMENTS[s.game], valueOf(level, rate)));
+  if (!entry && level && rate != null) axes.push(...mindAxes(GAME_ELEMENTS[s.game], valueOf(level, rate)), ...endureAxis(s.game, valueOf(level, rate)));
   /* 用身體帶著手機轉身的遊戲（拍鳥）：轉身角度進「坐得穩」；滑鼠拖曳不算，所以遊戲只在用手機時回報 turnDeg */
   if (!entry && play && fin(play.turnDeg)) axes.push({ axis: 'trunk', v: turnLevel(play.turnDeg), w: 1 });
   /* 入口記菜（2026-11-12）：問完 6 樣才算進「記得住」，只問一半不算 */
   const m = entry && s.mem && fin(s.mem.correct) ? s.mem : null;
-  if (m && m.n >= (m.of || 6)) axes.push({ axis: 'mem', v: memLevel(m.correct), w: 1 });
+  if (m && m.n >= (m.of || 10)) axes.push({ axis: 'mem', v: memLevel(m.correct, m.of || 10), w: 1 });
   else if (m) flags.push('memPartial');
 
-  const end = entry ? (best != null || s.gng || m ? (s.painNow ? 'safe' : 'done') : 'started')
+  const end = entry ? (best != null || s.gng || m || s.day ? (s.painNow ? 'safe' : 'done') : 'started')
     : play ? 'done' : s.painNow ? 'safe' : 'started';
   const g = s.gng || null;
   return card({
     id: s.id || `${s.game}:${s.at}`, who: s.code, at: s.at, kind: entry ? 'entry' : 'game', activity: s.game, level, rate, axes,
     /* gng 欄位名以 gonogo.js summary() 為準（commissions／omissions／rtMedian），舊名留著相容 */
     raw: { liftL: L, liftR: R, gng: g ? { commission: g.commissions ?? g.commission ?? null, omission: g.omissions ?? g.omission ?? null, rtMed: g.rtMedian ?? g.rtMed ?? null } : null,
-      mem: m ? { book: m.book || null, correct: m.correct, of: m.of || 6, n: m.n, hits: m.hits, fa: m.fa, rtMed: m.rtMedian ?? null } : null,
+      day: entry && s.day ? { correct: !!s.day.correct, today: s.day.today ?? null, picked: s.day.picked || [], n: s.day.n ?? null } : null,
+      mem: m ? { book: m.book || null, correct: m.correct, of: m.of || 10, n: m.n, hits: m.hits, fa: m.fa, rtMed: m.rtMedian ?? null } : null,
       score: play ? play.score ?? null : null, diff: play ? play.diff ?? null : null, turnDeg: play ? play.turnDeg ?? null : null, pain: s.pain || null, painNow: !!s.painNow },
     quality: { ok: best != null || !!g || !!m || !!play, flags }, end, demo: s.demo,
   });
@@ -141,18 +151,10 @@ export function buildCards({ quizSessions = [], assessSessions = [] } = {}) {
 export const finished = (c) => c.end === 'done' || c.end === 'safe';
 
 /* 成績卡 → 雷達的點 [{at, axis, v, w, src}]。展示資料不算。
-   「持續」＝一天玩完幾樣（入口小測不算，只開了頭的不算）。 */
+   11-12 起「上肢肌耐力」由活動給分（見 endureAxis），不再用一天玩完幾樣。 */
 export function axisPoints(cards) {
   const pts = [];
-  const real = (cards || []).filter((c) => !c.demo);
-  for (const c of real) for (const a of c.axes) pts.push({ at: c.at, axis: a.axis, v: a.v, w: a.w, src: c.activity });
-  const byDay = new Map();
-  for (const c of real) {
-    if (c.kind === 'entry' || !finished(c)) continue;
-    const k = dayKey(c.at), o = byDay.get(k) || { at: c.at, n: 0 };
-    o.n++; o.at = Math.max(o.at, c.at); byDay.set(k, o);
-  }
-  for (const o of byDay.values()) pts.push({ at: o.at, axis: 'endure', v: clamp(o.n, 1, 5), w: 1, src: 'day' });
+  for (const c of (cards || []).filter((x) => !x.demo)) for (const a of c.axes) pts.push({ at: c.at, axis: a.axis, v: a.v, w: a.w, src: c.activity });
   return pts;
 }
 

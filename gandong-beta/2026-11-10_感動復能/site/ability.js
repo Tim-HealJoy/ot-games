@@ -76,19 +76,20 @@ export function summaryLine(r) {
 /* ---------- 今日遊戲：三樣，至少 1 樣動、1 樣感（第八節） ----------
    2026-11-12 老闆：要依玩家在小測（評估）的表現，給當天適合的遊戲。規則全部〔暫定〕，待老闆審：
    1. 動：今天小測推薦的第一款（recommend.js，看舉手與看圖）。
-   2. 記菜答對 ≤4／6（memLow）：一定排「菜市場記清單」，從低等級開始（≤3 樣對→第 1 級、4 樣→最高第 2 級）。
-   3. 記菜答對 5／6：也排記清單，最高第 3 級。
+   （記菜 19:35 起記 5 樣、共問 10 樣，以下用「錯幾樣」）
+   2. 記菜錯 3 樣以上（memLow）：一定排「菜市場記清單」，錯 3 樣最高第 2 級、錯 4 樣以上第 1 級。
+   3. 記菜錯 1～2 樣：也排記清單，錯 1 樣最高第 4 級、錯 2 樣最高第 3 級。
    4. 看圖慢（slow）或忍不住（impulsive）：排「哪一個比較快」，最高第 2 級，看清楚再答。
    5. 其餘位置照雷達補（還沒畫出來的軸先、分數低的軸次之）。
-   6. 記菜 ≤4 或看圖慢／忍不住：今天其他答題最高第 2 級（今天先輕鬆）；記菜全對、看圖順：沿用上次等級，記清單沒玩過就從第 3 級。
+   6. 記菜錯 3 樣以上、看圖慢／忍不住、或星期幾沒答對：今天其他答題最高第 2 級（今天先輕鬆）；記菜全對、看圖順：沿用上次等級，記清單沒玩過就從第 3 級。
    7. 今天沒做小測：照原本雷達規則（第一樣是「先做小測」）。 */
 export function entryMind(entry) {
   if (!entry) return null;
   const f = flagsOf(null, entry);
-  const c = f.memCorrect;
-  const memStart = c == null ? null : c >= 6 ? 3 : c >= 5 ? 2 : 1;          /* 記清單沒玩過時的起點 */
-  const memCap = c == null ? 5 : c >= 6 ? 5 : c >= 5 ? 3 : c >= 4 ? 2 : 1;  /* 今天記清單最高幾級 */
-  const easy = f.memLow || f.slow || f.impulsive;
+  const e = f.memErr;
+  const memStart = e == null ? null : e <= 0 ? 3 : e <= 2 ? 2 : 1;                         /* 記清單沒玩過時的起點 */
+  const memCap = e == null ? 5 : e <= 0 ? 5 : e === 1 ? 4 : e === 2 ? 3 : e === 3 ? 2 : 1;  /* 今天記清單最高幾級 */
+  const easy = f.memLow || f.slow || f.impulsive || f.dayWrong;
   return { ...f, memStart, memCap, capOther: easy ? 2 : 5 };
 }
 

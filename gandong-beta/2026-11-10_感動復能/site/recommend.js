@@ -10,9 +10,9 @@ export const TH = {
   impulsive: 2,      // 看圖「不該舉卻舉」幾題以上
   slowRt: 1.0,       // 反應時間中位數（秒）以上
   slowOmit: 2,       // 「該舉沒舉」幾題以上
-  /* 記菜（2026-11-12）：6 樣答對幾樣。≤4 記性今天較吃力、6 全對〔暫定〕 */
-  memLow: 4,
-  memOk: 6,
+  /* 記菜（2026-11-12）：用「錯幾樣」判，記 5 樣共問 10 樣。錯 3 樣以上＝今天較吃力、0＝全對〔暫定〕 */
+  memLowErr: 3,
+  memOkErr: 0,
 };
 
 export const RULE_ORDER = ['pain', 'lowBoth', 'asym', 'impulsive', 'slow', 'none'];
@@ -86,10 +86,14 @@ export function flagsOf(subject, rec) {
   const impulsive = !!gng && (gng.commissions || 0) >= TH.impulsive;
   const slow = !!gng && ((gng.rtMedian != null && gng.rtMedian >= TH.slowRt) || (gng.omissions || 0) >= TH.slowOmit);
   /* 記菜：問完 6 樣才判；只影響今日遊戲的「感」那兩樣（ability.todaySnack），不改上面動作遊戲的推薦順序 */
-  const mem = rec && rec.mem && rec.mem.n >= (rec.mem.of || 6) && rec.mem.correct != null ? rec.mem : null;
-  const memLow = !!mem && mem.correct <= TH.memLow;
-  const memOk = !!mem && mem.correct >= TH.memOk;
-  return { pain, effort, lowBoth, asym, impulsive, slow, noLift: !lift, noGng: !gng, memLow, memOk, noMem: !mem, memCorrect: mem ? mem.correct : null };
+  const mem = rec && rec.mem && rec.mem.n >= (rec.mem.of || 10) && rec.mem.correct != null ? rec.mem : null;
+  const memErr = mem ? (mem.of || 10) - mem.correct : null;
+  const memLow = !!mem && memErr >= TH.memLowErr;
+  const memOk = !!mem && memErr <= TH.memOkErr;
+  /* 今天星期幾（2026-11-12）：3 個都問完才判；答錯只讓今日動腦遊戲放輕鬆，並給治療師看 */
+  const day = rec && rec.day && rec.day.n >= (rec.day.of || 3) ? rec.day : null;
+  const dayWrong = !!day && !day.correct;
+  return { pain, effort, lowBoth, asym, impulsive, slow, noLift: !lift, noGng: !gng, memLow, memOk, noMem: !mem, memCorrect: mem ? mem.correct : null, memErr, dayWrong, noDay: !day };
 }
 
 /* subject：store 的個案（可為 null＝訪客）；hubRecord：入口小測那一筆（可為 null）

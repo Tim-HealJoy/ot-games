@@ -7,11 +7,11 @@ import { heightWord } from './assess/lift.js?v=1';
 import { writePlan, readPlan, planFor, hubToday, diffLabel } from './assess/hub.js?v=1';
 import { mountProfile } from './assess/ui.js?v=1';
 import { GAMES, gameById, urlFor, INPUT_NAME, diffNameOf } from './games.js?v=1';
-import { recommend } from './recommend.js?v=2';
-import { createQuiz } from './measure.js?v=3';
-import { MIND_AXES, MOVE_AXES, QUIZ, GAME_ELEMENTS, AXIS_NAME, AXIS_PRO, axesOf, quizById, GOALS, GAME_GOAL, goalById, TOUCH, touchById } from './catalog.js?v=7';
-import { radarsFromCards, todaySnack, summaryLine } from './ability.js?v=4';
-import { buildCards, tagTasks } from './scorecard.js?v=2';
+import { recommend } from './recommend.js?v=4';
+import { createQuiz, WD_NAME } from './measure.js?v=7';
+import { MIND_AXES, MOVE_AXES, QUIZ, GAME_ELEMENTS, AXIS_NAME, AXIS_PRO, axesOf, quizById, GOALS, GAME_GOAL, goalById, TOUCH, touchById, ICF_ITEMS, ICF_OF, icfSideOf } from './catalog.js?v=9';
+import { radarsFromCards, todaySnack, summaryLine } from './ability.js?v=7';
+import { buildCards, tagTasks } from './scorecard.js?v=5';
 import { store as quizStore } from '../動作答題/engine/record.js';
 
 const QS = new URLSearchParams(location.search);
@@ -81,12 +81,12 @@ function greet() { const h = new Date().getHours(); return h < 11 ? '早安' : h
 function snackCard(it, i) {
   let name, pic, kind, meta, href, icon = '';
   if (it.kind === 'check') {
-    name = '小測'; kind = '<span class="pill move">動</span>先量一量'; meta = '舉手、記菜、看圖，約 1 分半'; href = '#quiz'; icon = '🙋';
+    name = '小測'; kind = '<span class="pill move">身</span>先量一量'; meta = '舉手、記菜、看圖、星期幾，約 3 分鐘'; href = '#quiz'; icon = '🙋';
   } else if (it.kind === 'game') {
-    const g = gameById(it.id); name = g.name; pic = g.img; kind = '<span class="pill move">動</span>身體遊戲';
+    const g = gameById(it.id); name = g.name; pic = g.img; kind = '<span class="pill move">身</span>身體遊戲';
     const d = diffText({ game: it.id, diff: it.diff, diffName: it.diffName }); meta = d ? `難度：${d}` : g.train; href = it.url || gameUrl(it.id);
   } else {
-    const q = quizById(it.id); name = q.name; pic = q.img; kind = '<span class="pill mind">感</span>用身體答題'; meta = `第 ${it.level} 級．${q.how}`; href = quizUrl(it.id, it.level); icon = ICON[it.id];
+    const q = quizById(it.id); name = q.name; pic = q.img; kind = '<span class="pill mind">腦</span>用身體答題'; meta = `第 ${it.level} 級．${q.how}`; href = quizUrl(it.id, it.level); icon = ICON[it.id];
   }
   return `<li class="snack${it.done ? ' done' : ''}"><a href="${esc(href)}">
     <span class="no">${it.done ? '✓' : i + 1}</span>
@@ -106,18 +106,12 @@ function renderHome() {
   $('snackProg').innerHTML = `<span class="bar"><i style="width:${(done / sn.length) * 100}%"></i></span><b>${done === sn.length ? '今天都完成了！' : `完成 ${done}／${sn.length}`}</b>`;
   $('snacks').innerHTML = sn.map(snackCard).join('');
   const { qs, as } = myData(), R = radarsFromCards(buildCards({ quizSessions: qs, assessSessions: as }));
-  $('peekLine').textContent = summaryLine(R) || '玩過的活動，會記到「感」「動」兩張雷達上。';
+  $('peekLine').textContent = summaryLine(R) || '玩過的活動，會記到「動頭腦」「動身體」兩張雷達上。';
   $('peekRadars').innerHTML = radarSvg(R.mind, { size: 180, mini: true }) + radarSvg(R.move, { size: 180, mini: true });
 }
 $('homeQuiz').onclick = () => go(store.current() ? 'quiz' : 'who');
 
-/* ---------- 2 全部活動：依訓練目標分類（11-11） ---------- */
-let filt = 'all';
-const SIDE = { move: ['動', '動身體', '開鏡頭、拿手機或用手碰平板，動手動身體'], mind: ['感', '動腦筋', '動腦回答問題，用手伸、傾斜或碰螢幕作答'] };
-function alsoTags(els, goal) {
-  const rest = axesOf(els).filter((a) => a !== goal);
-  return rest.length ? `<span class="also">也練到：${rest.map((a) => `<span class="${MIND_AXES.some((x) => x.id === a) ? 'm' : 'v'}">${esc(goalById(a) ? goalById(a).name : AXIS_NAME[a])}</span>`).join('')}</span>` : '';
-}
+/* ---------- 2 全部活動：ICF 分類簡化版（11-12） ---------- */
 function libItems() {
   const code = store.current() ? store.current().code : '';
   return [
@@ -131,34 +125,28 @@ function libItems() {
       meta: `<span class="tag">${esc(t.how)}</span> 平板立起來、坐正舉手碰${lv ? `，上次建議第 ${lv} 級` : ''}` }; }),
   ];
 }
-function libCard(it, goal) {
-  const side = it.side || (it.kind === 'game' ? 'move' : 'mind');
-  return `<a class="card ${side}" href="${esc(it.href)}" data-id="${it.id}">
-    <span class="pic${it.img ? '' : ' ico'}" style="${it.img ? `background-image:url('${esc(it.img)}')` : ''}"><span class="pill ${side}">${SIDE[side][0]}</span>${it.img ? '' : `<span class="icon" aria-hidden="true">${it.icon || ''}</span>`}</span>
-    <span class="txt"><b>${esc(it.name)}</b><span class="train">${esc(it.line)}</span>
-    ${alsoTags(it.els, goal)}
-    <span class="meta">${it.meta}</span></span></a>`;
-}
-function goalSection(g, list) {
-  return `<section class="goal ${g.side}" data-goal="${g.id}">
-    <h3 class="goal-h"><span class="gi" aria-hidden="true">${g.icon}</span><span class="gt"><b>${esc(g.name)}</b><small>${esc(g.life)}</small></span><span class="gn">${list.length} 款</span></h3>
-    <div class="cards">${list.map((it) => libCard(it, g.id)).join('')}</div></section>`;
+/* 11-12 ICF 簡化版（老闆拍板 模擬圖 v0.2）：只選「動身體／動頭腦」，下面依 12 項分段；
+   每列只有封面、名稱、玩法。也會練到不在民眾畫面顯示。舊版在 _舊版/ICF大廳前_2026-11-12/ */
+let libSide = 'move';
+const HOW = (it) => it.kind === 'game' ? (INPUT_NAME[GAMES.find((g) => g.id === it.id).input] || '')
+  : it.kind === 'quiz' ? '鏡頭或手機' : (it.id === 'say' ? '平板＋家人' : '用平板');
+function libRow(it) {
+  return `<a class="lrow" href="${esc(it.href)}" data-id="${it.id}">
+    <span class="th${it.img ? '' : ' ico'}" style="${it.img ? `background-image:url('${esc(it.img)}')` : ''}">${it.img ? '' : `<span aria-hidden="true">${it.icon || ''}</span>`}</span>
+    <span class="lt"><b>${esc(it.name)}</b><span class="how">${esc(HOW(it))}</span></span><span class="go" aria-hidden="true">›</span></a>`;
 }
 function renderLib() {
-  const items = libItems();
-  const chip = (v, t, ic) => `<button type="button" class="chip${filt === v ? ' on' : ''}" data-v="${v}">${ic ? `<span aria-hidden="true">${ic}</span>` : ''}${esc(t)}</button>`;
-  $('chips').innerHTML = chip('all', '全部') + ['move', 'mind'].map((sd) => `<span class="chip-sep">${SIDE[sd][1]}</span>` + GOALS.filter((g) => g.side === sd).map((g) => chip(g.id, g.name, g.icon)).join('')).join('');
-  if (filt === 'all') {
-    $('libBody').innerHTML = ['move', 'mind'].map((sd) => `<h2 class="grp side-${sd}"><span class="pill ${sd}">${SIDE[sd][0]}</span>${SIDE[sd][1]}<small>${SIDE[sd][2]}</small></h2>
-      <div class="goals">${GOALS.filter((g) => g.side === sd).map((g) => [g, items.filter((it) => it.goal === g.id)]).filter(([, l]) => l.length).map(([g, l]) => goalSection(g, l)).join('')}</div>`).join('');
-  } else {
-    /* 只看一個目標：主要練它的排前面，其他也主要練到它的排後面 */
-    const g = goalById(filt);
-    const list = items.filter((it) => it.goal === filt).concat(items.filter((it) => it.goal !== filt && axesOf(it.els).includes(filt)));
-    $('libBody').innerHTML = `<div class="goals one">${goalSection(g, list)}</div>` + (list.length ? '' : '<p class="none">這一項目前還沒有活動。</p>');
-  }
+  const items = libItems(), cnt = (sd) => items.filter((it) => icfSideOf(it.id) === sd).length;
+  $('chips').innerHTML = [['move', '動身體'], ['mind', '動頭腦']].map(([sd, t]) =>
+    `<button type="button" class="lsw${libSide === sd ? ' on' : ''}" data-v="${sd}" aria-pressed="${libSide === sd}"><b>${t}</b><span>${cnt(sd)} 款</span></button>`).join('');
+  let h = ICF_ITEMS.filter((x) => x.side === libSide && !x.locked).map((x) => {
+    const list = items.filter((it) => ICF_OF[it.id] && ICF_OF[it.id].main === x.id);
+    return list.length ? `<section class="lsec" data-icf="${x.id}"><h2>${esc(x.name)}<small>${esc(x.life)}</small></h2><div class="lrows">${list.map(libRow).join('')}</div></section>` : '';
+  }).join('');
+  h += ICF_ITEMS.filter((x) => x.side === libSide && x.locked).map((x) => `<p class="lsoon">🔒 ${esc(x.name)}（${esc(x.life)}）${esc(x.locked)}</p>`).join('');
+  $('libBody').innerHTML = h;
 }
-$('chips').onclick = (e) => { const b = e.target.closest('.chip'); if (!b) return; filt = b.dataset.v; renderLib(); };
+$('chips').onclick = (e) => { const b = e.target.closest('.lsw'); if (!b) return; libSide = b.dataset.v; renderLib(); };
 
 /* ---------- 3 我的進步：兩張雷達 ---------- */
 function radarSvg(axes, { size = 320, mini = false } = {}) {
@@ -202,7 +190,7 @@ function renderMe() {
     ...qs.map((x) => ({ at: x.at, name: quizById(x.activity) ? quizById(x.activity).name : touchById(x.activity) ? touchById(x.activity).name : x.activity, k: touchById(x.activity) ? touchById(x.activity).side : 'mind', d: `第 ${x.level} 級．第一次就答對 ${x.summary.first}／${x.summary.n}` })),
     ...as.map((x) => ({ at: x.at, name: x.game === 'hub' ? '小測' : (gameById(x.game) ? gameById(x.game).name : x.game), k: 'move', d: x.game === 'hub' && x.lift && x.lift.by ? `右手 ${x.lift.by.R && x.lift.by.R.n ? heightWord(x.lift.by.R.best) : '—'}、左手 ${x.lift.by.L && x.lift.by.L.n ? heightWord(x.lift.by.L.best) : '—'}` : '' })),
   ].sort((a, b) => b.at - a.at).slice(0, 8);
-  $('recent').innerHTML = items.map((x) => `<div class="rc"><span class="d">${fmtDay(x.at)}</span><span class="pill ${x.k}">${x.k === 'mind' ? '感' : '動'}</span><b>${esc(x.name)}</b><span class="m">${esc(x.d)}</span></div>`).join('');
+  $('recent').innerHTML = items.map((x) => `<div class="rc"><span class="d">${fmtDay(x.at)}</span><span class="pill ${x.k}">${x.k === 'mind' ? '腦' : '身'}</span><b>${esc(x.name)}</b><span class="m">${esc(x.d)}</span></div>`).join('');
   const row = (a) => `<tr><td>${esc(a.name)}（${esc(a.pro || '')}）</td><td>${a.score != null ? a.score : '—'}</td><td>${a.first != null ? a.first : '—'}</td><td>${a.n}</td></tr>`;
   const END = { done: '玩完', safe: '安全停止', started: '只開了頭' };
   const KIND = { quiz: '答題', game: '動作遊戲', entry: '小測' };
@@ -236,7 +224,7 @@ function renderWho() {
   $('whoTher').hidden = !therOpen;
   if (therOpen && !profile) {
     profile = mountProfile($('whoTherAnchor'), store, {
-      game: '遊戲', trial: '約 1 分半的「小測」',
+      game: '遊戲', trial: '約 3 分鐘的「小測」',
       onChange: (s) => { $('whoTherGo').hidden = !s; if (s) $('whoTherGo').textContent = `用 ${s.code} 開始小測`; renderChip(); },
     });
   }
@@ -305,13 +293,14 @@ function showResult() {
   const R = recommend(s, rec);
   const picks = plan ? plan.picks : R.picks.map((p) => ({ ...p, url: gameUrl(p.game) }));
   const hold = plan ? plan.hold : R.hold;
-  const g = rec.gng, m = rec.mem && !rec.mem.skipped ? rec.mem : null;
+  const g = rec.gng, m = rec.mem && !rec.mem.skipped ? rec.mem : null, d = rec.day || null;
   const tiles = [
     ['右手舉到', liftWord(rec, 'R')],
     ['左手舉到', liftWord(rec, 'L')],
     ['看到魚，多快動起來', g && g.rtMedian != null ? `約 ${g.rtMedian.toFixed(1)} 秒` : '這次沒有量'],
     ['看到垃圾，忍住幾題', g ? `${g.nogoN} 題忍住 ${g.nogoN - g.commissions} 題` : '這次沒有量'],
-    ['記菜，答對幾樣', m && m.n >= (m.of || 6) ? `${m.of || 6} 樣答對 ${m.correct} 樣` : '這次沒有量'],
+    ['記菜，答對幾樣', m && m.n >= (m.of || 10) ? `${m.of || 10} 樣答對 ${m.correct} 樣` : '這次沒有量'],
+    ['今天星期幾', d && d.n >= (d.of || 3) ? (d.correct ? '答對了' : `今天是${WD_NAME[d.today]}`) : '這次沒有量'],
   ];
   $('resWho').textContent = whoText(s);
   $('resTiles').innerHTML = tiles.map(([k, v]) => `<div class="tile"><span>${esc(k)}</span><b>${esc(v)}</b></div>`).join('');

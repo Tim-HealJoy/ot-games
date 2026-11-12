@@ -67,6 +67,10 @@ export function fishCount(d) { return FISH_ORDER.filter((k) => k !== 'chest' && 
 export const DOUBLE_SEC = 10;
 /* 金線：個人最高的 85%。一點點抬手就釣得到，舉到金線這條魚的分數多五成 */
 export const HIGH_LINE = 0.85;
+/* 金線依難度（2026-11-12 老闆：釣魚加舉高分級，ICF 主要項目＝關節活動 b710）：
+   簡單 60%／普通 75%／困難 90%（個人校正範圍）。仍是加分制，沒舉到照樣釣到。
+   HIGH_LINE 0.85 只留給開場金線練習（量最高點用）。 */
+export function lineFor(d) { return (DIFF[d] && DIFF[d].line) || HIGH_LINE; }
 export function heightBonus(pts, peak, doubled = false) {
   if (pts <= 0 || peak < HIGH_LINE) return 0;
   const b = Math.round((pts * 0.5) / 5) * 5;
@@ -80,19 +84,19 @@ export function heightBonus(pts, peak, doubled = false) {
    trashCue:false＝垃圾不顯示名牌、咬鉤也不出「不要拉」，要自己看出是垃圾（魚照常有名牌與「舉高！」）；hook＝掛在鉤上的最短與最長秒數，最長要留時間把手舉到金線。 */
 export const DIFF = [
   {
-    name: '簡單', rise: 0.08, win: 8, trashWin: 3, trashArm: 0.35, dur: 90,
+    name: '簡單', line: 0.60, rise: 0.08, win: 8, trashWin: 3, trashArm: 0.35, dur: 90,
     tag: true, voice: true, text: true, shadow: false,
     approach: 2.0, gap: [0.6, 1.1], hook: [1.1, 3.5], after: 1.0,
     mix: { tilapia: 26, scad: 12, milkfish: 20, mackerel: 12, snapper: 11, tuna: 4, shoe: 8, can: 7, tire: 0 },
   },
   {
-    name: '普通', rise: 0.10, win: 2.5, trashWin: 1.8, trashArm: 0.25, dur: 60,
+    name: '普通', line: 0.75, rise: 0.10, win: 2.5, trashWin: 1.8, trashArm: 0.25, dur: 60,
     tag: true, voice: false, text: true, shadow: true, trashCue: false,
     approach: 1.25, emerge: 1.9, gap: [0.25, 0.6], hook: [0.8, 2.0], after: 0.6,
     mix: { tilapia: 10, scad: 7, milkfish: 9, mackerel: 7, hairtail: 7, butterfish: 5, snapper: 5, threadfin: 4, flying: 4, seabass: 3, grouper: 3, tuna: 2, mahi: 1, shoe: 12, can: 12, tire: 9 },
   },
   {
-    name: '困難', rise: 0.11, win: 1.3, trashWin: 1.2, trashArm: 0, trashGrace: 250, dur: 60,
+    name: '困難', line: 0.90, rise: 0.11, win: 1.3, trashWin: 1.2, trashArm: 0, trashGrace: 250, dur: 60,
     tag: false, voice: false, text: false, shadow: true,
     approach: 0.85, emerge: 1.5, gap: [0.1, 0.3], hook: [0.55, 1.5], after: 0.4,
     mix: { tilapia: 4, scad: 4, milkfish: 4, mackerel: 4, hairtail: 5, butterfish: 4, snapper: 4, threadfin: 4, flying: 4, seabass: 3, grouper: 3, amberjack: 3, tuna: 3, mahi: 2, pomfret: 2, marlin: 1, shoe: 16, can: 16, tire: 14 },
