@@ -10,7 +10,7 @@
 <link rel="icon" type="image/png" sizes="32x32" href="brand/favicon-32.png">
 <link rel="icon" type="image/png" sizes="192x192" href="brand/favicon-192.png">
 <link rel="apple-touch-icon" href="brand/apple-touch-icon.png">
-<link rel="stylesheet" href="style.css?v=8">
+<link rel="stylesheet" href="style.css?v=10">
 <link rel="stylesheet" href="themes/neon.css?v=4">
 </head>
 <body data-theme="neon">
@@ -38,7 +38,7 @@
 
   <div id="firstBox" class="first-box" hidden>
     <h2>第一次來嗎？</h2>
-    <p>先回答 4 個小問題，再做 1 分鐘小測，幫你挑今天玩什麼、玩多難。不用填名字。</p>
+    <p>先回答 4 個小問題，再做約 1 分半的小測，幫你挑今天玩什麼、玩多難。不用填名字。</p>
     <div class="row"><button type="button" class="btn primary huge" id="homeQuiz">開始，約 2 分鐘</button>
       <a class="btn" href="#lib">先隨便看看</a></div>
     <p class="privacy">影像只在這台裝置上處理，不上傳、不儲存。</p>
@@ -111,7 +111,7 @@
 <!-- 5 小測 -->
 <section id="scrQuiz" class="screen qz" hidden>
   <div class="qz-rotate">請把手機橫放，或改用平板</div>
-  <p class="qz-k">小測：看看兩隻手和反應</p>
+  <p class="qz-k">小測：看看兩隻手、反應和記性</p>
   <h2 class="qz-h"></h2>
   <div class="qz-body">
     <div class="qz-side">
@@ -133,10 +133,12 @@
 
   <div class="qz-start">
     <div class="qz-card">
-      <h2>小測，約 1 分鐘</h2>
+      <h2>小測，約 1 分半</h2>
       <ol>
         <li>左手舉 3 下，右手舉 3 下</li>
+        <li>記住 3 樣要買的東西</li>
         <li>看 8 張圖：魚就舉手，垃圾手不要動</li>
+        <li>剛剛要買的就舉手，沒有要買的手不要動</li>
       </ol>
       <p class="qz-pain" hidden>手舉高比較吃力的話，舉到舒服、不會痛的高度就好。</p>
       <p>坐在椅子上，讓鏡頭看得到上半身。慢慢來，不用急。</p>
@@ -155,11 +157,12 @@
   <h2 class="sec">今天的身體遊戲</h2>
   <div id="resFirst"></div>
   <div id="resMore"></div>
+  <div id="resMind"></div>
   <div id="resHold"></div>
   <p class="foot strong">這是動作表現紀錄，不是醫療診斷。</p>
 </section>
 
-<script type="module" src="app.js?v=8"></script>
+<script type="module" src="app.js?v=13"></script>
 <script type="module" src="upload.js?v=1"></script>
 <script src="/open-in-browser.js" data-camera="1" defer></script>
 </body>

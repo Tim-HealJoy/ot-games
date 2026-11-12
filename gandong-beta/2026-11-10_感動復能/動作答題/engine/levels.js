@@ -179,7 +179,8 @@ export function buildSeq(bank, lv, r = rng()) {
   topics.forEach((t, ti) => {
     /* 從完整步驟挑 k 步，保持原本先後；一定留第一步，最後一步留給最後一題才不會太好猜 */
     const idx = shuffle(t.steps.map((_, i) => i).slice(1), r).slice(0, L.k - 1).sort((a, b) => a - b);
-    const steps = [0, ...idx].map((i) => ({ label: t.steps[i][0], emoji: t.steps[i][1] }));
+    const pic = (tid, i) => (bank.img ? bank.img(tid, i) : null);   // 步驟照片（2026-11-11 換掉 emoji；缺圖時畫面退回 emoji）
+    const steps = [0, ...idx].map((i) => ({ label: t.steps[i][0], emoji: t.steps[i][1], img: pic(t.id, i) }));
     const asks = steps.length - 1;               // 最後一步不用選，自動補上
     const slots = balancedSlots(L.n, asks, r);
     for (let s = 0; s < asks; s++) {
@@ -193,7 +194,7 @@ export function buildSeq(bank, lv, r = rng()) {
         const o = others[Math.floor(r() * others.length)];
         const cand = o.steps.filter((x) => !own.has(x[0]));
         const st = cand[Math.floor(r() * cand.length)];
-        wrong = [wrong[0], { label: st[0], emoji: st[1], intruder: o.title }];
+        wrong = [wrong[0], { label: st[0], emoji: st[1], img: pic(o.id, o.steps.indexOf(st)), intruder: o.title }];
       }
       const n = wrong.length + 1;
       const pos = Math.min(slots[s], n - 1);
@@ -202,7 +203,7 @@ export function buildSeq(bank, lv, r = rng()) {
         qid: `s_${t.id}_${s + 1}`, d: t.d, topic: t.title, topicNo: ti + 1, topics: topics.length,
         prompt: `${t.title}：${s === 0 ? (t.first || '最先做的是哪一個？') : '接下來是哪一個？'}`,
         seq: { title: t.title, done: steps.slice(0, s), total: steps.length, last: s === asks - 1 ? steps[steps.length - 1] : null },
-        options: opts.map((o) => ({ label: o.label, emoji: o.emoji, intruder: o.intruder || null })),
+        options: opts.map((o) => ({ label: o.label, emoji: o.emoji, img: o.img || null, intruder: o.intruder || null })),
         correct: pos, chat: t.chat, retry: 'ladder',
       });
     }

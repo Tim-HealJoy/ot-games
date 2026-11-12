@@ -31,7 +31,13 @@ export function tiltLevel(deg) {
   if (deg == null || !isFinite(deg)) return null;
   return deg < 8 ? 1 : deg < 12 ? 2 : deg < 16 ? 3 : deg < 20 ? 4 : 5;
 }
-/* 坐著轉身的角度（左右兩邊都轉得到的，取小的那邊）→ 1～5 級〔暫定切點〕；植物園拍鳥回報 play.turnDeg */
+/* 入口記菜（6 樣答對幾樣）→ 「感．記得住」的值〔暫定〕
+   入口只記 3 樣、再認，題目比「菜市場記清單」第 2 級還簡單，全對只給 3 級，免得把雷達拉得比實際高。 */
+export function memLevel(correct) {
+  if (correct == null || !isFinite(correct)) return null;
+  return correct >= 6 ? 3 : correct >= 5 ? 2.5 : correct >= 4 ? 2 : 1;
+}
+/* 坐著轉身的角度（左右兩邊都轉得到的，取小的那邊）→ 1～5 級〔暫定切點，等資料再調〕；植物園拍鳥回報 play.turnDeg */
 export function turnLevel(deg) {
   if (deg == null || !isFinite(deg)) return null;
   return deg < 20 ? 1 : deg < 35 ? 2 : deg < 50 ? 3 : deg < 70 ? 4 : 5;
@@ -104,16 +110,23 @@ export function fromAssess(s) {
   const rate = play && fin(play.rate) ? clamp(play.rate, 0, 1) : null;
   if (play && rate == null) flags.push('noRate');
   if (!entry && level && rate != null) axes.push(...mindAxes(GAME_ELEMENTS[s.game], valueOf(level, rate)));
+  /* 用身體帶著手機轉身的遊戲（拍鳥）：轉身角度進「坐得穩」；滑鼠拖曳不算，所以遊戲只在用手機時回報 turnDeg */
   if (!entry && play && fin(play.turnDeg)) axes.push({ axis: 'trunk', v: turnLevel(play.turnDeg), w: 1 });
+  /* 入口記菜（2026-11-12）：問完 6 樣才算進「記得住」，只問一半不算 */
+  const m = entry && s.mem && fin(s.mem.correct) ? s.mem : null;
+  if (m && m.n >= (m.of || 6)) axes.push({ axis: 'mem', v: memLevel(m.correct), w: 1 });
+  else if (m) flags.push('memPartial');
 
-  const end = entry ? (best != null || s.gng ? (s.painNow ? 'safe' : 'done') : 'started')
+  const end = entry ? (best != null || s.gng || m ? (s.painNow ? 'safe' : 'done') : 'started')
     : play ? 'done' : s.painNow ? 'safe' : 'started';
   const g = s.gng || null;
   return card({
     id: s.id || `${s.game}:${s.at}`, who: s.code, at: s.at, kind: entry ? 'entry' : 'game', activity: s.game, level, rate, axes,
-    raw: { liftL: L, liftR: R, gng: g ? { commission: g.commission ?? null, omission: g.omission ?? null, rtMed: g.rtMed ?? null } : null,
+    /* gng 欄位名以 gonogo.js summary() 為準（commissions／omissions／rtMedian），舊名留著相容 */
+    raw: { liftL: L, liftR: R, gng: g ? { commission: g.commissions ?? g.commission ?? null, omission: g.omissions ?? g.omission ?? null, rtMed: g.rtMedian ?? g.rtMed ?? null } : null,
+      mem: m ? { book: m.book || null, correct: m.correct, of: m.of || 6, n: m.n, hits: m.hits, fa: m.fa, rtMed: m.rtMedian ?? null } : null,
       score: play ? play.score ?? null : null, diff: play ? play.diff ?? null : null, turnDeg: play ? play.turnDeg ?? null : null, pain: s.pain || null, painNow: !!s.painNow },
-    quality: { ok: best != null || !!g || !!play, flags }, end, demo: s.demo,
+    quality: { ok: best != null || !!g || !!m || !!play, flags }, end, demo: s.demo,
   });
 }
 

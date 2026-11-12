@@ -350,3 +350,22 @@ details.pro td,details.pro th{border-bottom:1px solid var(--line);padding:6px 4p
 .grp small{font-size:20px}
 details.pro table{font-size:19px}
 @media (max-width:760px){.tabs a{font-size:18px}}
+/* 11-12 用手碰五款：沒有封面圖，卡片中間放大 icon */
+.card .pic.ico{display:flex;align-items:center;justify-content:center;position:relative;background:#2A2110}
+.card .pic.ico .icon{font-size:76px;line-height:1}
+
+/* ---------- 小測：記菜（2026-11-12）：看 3 樣要買的東西，畫面只留這 3 樣，大圖＋大字 ---------- */
+.qz-mem .qz-side,.qz-mem .qz-meter,.qz-mem .qz-stim,.qz-mem .qz-cam{display:none}
+.qz-memo{flex:1;display:flex;align-items:center;justify-content:center;min-width:0}
+.qz-memo-row{display:flex;gap:clamp(14px,2.4vw,32px);justify-content:center;width:100%;max-width:1100px}
+.qz-memo figure{flex:1 1 0;margin:0;background:#FFFDF8;border:4px solid #FFD400;border-radius:22px;padding:14px 14px 8px;display:flex;flex-direction:column;align-items:center;min-width:0}
+.qz-memo img{width:100%;aspect-ratio:1/1;object-fit:contain;border-radius:12px;background:#fff}
+.qz-memo figcaption{font-size:clamp(34px,5.4vh,58px);font-weight:900;color:#100C04;line-height:1.3;margin-top:4px}
+/* 今日動腦遊戲（結果頁）：兩樣並排 */
+.snacks.res-mind{grid-template-columns:repeat(2,1fr);margin-bottom:12px}
+@media (max-width:820px){
+  .qz-memo-row{gap:10px}
+  .qz-memo figure{padding:8px 8px 4px;border-width:3px}
+  .qz-memo figcaption{font-size:28px}
+  .snacks.res-mind{grid-template-columns:1fr}
+}

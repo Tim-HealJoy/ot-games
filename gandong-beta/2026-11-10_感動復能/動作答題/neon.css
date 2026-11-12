@@ -85,3 +85,67 @@ td,th{border-bottom:1px solid var(--line)}
 .nextc .k{font-size:19px;color:var(--y)}.nextc b{color:var(--y)}.nextc span{font-size:19px;color:var(--sub)}
 .donec{background:#2A2110;border:3px solid var(--y);color:var(--y)}
 a{color:var(--y)}
+
+/* 怎麼玩＋動作練習（2026-11-11） */
+.howhead .kind{color:var(--y)}
+.howhead .pic{background-color:#2A2110;border:3px solid var(--y)}
+.howhead .why{color:var(--sub)}
+.howsteps li{color:var(--ink)}
+.howsteps li::before{background:var(--y);color:#100C04}
+.howsteps b,.howmove b{color:var(--y)}
+.howmove{background:#100C04;border:3px solid var(--y);color:var(--ink)}
+.howmove figure,.pfig figure{color:var(--y)}
+.pfig figure{background:rgba(16,12,4,.85);border:2px solid var(--line);border-radius:14px;padding:6px 8px}
+.ghost{border-color:var(--y);color:var(--y);text-shadow:0 0 10px rgba(255,212,0,.6)}
+.ghost span{color:var(--y)}
+.linkbtn{color:var(--y)}
+
+/* ============ 六款共用「夜市攤位」答題場景（2026-11-11 美術統一） ============
+   原則：裝飾只放在畫面邊緣（上方招牌＋燈串、下方攤位檯面），中間答題區保持乾淨，不搶注意力。
+   所有答案圖一律放進同一種米白相框（#F3EDE2，和照片背景同色），不同來源的圖看起來是同一套。 */
+#play{background:
+  radial-gradient(ellipse 70% 45% at 50% 108%,rgba(255,180,40,.16),transparent 70%),
+  radial-gradient(ellipse 60% 40% at 50% -10%,rgba(255,212,0,.10),transparent 70%),
+  linear-gradient(#140F05,#0C0903 60%,#100C04)}
+/* 上方：招牌橫幅 */
+#prompt{background:linear-gradient(#211A0B,#150F05);border-bottom:3px solid var(--y);box-shadow:0 0 18px rgba(255,212,0,.35);text-shadow:0 0 14px rgba(255,212,0,.45)}
+#prompt.slow{text-shadow:0 0 12px rgba(255,255,255,.35)}
+/* 招牌下的一排燈泡 */
+#play::before{content:"";position:absolute;left:0;right:0;top:calc(13vh + 3px);height:22px;z-index:1;pointer-events:none;
+  background:radial-gradient(circle at 50% 4px,#FFF1A8 0 3.5px,rgba(255,212,0,.45) 5px,rgba(255,212,0,.08) 10px,transparent 12px) 12px 0/56px 22px repeat-x;
+  animation:bulbs 3.2s ease-in-out infinite}
+@keyframes bulbs{0%,100%{opacity:.95}50%{opacity:.7}}
+@media (prefers-reduced-motion:reduce){#play::before{animation:none}}
+/* 下方：攤位檯面（木頭＋黃色收邊），提示字在上面 */
+#play::after{content:"";position:absolute;left:0;right:0;bottom:0;height:9vh;z-index:1;pointer-events:none;
+  background:linear-gradient(rgba(255,212,0,.9),rgba(255,212,0,.9)) top/100% 3px no-repeat,
+  repeating-linear-gradient(90deg,rgba(255,255,255,.025) 0 2px,transparent 2px 90px),
+  linear-gradient(#2B2010,#1A1308);box-shadow:0 -8px 22px rgba(255,212,0,.12)}
+#status{z-index:3;color:var(--ink)}
+@media (orientation:portrait){#play::after{height:7vh}}
+
+/* 答案卡：同一種卡片＋米白相框 */
+.opt{background:linear-gradient(#211A0B,#18120A);border-radius:22px;box-shadow:0 6px 18px rgba(0,0,0,.45)}
+.opt img,.opt .emo{width:100%;flex:1 1 auto;min-height:0;object-fit:contain;background:#F3EDE2;border-radius:14px;padding:4px}
+.opt img{max-height:76%}
+.opt .emo{display:flex;align-items:center;justify-content:center;max-height:72%}
+.opt .lab{color:var(--ink)}
+.opt.hov .lab{color:var(--y)}
+#list .li img{width:100%;height:auto;flex:0 1 auto;aspect-ratio:4/3;min-height:0;object-fit:contain;background:#F3EDE2;border-radius:14px;padding:4px}
+#list .li b{color:var(--ink)}
+#clue{background:linear-gradient(#211A0B,#18120A);border:3px solid var(--line)}
+#clue img{background:#F3EDE2;padding:4px}
+#seqbar .st img{height:4.6vh;width:4.6vh;object-fit:contain;background:#F3EDE2;border-radius:8px;padding:2px}
+#mini{box-shadow:var(--glow)}
+
+/* 背景音樂開關（答題中在「結束」下面，設定頁在右上） */
+.musicBtn{font:inherit;font-weight:800;cursor:pointer;background:transparent;color:var(--y);border:3px solid var(--y);border-radius:14px;font-size:18px;min-height:48px;padding:6px 12px;box-shadow:var(--glow)}
+.musicBtn.off{color:var(--sub);border-color:var(--line);box-shadow:none}
+.musicBtn[hidden]{display:none}
+#play .musicBtn{position:absolute;left:1.2vw;bottom:max(6px,calc((9vh - 48px) / 2));z-index:7}
+.topbar .musicBtn{margin-left:4px}
+.opt.long img{max-height:64%}
+.opt.long .lab{font-size:min(3.3vh,4.8vw)}
+@media (orientation:portrait){#prompt{padding-left:96px}#play .musicBtn .ml{display:none}#play .musicBtn{min-height:44px;font-size:17px;padding:4px 10px;bottom:max(6px,calc((7vh - 44px) / 2))}}
+@media (max-width:520px){.topbar .musicBtn .ml{display:none}.topbar .musicBtn{margin-left:auto}}
+@media (orientation:portrait){#list{align-items:center}#list .li{padding:8px}#list .li img{aspect-ratio:1}}

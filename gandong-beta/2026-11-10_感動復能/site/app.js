@@ -7,11 +7,11 @@ import { heightWord } from './assess/lift.js?v=1';
 import { writePlan, readPlan, planFor, hubToday, diffLabel } from './assess/hub.js?v=1';
 import { mountProfile } from './assess/ui.js?v=1';
 import { GAMES, gameById, urlFor, INPUT_NAME, diffNameOf } from './games.js?v=1';
-import { recommend } from './recommend.js?v=1';
-import { createQuiz } from './measure.js?v=1';
-import { MIND_AXES, MOVE_AXES, QUIZ, GAME_ELEMENTS, AXIS_NAME, AXIS_PRO, axesOf, quizById, GOALS, GAME_GOAL, goalById } from './catalog.js?v=4';
-import { radarsFromCards, todaySnack, summaryLine } from './ability.js?v=3';
-import { buildCards, tagTasks } from './scorecard.js?v=1';
+import { recommend } from './recommend.js?v=2';
+import { createQuiz } from './measure.js?v=3';
+import { MIND_AXES, MOVE_AXES, QUIZ, GAME_ELEMENTS, AXIS_NAME, AXIS_PRO, axesOf, quizById, GOALS, GAME_GOAL, goalById, TOUCH, touchById } from './catalog.js?v=7';
+import { radarsFromCards, todaySnack, summaryLine } from './ability.js?v=4';
+import { buildCards, tagTasks } from './scorecard.js?v=2';
 import { store as quizStore } from '../動作答題/engine/record.js';
 
 const QS = new URLSearchParams(location.search);
@@ -69,8 +69,10 @@ function myData() {
 function snackNow() {
   const { s, code, qs, as } = myData();
   if (!s) return [];
-  const plan = hubToday(store, code) ? planFor(code) : null;
-  return todaySnack({ code, quizSessions: qs, assessSessions: as, plan, lastLevel: (a) => quizStore.lastLevel(a, code) });
+  const entry = hubToday(store, code);
+  const plan = entry ? planFor(code) : null;
+  /* entry：今天的小測紀錄。「感」那兩樣依今天的記菜、看圖表現排（ability.todaySnack 規則 2～6） */
+  return todaySnack({ code, quizSessions: qs, assessSessions: as, plan, entry: entry && !entry.demo ? entry : null, lastLevel: (a) => quizStore.lastLevel(a, code) });
 }
 
 /* ---------- 1 今天 ---------- */
@@ -79,7 +81,7 @@ function greet() { const h = new Date().getHours(); return h < 11 ? '早安' : h
 function snackCard(it, i) {
   let name, pic, kind, meta, href, icon = '';
   if (it.kind === 'check') {
-    name = '1 分鐘小測'; kind = '<span class="pill move">動</span>先量一量'; meta = '左右手各舉 3 下＋看 8 張圖'; href = '#quiz'; icon = '🙋';
+    name = '小測'; kind = '<span class="pill move">動</span>先量一量'; meta = '舉手、記菜、看圖，約 1 分半'; href = '#quiz'; icon = '🙋';
   } else if (it.kind === 'game') {
     const g = gameById(it.id); name = g.name; pic = g.img; kind = '<span class="pill move">動</span>身體遊戲';
     const d = diffText({ game: it.id, diff: it.diff, diffName: it.diffName }); meta = d ? `難度：${d}` : g.train; href = it.url || gameUrl(it.id);
@@ -111,7 +113,7 @@ $('homeQuiz').onclick = () => go(store.current() ? 'quiz' : 'who');
 
 /* ---------- 2 全部活動：依訓練目標分類（11-11） ---------- */
 let filt = 'all';
-const SIDE = { move: ['動', '動身體', '開鏡頭或拿手機，動手動身體'], mind: ['感', '動腦筋', '動腦回答問題，手伸到答案上作答'] };
+const SIDE = { move: ['動', '動身體', '開鏡頭、拿手機或用手碰平板，動手動身體'], mind: ['感', '動腦筋', '動腦回答問題，用手伸、傾斜或碰螢幕作答'] };
 function alsoTags(els, goal) {
   const rest = axesOf(els).filter((a) => a !== goal);
   return rest.length ? `<span class="also">也練到：${rest.map((a) => `<span class="${MIND_AXES.some((x) => x.id === a) ? 'm' : 'v'}">${esc(goalById(a) ? goalById(a).name : AXIS_NAME[a])}</span>`).join('')}</span>` : '';
@@ -123,12 +125,16 @@ function libItems() {
       meta: `<span class="tag ${g.input}">${esc(INPUT_NAME[g.input])}</span>${g.note ? ` ${esc(g.note)}` : ''}` })),
     ...QUIZ.map((q) => { const lv = quizStore.lastLevel(q.id, code); return { kind: 'quiz', id: q.id, goal: q.goal, els: q.elements, name: q.name, line: q.line, img: q.img, href: quizUrl(q.id, lv),
       meta: `<span class="tag">${esc(q.how)}</span>${lv ? ` 上次建議第 ${lv} 級` : ''}` }; }),
+    /* 11-12 用手碰五款：平板立在桌上，坐正、舉手輕碰 */
+    ...TOUCH.map((t) => { const lv = quizStore.lastLevel(t.id, code); return { kind: 'touch', side: t.side, id: t.id, goal: t.goal, els: t.elements, name: t.name, line: t.line, icon: t.icon, img: t.img,
+      href: `${t.url}${lv ? `&level=${lv}` : ''}${pass() ? '&' + pass() : ''}`,
+      meta: `<span class="tag">${esc(t.how)}</span> 平板立起來、坐正舉手碰${lv ? `，上次建議第 ${lv} 級` : ''}` }; }),
   ];
 }
 function libCard(it, goal) {
-  const side = it.kind === 'game' ? 'move' : 'mind';
+  const side = it.side || (it.kind === 'game' ? 'move' : 'mind');
   return `<a class="card ${side}" href="${esc(it.href)}" data-id="${it.id}">
-    <span class="pic" style="background-image:url('${esc(it.img)}')"><span class="pill ${side}">${SIDE[side][0]}</span></span>
+    <span class="pic${it.img ? '' : ' ico'}" style="${it.img ? `background-image:url('${esc(it.img)}')` : ''}"><span class="pill ${side}">${SIDE[side][0]}</span>${it.img ? '' : `<span class="icon" aria-hidden="true">${it.icon || ''}</span>`}</span>
     <span class="txt"><b>${esc(it.name)}</b><span class="train">${esc(it.line)}</span>
     ${alsoTags(it.els, goal)}
     <span class="meta">${it.meta}</span></span></a>`;
@@ -193,14 +199,14 @@ function renderMe() {
   $('radarMind').innerHTML = radarSvg(R.mind);
   $('radarMove').innerHTML = radarSvg(R.move);
   const items = [
-    ...qs.map((x) => ({ at: x.at, name: quizById(x.activity) ? quizById(x.activity).name : x.activity, k: 'mind', d: `第 ${x.level} 級．第一次就答對 ${x.summary.first}／${x.summary.n}` })),
-    ...as.map((x) => ({ at: x.at, name: x.game === 'hub' ? '1 分鐘小測' : (gameById(x.game) ? gameById(x.game).name : x.game), k: 'move', d: x.game === 'hub' && x.lift && x.lift.by ? `右手 ${x.lift.by.R && x.lift.by.R.n ? heightWord(x.lift.by.R.best) : '—'}、左手 ${x.lift.by.L && x.lift.by.L.n ? heightWord(x.lift.by.L.best) : '—'}` : '' })),
+    ...qs.map((x) => ({ at: x.at, name: quizById(x.activity) ? quizById(x.activity).name : touchById(x.activity) ? touchById(x.activity).name : x.activity, k: touchById(x.activity) ? touchById(x.activity).side : 'mind', d: `第 ${x.level} 級．第一次就答對 ${x.summary.first}／${x.summary.n}` })),
+    ...as.map((x) => ({ at: x.at, name: x.game === 'hub' ? '小測' : (gameById(x.game) ? gameById(x.game).name : x.game), k: 'move', d: x.game === 'hub' && x.lift && x.lift.by ? `右手 ${x.lift.by.R && x.lift.by.R.n ? heightWord(x.lift.by.R.best) : '—'}、左手 ${x.lift.by.L && x.lift.by.L.n ? heightWord(x.lift.by.L.best) : '—'}` : '' })),
   ].sort((a, b) => b.at - a.at).slice(0, 8);
   $('recent').innerHTML = items.map((x) => `<div class="rc"><span class="d">${fmtDay(x.at)}</span><span class="pill ${x.k}">${x.k === 'mind' ? '感' : '動'}</span><b>${esc(x.name)}</b><span class="m">${esc(x.d)}</span></div>`).join('');
   const row = (a) => `<tr><td>${esc(a.name)}（${esc(a.pro || '')}）</td><td>${a.score != null ? a.score : '—'}</td><td>${a.first != null ? a.first : '—'}</td><td>${a.n}</td></tr>`;
   const END = { done: '玩完', safe: '安全停止', started: '只開了頭' };
   const KIND = { quiz: '答題', game: '動作遊戲', entry: '小測' };
-  const actName = (c) => c.kind === 'entry' ? '1 分鐘小測' : c.kind === 'quiz' ? (quizById(c.activity) ? quizById(c.activity).name : c.activity) : (gameById(c.activity) ? gameById(c.activity).name : c.activity);
+  const actName = (c) => c.kind === 'entry' ? '小測' : c.kind === 'quiz' ? (quizById(c.activity) ? quizById(c.activity).name : touchById(c.activity) ? touchById(c.activity).name : c.activity) : (gameById(c.activity) ? gameById(c.activity).name : c.activity);
   const axTxt = (c) => c.axes.length ? [...new Map(c.axes.filter((a) => a.w >= 1).map((a) => [a.axis, a])).values()].map((a) => `${AXIS_PRO[a.axis] || a.axis} ${a.v}`).join('、') : (c.quality.flags.includes('copiedMeasure') ? '沿用小測的量測' : c.quality.flags.includes('noRate') ? '遊戲還沒回報成功率' : '—');
   const t2 = (t) => { const d = new Date(t); return `${d.getMonth() + 1}/${d.getDate()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`; };
   const crow = (c) => `<tr><td>${t2(c.at)}</td><td>${esc(KIND[c.kind])}．${esc(actName(c))}</td><td>${c.level ?? '—'}</td><td>${c.rate != null ? Math.round(c.rate * 100) + '%' : '—'}</td><td>${END[c.end]}</td><td>${esc(axTxt(c))}</td><td>${c.task ? '第 ' + c.task.no + ' 個' : ''}</td></tr>`;
@@ -230,7 +236,7 @@ function renderWho() {
   $('whoTher').hidden = !therOpen;
   if (therOpen && !profile) {
     profile = mountProfile($('whoTherAnchor'), store, {
-      game: '遊戲', trial: '約 1 分鐘的「小測」',
+      game: '遊戲', trial: '約 1 分半的「小測」',
       onChange: (s) => { $('whoTherGo').hidden = !s; if (s) $('whoTherGo').textContent = `用 ${s.code} 開始小測`; renderChip(); },
     });
   }
@@ -255,6 +261,8 @@ $('whoTherGo').onclick = () => { if (store.current()) go('quiz'); };
 const quiz = createQuiz($('scrQuiz'), {
   demo: DEMO, mute: MUTE,
   getSubject: () => store.current(),
+  /* 記菜題本輪流：這個人做過幾次記菜（展示資料不算） */
+  memBook: (s) => (s ? store.history(s.code).filter((x) => x.game === 'hub' && x.mem && !x.mem.skipped && !x.demo).length : 0),
   onExit: () => go('today'),
   onDone: (rec) => {
     const s = store.current();
@@ -297,17 +305,21 @@ function showResult() {
   const R = recommend(s, rec);
   const picks = plan ? plan.picks : R.picks.map((p) => ({ ...p, url: gameUrl(p.game) }));
   const hold = plan ? plan.hold : R.hold;
-  const g = rec.gng;
+  const g = rec.gng, m = rec.mem && !rec.mem.skipped ? rec.mem : null;
   const tiles = [
     ['右手舉到', liftWord(rec, 'R')],
     ['左手舉到', liftWord(rec, 'L')],
     ['看到魚，多快動起來', g && g.rtMedian != null ? `約 ${g.rtMedian.toFixed(1)} 秒` : '這次沒有量'],
     ['看到垃圾，忍住幾題', g ? `${g.nogoN} 題忍住 ${g.nogoN - g.commissions} 題` : '這次沒有量'],
+    ['記菜，答對幾樣', m && m.n >= (m.of || 6) ? `${m.of || 6} 樣答對 ${m.correct} 樣` : '這次沒有量'],
   ];
   $('resWho').textContent = whoText(s);
   $('resTiles').innerHTML = tiles.map(([k, v]) => `<div class="tile"><span>${esc(k)}</span><b>${esc(v)}</b></div>`).join('');
   $('resFirst').innerHTML = picks[0] ? pickCard(picks[0], true) : '';
   $('resMore').innerHTML = picks.length > 1 ? `<h3 class="sub-sec">也可以玩</h3><div class="more">${picks.slice(1).map((p) => pickCard(p, false)).join('')}</div>` : '';
+  /* 今日遊戲第 2、3 個（感）：依今天的記菜、看圖排的，跟首頁「今天」同一份清單 */
+  const sn = snackNow(), mind = sn.filter((x) => x.kind === 'quiz');
+  if ($('resMind')) $('resMind').innerHTML = mind.length ? `<h2 class="sec">今天的動腦遊戲</h2><ol class="snacks res-mind">${mind.map((x) => snackCard(x, sn.indexOf(x))).join('')}</ol>` : '';
   $('resHold').innerHTML = hold.length ? `<h3 class="sub-sec">先等等</h3>${hold.map((h) => `<p class="hold"><b>${esc(gameById(h.game).name)}</b>：${esc(h.why)}</p>`).join('')}` : '';
   go('result');
 }

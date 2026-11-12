@@ -519,8 +519,8 @@
       <h1 class="hxT">節奏律動</h1>
       <p class="hxS">樂齡復能跳舞機</p>
       <div class="hxMoves">
-        <span><img src="art/seat-clap-t.png" alt="">拍手</span>
-        <span><img src="art/seat-raise-t.png" alt="">高舉</span>
+        <span><img src="art/3d-seat-clap.png" alt="">拍手</span>
+        <span><img src="art/3d-seat-raise.png" alt="">高舉</span>
       </div>
       <div class="hxModes" id="heroModes"><button data-v="solo" class="on">👤 單人</button><button data-v="duo">👥 雙人競賽</button></div>
       <div class="hxDiffs hidden" id="heroDiff">
@@ -600,8 +600,8 @@
     <div class="howBox">
       <h2>怎麼玩</h2>
       <div class="moves2">
-        <div class="mv" style="--c:#FF8A3D"><img src="art/seat-clap-t.png" alt="拍手"><div><div class="nm">拍手</div><div class="sb">橘色音符</div></div></div>
-        <div class="mv" style="--c:#00C9A7"><img src="art/seat-raise-t.png" alt="高舉"><div><div class="nm">高舉</div><div class="sb">綠色音符・單手也算</div></div></div>
+        <div class="mv" style="--c:#FF8A3D"><img src="art/3d-seat-clap.png" alt="拍手"><div><div class="nm">拍手</div><div class="sb">橘色音符</div></div></div>
+        <div class="mv" style="--c:#00C9A7"><img src="art/3d-seat-raise.png" alt="高舉"><div><div class="nm">高舉</div><div class="sb">綠色音符・單手也算</div></div></div>
       </div>
       <ol>
         <li>選一首歌，按開始，坐在鏡頭前。</li>
@@ -647,7 +647,7 @@
   <!-- 暖身校正 -->
   <div id="warm" class="hidden">
     <div id="warmCard">
-      <img id="warmImg" src="art/seat-clap-t.png" alt="">
+      <img id="warmImg" src="art/3d-seat-clap.png" alt="">
       <div id="warmTitle">請跟著做</div>
       <div id="warmHint">讓鏡頭看到你的頭、肩膀和雙手</div>
       <div id="warmDots"></div>
@@ -658,18 +658,18 @@
   <!-- ⭐ v14 倒數卡：數字＋第一個動作預告＋鏡頭有沒有看到人 -->
   <div id="countCard" class="hidden"><div class="cc">
     <div id="cNum">3</div>
-    <div id="cFirst"><img id="cImg" src="art/seat-clap-t.png" alt="">
+    <div id="cFirst"><img id="cImg" src="art/3d-seat-clap.png" alt="">
       <div><div class="lb">第一個動作</div><div class="nm" id="cName">拍手</div></div></div>
     <div id="cCam"></div>
   </div></div>
   <!-- ⭐ v14 偵測回饋：系統「看到」動作就亮一下，長者才知道鏡頭有在看 -->
-  <div id="seen"><img id="seenImg" src="art/seat-clap-t.png" alt=""><span id="seenTxt">看到了</span></div>
+  <div id="seen"><img id="seenImg" src="art/3d-seat-clap.png" alt=""><span id="seenTxt">看到了</span></div>
   <div id="duoCards" class="hidden">
     <div class="dp" id="dpL"><div class="dpDot" id="ddL">…</div><div><div class="dpNm">左邊</div><div class="dpSt" id="dsL"></div></div></div>
     <div class="dp" id="dpR"><div class="dpDot" id="ddR">…</div><div><div class="dpNm">右邊</div><div class="dpSt" id="dsR"></div></div></div>
   </div>
   <div id="duoCta" class="hidden">
-    <img id="dcImg" src="art/seat-clap-t.png" alt="">
+    <img id="dcImg" src="art/3d-seat-clap.png" alt="">
     <div><div id="dcT"></div><div id="dcH"></div>
     <div id="dcStep"><span id="dcStepTx"></span><button id="dcBack">回設定／換歌</button></div></div>
   </div>
@@ -775,7 +775,9 @@ const ACTS=['clap','raise'];          // 2026-08-08 老闆決定先簡化成兩�
                                       // 平舉的偵測邏輯保留在 detector.js，日後要加回來很快
 const NAME={clap:'拍　手',raise:'高　舉',side:'平　舉'};
 const SHORT={clap:'拍手',raise:'高舉',side:'平舉'};
-const IMG={clap:'art/seat-clap-t.png',raise:'art/seat-raise-t.png',side:'art/seat-side-t.png'};
+/* 11-12 動作圖換成全遊戲共用的 3D 示範人（老闆：不用阿公）；舊圖 art/seat-*-t.png 留著。暖身卡用會動的版本 */
+const IMG={clap:'art/3d-seat-clap.png',raise:'art/3d-seat-raise.png',side:'art/3d-seat-side.png'};
+const WARM_IMG={clap:'art/3d-warm-clap.webp?v=1',raise:'art/3d-warm-raise.webp?v=1',side:'art/3d-warm-side.webp?v=1'};
 /* ⭐ v18.1：高舉原本寫「肩屈曲 ROM」，但實際量的是「判定那一刻，較高那隻手腕高過同側肩膀幾個肩寬」，
    不是關節角度（單一正面鏡頭也量不準肩屈曲角度）。改成白話，報表另附量法說明。 */
 const GOAL={clap:'雙側協調・動作速度',raise:'手舉多高',side:'肩外展・姿勢對稱'};
@@ -1434,7 +1436,7 @@ function warmRender(){
     $('warmDots').querySelectorAll('span').forEach(s=>s.classList.remove('on'));
   }else{
     const a=ACTS[w.ai];
-    $('warmImg').src=IMG[a];
+    if(!$('warmImg').src.endsWith(WARM_IMG[a]))$('warmImg').src=WARM_IMG[a];
     $('warmTitle').textContent='請跟著做「'+SHORT[a]+'」3 次';
     $('warmHint').textContent=WARM_TIP[a]+'　—　用你舒服的速度就好，不用趕';
     $('warmStep').textContent=`暖身校正 · 第 ${w.ai+1} / ${ACTS.length} 個動作`;

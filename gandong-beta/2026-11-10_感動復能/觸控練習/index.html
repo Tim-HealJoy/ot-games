@@ -1,0 +1,608 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>感．動復能｜用手碰</title>
+<link rel="icon" type="image/png" sizes="32x32" href="../site/brand/favicon-32.png">
+<link rel="apple-touch-icon" href="../site/brand/apple-touch-icon.png">
+<style>
+/* 夜市霓虹（跟入口、動作答題同一套）：黑底、黃字、淺黃內文；字級 ≥ 19px */
+:root{--bg:#100C04;--ink:#FFF6CC;--sub:#EADB98;--card:#1C160A;--line:#6B5A1C;--y:#FFD400;--glow:0 0 0 1px rgba(255,212,0,.25),0 0 14px rgba(255,212,0,.28)}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family:"PingFang TC","Noto Sans TC","Microsoft JhengHei",sans-serif;overflow:hidden}
+button{font:inherit;cursor:pointer}
+.scr{position:fixed;inset:0;display:none}.scr.on{display:block}
+h1,h2{color:var(--y)}
+/* 開始前 */
+#setup{overflow:auto;padding-bottom:40px}
+.topbar{position:sticky;top:0;z-index:5;background:rgba(16,12,4,.97);border-bottom:3px solid var(--y);display:flex;align-items:center;gap:12px;padding:10px 16px;flex-wrap:wrap}
+.topbar a,.topbar button{color:var(--y);text-decoration:none;background:transparent;border:3px solid var(--y);border-radius:16px;min-height:52px;padding:8px 14px;font-size:20px;font-weight:800;display:inline-flex;align-items:center}
+.topbar .brand{font-size:22px;font-weight:900;color:var(--y);margin-right:auto;border:0;padding:0;display:flex;align-items:center;gap:12px}
+.topbar .brand-img{display:block;height:52px;width:auto}
+@media (max-width:520px){.topbar .brand-img{height:40px}}
+.topbar .who{font-size:19px;color:var(--sub);font-weight:700}
+.wrap{max-width:920px;margin:0 auto;padding:18px 16px 0}
+.sech{font-size:23px;margin:0 0 10px;font-weight:900;color:var(--y)}
+.actgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}
+.actc{display:flex;flex-direction:column;text-align:left;border:3px solid var(--line);background:var(--card);border-radius:20px;padding:0;overflow:hidden;color:var(--ink)}
+.actc .ic{display:block;aspect-ratio:3/2;background:#2A2110 center/cover no-repeat}
+.actc>span:last-child{padding:10px 14px 12px}
+.cover{background:#2A2110 center/cover no-repeat;border-radius:16px}
+.actc b{display:block;font-size:24px;color:var(--y)}.actc small{font-size:19px;color:var(--sub)}
+.actc .k{display:inline-block;font-size:17px;font-weight:900;border:2px solid var(--y);border-radius:999px;padding:0 10px;margin-bottom:4px}
+.actc .k.move{background:var(--y);color:#100C04}
+.fixh{display:grid;grid-template-columns:auto 1fr;column-gap:16px;align-items:center;font-size:36px;margin:4px 0 0}.fixh>span.cover{grid-row:span 2;width:180px;aspect-ratio:3/2}
+.howhead{display:grid;grid-template-columns:200px 1fr;gap:16px;align-items:center}.howhead .cover{aspect-ratio:3/2}
+@media (max-width:640px){.howhead{grid-template-columns:1fr}.fixh>span.cover{width:120px}}
+.fixh small{font-size:20px;color:var(--sub);font-weight:700}.fixh .k{display:inline-block;font-size:17px;font-weight:900;border:2px solid var(--y);border-radius:999px;padding:0 10px;margin-right:8px;color:var(--y)}.fixh .k.move{background:var(--y);color:#100C04}
+.actc.sel{border-color:var(--y);background:#2A2110;box-shadow:0 0 0 3px var(--y) inset,0 0 16px rgba(255,212,0,.4)}
+.sec{max-width:920px;margin:18px auto 0;padding:0 16px}
+.sec h2{font-size:22px;margin:0 0 10px}
+.row{display:flex;flex-wrap:wrap;gap:10px}
+.pick{flex:1 1 160px;min-height:64px;border:3px solid var(--line);background:var(--card);border-radius:16px;padding:12px 14px;text-align:left;font-size:21px;color:var(--ink)}
+.pick small{display:block;font-size:18px;color:var(--sub)}
+.pick.sel{border-color:var(--y);background:#2A2110;box-shadow:0 0 0 3px var(--y) inset}
+.lvbox{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.lvbox button{width:64px;height:64px;border-radius:16px;border:3px solid var(--y);background:transparent;color:var(--y);font-size:32px;font-weight:900}
+.lvbox button:disabled{opacity:.3}
+.lvbox .lv{font-size:34px;font-weight:900;color:var(--y);min-width:110px;text-align:center}
+.lvbox .lvh{font-size:20px;color:var(--sub);flex:1 1 220px}
+.note{font-size:19px;color:var(--sub);line-height:1.6;margin:10px 0 0}
+details.adv{max-width:888px;margin:18px auto 0;background:var(--card);border:3px solid var(--line);border-radius:18px;padding:10px 16px}
+details.adv summary{font-size:20px;font-weight:800;color:var(--y);min-height:44px;display:flex;align-items:center;cursor:pointer}
+details.adv .sec{padding:0}
+.go{display:block;width:calc(100% - 32px);max-width:888px;margin:22px auto 0;border:0;border-radius:18px;background:var(--y);color:#100C04;font-size:28px;font-weight:900;padding:18px;box-shadow:0 0 18px rgba(255,212,0,.45)}
+/* 怎麼玩 */
+#prep{overflow:auto;padding:20px}
+.how{max-width:860px;margin:0 auto;background:var(--card);border:3px solid var(--y);border-radius:22px;padding:22px;box-shadow:var(--glow)}
+.how .kind{font-size:19px;font-weight:800;color:var(--sub)}
+.how h2{margin:4px 0 6px;font-size:34px}
+.how .why{font-size:22px;line-height:1.55;margin:0}
+.howsteps{list-style:none;margin:16px 0 0;padding:0;display:grid;gap:10px;counter-reset:hs}
+.howsteps li{counter-increment:hs;display:grid;grid-template-columns:48px 1fr;gap:12px;align-items:center;font-size:23px;line-height:1.45}
+.howsteps li::before{content:counter(hs);width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:24px;background:var(--y);color:#100C04}
+.howmove{margin-top:16px;display:grid;grid-template-columns:auto 1fr;gap:16px;align-items:center;font-size:21px;line-height:1.55;border:2px dashed var(--line);border-radius:16px;padding:12px 14px}
+.howmove svg{width:170px;height:130px;color:var(--y)}
+.btns{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
+.btns button{flex:1 1 200px;border:3px solid var(--y);background:transparent;color:var(--y);border-radius:16px;font-size:23px;font-weight:800;padding:14px}
+.btns button.pri{background:var(--y);color:#100C04}
+.fig-palm{animation:palmTap 3s ease-in-out infinite}
+@keyframes palmTap{0%,20%{transform:translateY(-26px);opacity:.5}35%,55%{transform:translateY(0);opacity:1}70%,100%{transform:translateY(-26px);opacity:.5}}
+.fig-zone{animation:zoneLit 3s linear infinite}
+@keyframes zoneLit{0%,34%{fill-opacity:0}36%,60%{fill-opacity:.35}62%,100%{fill-opacity:0}}
+@media (max-width:640px){.howmove{grid-template-columns:1fr}.howsteps li{font-size:21px}}
+/* 玩 */
+#play{touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+#prompt{position:absolute;left:0;right:0;top:0;height:13vh;padding:0 150px;display:flex;flex-wrap:wrap;align-content:center;align-items:center;justify-content:center;column-gap:16px;row-gap:4px;font-size:min(5.6vh,6vw);font-weight:900;color:var(--y);text-align:center;line-height:1.2;border-bottom:3px solid var(--y);text-shadow:0 0 12px rgba(255,212,0,.4)}
+#prompt .tag{font-size:min(3vh,4.4vw);font-weight:800;border:2px solid var(--y);border-radius:999px;padding:3px 12px;text-shadow:none}
+@media (orientation:portrait){#prompt{padding:0 12px 0 140px;font-size:min(4vh,6vw)}}
+#stage{position:absolute;left:1.4vw;right:1.4vw;top:15vh;bottom:10vh;--s:1}
+#status{position:absolute;left:0;right:0;bottom:0;height:9vh;display:flex;align-items:center;justify-content:center;padding:0 14px;text-align:center;font-size:min(3.6vh,5vw);color:var(--ink);border-top:3px solid var(--y);background:#1C160A}
+#status b{color:var(--y)}
+#stopBtn,#musicBtn{position:absolute;top:1.6vh;z-index:7;border:3px solid var(--y);background:#100C04;color:var(--y);border-radius:14px;font-size:18px;font-weight:800;padding:8px 12px;overflow:hidden}
+#stopBtn{left:1.2vw}
+#musicBtn{right:1.2vw}
+#stopBtn::after{content:"";position:absolute;left:0;bottom:0;height:5px;width:100%;background:var(--y);transform:scaleX(0);transform-origin:left}
+#stopBtn.holding::after{transition:transform 2s linear;transform:scaleX(1)}
+.musicBtn.off{opacity:.6}
+#toast{position:absolute;left:50%;top:16vh;transform:translate(-50%,0);z-index:8;background:var(--card);border:3px solid var(--y);border-radius:18px;padding:10px 22px;font-size:min(4vh,6vw);font-weight:900;color:var(--y);opacity:0;pointer-events:none;transition:opacity .3s;white-space:nowrap}
+#toast.show{opacity:1}
+/* 觸控區 */
+.cells{position:absolute;inset:0;display:grid;gap:2vw}
+.c1{grid-template-columns:1fr}.c2{grid-template-columns:1fr 1fr}.c3{grid-template-columns:repeat(3,1fr)}
+.g22{grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr}.g32{grid-template-columns:repeat(3,1fr);grid-template-rows:1fr 1fr}
+.edge{grid-template-columns:1fr 1.8fr 1fr}
+.say2{grid-template-columns:3fr 2fr}
+.cells.bottom{top:auto;height:33%}
+.cells.below{top:17%}
+.cell{display:flex;align-items:center;justify-content:center;min-width:0;min-height:0}
+.tz{width:calc(var(--s)*100%);height:calc(var(--s)*100%);border:4px solid var(--y);border-radius:26px;background:rgba(255,212,0,.06);display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;text-align:center;transition:background .2s,opacity .25s,box-shadow .2s;overflow:hidden}
+.tz.hit{background:rgba(255,212,0,.24)}
+.tz.dim{border-style:dashed;border-color:var(--line);background:transparent}
+.tz.want{box-shadow:0 0 0 5px var(--y),0 0 34px rgba(255,212,0,.65);border-style:dashed}
+.tz.done{opacity:.35}
+.tz .lab{font-size:min(5vh,6.5vw);font-weight:900;color:var(--y);line-height:1.15}
+.tz .sub{font-size:min(3vh,4.4vw);color:var(--sub);margin-top:.6vh}
+.tz.okz{background:var(--y)}.tz.okz .lab{color:#100C04}
+.ripple{position:fixed;width:30px;height:30px;margin:-15px 0 0 -15px;border-radius:50%;border:5px solid var(--y);z-index:9;pointer-events:none;animation:rip .6s ease-out forwards}
+@keyframes rip{from{transform:scale(1);opacity:1}to{transform:scale(7);opacity:0}}
+.cdbar{position:fixed;width:130px;height:16px;margin:-60px 0 0 -65px;border-radius:99px;background:#3A2F14;border:2px solid var(--y);overflow:hidden;z-index:9;pointer-events:none}
+.cdbar i{display:block;height:100%;background:var(--y);transform-origin:left;animation:cdgo var(--ms) linear forwards}
+@keyframes cdgo{from{transform:scaleX(var(--f))}to{transform:scaleX(0)}}
+/* 拍拍看 */
+.quilt{background:repeating-linear-gradient(45deg,rgba(255,212,0,.10) 0 26px,rgba(255,212,0,.03) 26px 52px)}
+.quilt .qbig{font-size:min(22vh,24vw);font-weight:900;color:var(--y);line-height:1;text-shadow:0 0 22px rgba(255,212,0,.5)}
+.quilt .qbig.pop{animation:pop .25s ease-out}
+@keyframes pop{50%{transform:scale(1.12)}}
+.quilt .sub{font-size:min(4vh,5.6vw)}
+.fluff{width:60%;height:2.2vh;min-height:14px;border-radius:99px;border:3px solid var(--y);margin-top:2.4vh;overflow:hidden}
+.fluff i{display:block;height:100%;width:0;background:var(--y);transition:width .2s}
+.puff{position:fixed;font-size:44px;pointer-events:none;z-index:9;animation:puff .9s ease-out forwards}
+@keyframes puff{to{transform:translateY(-90px) scale(1.6);opacity:0}}
+/* 左右輪流 */
+.lant .em{font-size:min(20vh,22vw);line-height:1.05;filter:grayscale(1) brightness(.55);transition:filter .25s}
+.lant.want .em,.lant.lit .em{filter:none;text-shadow:0 0 34px rgba(255,120,0,.9)}
+/* 照順序碰 */
+.seqshow{position:absolute;left:0;right:0;top:0;height:62%;display:flex;align-items:center;justify-content:center;gap:1.4vw}
+.seqshow .it{flex:0 1 17%;height:82%;background:var(--card);border:3px solid var(--y);border-radius:20px;padding:1vh;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative}
+.seqshow .it img{width:100%;height:72%;max-height:none;object-fit:contain}
+.seqshow .it img,.tz img{max-width:100%;max-height:64%;object-fit:contain;border-radius:12px;pointer-events:none}
+.seqshow .it b{font-size:min(3.6vh,5vw);margin-top:.5vh}
+
+.seqshow .badge,.tz .badge{position:absolute;left:8px;top:6px;width:44px;height:44px;border-radius:50%;background:var(--y);color:#100C04;font-weight:900;font-size:26px;display:flex;align-items:center;justify-content:center}
+.seqshow .ar{font-size:min(5vh,6vw);color:var(--y)}
+@media (orientation:portrait){.seqshow{flex-wrap:wrap;align-content:center}.seqshow .it{flex:0 1 30%;height:46%}.seqshow .ar{display:none}}
+.prog{position:absolute;left:0;right:0;top:0;height:13%;display:flex;align-items:center;justify-content:center;gap:1.2vw}
+.prog span{width:min(7vh,9vw);height:min(7vh,9vw);border-radius:50%;border:4px solid var(--y);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:min(3.6vh,5vw);color:var(--y)}
+.prog span.f{background:var(--y);color:#100C04}
+.tz.itm{padding:1vh}.tz.itm .lab{font-size:min(4vh,5.4vw);color:var(--ink)}
+/* 說說看 */
+.saycard{position:absolute;left:4%;right:4%;top:0;height:62%;display:flex;align-items:center;justify-content:center;text-align:center;font-size:min(8vh,8.6vw);font-weight:900;color:var(--ink);line-height:1.3;border:3px solid var(--line);border-radius:26px;background:var(--card);padding:2vh 3vw}
+/* 這個不能碰 */
+.item{display:flex;flex-direction:column;align-items:center;transition:opacity .2s}
+.item .em{font-size:min(28vh,30vw);line-height:1.05}
+.item .nm{font-size:min(5vh,6.5vw);font-weight:900}
+.item.bad .nm{color:var(--sub)}
+.item.shake{animation:shake .4s}
+@keyframes shake{25%{transform:translateX(-14px)}75%{transform:translateX(14px)}}
+.item.gotit{animation:gotit .45s ease-in forwards}
+@keyframes gotit{to{transform:translateY(30vh) scale(.3);opacity:0}}
+/* 結果 */
+#result{overflow:auto;padding:24px 20px 40px}
+.res{max-width:880px;margin:0 auto}
+.res h1{font-size:32px;margin:6px 0 14px}
+.big{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.big div{background:var(--card);border:3px solid var(--y);border-radius:18px;padding:16px;box-shadow:var(--glow)}
+.big small{display:block;font-size:19px;color:var(--sub)}
+.big b{font-size:30px;color:var(--y)}
+.big p{margin:6px 0 0;font-size:19px;color:var(--sub);line-height:1.5}
+details.more{margin-top:18px;background:var(--card);border:3px solid var(--line);border-radius:14px;padding:12px 16px;font-size:19px}
+details.more summary{font-size:20px;cursor:pointer;color:var(--y)}
+table{border-collapse:collapse;width:100%;margin-top:10px;font-size:18px}
+td,th{border-bottom:1px solid var(--line);padding:7px 4px;text-align:left}
+.fb{margin-top:18px;font-size:18px;color:var(--sub)}.fb a{color:var(--y)}
+</style>
+</head>
+<body>
+
+<section id="setup" class="scr on">
+  <div class="topbar"><a id="homeLink" href="../site/">← 首頁</a><span class="brand"><img class="brand-img" src="../site/brand/logo_h_dark.png" alt="感．動復能">用手碰</span><span class="who" id="whoTag"></span><button id="musicBtn2" class="musicBtn" aria-label="背景音樂開關"></button></div>
+  <div class="wrap"><div id="heroBox"></div><div id="pickWrap"><h2 class="sech">平板立起來，坐正、舉手輕碰：玩哪一個？</h2><div class="actgrid" id="pkAct"></div></div></div>
+  <div class="sec"><h2>今天玩第幾級</h2><div class="lvbox"><button id="lvMinus" aria-label="降一級">−</button><div class="lv" id="lvNow"></div><button id="lvPlus" aria-label="升一級">＋</button><div class="lvh" id="lvHint"></div></div><p class="note" id="lvNote"></p></div>
+  <div class="sec" id="secHand"><h2 id="handH">用哪一隻手</h2><div class="row" id="pkHand"></div><p class="note" id="handNote"></p></div>
+  <details class="adv"><summary>進階設定（防誤觸、觸控範圍、讀題）</summary>
+    <div class="sec"><h2>防誤觸間隔</h2><div class="row" id="pkCool"></div><p class="note">手指、指節或整個手掌一起碰到，只算一下；手要<b>完全離開螢幕</b>、超過這個時間，才算下一下。手會抖、容易連碰，就選長一點。</p></div>
+    <div class="sec"><h2>有效觸控範圍</h2><div class="row" id="pkArea"></div><p class="note">預設整塊都算。範圍縮小，要碰得比較準。</p></div>
+    <div class="sec"><h2>讀出題目</h2><div class="row" id="pkSpeak"></div><p class="note">「說說看」一律會念題目；其他活動選「要念」才念。</p></div>
+  </details>
+  <button class="go" id="btnGo">開始</button>
+  <p class="note" style="max-width:888px;margin:12px auto 0;padding:0 16px">全程坐著玩。不用鏡頭，不會錄影。</p>
+</section>
+
+<section id="prep" class="scr"><div class="how" id="howBox"></div></section>
+
+<section id="play" class="scr">
+  <button id="stopBtn" data-notouch>長按結束</button>
+  <button id="musicBtn" class="musicBtn" data-notouch aria-label="背景音樂開關"></button>
+  <div id="prompt"></div>
+  <div id="stage"></div>
+  <div id="status"></div>
+  <div id="toast" aria-live="polite"></div>
+</section>
+
+<section id="result" class="scr"><div class="res" id="resBox"></div></section>
+
+<script type="module">
+import { createTouch, say, hush, vib } from './touch.js';
+import { SAY, sayElements, GOOD, BAD } from './banks.js';
+import { store } from '../動作答題/engine/record.js';
+import { createBgm } from '../動作答題/engine/bgm.js';
+import { ITEMS, itemImg } from '../動作答題/banks/market.js';
+import { SIMILAR } from '../動作答題/banks/memo.js';
+
+/* 接上入口（同一個網址開才讀得到）：誰在玩。單獨開也能玩 */
+const SITE = await (async () => { try { const st = await import('../site/assess/store.js'); return { store: st.createStore() }; } catch (e) { return null; } })();
+const SUBJ = SITE ? SITE.store.current() : null;
+const WHO = SUBJ ? SUBJ.code : '';
+
+const $ = (id) => document.getElementById(id);
+const Q = new URLSearchParams(location.search);
+const MUTED = Q.get('mute') === '1';
+const BGM = createBgm({ muted: MUTED, base: '../動作答題/' });
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+let SEED = Q.get('seed') ? +Q.get('seed') : Date.now();
+const rnd = () => { SEED = (SEED * 1664525 + 1013904223) % 4294967296; return SEED / 4294967296; };
+const pick = (a) => a[Math.floor(rnd() * a.length)];
+const shuffle = (a) => { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const median = (a) => { if (!a.length) return null; const s = [...a].sort((x, y) => x - y), m = s.length >> 1; return Math.round(s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2); };
+const sec = (ms) => (ms == null ? '—' : (ms / 1000).toFixed(1) + ' 秒');
+const L = (lv, arr) => arr[Math.max(1, Math.min(5, lv)) - 1];
+
+/* ---------------- 設定 ---------------- */
+const TOUCH_KEY = 'gandong_touch_v1';   // 和動作答題的觸控設定共用
+const tcfg = (() => {
+  const d = { cooldown: 800, area: 100, speak: false };
+  try { const v = JSON.parse(localStorage.getItem(TOUCH_KEY) || '{}'); if ([400, 800, 1200, 2000].includes(v.cooldown)) d.cooldown = v.cooldown; if ([100, 75, 50].includes(v.area)) d.area = v.area; if (typeof v.speak === 'boolean') d.speak = v.speak; } catch (e) {}
+  if (Q.get('cool')) d.cooldown = +Q.get('cool');
+  return d;
+})();
+const saveTouch = () => { try { localStorage.setItem(TOUCH_KEY, JSON.stringify(tcfg)); } catch (e) {} };
+
+/* 五個活動：說明文字、等級說明、記入哪些訓練要素（對齊 site/catalog.js 的 ELEMENTS） */
+const ACTS = {
+  pat: { name: '拍拍看', side: 'move', icon: '🛏️', line: '天氣好，幫忙把棉被拍一拍',
+    why: '拍棉被、擦桌子，手要拍得動、拍得久。這一關練「手的速度和耐力」。',
+    steps: ['整塊棉被都可以拍，<b>手掌拍下去</b>最舒服', '拍一下，<b>手離開</b>，再拍下一下', '拍到目標下數，棉被就<b>蓬鬆了</b>；不計時，照自己的速度'],
+    hints: ['拍 20 下', '拍 30 下', '拍 40 下', '拍 60 下、棉被小一點', '拍 80 下、棉被再小一點'],
+    hand: true, els: () => ({ mind: [], move: ['持續'] }) },
+  lr: { name: '左右輪流', side: 'move', icon: '🏮', line: '元宵節，亮的燈籠碰一下就點亮',
+    why: '拿桌子另一頭的東西，手要伸得過身體中間。這一關練「左右都伸得到」。',
+    steps: ['左右兩邊各有一盞燈籠，<b>亮起來的那盞</b>碰一下', '用<b>同一隻手</b>，左邊右邊都去碰', '碰錯邊沒關係，<b>不扣分</b>，再碰亮的那盞'],
+    hints: ['左右輪流', '左左右右', '隨機亮', '左右輪流、燈籠移到兩邊', '隨機亮、燈籠在兩邊'],
+    hand: true, els: () => ({ mind: ['選擇反應'], move: ['伸取跨中線'] }) },
+  order: { name: '照順序碰', side: 'mind', icon: '🧺', line: '記住阿嬤要的菜，照順序拿',
+    why: '買菜、吃藥都有先後，要記得住順序。這一關練「記得住」。',
+    steps: ['先看阿嬤要拿的菜和<b>順序</b>，慢慢看，不限時間', '記好了，碰下面<b>「記好了」</b>', '照順序<b>一樣一樣碰</b>；拿錯不扣分，再想想'],
+    hints: ['記 2 樣', '記 3 樣', '記 4 樣', '記 4 樣、多 1 樣不在清單上', '記 5 樣、多 1 樣不在清單上'],
+    els: (lv) => ({ mind: lv >= 4 ? ['記住順序', '選擇反應'] : ['記住順序'], move: [] }) },
+  say: { name: '說說看', side: 'mind', icon: '💬', line: '題目說出來，家人聽完碰一下',
+    why: '叫得出東西的名字，聊天才順。這一關練「說得出」，要家人或治療師陪著玩。',
+    steps: ['題目會<b>念出來</b>，也寫在畫面上', '長輩<b>說出來</b>，家人聽', '家人聽完碰<b>「說好了」</b>；想不出來就碰<b>「換一題」</b>'],
+    hints: ['大類別（水果、動物）', '台灣生活（夜市、縣市）', '兩個條件（綠色的青菜）', '一次說兩樣', '一次說三樣、聊回憶'],
+    els: (lv) => ({ mind: sayElements(lv), move: [] }) },
+  nogo: { name: '這個不能碰', side: 'mind', icon: '🍢', line: '夜市好料碰一下，垃圾忍住不碰',
+    why: '看到該做的就做，不該碰的忍住，過馬路、煮飯都用得到。這一關練「看得快、忍得住」。',
+    steps: ['一次出現一樣東西', '<b>好吃的</b>碰一下，放進籃子', '<b>垃圾、蟑螂、蚊子</b>手忍住不要碰，等它自己走'],
+    hints: ['好料會等你', '垃圾多一點', '好料 8 秒後會走', '好料 5 秒後會走', '好料 4 秒、垃圾更多'],
+    els: () => ({ mind: ['忍住不動', '選擇反應'], move: [] }) },
+};
+const ORDER = ['pat', 'lr', 'order', 'say', 'nogo'];
+const coverOf = (id) => `../site/img/touch_${id}.jpg?v=2`;   // 11-12 Codex 封面（site/art/gen_touch_covers.sh）
+const cfg = { act: ACTS[Q.get('act')] ? Q.get('act') : 'pat', level: null, hand: 'R' };
+const FIXED = !!Q.get('act');
+
+function renderSetup() {
+  $('whoTag').textContent = WHO ? `${WHO} 在玩` : '';
+  if (!SITE) $('homeLink').style.display = 'none';
+  $('pkAct').innerHTML = ORDER.map((id) => { const a = ACTS[id]; return `<button class="actc${cfg.act === id ? ' sel' : ''}" data-v="${id}"><span class="ic" style="background-image:url('${coverOf(id)}')"></span><span><span class="k ${a.side}">${a.side === 'move' ? '動' : '感'}</span><b>${a.name}</b><small>${a.line}</small></span></button>`; }).join('');
+  $('pkAct').onclick = (e) => { const b = e.target.closest('.actc'); if (!b) return; cfg.act = b.dataset.v; cfg.level = null; renderSetup(); };
+  const a = ACTS[cfg.act];
+  const last = store.lastLevel(cfg.act, WHO);
+  if (cfg.level == null) cfg.level = Math.max(1, Math.min(5, +(Q.get('level') || last || 1)));
+  $('lvNow').textContent = `第 ${cfg.level} 級`;
+  $('lvHint').textContent = a.hints[cfg.level - 1];
+  $('lvMinus').disabled = cfg.level <= 1; $('lvPlus').disabled = cfg.level >= 5;
+  $('lvNote').textContent = last ? `上次玩完，建議這次玩第 ${last} 級。` : '第一次玩，建議從第 1 級開始。';
+  $('secHand').style.display = a.hand ? '' : 'none';
+  const hands = cfg.act === 'pat' ? [['R', '右手'], ['L', '左手'], ['B', '兩手輪流']] : [['R', '右手'], ['L', '左手']];
+  if (!hands.some(([v]) => v === cfg.hand)) cfg.hand = 'R';
+  pickRow($('pkHand'), hands, () => cfg.hand, (v) => { cfg.hand = v; });
+  $('handNote').textContent = cfg.act === 'lr' ? '整局用同一隻手，左右兩邊都去碰，才練得到跨過身體中間。' : '要練哪一隻手，就用那一隻手拍；記錄會分開記。';
+  pickRow($('pkCool'), [[400, '0.4 秒'], [800, '0.8 秒（預設）'], [1200, '1.2 秒'], [2000, '2 秒']], () => tcfg.cooldown, (v) => { tcfg.cooldown = +v; saveTouch(); });
+  pickRow($('pkArea'), [[100, '整塊（預設）'], [75, '75%'], [50, '50%']], () => tcfg.area, (v) => { tcfg.area = +v; saveTouch(); });
+  pickRow($('pkSpeak'), [[false, '不用'], [true, '要念']], () => tcfg.speak, (v) => { tcfg.speak = v === 'true'; saveTouch(); });
+  $('pickWrap').style.display = FIXED ? 'none' : '';
+  $('heroBox').innerHTML = FIXED && $('pickWrap').style.display === 'none' ? `<h1 class="fixh"><span class="cover" style="background-image:url('${coverOf(cfg.act)}')"></span>${a.name}<small><span class="k ${a.side}">${a.side === 'move' ? '動' : '感'}</span>${a.line}</small></h1>` : '';
+}
+function pickRow(el, items, get, set) {
+  el.innerHTML = items.map(([v, t]) => `<button class="pick${String(get()) === String(v) ? ' sel' : ''}" data-v="${v}">${t}</button>`).join('');
+  el.onclick = (e) => { const b = e.target.closest('.pick'); if (!b) return; set(b.dataset.v); renderSetup(); };
+}
+$('lvMinus').onclick = () => { cfg.level--; renderSetup(); };
+$('lvPlus').onclick = () => { cfg.level++; renderSetup(); };
+renderSetup();
+
+/* ---------------- 共用：畫面 ---------------- */
+let G = null;
+const T = createTouch($('play'), { root: $('stage'), cooldown: () => tcfg.cooldown, busy: () => !G || G.busy || G.ended, onHit: (k, t, e, z) => G && G.run.hit(k, t, e, z) });
+function show(id) { document.querySelectorAll('.scr').forEach((s) => s.classList.toggle('on', s.id === id)); if (id !== 'play') { T.stop(); BGM.stop(); } }
+const prompt = (txt, tag) => { $('prompt').innerHTML = `<span>${txt}</span>${tag ? `<span class="tag">${tag}</span>` : ''}`; };
+const status = (html) => { $('status').innerHTML = html; };
+function toast(msg, ms = 1800) { const t = $('toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toast._t); toast._t = setTimeout(() => t.classList.remove('show'), ms); }
+const stage = (html) => { $('stage').innerHTML = html; };
+const areaS = () => Math.sqrt(tcfg.area / 100);
+const speak = (t, force) => { if (!MUTED && (force || tcfg.speak)) say(t); };
+function ding(ok) {
+  if (MUTED) return;
+  try {
+    const ac = BGM.ctx(); if (!ac) return; BGM.duck(ok ? 0.8 : 0.5);
+    const t0 = ac.currentTime, fs = ok ? [659.25, 783.99, 1046.5] : [392, 349.23];
+    fs.forEach((f, i) => { const o = ac.createOscillator(), g = ac.createGain(); o.type = 'triangle'; o.frequency.value = f; const t = t0 + i * (ok ? 0.08 : 0.15);
+      g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(ok ? 0.13 : 0.06, t + 0.02); g.gain.exponentialRampToValueAtTime(0.001, t + 0.45); o.connect(g).connect(ac.destination); o.start(t); o.stop(t + 0.5); });
+  } catch (e) {}
+}
+function tap() {   // 每一下都有的短「咚」
+  if (MUTED) return;
+  try { const ac = BGM.ctx(); if (!ac) return; const t = ac.currentTime, o = ac.createOscillator(), g = ac.createGain(); o.type = 'sine'; o.frequency.setValueAtTime(330, t); o.frequency.exponentialRampToValueAtTime(180, t + 0.12);
+    g.gain.setValueAtTime(0.18, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.16); o.connect(g).connect(ac.destination); o.start(t); o.stop(t + 0.18); } catch (e) {}
+}
+const later = (ms, fn) => { const id = setTimeout(() => { if (G && !G.ended) fn(); }, ms); G.timers.push(id); return id; };
+
+/* ---------------- 1 拍拍看 ---------------- */
+const PAT = {
+  start(g) {
+    g.goal = L(g.level, [20, 30, 40, 60, 80]); g.taps = []; g.halfShown = false;
+    const s = Math.min(areaS(), L(g.level, [1, 1, 1, 0.78, 0.62]));
+    prompt('拍拍棉被', `目標 ${g.goal} 下`);
+    stage(`<div class="cells c1"><div class="cell"><div class="tz quilt" data-k="0" style="--s:${s}"><div class="qbig" id="cnt">0</div><div class="sub">下（${{ R: '右手', L: '左手', B: '兩手輪流' }[g.hand]}）</div><div class="fluff"><i id="fl"></i></div></div></div></div>`);
+    status('整塊棉被都可以拍，<b>手掌拍下去</b>最舒服');
+    speak('拍拍棉被，整塊都可以拍');
+  },
+  hit(k, t, e) {
+    const g = G; g.taps.push(t.t); g.touches.push(t); tap();
+    const n = g.taps.length, c = $('cnt'); c.textContent = n; c.classList.remove('pop'); void c.offsetWidth; c.classList.add('pop');
+    $('fl').style.width = Math.min(100, (n / g.goal) * 100) + '%';
+    const p = document.createElement('div'); p.className = 'puff'; p.textContent = '💨'; p.style.left = e.clientX - 22 + 'px'; p.style.top = e.clientY - 40 + 'px'; document.body.appendChild(p); setTimeout(() => p.remove(), 950);
+    if (!g.halfShown && n * 2 >= g.goal) { g.halfShown = true; toast('棉被開始蓬起來了！'); }
+    status(`拍了 <b>${n}</b> 下，還有 ${Math.max(0, g.goal - n)} 下`);
+    if (n >= g.goal) { g.busy = true; ding(true); status('<b>棉被拍好了，好蓬！</b>'); later(1200, finish); }
+  },
+  summary(g) {
+    const ts = g.taps, n = ts.length, iv = ts.slice(1).map((t, i) => t - ts[i]);
+    let best10 = 0; for (let i = 0, j = 0; i < n; i++) { while (ts[i] - ts[j] > 10000) j++; best10 = Math.max(best10, i - j + 1); }
+    const half = n >> 1, rate = (a) => (a.length > 1 ? Math.round(((a.length - 1) / ((a[a.length - 1] - a[0]) / 1000)) * 60) : null);
+    const r1 = rate(ts.slice(0, half)), r2 = rate(ts.slice(half));
+    return { n: g.goal, first: Math.min(n, g.goal), extra: { taps: n, hand: g.hand, best10, ivMed: median(iv), perMinFirst: r1, perMinSecond: r2 },
+      line: `拍了 ${n} 下${best10 ? `，最快 10 秒拍了 ${best10} 下` : ''}`,
+      rows: [['用哪隻手', { R: '右手', L: '左手', B: '兩手輪流' }[g.hand]], ['拍的下數／目標', `${n}／${g.goal}`], ['最快 10 秒幾下', best10],
+        ['兩下之間（中位數）', sec(median(iv))], ['前半段／後半段速度（每分鐘）', `${r1 ?? '—'}／${r2 ?? '—'}`]] };
+  },
+};
+
+/* ---------------- 2 左右輪流 ---------------- */
+const LR = {
+  start(g) {
+    g.pattern = L(g.level, ['alt', 'double', 'random', 'alt', 'random']); g.edge = g.level >= 4; g.goal = L(g.level, [20, 20, 24, 24, 30]);
+    g.seq = []; let run = 0;
+    for (let i = 0; i < g.goal; i++) {
+      let s;
+      if (g.pattern === 'alt') s = i % 2 ? 'R' : 'L';
+      else if (g.pattern === 'double') s = Math.floor(i / 2) % 2 ? 'R' : 'L';
+      else { s = rnd() < 0.5 ? 'L' : 'R'; if (i >= 3 && g.seq[i - 1] === s && g.seq[i - 2] === s && g.seq[i - 3] === s) s = s === 'L' ? 'R' : 'L'; }
+      g.seq.push(s); run++;
+    }
+    g.i = 0; g.lit = 0; g.wrong = 0; g.wrongNow = false; g.clean = 0; g.rt = { L: [], R: [] };
+    const z = (k, s) => `<div class="cell"><div class="tz lant dim" data-k="${k}" data-s="${s}"><div class="em">🏮</div><div class="lab">${s === 'L' ? '左' : '右'}</div></div></div>`;
+    stage(`<div class="cells ${g.edge ? 'edge' : 'c2'}" style="--s:${areaS()}">${z(0, 'L')}${g.edge ? '<div class="cell"></div>' : ''}${z(1, 'R')}</div>`);
+    speak(`亮起來的燈籠，碰一下`);
+    LR.next();
+  },
+  next() {
+    const g = G; if (g.i >= g.goal) { g.busy = true; ding(true); status('<b>燈籠全部點亮了！</b>'); return later(1300, finish); }
+    const s = g.seq[g.i]; g.shown = performance.now(); g.wrongNow = false;
+    document.querySelectorAll('.lant').forEach((d) => { const on = d.dataset.s === s; d.classList.toggle('want', on); d.classList.toggle('dim', !on); d.classList.remove('lit'); });
+    prompt('亮的燈籠碰一下', `第 ${g.i + 1}／${g.goal} 盞`);
+    status(`<b>${s === 'L' ? '左邊' : '右邊'}</b>的燈籠亮了，用${g.hand === 'L' ? '左手' : '右手'}碰一下`);
+  },
+  hit(k, t, e, z) {
+    const g = G, s = g.seq[g.i]; g.touches.push(t);
+    if (z.dataset.s !== s) { g.wrong++; g.wrongNow = true; vib(25); status('亮的是<b>另一邊</b>喔，再碰一次'); return; }
+    tap(); g.rt[s].push(t.t - g.shown); if (!g.wrongNow) g.clean++;
+    z.classList.add('lit'); g.i++; g.busy = true;
+    later(350, () => { g.busy = false; LR.next(); });
+  },
+  summary(g) {
+    const done = g.i;
+    return { n: g.goal, first: g.clean, extra: { lit: done, wrong: g.wrong, hand: g.hand, pattern: g.pattern, edge: g.edge, rtL: median(g.rt.L), rtR: median(g.rt.R) },
+      line: `點亮了 ${done} 盞燈籠，碰錯邊 ${g.wrong} 次`,
+      rows: [['用哪隻手', g.hand === 'L' ? '左手' : '右手'], ['規則', { alt: '左右輪流', double: '左左右右', random: '隨機' }[g.pattern] + (g.edge ? '、燈籠在兩邊' : '')],
+        ['點亮／目標', `${done}／${g.goal}`], ['碰錯邊（不扣分）', g.wrong], ['左邊反應時間（中位數）', sec(median(g.rt.L))], ['右邊反應時間（中位數）', sec(median(g.rt.R))]] };
+  },
+};
+
+/* ---------------- 3 照順序碰 ---------------- */
+const tooLike = (a, b) => SIMILAR.some(([x, y]) => (x === a && y === b) || (x === b && y === a));
+function pickItems(n) {
+  const out = [];
+  for (const it of shuffle(ITEMS)) { if (out.length >= n) break; if (out.some((o) => o.short === it.short || tooLike(o.id, it.id))) continue; out.push(it); }
+  return out;
+}
+const img = (id) => '../動作答題/' + itemImg(id);
+const NO = '①②③④⑤⑥';
+const ORD = {
+  start(g) {
+    g.k = L(g.level, [2, 3, 4, 4, 5]); g.extra = L(g.level, [0, 0, 0, 1, 1]); g.rounds = 4; g.r = 0; g.perfect = 0; g.wrongs = 0; g.hints = 0; g.study = [];
+    ORD.round();
+  },
+  round() {
+    const g = G; g.r++; g.phase = 'study'; g.step = 0; g.wrongRound = 0; g.wrongStep = 0;
+    const all = pickItems(g.k + g.extra); g.seqItems = all.slice(0, g.k); g.pool = shuffle(all);
+    prompt('記住順序：阿嬤要這樣拿', `第 ${g.r}／${g.rounds} 回`);
+    stage(`<div class="seqshow">${g.seqItems.map((it, i) => `${i ? '<span class="ar">→</span>' : ''}<div class="it"><span class="badge">${i + 1}</span><img src="${img(it.id)}" alt=""><b>${it.short}</b></div>`).join('')}</div>
+      <div class="cells c1 bottom" style="--s:${Math.max(0.7, areaS())}"><div class="cell"><div class="tz okz" data-k="0"><div class="lab">記好了</div></div></div></div>`);
+    status('慢慢看，<b>記好了</b>就碰下面「記好了」');
+    speak('先拿' + g.seqItems.map((x) => x.short).join('，再拿'));
+    g.shown = performance.now();
+  },
+  answer() {
+    const g = G; g.phase = 'answer'; hush();
+    const n = g.pool.length, cls = n === 2 ? 'c2' : n === 3 ? 'c3' : n === 4 ? 'g22' : 'g32';
+    prompt('照順序拿', `第 ${g.r}／${g.rounds} 回`);
+    stage(`<div class="prog" id="prog">${g.seqItems.map((_, i) => `<span>${i + 1}</span>`).join('')}</div>
+      <div class="cells ${cls} below" style="--s:${areaS()}">${g.pool.map((it, k) => `<div class="cell"><div class="tz itm" data-k="${k}" data-id="${it.id}"><img src="${img(it.id)}" alt=""><div class="lab">${it.short}</div></div></div>`).join('')}</div>`);
+    status('先拿<b>第 1 樣</b>，碰一下');
+    g.shown = performance.now();
+  },
+  hit(k, t, e, z) {
+    const g = G; g.touches.push(t);
+    if (g.phase === 'study') { g.study.push(Math.round(t.t - g.shown)); tap(); g.busy = true; status('好，<b>蓋起來了</b>，開始拿'); return later(700, () => { g.busy = false; ORD.answer(); }); }
+    if (z.classList.contains('done')) { status('這一樣<b>拿過了</b>，拿下一樣'); return; }
+    const want = g.seqItems[g.step];
+    if (z.dataset.id !== want.id) {
+      g.wrongs++; g.wrongRound++; g.wrongStep++; vib(25); ding(false);
+      if (g.wrongStep >= 2) { g.hints++; document.querySelectorAll('.tz.itm').forEach((d) => d.classList.toggle('want', d.dataset.id === want.id)); status('提示：是<b>框起來的這一樣</b>'); }
+      else status(`不是這一樣，想想看<b>第 ${g.step + 1} 樣</b>是什麼`);
+      return;
+    }
+    tap(); z.classList.remove('want'); z.classList.add('done'); z.insertAdjacentHTML('beforeend', `<span class="badge">${g.step + 1}</span>`);
+    $('prog').children[g.step].classList.add('f'); g.step++; g.wrongStep = 0;
+    if (g.step < g.k) return status(`對了！再拿<b>第 ${g.step + 1} 樣</b>`);
+    const perfect = g.wrongRound === 0; if (perfect) g.perfect++;
+    ding(true); g.busy = true; status(perfect ? '<b>全部拿對了！</b>' : '<b>拿齊了！</b>');
+    later(1500, () => { g.busy = false; if (g.r >= g.rounds) finish(); else ORD.round(); });
+  },
+  summary(g) {
+    const done = Math.max(0, g.r - (g.phase === 'answer' && g.step < g.k ? 1 : 0));
+    return { n: g.rounds, first: g.perfect, extra: { k: g.k, distract: g.extra, rounds: done, perfect: g.perfect, wrongs: g.wrongs, hints: g.hints, studyMs: g.study },
+      line: `${g.rounds} 回裡，${g.perfect} 回整串都拿對`,
+      rows: [['每回記幾樣', `${g.k} 樣${g.extra ? `（多 ${g.extra} 樣不在清單上）` : ''}`], ['整串全對', `${g.perfect}／${g.rounds} 回`], ['拿錯幾次（不扣分）', g.wrongs], ['給提示幾次', g.hints], ['看順序花多久（每回，不計分）', g.study.map((x) => (x / 1000).toFixed(1)).join('、') + ' 秒']] };
+  },
+};
+
+/* ---------------- 4 說說看 ---------------- */
+const SAYR = {
+  start(g) { g.qs = shuffle(SAY[g.level]).slice(0, 8); g.i = 0; g.said = 0; g.skip = 0; g.rts = []; SAYR.next(); },
+  next() {
+    const g = G; if (g.i >= g.qs.length) { g.busy = true; ding(true); status('<b>聊得真好！</b>'); return later(1200, finish); }
+    const q = g.qs[g.i];
+    prompt('說說看', `第 ${g.i + 1}／${g.qs.length} 題`);
+    stage(`<div class="saycard">${q}</div><div class="cells say2 bottom" style="--s:${Math.max(0.75, areaS())}"><div class="cell"><div class="tz okz" data-k="0"><div class="lab">✓ 說好了</div></div></div><div class="cell"><div class="tz" data-k="1"><div class="lab">換一題</div><div class="sub">想不出來也沒關係</div></div></div></div>`);
+    status('說出來給家人聽，家人聽完幫忙碰<b>「說好了」</b>');
+    speak(q, true); g.shown = performance.now();
+  },
+  hit(k, t) {
+    const g = G; g.touches.push(t); hush();
+    if (k === 0) { g.said++; g.rts.push(t.t - g.shown); tap(); toast(pick(['說得好！', '很好！', '對，就是這樣！'])); }
+    else { g.skip++; toast('換一題'); }
+    g.i++; g.busy = true; later(700, () => { g.busy = false; SAYR.next(); });
+  },
+  summary(g) {
+    return { n: g.qs.length, first: g.said, extra: { said: g.said, skip: g.skip, rtMed: median(g.rts) },
+      line: `說出了 ${g.said} 題${g.skip ? `，換了 ${g.skip} 題` : ''}`,
+      rows: [['說出／題數', `${g.said}／${g.qs.length}`], ['換一題', g.skip], ['從題目出來到說好了（中位數，含家人碰的時間）', sec(median(g.rts))]] };
+  },
+};
+
+/* ---------------- 5 這個不能碰 ---------------- */
+const NOGO = {
+  start(g) {
+    g.n = 20; g.goWait = L(g.level, [0, 0, 8000, 5000, 4000]); const p = L(g.level, [0.2, 0.3, 0.3, 0.35, 0.4]);
+    const nBad = Math.round(g.n * p); let seq;
+    for (let tries = 0; tries < 200; tries++) { seq = shuffle([...Array(nBad).fill(1), ...Array(g.n - nBad).fill(0)]); if (!seq[0] && !seq[1] && !seq.some((v, i) => v && seq[i - 1])) break; }
+    g.seq = seq.map((bad) => ({ bad: !!bad, it: bad ? pick(BAD) : pick(GOOD) }));
+    g.i = -1; g.hits = 0; g.miss = 0; g.wrongTouch = 0; g.withheld = 0; g.rts = []; g.cur = null;
+    stage(`<div class="cells c1"><div class="cell"><div class="tz" data-k="0" style="--s:${areaS()}"><div class="item" id="it"></div></div></div></div>`);
+    speak('好吃的碰一下，垃圾和蟲不要碰');
+    NOGO.next();
+  },
+  next() {
+    const g = G; g.i++; g.cur = null; $('it').innerHTML = ''; $('it').className = 'item';
+    prompt('好吃的碰一下，垃圾不要碰', `🧺 ${g.hits}　第 ${Math.min(g.i + 1, g.n)}／${g.n} 樣`);
+    if (g.i >= g.n) { g.busy = true; ding(true); status('<b>夜市逛完了！</b>'); return later(1100, finish); }
+    g.busy = true;
+    later(650, () => {
+      const c = g.seq[g.i]; g.cur = { ...c, touched: false, at: performance.now() }; g.busy = false;
+      $('it').className = 'item' + (c.bad ? ' bad' : ''); $('it').innerHTML = `<div class="em">${c.it.e}</div><div class="nm">${c.it.n}</div>`;
+      status('好吃的就碰，垃圾和蟲<b>手忍住</b>');
+      if (c.bad) g.cur.timer = later(3000, () => { if (!g.cur.touched) g.withheld++; NOGO.next(); });
+      else if (g.goWait) g.cur.timer = later(g.goWait, () => { g.miss++; status('好料走掉了，<b>沒關係</b>，下一樣'); NOGO.next(); });
+    });
+  },
+  hit(k, t) {
+    const g = G, c = g.cur; g.touches.push(t); if (!c) return;
+    if (c.bad) {
+      if (!c.touched) g.wrongTouch++; c.touched = true; vib(25);
+      const it = $('it'); it.classList.remove('shake'); void it.offsetWidth; it.classList.add('shake');
+      status('這個<b>不能碰</b>喔，手先放著，它會自己走'); return;
+    }
+    clearTimeout(c.timer); g.hits++; g.rts.push(t.t - c.at); tap(); g.cur = null; g.busy = true;
+    $('it').classList.add('gotit'); status('<b>放進籃子了！</b>');
+    later(450, () => NOGO.next());
+  },
+  summary(g) {
+    const nBad = g.seq.filter((x) => x.bad).length, nGood = g.n - nBad;
+    return { n: g.n, first: g.hits + g.withheld, extra: { hits: g.hits, miss: g.miss, wrongTouch: g.wrongTouch, withheld: g.withheld, nGood, nBad, goWait: g.goWait, rtMed: median(g.rts) },
+      line: `撿了 ${g.hits} 樣好料，${nBad} 次垃圾忍住了 ${g.withheld} 次`,
+      rows: [['好料：碰到／出現', `${g.hits}／${nGood}`], ['好料走掉（漏掉）', g.miss], ['垃圾和蟲：忍住／出現', `${g.withheld}／${nBad}`], ['碰到不能碰的', g.wrongTouch],
+        ['好料多久後會走', g.goWait ? sec(g.goWait) : '等到碰才走'], ['碰好料的反應時間（中位數）', sec(median(g.rts))]] };
+  },
+};
+const RUN = { pat: PAT, lr: LR, order: ORD, say: SAYR, nogo: NOGO };
+
+/* ---------------- 開局、結束 ---------------- */
+const FIG = `<svg viewBox="0 0 170 130" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">
+  <rect x="6" y="20" width="158" height="100" rx="12"/><path d="M85 30 v80" stroke-dasharray="6 7"/>
+  <rect class="fig-zone" x="92" y="28" width="64" height="84" rx="8" fill="currentColor" stroke="none"/>
+  <g class="fig-palm"><path d="M104 74 v-30 M114 72 v-36 M124 72 v-34 M134 76 v-26 M100 80 q20 26 40 0" stroke-width="7"/></g></g></svg>`;
+function showHowto() {
+  const a = ACTS[cfg.act];
+  show('prep');
+  $('howBox').innerHTML = `<span class="kind">${a.side === 'move' ? '動' : '感'}．第 ${cfg.level} 級．${a.hints[cfg.level - 1]}</span><div class="howhead"><span class="cover" style="background-image:url('${coverOf(cfg.act)}')"></span><div><h2>${a.name}</h2><p class="why">${a.why}</p></div></div>
+    <ol class="howsteps">${a.steps.map((s) => `<li><span>${s}</span></li>`).join('')}</ol>
+    <div class="howmove">${FIG}<div>平板用支架<b>立在桌上</b>，螢幕和眼睛差不多高。<b>坐正、背挺直</b>，<b>手舉起來</b>輕碰答案；<b>手指、指節、整個手掌</b>碰到都算。碰完<b>手放下來</b>，才算下一下。</div></div>
+    <div class="btns"><button class="pri" id="howGo">開始</button><button id="howBack">回上一頁</button></div>`;
+  $('howGo').onclick = () => start();
+  $('howBack').onclick = () => show('setup');
+}
+let wake = null;
+async function keepAwake() { try { wake = await navigator.wakeLock?.request('screen'); } catch (e) {} }
+function start() {
+  BGM.start(); keepAwake();
+  G = { act: cfg.act, level: cfg.level, hand: cfg.hand, run: RUN[cfg.act], t0: performance.now(), at: Date.now(), busy: false, ended: false, timers: [], touches: [] };
+  show('play'); T.start(); $('stopBtn').classList.remove('holding');
+  G.run.start(G);
+}
+function finish() {
+  if (!G || G.ended) return;
+  G.ended = true; G.timers.forEach(clearTimeout); T.stop(); hush();
+  const sm0 = G.run.summary(G), rate = sm0.n ? Math.min(1, sm0.first / sm0.n) : 0;
+  const next = rate >= 0.85 ? Math.min(5, G.level + 1) : rate < 0.6 ? Math.max(1, G.level - 1) : G.level;
+  const sess = {
+    ver: 1, at: G.at, who: WHO, activity: G.act, level: G.level, input: 'touch', layout: null, layoutChanges: [], pain: false, demo: false,
+    durationSec: Math.round((performance.now() - G.t0) / 1000),
+    elements: ACTS[G.act].els(G.level),
+    items: [], study: [],
+    summary: { n: sm0.n, first: sm0.first, firstRate: Math.round(rate * 100) / 100, score: sm0.first, rtMed: null, stuck: 0, hands: {}, level: G.level, nextLevel: next },
+    extra: sm0.extra,
+    touch: { cooldown: tcfg.cooldown, area: tcfg.area, hits: T.stats.hits, blocked: T.stats.blocked, outside: T.stats.outside, multi: T.stats.multi, palm: G.touches.filter((x) => x.n > 1).length },
+  };
+  store.add(sess);
+  window.__lastSession = sess;
+  renderResult(sess, sm0);
+  show('result'); BGM.fanfare && BGM.fanfare();
+  try { wake && wake.release(); } catch (e) {} wake = null;
+}
+function renderResult(s, sm0) {
+  const a = ACTS[s.activity], r = s.summary.firstRate;
+  const good = r >= 0.85 ? '很穩！' : r >= 0.6 ? '不錯喔！' : '慢慢來，有在進步。';
+  const nx = s.summary.nextLevel, lvTxt = nx > s.level ? `下次可以挑戰第 ${nx} 級` : nx < s.level ? `下次先從第 ${nx} 級玩起，會更順` : `下次再玩第 ${nx} 級，多熟練一點`;
+  const t = s.touch;
+  $('resBox').innerHTML = `<h1>${a.icon} ${a.name}｜${good}</h1>
+    <div class="big"><div><small>這一次</small><b>${sm0.line}</b><p>${lvTxt}</p></div>
+      <div><small>手碰了幾下</small><b>${t.hits} 下</b><p>${t.palm ? `其中 ${t.palm} 下是好幾根手指或手掌一起碰（只算一下）。` : '照自己的速度來就好。'}</p></div></div>
+    <div class="btns"><button class="pri" id="again">再玩一次（第 ${nx} 級）</button>${SITE ? '<button id="home">回首頁</button>' : ''}<button id="back">換一個</button></div>
+    <details class="more"><summary>給治療師、家屬看的細節</summary><table>
+      <tr><th>項目</th><th>這次</th></tr>
+      <tr><td>活動／等級</td><td>${a.name}／第 ${s.level} 級（${a.hints[s.level - 1]}）</td></tr>
+      ${sm0.rows.map(([k, v]) => `<tr><td>${k}</td><td>${v}</td></tr>`).join('')}
+      <tr><td>觸控：防誤觸間隔／有效範圍</td><td>${t.cooldown / 1000} 秒／${t.area}%</td></tr>
+      <tr><td>觸控：太快被擋下／碰到空白處（不扣分）</td><td>${t.blocked} 次／${t.outside} 次</td></tr>
+      <tr><td>花費時間</td><td>${Math.floor(s.durationSec / 60)} 分 ${s.durationSec % 60} 秒</td></tr>
+    </table><p style="color:var(--sub)">這些數字只能跟自己比，還沒有同齡參考值；只是練習紀錄，不能代替看醫生。</p></details>
+    <p class="fb">歡迎給我回饋與建議：<a href="https://www.facebook.com/shihyuting.OT" target="_blank" rel="noopener">職能治療師施昱廷 粉專</a></p>`;
+  $('again').onclick = () => { cfg.level = nx; start(); };
+  $('back').onclick = () => { cfg.level = null; renderSetup(); show('setup'); $('pickWrap').style.display = ''; $('heroBox').innerHTML = ''; };
+  if ($('home')) $('home').onclick = () => { location.href = '../site/' + (MUTED ? '?mute=1' : ''); };
+}
+
+/* 「結束」要長按 2 秒（手掌大面積碰螢幕時不會誤按） */
+let holdT = null;
+$('stopBtn').addEventListener('pointerdown', () => { const b = $('stopBtn'); b.classList.add('holding'); clearTimeout(holdT); holdT = setTimeout(() => { b.classList.remove('holding'); vib(20); stopNow(); }, 2000); });
+for (const n of ['pointerup', 'pointercancel', 'pointerleave']) $('stopBtn').addEventListener(n, () => { clearTimeout(holdT); $('stopBtn').classList.remove('holding'); });
+function stopNow() { if (!G || G.ended) return; if (G.touches.length) finish(); else { G.ended = true; G.timers.forEach(clearTimeout); hush(); show('setup'); } }
+
+/* 背景音樂開關 */
+function syncMusic() { document.querySelectorAll('.musicBtn').forEach((b) => { b.hidden = MUTED; b.textContent = `♪ 音樂：${BGM.on ? '開' : '關'}`; b.classList.toggle('off', !BGM.on); }); }
+document.querySelectorAll('.musicBtn').forEach((b) => { b.onclick = (e) => { e.stopPropagation(); BGM.setOn(!BGM.on); if (BGM.on && $('play').classList.contains('on')) BGM.start(); syncMusic(); }; });
+syncMusic();
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && G && !G.ended) keepAwake(); });
+
+$('btnGo').onclick = () => { if (Q.get('howto') === '0') start(); else showHowto(); };
+
+/* 測試用 */
+window.__touch = { cfg, tcfg, store, get G() { return G; }, get T() { return T; }, start, finish };
+</script>
+</body>
+</html>

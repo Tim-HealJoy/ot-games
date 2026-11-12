@@ -71,7 +71,7 @@ details.adv .sec{padding:0}
 @media (orientation:portrait){#prompt{padding:0 12px 0 74px;font-size:min(4.2vh,6.2vw)}#prompt .tag{font-size:13px}}
 #prompt .tag{font-size:min(3vh,4vw);font-weight:500;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:4px 12px;color:var(--sub)}
 #prompt.slow{color:var(--blue)}
-#status{position:absolute;left:0;right:0;bottom:2vh;text-align:center;font-size:min(3.4vh,5vw);color:var(--sub);z-index:3;pointer-events:none}
+#status{position:absolute;left:0;right:0;bottom:2vh;padding:0 14px;text-align:center;font-size:min(3.4vh,5vw);color:var(--sub);z-index:3;pointer-events:none}
 #status b{color:var(--ink)}
 .opt{position:absolute;transform:translate(-50%,-50%);background:var(--card);border:3px solid var(--line);border-radius:22px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:1.2vh;z-index:2;transition:opacity .25s,border-color .2s}
 .opt img{max-width:100%;max-height:72%;object-fit:contain;border-radius:12px;pointer-events:none}
@@ -143,20 +143,97 @@ td,th{border-bottom:1px solid var(--line);padding:6px 4px;text-align:left}
 .nextc .pic{background:#E8DCC5 center/cover no-repeat;display:flex;align-items:center;justify-content:center;font-size:48px;min-height:110px}
 .nextc .t{padding:12px 16px}.nextc .k{font-size:17px;font-weight:800;color:var(--accent-d)}.nextc b{display:block;font-size:26px;font-weight:900}.nextc span{font-size:18px;color:var(--sub)}
 .donec{margin-top:16px;background:#E4F1E8;border:2px solid var(--ok);border-radius:16px;padding:14px 16px;font-size:21px;font-weight:800;color:var(--ok)}
+/* 怎麼玩（開局前說明）＋動作練習（2026-11-11） */
+#prep{overflow:auto;align-items:flex-start}
+#prep .box{margin:auto}
+#prepBox.wide{max-width:900px}
+.how{max-width:860px;width:100%;text-align:left}
+.howhead{display:grid;grid-template-columns:150px 1fr;gap:16px;align-items:center}
+.howhead .pic{aspect-ratio:1;border-radius:16px;background:#E8DCC5 center/cover no-repeat}
+.howhead .kind{font-size:19px;font-weight:800}
+.howhead h2{margin:2px 0 4px;font-size:32px}
+.howhead .why{font-size:21px;line-height:1.55;margin:0}
+.howsteps{list-style:none;margin:16px 0 0;padding:0;display:grid;gap:10px;counter-reset:hs}
+.howsteps li{counter-increment:hs;display:grid;grid-template-columns:48px 1fr;gap:12px;align-items:center;font-size:23px;line-height:1.45}
+.howsteps li::before{content:counter(hs);width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:24px;background:var(--accent);color:#fff}
+.howmove{margin-top:16px;border-radius:18px;padding:14px 16px;display:grid;grid-template-columns:auto 1fr;gap:16px;align-items:center}
+.howmove .mt{font-size:22px;line-height:1.55}
+.howmove .mt b{font-weight:900}
+.howmove .figs{display:flex;gap:10px}
+.howmove figure{margin:0;text-align:center;font-size:18px;font-weight:800}
+.howmove svg{width:130px;height:130px;display:block}
+/* 3D 示範人（11-12 起全遊戲共用，透明底動圖） */
+.howmove img.d3{width:170px;height:170px;display:block;object-fit:contain}
+.pfig img.d3{width:min(20vh,170px);height:min(20vh,170px);display:block;object-fit:contain}
+figure.ng{color:#FF6B5B}
+.howmove{min-width:0}.howmove .mt{min-width:0}
+@media (max-width:640px){.howmove img.d3{width:min(30vw,140px);height:min(30vw,140px)}.howmove .figs{gap:6px}.howmove .figs{justify-content:center;flex-wrap:wrap}}
+.how .btns{margin-top:18px}
+.how .note{margin:10px 0 0;padding:0}
+@media (max-width:640px){.howhead{grid-template-columns:90px 1fr}.howhead h2{font-size:26px}.howmove{grid-template-columns:1fr}.howmove .figs{justify-content:center}.howsteps li{font-size:21px}}
+/* 示範動畫（暫代：之後換 Codex 阿公動畫，待老闆審） */
+.fig-arm{transform-origin:62px 66px;animation:armReach 5s ease-in-out infinite}
+@keyframes armReach{0%,12%{transform:rotate(75deg)}34%,64%{transform:rotate(-24deg)}84%,100%{transform:rotate(75deg)}}
+.fig-bar{transform-origin:112px 0;transform:scaleX(0);animation:barFill 5s linear infinite}
+@keyframes barFill{0%,36%{transform:scaleX(0)}60%,66%{transform:scaleX(1)}67%,100%{transform:scaleX(0)}}
+.fig-ok{opacity:0;animation:okShow 5s linear infinite}
+@keyframes okShow{0%,60%{opacity:0}61%,80%{opacity:1}81%,100%{opacity:0}}
+.fig-lean{transform-origin:65px 112px;animation:bodyLean 4.4s ease-in-out infinite}
+.fig-wrist{transform-origin:65px 72px;animation:bodyLean 4.4s ease-in-out infinite}
+@keyframes bodyLean{0%,10%{transform:rotate(0)}28%,42%{transform:rotate(-17deg)}56%,62%{transform:rotate(0)}78%,92%{transform:rotate(17deg)}100%{transform:rotate(0)}}
+/* 練習：示範手（虛線圈）從膝上伸到卡片、停住、放回 */
+.ghost{position:absolute;width:78px;height:78px;margin:-39px 0 0 -39px;border:5px dashed var(--accent);border-radius:50%;z-index:3;pointer-events:none;display:flex;align-items:center;justify-content:center;font-size:38px;animation:ghostGo 3.6s ease-in-out infinite}
+.ghost span{position:absolute;bottom:84px;white-space:nowrap;font-size:20px;font-weight:800;color:var(--accent)}
+@keyframes ghostGo{0%,8%{transform:translate(var(--gx0),var(--gy0));opacity:.25}36%,72%{transform:translate(var(--gx1),var(--gy1));opacity:1}92%,100%{transform:translate(var(--gx0),var(--gy0));opacity:.25}}
+.pfig{position:absolute;left:50%;transform:translate(-50%,0);z-index:2;pointer-events:none;display:flex;gap:14px}
+.pfig figure{margin:0;text-align:center;font-size:18px;font-weight:800}
+.pfig svg{width:min(17vh,150px);height:min(17vh,150px);display:block}
+#mini.big{left:50%;right:auto;top:56%;transform:translate(-50%,-50%);width:min(64vw,720px);border-width:4px}
+#mini .me{position:absolute;left:8px;top:6px;font-size:18px;font-weight:800;color:#fff;background:rgba(0,0,0,.55);border-radius:8px;padding:2px 8px;display:none}
+#mini.big .me{display:block}
+.opt.dim{opacity:.3}
+.linkbtn{background:none;border:0;padding:0 0 0 6px;font:inherit;font-weight:800;text-decoration:underline;color:var(--accent);cursor:pointer}
+/* 大面積觸控（2026-11-12，參考楊昀霖職能治療師「觸動練習站」的觸控細節）
+   整塊觸控區＝答案；手指、指節、手掌一起碰只算一下；手全部離開＋防誤觸間隔後才收下一下 */
+#play.touch{touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+#play.touch #prompt{padding-left:150px}
+.tz{position:absolute;border:4px dashed var(--line);border-radius:28px;z-index:1;pointer-events:none;transition:opacity .2s,border-color .2s,background .2s}
+.tz.on{border-style:solid;border-color:var(--accent);background:rgba(255,212,0,.07)}
+.tz.off{opacity:.3}
+.tz.want{border-color:var(--ok);border-width:6px;background:rgba(255,212,0,.14)}
+.tz.hit{background:rgba(255,212,0,.22)}
+.ripple{position:fixed;width:30px;height:30px;margin:-15px 0 0 -15px;border-radius:50%;border:5px solid var(--accent);z-index:9;pointer-events:none;animation:rip .6s ease-out forwards}
+@keyframes rip{from{transform:scale(1);opacity:1}to{transform:scale(7);opacity:0}}
+.cdbar{position:fixed;width:130px;height:16px;margin:-60px 0 0 -65px;border-radius:99px;background:#3A2F14;border:2px solid var(--accent);overflow:hidden;z-index:9;pointer-events:none}
+.cdbar i{display:block;height:100%;background:var(--accent);transform-origin:left;animation:cdgo var(--ms) linear forwards}
+@keyframes cdgo{from{transform:scaleX(var(--f))}to{transform:scaleX(0)}}
+#toast{position:absolute;left:50%;top:15vh;transform:translate(-50%,0);z-index:8;background:var(--card);border:3px solid var(--accent);border-radius:18px;padding:10px 22px;font-size:min(4vh,6vw);font-weight:800;opacity:0;pointer-events:none;transition:opacity .3s;white-space:nowrap}
+#toast.show{opacity:1}
+#stopBtn.holdable{position:absolute;overflow:hidden}
+#stopBtn.holdable::after{content:"";position:absolute;left:0;bottom:0;height:5px;width:100%;background:var(--accent);transform:scaleX(0);transform-origin:left}
+#stopBtn.holdable.holding::after{transition:transform 2s linear;transform:scaleX(1)}
+.howmove .tfig svg{width:170px;height:130px}
+.fig-palm{animation:palmTap 3s ease-in-out infinite;transform-origin:120px 70px}
+@keyframes palmTap{0%,20%{transform:translateY(-26px);opacity:.5}35%,55%{transform:translateY(0);opacity:1}70%,100%{transform:translateY(-26px);opacity:.5}}
+.fig-zone{animation:zoneLit 3s linear infinite}
+@keyframes zoneLit{0%,34%{fill-opacity:0}36%,60%{fill-opacity:.35}62%,100%{fill-opacity:0}}
 </style>
-<link rel="stylesheet" href="neon.css?v=1">
+<link rel="stylesheet" href="neon.css?v=2">
 </head>
 <body>
 
 <section id="setup" class="scr on">
-  <div class="topbar"><a id="homeLink" href="../site/">← 首頁</a><span class="brand"><img class="brand-img" src="../site/brand/logo_h_dark.png" alt="感．動復能"></span><span class="who" id="whoTag"></span></div>
+  <div class="topbar"><a id="homeLink" href="../site/">← 首頁</a><span class="brand"><img class="brand-img" src="../site/brand/logo_h_dark.png" alt="感．動復能"></span><span class="who" id="whoTag"></span><button id="musicBtn2" class="musicBtn" aria-label="背景音樂開關"></button></div>
   <div class="wrap">
     <div id="pickWrap"><h2 class="sech">用身體答題：玩哪一個？</h2><div class="actgrid" id="pkAct"></div></div>
     <div id="heroBox"></div>
   </div>
   <div class="sec"><h2>今天玩第幾級</h2><div class="lvbox"><button id="lvMinus" aria-label="降一級">−</button><div><div class="lv" id="lvNow"></div><div class="dots5" id="lvDots"></div></div><button id="lvPlus" aria-label="升一級">＋</button><div class="lvh" id="lvHint"></div></div><p class="note" id="lvNote"></p></div>
-  <div class="sec"><h2>怎麼回答</h2><div class="row" id="pkInput"></div></div>
-  <details class="adv" id="adv"><summary>進階設定（答案卡位置、肩膀）</summary>
+  <div class="sec"><h2>怎麼回答</h2><div class="row" id="pkInput"></div><p class="note" id="practiceNote"></p></div>
+  <details class="adv" id="adv"><summary id="advSum">進階設定（答案卡位置、肩膀）</summary>
+    <div class="sec" id="secTouch"><h2>防誤觸間隔</h2><div class="row" id="pkCool"></div><p class="note">手指、指節或整個手掌一起碰到，只算一下；手要<b>完全離開螢幕</b>、超過這個時間，才算下一下。手會抖、容易連碰，就選長一點。</p>
+      <h2 style="margin-top:14px">有效觸控範圍</h2><div class="row" id="pkArea"></div><p class="note">預設整塊都算。範圍縮小，要碰得比較準。</p></div>
+    <div class="sec"><h2>讀出題目</h2><div class="row" id="pkSpeak"></div><p class="note">每一題出來時，用語音念一次題目。</p></div>
     <div class="sec" id="secLayout"><h2>答案卡放哪裡（練哪個動作）</h2><div class="row" id="pkLayout"></div><p class="note" id="painNote"></p></div>
     <div class="sec"><h2>舉手時肩膀會痛嗎</h2><div class="row" id="pkPain"></div><p class="note" id="painSrc"></p></div>
   </details>
@@ -168,11 +245,13 @@ td,th{border-bottom:1px solid var(--line);padding:6px 4px;text-align:left}
 
 <section id="play" class="scr">
   <button id="stopBtn">結束</button>
+  <button id="musicBtn" class="musicBtn" aria-label="背景音樂開關"></button>
   <div id="prompt"></div>
   <div id="stage"></div>
-  <div id="mini" class="off"><canvas id="miniCv" width="320" height="180"></canvas></div>
+  <div id="mini" class="off"><canvas id="miniCv" width="320" height="180"></canvas><span class="me">這是您（像照鏡子）</span></div>
   <canvas id="cv"></canvas>
   <div id="status"></div>
+  <div id="toast" aria-live="polite"></div>
   <div id="veil"><div id="veilTxt"></div></div>
 </section>
 
@@ -183,6 +262,7 @@ import { bodyFrame, createAnswerer, LAYOUTS, EASIER, toScreen } from './engine/z
 import { upVector, anglesOf, createTiltAnswerer } from './engine/tilt3.js';
 import { buildSpeed, buildVeg, buildPrice, buildMemo, buildSeq, buildPlace, summarize, motionElements, rng } from './engine/levels.js';
 import { store } from './engine/record.js';
+import { createBgm } from './engine/bgm.js';
 import { SPEED } from './banks/speed.js';
 import { VEG } from './banks/veg.js';
 import { PRICE } from './banks/price.js';
@@ -204,6 +284,7 @@ const $ = (id) => document.getElementById(id);
 const Q = new URLSearchParams(location.search);
 const DEMO = Q.get('demo') === '1';
 let MUTED = Q.get('mute') === '1';
+const BGM = createBgm({ muted: MUTED });   // 背景音樂（三首 CC0 輪流，開關記在 gd_music_v1）
 const portrait = () => innerHeight > innerWidth;
 const BANKS = { speed: SPEED, price: PRICE, veg: VEG, memo: MEMO, seq: SEQ, place: PLACE };
 const BUILD = { speed: buildSpeed, veg: buildVeg, price: buildPrice, memo: buildMemo, seq: buildSeq, place: buildPlace };
@@ -230,7 +311,70 @@ const cfg = {
   layout: Q.get('layout') || 'low',
   pain: PAIN0,
   level: null,
+  practice: null,   // null＝照「練過沒」自動決定；true＝設定頁按了「要再練習一次」
 };
+/* 練過動作沒（每位個案、每種作答方式記一次；沒建檔的記在 _guest）。練過就直接開始，設定頁可以再練。 */
+const LEARN_KEY = 'gandong_quiz_learned_v1';
+const learnedAll = () => { try { return JSON.parse(localStorage.getItem(LEARN_KEY) || '{}') || {}; } catch (e) { return {}; } };
+const learned = (input) => !!(learnedAll()[WHO || '_guest'] || {})[input];
+function setLearned(input) { try { const v = learnedAll(), k = WHO || '_guest'; v[k] = { ...(v[k] || {}), [input]: Date.now() }; localStorage.setItem(LEARN_KEY, JSON.stringify(v)); } catch (e) {} }
+/* 大面積觸控的設定（防誤觸間隔、有效範圍、讀題），記在這台機器上 */
+const TOUCH_KEY = 'gandong_touch_v1';
+const tcfg = (() => {
+  const d = { cooldown: 800, area: 100, speak: false };
+  try { const v = JSON.parse(localStorage.getItem(TOUCH_KEY) || '{}'); if ([400, 800, 1200, 2000].includes(v.cooldown)) d.cooldown = v.cooldown; if ([100, 75, 50].includes(v.area)) d.area = v.area; if (typeof v.speak === 'boolean') d.speak = v.speak; } catch (e) {}
+  if (Q.get('cool')) d.cooldown = +Q.get('cool');   // 測試用
+  return d;
+})();
+const saveTouch = () => { try { localStorage.setItem(TOUCH_KEY, JSON.stringify(tcfg)); } catch (e) {} };
+const HOWTO_SKIP = Q.get('howto') === '0';   // 測試用：跳過說明與練習
+const needPractice = () => cfg.input !== 'tap' && !DEMO && !HOWTO_SKIP && (cfg.practice === true || !learned(cfg.input));
+
+/* 每款「為什麼玩＋怎麼玩」：先講生活裡的目的，再三步講完玩法（老闆：任務目的＋看得懂的任務） */
+function howtoOf(act, lv) {
+  const H = {
+    speed: { why: '過馬路要看得出車子快不快。這一關練「看得清、反應快」。',
+      steps: ['畫面會出現<b>兩樣東西</b>', '選<b>比較快</b>的那一個', lv >= 4 ? '有時候會問<b>比較慢</b>，先看清楚題目再選' : '答錯沒關係，會告訴您答案'] },
+    price: { why: '去市場買菜要會比價錢。這一關練「會比、會算」。',
+      steps: ['兩樣東西都是<b>一斤</b>的價錢', '選<b>比較貴</b>的那一個', lv >= 4 ? '有時候會問<b>比較便宜</b>，先看清楚題目再選' : '答完會告訴您一斤大約多少錢'] },
+    veg: { why: '認得菜的樣子，買菜、煮飯才不會拿錯。這一關練「看得懂形狀」。',
+      steps: ['中間的照片是<b>影子、切開或放大</b>的菜', '猜猜是哪一種菜，<b>選旁邊的答案卡</b>', '猜錯沒關係，會<b>再給一個線索</b>，再選一次'] },
+    memo: { why: '家人交代要買的東西，要記得住。這一關練「記得住」。',
+      steps: ['先看購物清單，<b>慢慢記</b>，不限時間', '記好了，選<b>「記好了」</b>，清單會蓋起來', '再一樣一樣問：<b>哪一樣在剛剛的清單上？</b>'] },
+    seq: { why: '泡茶、出門前，事情要一步一步來。這一關練「做事有順序」。',
+      steps: ['上面會寫今天要做<b>哪一件事</b>', '先選<b>最先做</b>的那一步，再選<b>接下來</b>那一步', '排好的步驟會放到上面，<b>排完就完成</b>'] },
+    place: { why: '說說各地的名產，想想以前去過的地方。這一關練「叫得出、說得出」。',
+      steps: ['題目會說一個<b>地方</b>，例如「台中」', '選<b>那裡有名的東西</b>', '選錯會劃掉，<b>再選一次</b>'] },
+  };
+  return H[act] || H.speed;
+}
+const MOVE_TXT = {
+  cam: '<b>伸手</b>到答案卡上，<b>停一下</b>，等黃色條跑滿就選好了；選好後<b>手放回膝上</b>，下一題才會出來。哪一隻手都可以。',
+  tilt: '手機直拿貼胸口，<b>身體帶著手機往答案那邊倒</b>，停一下就選好了；選好後<b>坐正</b>。不要只轉手腕。一隻手不方便，用另一隻手把手機貼在胸口也可以。',
+  tap: '平板用支架<b>立在桌上</b>，<b>坐正、背挺直</b>，<b>手舉起來</b>輕碰答案。答案在左邊，就<b>碰左邊那一大塊</b>；在右邊，就碰右邊。<b>手指、指節、整個手掌</b>碰到都算。碰完<b>手離開螢幕</b>，才算下一下。',
+};
+/* 觸控示範：手掌落在右邊那一塊、那一塊亮起來 */
+const FIG_TOUCH = `<svg viewBox="0 0 170 130" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">
+  <rect x="6" y="20" width="158" height="100" rx="12"/><path d="M85 30 v80" stroke-dasharray="6 7"/>
+  <rect class="fig-zone" x="92" y="28" width="64" height="84" rx="8" fill="currentColor" stroke="none"/>
+  <g class="fig-palm"><path d="M104 74 v-30 M114 72 v-36 M124 72 v-34 M134 76 v-26 M100 80 q20 26 40 0" stroke-width="7"/></g></g></svg>`;
+/* 示範動畫（SVG，暫代；之後換 Codex 阿公動畫，要先給老闆審） */
+const FIG_REACH = `<svg viewBox="0 0 150 150" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">
+  <rect x="104" y="18" width="38" height="30" rx="6"/><rect class="fig-bar" x="106" y="52" width="34" height="6" rx="3" fill="currentColor" stroke="none"/>
+  <path class="fig-ok" d="M112 33 l7 7 l13 -14"/>
+  <circle cx="52" cy="38" r="13"/><path d="M52 52 v46 M30 140 v-36 h42 v36 M62 66 h-20"/>
+  <g class="fig-arm"><path d="M62 66 h40"/><circle cx="106" cy="66" r="6" fill="currentColor"/></g></g></svg>`;
+const figLean = (wrong) => `<svg viewBox="0 0 130 150" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">
+  <path d="M38 146 v-34 h54 v34"/>
+  <g class="${wrong ? '' : 'fig-lean'}"><circle cx="65" cy="30" r="14"/><path d="M65 45 v67"/>
+    <g class="${wrong ? 'fig-wrist' : ''}"><rect x="56" y="60" width="18" height="28" rx="4" fill="currentColor"/></g></g></g>
+  ${wrong ? '<path d="M100 14 l22 22 M122 14 l-22 22" stroke="currentColor" stroke-width="6" stroke-linecap="round"/>' : '<path d="M98 26 l9 9 l17 -19" fill="none" stroke="currentColor" stroke-width="6" stroke-linecap="round"/>'}</svg>`;
+/* 3D 示範人（11-12 老闆：所有遊戲用同一位、不用阿公）：來源 ../3D示範人樣式/示範_動作庫_v0.4.html?export=1；舊 SVG 線條人留著當備用 */
+const DEMO3D = (k, alt) => `<img class="d3" src="img/demo3d/demo3d_${k}.webp?v=1" alt="${alt}">`;
+const FIG_CAM = (layout) => layout === 'high' ? `<figure>${DEMO3D('high', '示範：一隻手往斜上方舉到頭頂旁邊，停一下，放回膝上')}舉高、停一下</figure>`
+  : layout === 'wide' ? `<figure>${DEMO3D('wide', '示範：一隻手往旁邊伸遠，停一下，放回膝上')}伸遠、停一下</figure>`
+  : `<figure>${DEMO3D('reach', '示範：一隻手往前伸直，停一下，放回膝上')}伸手、停一下</figure>`;
+const FIG_TILT = `<figure>${DEMO3D('tilt', '示範：手機貼胸口，身體帶著往右、往左、往前倒')}身體帶著倒</figure><figure class="ng">${DEMO3D('tilt_ng_wrist', '錯誤示範：身體不動，只轉手腕')}✕ 只轉手腕</figure>`;
 function picker(el, items, key, after) {
   el.innerHTML = items.map((it) => `<button class="pick" data-v="${it.v}">${it.t}${it.s ? `<small>${it.s}</small>` : ''}</button>`).join('');
   const sync = () => el.querySelectorAll('.pick').forEach((b) => b.classList.toggle('sel', String(cfg[key]) === b.dataset.v));
@@ -257,8 +401,24 @@ function renderSetup() {
   picker($('pkInput'), [
     { v: 'cam', t: '伸手到答案上', s: '用鏡頭；平板、電腦或電視' },
     { v: 'tilt', t: '身體帶手機傾斜', s: '手機直拿貼胸口' },
-    { v: 'tap', t: '點螢幕', s: '動作做不到時用' },
+    { v: 'tap', t: '用手碰螢幕', s: '平板立起來，坐正舉手碰；手掌、指節都算' },
   ], 'input');
+  /* 觸控設定：只有選「用手碰螢幕」時出現 */
+  $('secTouch').style.display = cfg.input === 'tap' ? '' : 'none';
+  $('advSum').textContent = cfg.input === 'tap' ? '進階設定（防誤觸、觸控範圍、讀題）' : cfg.input === 'cam' ? '進階設定（答案卡位置、肩膀、讀題）' : '進階設定（肩膀、讀題）';
+  const tpick = (el, items, key) => {
+    el.innerHTML = items.map(([v, t]) => `<button class="pick" data-v="${v}">${t}</button>`).join('');
+    el.querySelectorAll('.pick').forEach((b) => b.classList.toggle('sel', String(tcfg[key]) === b.dataset.v));
+    el.onclick = (e) => { const b = e.target.closest('.pick'); if (!b) return; tcfg[key] = key === 'speak' ? b.dataset.v === 'true' : +b.dataset.v; saveTouch(); renderSetup(); };
+  };
+  tpick($('pkCool'), [[400, '0.4 秒'], [800, '0.8 秒（預設）'], [1200, '1.2 秒'], [2000, '2 秒']], 'cooldown');
+  tpick($('pkArea'), [[100, '整塊（預設）'], [75, '75%'], [50, '50%']], 'area');
+  tpick($('pkSpeak'), [[false, '不用'], [true, '要念']], 'speak');
+  const pn = $('practiceNote');
+  if (cfg.input === 'tap' || DEMO) pn.innerHTML = '';
+  else if (cfg.practice === true) pn.innerHTML = '開始前會先<b>練習一次動作</b>（不算分，約 30 秒）。';
+  else if (learned(cfg.input)) { pn.innerHTML = `已經練過這個動作，按「開始」會直接玩。<button class="linkbtn" id="rePractice">要再練習一次</button>`; $('rePractice').onclick = () => { cfg.practice = true; renderSetup(); }; }
+  else pn.innerHTML = '第一次用這個方式，開始前會先<b>練習一次動作</b>（不算分，約 30 秒）。';
   if (cfg.pain && cfg.layout !== 'low') cfg.layout = 'low';
   $('secLayout').style.display = cfg.input === 'cam' ? '' : 'none';
   picker($('pkLayout'), [
@@ -371,8 +531,8 @@ let actx = null;
 function ding(ok) {
   if (MUTED) return;
   try {
-    actx = actx || new (window.AudioContext || window.webkitAudioContext)();
-    if (actx.state === 'suspended') actx.resume();
+    actx = BGM.ctx(); if (!actx) return;   // 和背景音樂共用同一個 AudioContext
+    BGM.duck(ok ? 0.9 : 0.6);
     const t0 = actx.currentTime, fs = ok ? [523.25, 659.25, 783.99, 1046.5] : [392, 349.23];
     fs.forEach((f, i) => {
       const o = actx.createOscillator(), g = actx.createGain();
@@ -385,29 +545,62 @@ function ding(ok) {
 }
 
 /* ---------------- 一局 ---------------- */
-let G = null, A = null, raf = 0, wake = null;
+let G = null, A = null, raf = 0, wake = null, PR = null;
 const W = () => innerWidth, H = () => innerHeight;
 
 /* 看清單的「記好了」只要基本伸手，不放高、不拉遠 */
 const layoutFor = (q) => (q && q.type === 'study' ? (G.layout === 'near' ? 'near' : 'low') : G.layout);
+/* 大面積觸控的版面：螢幕切成 2 或 3 大塊（整塊都是答案），題目、線索圖、清單放上面不擋觸控區。
+   有效範圍 75%／50% 時，每一塊以自己的中心等比例縮小（同觸動練習站） */
+function touchLayout(q, n) {
+  const w = W(), h = H(), pt = portrait();
+  const side = Math.max(10, 0.012 * w), gap = Math.max(14, 0.018 * w), bot = 0.9 * h;
+  let top = (pt ? 0.13 : 0.15) * h, clue = null, mid = false;
+  if (q.type === 'study') top = (pt ? 0.57 : 0.49) * h;
+  else if (q.seq) top = 0.255 * h;
+  if (q.clues) {
+    if (n === 2 && !pt) { mid = true; clue = { x: 0.5, y: 0.53, h: 0.42 }; }
+    else { const ch = pt ? 0.24 : 0.26; clue = { x: 0.5, y: top / h + ch / 2, h: ch }; top += (ch + 0.02) * h; }
+  }
+  let zs;
+  if (mid) {
+    const cw = Math.min(0.42 * h * 1.1, 0.4 * w), zw = (w - 2 * side - 2 * gap - cw) / 2;
+    zs = [{ left: side, top, width: zw, height: bot - top }, { left: w - side - zw, top, width: zw, height: bot - top }];
+  } else {
+    const zw = (w - 2 * side - (n - 1) * gap) / n;
+    zs = Array.from({ length: n }, (_, k) => ({ left: side + k * (zw + gap), top, width: zw, height: bot - top }));
+  }
+  const s = Math.sqrt(tcfg.area / 100);
+  zs = zs.map((z) => ({ left: z.left + (z.width * (1 - s)) / 2, top: z.top + (z.height * (1 - s)) / 2, width: z.width * s, height: z.height * s }));
+  return { zones: zs, clue };
+}
 function positions(n) {
   if (cfg.input === 'cam') return LAYOUTS[layoutFor(G.cur && G.cur.q)][n].map(([u, v]) => toScreen(u, v));
+  if (cfg.input === 'tap') return touchLayout(G.cur.q, n).zones.map((z) => ({ x: (z.left + z.width / 2) / W(), y: (z.top + z.height / 2) / H() }));
   const bare = G.cur && !G.cur.q.clues && G.cur.q.type !== 'study';   // 沒有線索圖：卡片放大、往上
   if (portrait()) return n === 2 ? [{ x: 0.27, y: bare ? 0.55 : 0.7 }, { x: 0.73, y: bare ? 0.55 : 0.7 }] : [{ x: 0.22, y: 0.78 }, { x: 0.5, y: 0.52 }, { x: 0.78, y: 0.78 }];
   return n === 2 ? [{ x: 0.24, y: 0.6 }, { x: 0.76, y: 0.6 }] : [{ x: 0.17, y: 0.66 }, { x: 0.5, y: 0.4 }, { x: 0.83, y: 0.66 }];
 }
 function cluePos(n) {
+  if (cfg.input === 'tap') return touchLayout(G.cur.q, n).clue;
   if (cfg.input !== 'cam' && portrait()) return n === 2 ? { x: 0.5, y: 0.34, h: 0.3 } : { x: 0.5, y: 0.27, h: 0.22 };
   if (cfg.input !== 'cam') return n === 2 ? { x: 0.5, y: 0.55, h: 0.42 } : { x: 0.5, y: 0.78, h: 0.3 };
   if (n === 2) return { x: 0.5, y: G.layout === 'high' ? 0.62 : 0.5, h: 0.4 };
   return { x: 0.5, y: G.layout === 'high' ? 0.66 : 0.79, h: G.layout === 'high' ? 0.3 : 0.24 };
 }
 
-function startRound() {
+const buildQs = () => BUILD[cfg.act](BANKS[cfg.act], cfg.level, rng(DEMO && Q.get('seed') ? +Q.get('seed') : Date.now()));
+/* qs0：練習前先出好的題目；layout0：練習時伸不到、已經移近的答案卡位置 */
+function startRound(qs0, layout0) {
+  PR = null;
   const bank = BANKS[cfg.act];
-  const r = rng(DEMO && Q.get('seed') ? +Q.get('seed') : Date.now());
-  const qs = BUILD[cfg.act](bank, cfg.level, r);
-  G = { study: [], bank, qs, i: 0, log: [], layout: cfg.layout, layoutStart: cfg.layout, layoutChanges: [], stuckRun: 0, t0: performance.now(), cur: null, busy: false, ended: false };
+  const qs = qs0 || buildQs();
+  const lay = layout0 || cfg.layout;
+  G = { study: [], bank, qs, i: 0, log: [], layout: lay, layoutStart: cfg.layout, layoutChanges: lay !== cfg.layout ? [{ at: -1, from: cfg.layout, to: lay, practice: true }] : [], stuckRun: 0, t0: performance.now(), cur: null, busy: false, ended: false,
+    touch: { side: { L: 0, M: 0, R: 0 }, blocked: 0, outside: 0 }, half: false };
+  TC.contacts.clear(); TC.last = -Infinity;
+  $('play').classList.toggle('touch', cfg.input === 'tap');
+  setStopHold(cfg.input === 'tap');
   show('play');
   $('mini').classList.toggle('off', cfg.input !== 'cam' || DEMO);
   resizeCv();
@@ -424,6 +617,10 @@ function nextQuestion() {
   if (G.i >= G.qs.length) return finish();
   const q = G.qs[G.i], n = q.options.length;
   G.cur = { q, n, tries: 0, picks: [], stuck: 0, disabled: new Set(), clueStep: 0, reveal: false };
+  if (cfg.input === 'tap' && !G.half) {   // 觸控：做到一半給一句鼓勵（同觸動練習站的里程碑）
+    const real = G.qs.filter((x) => x.type !== 'study').length, done = G.qs.slice(0, G.i).filter((x) => x.type !== 'study').length;
+    if (done > 0 && done * 2 >= real) { G.half = true; toast('做到一半了，照自己的步調來！'); }
+  }
   A = makeAnswerer(n); // 每一題都要先回休息區（手放膝上／手機回正）才開始
   if (cfg.input === 'tap' || (cfg.input === 'cam' && !camReady && !stubFn && !DEMO)) A.forceBegin(performance.now());
   renderQuestion();
@@ -446,8 +643,20 @@ function renderQuestion() {
   }
   if (q.seq) drawSeqBar(q, []);
   const small = n === 3 ? 0.24 : 0.3, hasImg = q.options.some((o) => o.img), hasEmo = q.options.some((o) => o.emoji);
-  const ch = (hasImg ? (cfg.input === 'cam' ? small : (portrait() ? (!q.clues && n === 2 ? 0.3 : 0.22) : 0.3)) : hasEmo ? (cfg.input === 'cam' ? (n === 3 ? 0.22 : 0.26) : (portrait() ? 0.2 : 0.26)) : (q.type === 'study' ? 0.11 : 0.13)) * H();
-  const cw = Math.min(W() * (n === 3 ? (portrait() ? 0.31 : 0.26) : (portrait() ? 0.42 : 0.34)), hasImg || hasEmo ? ch * (portrait() ? 1.3 : 1.2) : W() * (portrait() ? 0.4 : 0.3));
+  let ch = (hasImg ? (cfg.input === 'cam' ? small : (portrait() ? (!q.clues && n === 2 ? 0.3 : 0.22) : 0.3)) : hasEmo ? (cfg.input === 'cam' ? (n === 3 ? 0.22 : 0.26) : (portrait() ? 0.2 : 0.26)) : (q.type === 'study' ? 0.11 : 0.13)) * H();
+  let cw = Math.min(W() * (n === 3 ? (portrait() ? 0.31 : 0.26) : (portrait() ? 0.42 : 0.34)), hasImg || hasEmo ? ch * (portrait() ? 1.3 : 1.2) : W() * (portrait() ? 0.4 : 0.3));
+  if (cfg.input === 'tap') {
+    /* 觸控：先畫整塊觸控區（亮框），答案卡放在每一塊正中間 */
+    const TZ = touchLayout(q, n).zones; G.cur.zones = TZ;
+    TZ.forEach((z, k) => {
+      const e = document.createElement('div'); e.className = 'tz on'; e.dataset.k = k;
+      Object.assign(e.style, { left: z.left + 'px', top: z.top + 'px', width: z.width + 'px', height: z.height + 'px' });
+      st.appendChild(e);
+    });
+    const z = TZ[0];
+    if (hasImg || hasEmo) { ch = Math.min(z.height * 0.8, z.width * 0.88 * (portrait() ? 1.25 : 1 / 1.1)); cw = Math.min(z.width * 0.88, ch * 1.3); }   // 直式窄長的塊：卡片可以比寬度高
+    else { ch = Math.min(z.height * 0.5, 0.2 * H()); cw = z.width * 0.88; }
+  }
   q.options.forEach((o, k) => {
     const d = document.createElement('div');
     d.className = 'opt'; d.dataset.k = k;
@@ -455,8 +664,9 @@ function renderQuestion() {
     d.style.width = cw + 'px'; d.style.height = ch + 'px';
     if (q.type === 'study') d.classList.add('done');
     if (!o.img) d.classList.add('txt');
-    d.innerHTML = `${o.img ? `<img src="${o.img}" alt="">` : ''}${o.emoji ? `<div class="emo">${o.emoji}</div>` : ''}<div class="lab">${o.label}</div>${q.retry === 'clue' ? '<div class="clue"></div>' : ''}<div class="ring"></div>`;
-    d.onclick = () => onTap(k);
+    if (o.img && o.label.length > 6) d.classList.add('long');   // 排序王的長步驟名：字小一點、圖讓一點位置
+    d.innerHTML = `${o.img ? `<img src="${o.img}" alt=""${o.emoji ? ` onerror="this.outerHTML='<div class=&quot;emo&quot;>${o.emoji}</div>'"` : ''}>` : o.emoji ? `<div class="emo">${o.emoji}</div>` : ''}<div class="lab">${o.label}</div>${q.retry === 'clue' ? '<div class="clue"></div>' : ''}<div class="ring"></div>`;
+    if (cfg.input !== 'tap') d.onclick = () => onTap(k);   // 觸控模式由整塊觸控區接手（#play 的 pointerdown）
     st.appendChild(d);
     if (cfg.input === 'tilt') {
       const a = document.createElement('div'); a.className = 'arrow';
@@ -472,6 +682,19 @@ function renderQuestion() {
     st.appendChild(c); drawClue();
   }
   setStatus();
+  if (tcfg.speak && !MUTED) say(q.prompt);
+}
+/* 讀出題目（瀏覽器內建中文語音；同觸動練習站的「讀出題目」） */
+function say(html) {
+  if (!('speechSynthesis' in window)) return;
+  try {
+    const t = String(html).replace(/<[^>]+>/g, '').trim(); if (!t) return;
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(t); u.lang = 'zh-TW'; u.rate = 0.9;
+    const vs = speechSynthesis.getVoices(), zh = vs.find((v) => v.lang.toLowerCase() === 'zh-tw') || vs.find((v) => v.lang.toLowerCase().startsWith('zh'));
+    if (zh) u.voice = zh;
+    speechSynthesis.speak(u);
+  } catch (e) {}
 }
 /* 排序王：上面一排已經排好的步驟，接著是「？」和還沒排的空格 */
 function drawSeqBar(q, extra, fin) {
@@ -482,7 +705,7 @@ function drawSeqBar(q, extra, fin) {
   b.style.top = top * 100 + '%'; b.style.height = '8%';
   b.style.right = cfg.input === 'cam' && !hi ? 'max(4%, min(17vw, 200px) + 3vw)' : '4%';
   const done = [...q.seq.done, ...extra];
-  const cells = done.map((x) => `<span class="st"><i>${x.emoji}</i>${x.label}</span>`);
+  const cells = done.map((x) => `<span class="st">${x.img ? `<img src="${x.img}" alt="" onerror="this.outerHTML='<i>${x.emoji}</i>'">` : `<i>${x.emoji}</i>`}${x.label}</span>`);
   for (let k = done.length; k < q.seq.total; k++) cells.push(`<span class="st ${k === done.length ? 'q' : 'end'}">${k === done.length ? '？' : '　'}</span>`);
   b.className = fin ? 'fin' : '';
   b.innerHTML = cells.join('<span class="ar">→</span>');
@@ -496,15 +719,61 @@ function setStatus(msg) {
   if (msg) { $('status').innerHTML = msg; return; }
   const ph = A.state.phase;
   if (ph === 'wait-rest') $('status').innerHTML = cfg.input === 'tilt' ? '手機拿正，準備好再傾斜' : '先把手放在膝上，準備好再伸手';
-  else if (ph === 'answer' && G.cur.q.type === 'study') $('status').innerHTML = cfg.input === 'tilt' ? '記好了，就把手機<b>往左或往右倒</b>' : cfg.input === 'tap' ? '記好了就點「記好了」' : '記好了，就<b>伸手到「記好了」</b>（左右都可以）';
-  else if (ph === 'answer') $('status').innerHTML = G.cur.reveal ? '<b>把手伸到正確答案，確認一下</b>' : cfg.input === 'tilt' ? '身體帶著手機，<b>往答案那邊倒</b>，停一下' : cfg.input === 'tap' ? '點一下答案' : '<b>手伸到答案上</b>，停一下就選好了';
+  else if (ph === 'answer' && G.cur.q.type === 'study') $('status').innerHTML = cfg.input === 'tilt' ? '記好了，就把手機<b>往左或往右倒</b>' : cfg.input === 'tap' ? '記好了，就<b>碰下面任何一塊</b>' : '記好了，就<b>伸手到「記好了」</b>（左右都可以）';
+  else if (ph === 'answer') $('status').innerHTML = G.cur.reveal ? (cfg.input === 'tap' ? '<b>碰一下綠框那一塊</b>，確認一下' : '<b>把手伸到正確答案，確認一下</b>') : cfg.input === 'tilt' ? '身體帶著手機，<b>往答案那邊倒</b>，停一下' : cfg.input === 'tap' ? '<b>碰答案那一大塊</b>，手掌、指節都可以' : '<b>手伸到答案上</b>，停一下就選好了';
 }
 
-function onTap(k) {
+function onTap(k, touch) {
   if (!A || G.busy) return;
   if (A.state.phase !== 'answer') A.forceBegin(performance.now());
-  handle(A.tap(k, performance.now()));
+  const evs = A.tap(k, performance.now());
+  if (touch) evs.forEach((e) => { e.touch = touch; });
+  handle(evs);
 }
+
+/* ---------------- 大面積觸控（參考楊昀霖職能治療師「觸動練習站」） ----------------
+   ①一次連續接觸（多指、指節、手掌）只算一下：第一根落下才判斷，其餘只記「幾點接觸」
+   ②手全部離開螢幕、而且超過防誤觸間隔，才收下一下；太快就在碰的地方顯示倒數條
+   ③碰到整塊觸控區的任何地方都算選那個答案；碰到空白處不算、不扣分（只記錄）
+   ④回饋：碰的地方起漣漪、該塊亮一下、短震動（平板多半沒有震動，沒有就略過） */
+const TC = { contacts: new Set(), last: -Infinity, cur: null };
+function zoneAt(x, y) {
+  const zs = (G && G.cur && G.cur.zones) || [];
+  return zs.findIndex((z) => x >= z.left && x <= z.left + z.width && y >= z.top && y <= z.top + z.height);
+}
+function vib(ms) { try { navigator.vibrate && navigator.vibrate(ms); } catch (e) {} }
+function ripple(x, y) { const r = document.createElement('div'); r.className = 'ripple'; r.style.left = x + 'px'; r.style.top = y + 'px'; document.body.appendChild(r); r.addEventListener('animationend', () => r.remove(), { once: true }); }
+function cdBar(x, y, remain, frac) {
+  document.querySelectorAll('.cdbar').forEach((e) => e.remove());
+  const b = document.createElement('div'); b.className = 'cdbar'; b.style.left = x + 'px'; b.style.top = y + 'px';
+  b.innerHTML = `<i style="--ms:${Math.round(remain)}ms;--f:${Math.max(0, Math.min(1, frac))}"></i>`;
+  document.body.appendChild(b); setTimeout(() => b.remove(), remain + 80);
+}
+$('play').addEventListener('pointerdown', (e) => {
+  if (cfg.input !== 'tap' || !G || G.ended || PR) return;
+  if (e.target.closest('#stopBtn,.musicBtn')) return;
+  if (e.pointerType === 'mouse' && e.button !== 0) return;
+  const first = TC.contacts.size === 0;
+  TC.contacts.add(e.pointerId);
+  if (!first) { if (TC.cur) TC.cur.n = Math.max(TC.cur.n, TC.contacts.size); return; }
+  const t = performance.now();
+  if (G.busy || !A) return;   // 正在顯示對錯，不收也不記
+  if (t - TC.last < tcfg.cooldown) { G.touch.blocked++; const rm = tcfg.cooldown - (t - TC.last); cdBar(e.clientX, e.clientY, rm, rm / tcfg.cooldown); return; }
+  const k = zoneAt(e.clientX, e.clientY);
+  if (k < 0) { G.touch.outside++; return; }
+  TC.last = t;
+  TC.cur = { n: 1, x: Math.round((e.clientX / W()) * 100) / 100, y: Math.round((e.clientY / H()) * 100) / 100, w: Math.round(e.width || 0), h: Math.round(e.height || 0), type: e.pointerType };
+  const fx = e.clientX / W(), sd = fx < 0.4 ? 'L' : fx > 0.6 ? 'R' : 'M'; G.touch.side[sd]++;   // 用碰的位置分左／中／右（二選一、三選一混著也能比）
+  ripple(e.clientX, e.clientY); vib(12);
+  const tz = $('stage').querySelector(`.tz[data-k="${k}"]`); if (tz) { tz.classList.add('hit'); setTimeout(() => tz.classList.remove('hit'), 300); }
+  onTap(k, TC.cur);
+}, { passive: true });
+for (const n of ['pointerup', 'pointercancel', 'lostpointercapture']) addEventListener(n, (e) => TC.contacts.delete(e.pointerId), { passive: true });
+addEventListener('blur', () => TC.contacts.clear());
+document.addEventListener('visibilitychange', () => { if (document.hidden) TC.contacts.clear(); });
+$('play').addEventListener('contextmenu', (e) => { if (cfg.input === 'tap') e.preventDefault(); });
+document.addEventListener('gesturestart', (e) => { if (cfg.input === 'tap' && $('play').classList.contains('on')) e.preventDefault(); });
+function toast(msg) { const t = $('toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toast._t); toast._t = setTimeout(() => t.classList.remove('show'), 2000); }
 /* 回到「等手放下」；點螢幕模式沒有感測，直接開始 */
 function rearm() { A.next(); if (cfg.input === 'tap' || (cfg.input === 'cam' && !camReady && !stubFn)) A.forceBegin(performance.now()); }
 
@@ -543,6 +812,7 @@ function onStuck() {
 function markCard() {
   const opts = [...$('stage').querySelectorAll('.opt')];
   opts.forEach((o, k) => { o.classList.toggle('no', G.cur.disabled.has(k)); o.classList.toggle('want', G.cur.reveal && k === G.cur.q.correct); });
+  $('stage').querySelectorAll('.tz').forEach((z, k) => { z.classList.toggle('off', G.cur.disabled.has(k)); z.classList.toggle('on', !G.cur.disabled.has(k)); z.classList.toggle('want', G.cur.reveal && k === G.cur.q.correct); });
   if (G.cur.q.retry === 'clue' && (G.cur.reveal || G.cur.answered)) opts.forEach((o, k) => { const c = o.querySelector('.clue'); if (c) c.textContent = G.cur.q.options[k].clue; });
 }
 
@@ -579,10 +849,10 @@ function onSelect(e) {
     cur.reveal = true; cur.tries = 0;
     if (q.clues) { cur.clueStep = q.clues.length - 1; drawClue(); }
     markCard(); syncCenters(); rearm();
-    setStatus('答案是綠框這個，<b>把手伸過去確認一下</b>');
+    setStatus(cfg.input === 'tap' ? '答案是綠框這個，<b>碰一下那一塊確認</b>' : '答案是綠框這個，<b>把手伸過去確認一下</b>');
   }
 }
-const backTxt = () => (cfg.input === 'tilt' ? '手機拿正' : cfg.input === 'tap' ? '準備好' : '手放回膝上');
+const backTxt = () => (cfg.input === 'tilt' ? '手機拿正' : cfg.input === 'tap' ? '手離開螢幕' : '手放回膝上');
 function syncCenters() {
   if (cfg.input !== 'cam') return;
   A.setCenters(LAYOUTS[layoutFor(G.cur.q)][G.cur.n].map((c, k) => (G.cur.disabled.has(k) ? [99, 99] : c)));
@@ -604,7 +874,8 @@ function correctFx(k, scored) {
   G.busy = true;
   setTimeout(() => { if (!G || G.ended) return; G.busy = false; G.i++; nextQuestion(); }, pause);
 }
-const slimPick = (p) => ({ zone: p.zone, hand: p.hand, rtMs: p.rtMs != null ? Math.round(p.rtMs) : null, reach: p.reach ? Object.fromEntries(Object.entries(p.reach).map(([a, b]) => [a, Math.round(b * 100) / 100])) : null, confirm: !!p.confirm });
+/* touch 保留同一個物件：第一根手指落下時就記這一筆，之後同一次接觸又多碰到幾點，會補進 n */
+const slimPick = (p) => ({ zone: p.zone, hand: p.hand, rtMs: p.rtMs != null ? Math.round(p.rtMs) : null, reach: p.reach ? Object.fromEntries(Object.entries(p.reach).map(([a, b]) => [a, Math.round(b * 100) / 100])) : null, confirm: !!p.confirm, ...(p.touch ? { touch: p.touch } : {}) });
 function burst(el) {
   const r = el.getBoundingClientRect();
   for (let i = 0; i < 10; i++) {
@@ -616,9 +887,153 @@ function burst(el) {
   }
 }
 
+/* ---------------- 動作練習（開局前一次，不計分；練過就記住） ----------------
+   鏡頭：①坐好、手放膝上（大畫面看得到自己）②跟著虛線圈伸手到卡片、停一下 ③手放回膝上
+   手機：①直拿貼胸口坐正 ②身體帶著往左或右倒（示範：身體帶 vs 只轉手腕）③坐正；這一局有三選一時再加 ④往前倒 ⑤坐正
+   用的是正式作答同一套判定，所以練得過＝正式玩得動。 */
+function practiceSteps(three) {
+  if (cfg.input === 'tilt') return ['hold', 'lean', 'back', ...(three ? ['fwd', 'back'] : [])];
+  return ['sit', 'reach', 'back'];
+}
+function startPractice(qs) {
+  const three = qs.some((q) => q.type !== 'study' && q.options.length === 3);
+  G = null;
+  PR = { qs, steps: practiceSteps(three), i: 0, layout: cfg.layout, stuckRun: 0, busy: false, seen: false, hov: false, done: false };
+  $('play').classList.remove('touch'); setStopHold(false);
+  show('play'); resizeCv();
+  $('mini').classList.toggle('off', cfg.input !== 'cam');
+  practiceStep(0);
+  cancelAnimationFrame(raf); raf = requestAnimationFrame(loop);
+}
+function practiceStep(i) {
+  PR.i = i; PR.busy = false; PR.hov = false;
+  const id = PR.steps[i], tilt = cfg.input === 'tilt';
+  $('mini').classList.toggle('big', id === 'sit');
+  if (id === 'sit' || id === 'hold') A = tilt ? createTiltAnswerer(2) : createAnswerer(LAYOUTS[PR.layout][2]);
+  else if (id === 'fwd') A = createTiltAnswerer(3);
+  else if (id === 'back') A.next();
+  if (!tilt && !camReady && !stubFn && (id === 'sit' || id === 'back')) return stepDone();   // 沒鏡頭（不該發生）就不卡在這裡
+  renderPractice();
+}
+const PTXT = {
+  sit: ['請坐好，<b>兩手放在膝上</b>', '讓鏡頭看得到<b>肩膀和兩隻手</b>。中間的畫面就是您，像照鏡子'],
+  reach: ['手伸到<b>任何一張</b>卡片上', '跟著虛線圈伸過去，<b>停一下</b>，等卡片下面的黃色條跑滿。哪一隻手都可以'],
+  hold: ['手機<b>直拿、貼在胸口</b>，坐正', '停一下，手機先不要動'],
+  lean: ['身體帶著手機，<b>往左或往右倒</b>', '倒過去<b>停一下</b>，等黃色條跑滿。<b>不要只轉手腕</b>'],
+  fwd: ['上面那張：身體<b>往前倒</b>', '三選一時，上面那張要<b>往前倒</b>。整個身體帶著手機，停一下'],
+};
+function renderPractice() {
+  const id = PR.steps[PR.i], tilt = cfg.input === 'tilt', N = PR.steps.length;
+  const t = id === 'back' ? (tilt ? ['選好了！<b>坐正</b>，手機拿正', '身體回到中間，下一題才會出來'] : ['選好了！<b>手放回膝上</b>', '手放下來，下一題才會出來']) : PTXT[id];
+  $('prompt').className = '';
+  $('prompt').innerHTML = `<span>${t[0]}</span><span class="tag">動作練習 ${'①②③④⑤'[PR.i]}／${N}</span>`;
+  PR.hint = t[1]; $('status').innerHTML = t[1];
+  const stg = $('stage'); stg.innerHTML = '';
+  if (id !== 'reach' && id !== 'lean' && id !== 'fwd') return;
+  const n = id === 'fwd' ? 3 : 2, pos = practicePos(n);
+  const ch = (tilt ? (portrait() ? 0.2 : 0.24) : (n === 3 ? 0.22 : 0.26)) * H(), cw = Math.min(W() * (n === 3 ? (portrait() ? 0.31 : 0.26) : (portrait() ? 0.42 : 0.34)), ch * 1.25);
+  const labs = tilt ? (n === 3 ? ['往左', '往前倒', '往右'] : ['往左倒', '往右倒']) : ['伸到這裡', '這張也可以'];
+  const emo = tilt ? (n === 3 ? ['⬅', '⬆', '➡'] : ['⬅', '➡']) : ['⭐', '⭐'];
+  pos.forEach((p, k) => {
+    const d = document.createElement('div');
+    d.className = 'opt txt' + (n === 3 && k !== 1 ? ' dim' : ''); d.dataset.k = k;
+    d.style.left = p.x * 100 + '%'; d.style.top = p.y * 100 + '%'; d.style.width = cw + 'px'; d.style.height = ch + 'px';
+    d.innerHTML = `<div class="emo">${emo[k]}</div><div class="lab">${labs[k]}</div><div class="ring"></div>`;
+    d.onclick = () => practiceSelect(k, true);
+    stg.appendChild(d);
+  });
+  if (id === 'reach') addGhost(pos);
+  if (id === 'lean') { const f = document.createElement('div'); f.className = 'pfig'; f.style.top = portrait() ? '20%' : '17%'; f.innerHTML = FIG_TILT; stg.appendChild(f); }
+}
+function practicePos(n) {
+  if (cfg.input === 'cam') return LAYOUTS[PR.layout][n].map(([u, v]) => toScreen(u, v));
+  if (portrait()) return n === 2 ? [{ x: 0.27, y: 0.62 }, { x: 0.73, y: 0.62 }] : [{ x: 0.22, y: 0.78 }, { x: 0.5, y: 0.52 }, { x: 0.78, y: 0.78 }];
+  return n === 2 ? [{ x: 0.24, y: 0.66 }, { x: 0.76, y: 0.66 }] : [{ x: 0.17, y: 0.66 }, { x: 0.5, y: 0.4 }, { x: 0.83, y: 0.66 }];
+}
+/* 示範手：虛線圈從膝上伸到右邊那張卡、停住、放回膝上，一直循環到玩家的手碰到卡片 */
+function addGhost(pos) {
+  const g = document.createElement('div'); g.className = 'ghost'; g.id = 'ghost';
+  const k = 1, s = toScreen(0.45, -1.6);
+  const x0 = Math.max(0.05, Math.min(0.95, s.x)) * W(), y0 = Math.min(0.9, s.y) * H();
+  g.style.left = '0px'; g.style.top = '0px';
+  g.style.setProperty('--gx0', x0 + 'px'); g.style.setProperty('--gy0', y0 + 'px');
+  g.style.setProperty('--gx1', pos[k].x * W() + 'px'); g.style.setProperty('--gy1', pos[k].y * H() + 'px');
+  g.innerHTML = '✋<span>像這樣</span>';
+  $('stage').appendChild(g);
+}
+function practiceTick(now) {
+  const id = PR.steps[PR.i], tilt = cfg.input === 'tilt';
+  let ev = [];
+  if (!tilt) {
+    trackPose(now);
+    if (!PR.done) {
+      if (id !== 'sit' && !P.fr && !stubFn && camReady && now - P.t > 1500) veil('請坐到鏡頭前面<br>看得到肩膀和兩隻手'); else veil(null);
+      if (id === 'sit' && !PR.busy) {
+        if (P.fr && !PR.seen) { PR.seen = true; $('status').innerHTML = '<b>看到您了！</b>兩手放在膝上，停一下'; }
+        else if (!P.fr && PR.seen && now - P.t > 1500) { PR.seen = false; $('status').innerHTML = PR.hint; }
+      }
+      if (!PR.busy) ev = A.feed(P.fr, now);
+    }
+    drawCursor(); drawMini();
+  } else if (!PR.done) {
+    const live = TL.a && now - TL.t < 1000;
+    if (!live && !stubFn) veil(TL.perm === 'denied' ? '讀不到手機傾斜<br>請允許「動作與方向」，或按「結束」改用點螢幕' : '請拿起手機，直拿貼在胸口'); else veil(null);
+    if (!PR.busy) ev = A.feed(live ? TL.a : null, now);
+  }
+  if (ev.length && !PR.done) practiceEvents(ev);
+}
+function practiceEvents(evs) {
+  const id = PR.steps[PR.i], opts = [...$('stage').querySelectorAll('.opt')];
+  let hov = -1;
+  for (const e of evs) {
+    if (e.type === 'ready') { if (id === 'sit' || id === 'hold' || id === 'back') return stepDone(); }
+    if (e.type === 'hover') { hov = e.zone; const o = opts[e.zone]; if (o) o.querySelector('.ring').style.setProperty('--p', e.progress); }
+    if (e.type === 'stuck') practiceStuck();
+    if (e.type === 'select') return practiceSelect(e.zone, false);
+  }
+  if (hov >= 0 && !PR.hov) { PR.hov = true; const g = $('ghost'); if (g) g.remove(); $('status').innerHTML = '對，<b>停住</b>，黃色條跑滿就選好了'; }
+  else if (hov < 0 && PR.hov) { PR.hov = false; $('status').innerHTML = PR.hint; }
+  opts.forEach((o, k) => { o.classList.toggle('hov', k === hov); if (k !== hov) o.querySelector('.ring').style.setProperty('--p', 0); });
+}
+function practiceSelect(k, tapped) {
+  const id = PR.steps[PR.i];
+  if (PR.busy || (id !== 'reach' && id !== 'lean' && id !== 'fwd')) return;
+  if (tapped) { const now = performance.now(); if (A.state.phase !== 'answer') A.forceBegin(now); A.tap(k, now); }
+  if (id === 'fwd' && k !== 1) { A.next(); $('status').innerHTML = '這次要選<b>上面</b>那張：先坐正，再<b>往前倒</b>'; return; }
+  const o = $('stage').querySelectorAll('.opt')[k];
+  if (o) { o.classList.add('ok'); burst(o); }
+  ding(true); PR.stuckRun = 0;
+  stepDone();
+}
+function practiceStuck() {
+  PR.stuckRun++;
+  if (cfg.input === 'cam' && PR.stuckRun >= 2 && EASIER[PR.layout] && LAYOUTS[EASIER[PR.layout]]) {
+    PR.layout = EASIER[PR.layout]; PR.stuckRun = 0;
+    A.setCenters(LAYOUTS[PR.layout][2]); renderPractice();
+    $('status').innerHTML = '卡片移近一點了，<b>伸到卡片上</b>就好';
+  } else if (cfg.input === 'cam' && PR.layout === 'near' && PR.stuckRun >= 2) $('status').innerHTML = '伸不過去也沒關係，<b>可以直接點卡片</b>';
+  else $('status').innerHTML = cfg.input === 'tilt' ? '再<b>多倒一點</b>，整個身體帶著手機' : '手<b>再伸過去一點</b>，伸到卡片上';
+}
+function stepDone() {
+  PR.busy = true;
+  const id = PR.steps[PR.i];
+  $('status').innerHTML = id === 'back' ? '<b>就是這樣！</b>' : id === 'sit' || id === 'hold' ? '<b>很好！</b>' : '<b>選好了！</b>';
+  setTimeout(() => { if (!PR) return; if (PR.i + 1 < PR.steps.length) practiceStep(PR.i + 1); else finishPractice(); }, 1100);
+}
+function finishPractice() {
+  setLearned(cfg.input); cfg.practice = null;
+  PR.done = true; PR.busy = true;
+  $('mini').classList.remove('big'); $('stage').innerHTML = '';
+  $('prompt').innerHTML = '練習完成！'; $('status').innerHTML = '';
+  veil(cfg.input === 'tilt' ? '練習完成！<br>每一題都這樣：<br>身體帶著倒 → 停一下 → 坐正' : '練習完成！<br>每一題都這樣：<br>伸手 → 停一下 → 手放回膝上');
+  const qs = PR.qs, lay = PR.layout;
+  setTimeout(() => { if (!PR) return; veil(null); startRound(qs, lay !== cfg.layout ? lay : null); }, 2800);
+}
+
 /* 每幀：讀感測 → 餵給作答狀態機 → 畫游標 */
 function loop(now) {
   raf = requestAnimationFrame(loop);
+  if (PR) { practiceTick(now); return; }
   if (!G || G.ended) return;
   let ev = [];
   if (cfg.input === 'cam') {
@@ -640,7 +1055,7 @@ function loop(now) {
 }
 function veil(html) { const v = $('veil'); if (html) { v.classList.add('on'); $('veilTxt').innerHTML = html; } else v.classList.remove('on'); }
 function resizeCv() { const c = $('cv'); c.width = W() * devicePixelRatio; c.height = H() * devicePixelRatio; }
-addEventListener('resize', () => { resizeCv(); if (G && !G.ended && $('play').classList.contains('on')) { renderQuestion(); markCard(); } });
+addEventListener('resize', () => { resizeCv(); if (PR && !PR.done) { renderPractice(); return; } if (G && !G.ended && $('play').classList.contains('on')) { renderQuestion(); markCard(); } });
 function drawCursor() {
   const c = $('cv'), x = c.getContext('2d'), k = devicePixelRatio;
   x.clearRect(0, 0, c.width, c.height);
@@ -651,6 +1066,11 @@ function drawCursor() {
     const px = Math.max(0.02, Math.min(0.98, s.x)) * W() * k, py = Math.max(0.05, Math.min(0.97, s.y)) * H() * k;
     x.beginPath(); x.arc(px, py, 22 * k, 0, Math.PI * 2); x.fillStyle = col + 'cc'; x.fill();
     x.lineWidth = 4 * k; x.strokeStyle = '#fff'; x.stroke();
+    if (PR) {   /* 練習時標出「這是您的手」 */
+      x.font = `800 ${19 * k}px "PingFang TC","Noto Sans TC",sans-serif`; x.textAlign = 'center';
+      x.lineWidth = 5 * k; x.strokeStyle = '#100C04'; x.strokeText('您的手', px, py + 46 * k);
+      x.fillStyle = '#FFF6CC'; x.fillText('您的手', px, py + 46 * k);
+    }
   }
 }
 function drawMini() {
@@ -673,17 +1093,24 @@ function finish() {
     elements: { mind: G.bank.elements(cfg.level), move: motionElements(cfg.input, G.layout) },
     items: G.log, summary: sm, study: G.study,
   };
+  if (cfg.input === 'tap') {
+    /* 觸控紀錄：每一塊碰了幾下（看偏哪一邊）、太快被擋、碰到空白處、多點／手掌接觸（只記錄，不計分） */
+    const picks = G.log.flatMap((x) => x.picks).filter((p) => p.touch);
+    sess.touch = { cooldown: tcfg.cooldown, area: tcfg.area, side: G.touch.side, blocked: G.touch.blocked, outside: G.touch.outside,
+      multi: picks.filter((p) => p.touch.n > 1).length, n: picks.length };
+  }
   if (!DEMO) store.add(sess);
   window.__lastSession = sess;
   renderResult(sess);
   show('result');
+  BGM.fanfare();
   releaseWake();
 }
 function renderResult(s) {
   const sm = s.summary, b = BANKS[s.activity];
   const good = sm.firstRate >= 0.85 ? '很穩！' : sm.firstRate >= 0.6 ? '不錯喔！' : '慢慢來，有在進步。';
   const lvTxt = sm.nextLevel > s.level ? `下次可以挑戰第 ${sm.nextLevel} 級` : sm.nextLevel < s.level ? `下次先從第 ${sm.nextLevel} 級玩起，會更順` : `下次再玩第 ${sm.nextLevel} 級，多熟練一點`;
-  const mv = s.input === 'cam' ? `右手伸了 ${sm.hands.R || 0} 次，左手 ${sm.hands.L || 0} 次${sm.hands.both ? `，兩手一起 ${sm.hands.both} 次` : ''}` : s.input === 'tilt' ? `身體帶著手機傾斜 ${sm.hands.tilt || 0} 次` : '這次用點的，下次可以試試伸手作答';
+  const mv = s.input === 'cam' ? `右手伸了 ${sm.hands.R || 0} 次，左手 ${sm.hands.L || 0} 次${sm.hands.both ? `，兩手一起 ${sm.hands.both} 次` : ''}` : s.input === 'tilt' ? `身體帶著手機傾斜 ${sm.hands.tilt || 0} 次` : s.touch ? touchLine(s.touch) : '這次用點的，下次可以試試伸手作答';
   const lastQ = G.log.length ? G.qs.find((q) => q.qid === G.log[G.log.length - 1].qid) : null;
   const chatQ = (lastQ && lastQ.chat) || '';
   const studyS = s.study && s.study.length ? s.study.map((x) => x.ms != null ? (x.ms / 1000).toFixed(1) : '—').join('、') : null;
@@ -707,17 +1134,25 @@ function renderResult(s) {
         <tr><td>動作未完成次數</td><td>${sm.stuck}</td></tr>
         <tr><td>伸手高度中位數（肩寬，0＝肩膀高度）</td><td>${sm.reachVMed ?? '—'}</td></tr>
         <tr><td>手機傾斜中位數</td><td>${sm.tiltDegMed != null ? sm.tiltDegMed + ' 度' : '—'}</td></tr>
+        ${s.touch ? `<tr><td>觸控：防誤觸間隔／有效範圍</td><td>${s.touch.cooldown / 1000} 秒／${s.touch.area}%</td></tr>
+        <tr><td>觸控：太快被擋下／碰到空白處（不扣分）</td><td>${s.touch.blocked} 次／${s.touch.outside} 次</td></tr>
+        <tr><td>觸控：多指或手掌一起碰（只算一下）</td><td>${s.touch.multi}／${s.touch.n} 下</td></tr>` : ''}
         ${studyS ? `<tr><td>看清單花多久（每張，秒；不計分）</td><td>${studyS}</td></tr>` : ''}
         <tr><td>花費時間</td><td>${Math.floor(s.durationSec / 60)} 分 ${s.durationSec % 60} 秒</td></tr>
       </table>
       <p style="color:var(--sub)">這些數字只能跟自己比，還沒有同齡參考值；只是練習紀錄，不能代替看醫生。</p>
     </details>
     <p class="fb">歡迎給我回饋與建議：<a href="https://www.facebook.com/shihyuting.OT" target="_blank" rel="noopener">職能治療師施昱廷 粉專</a></p>`;
-  $('again').onclick = () => { cfg.level = sm.nextLevel; cfg.layout = s.layoutChanges.length ? 'low' : cfg.layout; begin(); };
+  $('again').onclick = () => { cfg.level = sm.nextLevel; cfg.layout = s.layoutChanges.length ? 'low' : cfg.layout; begin(true); };
   $('back').onclick = () => { cfg.level = null; renderSetup(); show('setup'); if (FIXED) $('pickWrap').style.display = ''; };
   if ($('home')) $('home').onclick = () => { location.href = homeHref(); };
 }
 
+/* 觸控：碰了幾下、左右各幾下（三塊時加中間），看有沒有偏一邊 */
+function touchLine(t) {
+  const s = t.side || {};
+  return `用手碰了 ${t.n} 下：左邊 ${s.L || 0}${s.M ? `、中間 ${s.M}` : ''}、右邊 ${s.R || 0}`;
+}
 /* 玩完：這一局記到兩張雷達的哪幾軸 */
 function radarLine(s) {
   if (!SITE) return `<p class="tags">這次練到：${s.elements.mind.map((t) => `<span class="t-mind">${t}</span>`).join('')}${s.elements.move.map((t) => `<span class="t-move">${t}</span>`).join('')}</p>`;
@@ -743,47 +1178,77 @@ function nextCard(s) {
   return `<a class="nextc" href="${href}"><span class="pic" style="${pic ? `background-image:url('${pic}')` : ''}">${pic ? '' : icon}</span><span class="t"><span class="k">今日遊戲完成 ${done}／${snack.length}．下一個</span><b>${name}</b><span>${nx.why || ''}</span></span></a>`;
 }
 
-function show(id) { document.querySelectorAll('.scr').forEach((s) => s.classList.toggle('on', s.id === id)); }
+function show(id) { document.querySelectorAll('.scr').forEach((s) => s.classList.toggle('on', s.id === id)); if (id === 'setup') BGM.stop(); }
+/* 背景音樂開關（設定頁右上、答題中左上；?mute=1 時不顯示） */
+function syncMusic() { document.querySelectorAll('.musicBtn').forEach((b) => { b.hidden = MUTED; b.innerHTML = `♪ <span class="ml">音樂：</span>${BGM.on ? '開' : '關'}`; b.classList.toggle('off', !BGM.on); }); }
+document.querySelectorAll('.musicBtn').forEach((b) => { b.onclick = (e) => { e.stopPropagation(); BGM.setOn(!BGM.on); if (BGM.on && document.getElementById('play').classList.contains('on')) BGM.start(); syncMusic(); }; });
+syncMusic();
 async function keepAwake() { try { wake = await navigator.wakeLock?.request('screen'); } catch (e) {} }
 function releaseWake() { try { wake && wake.release(); } catch (e) {} wake = null; }
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && G && !G.ended) keepAwake(); });
 
-/* 準備頁 → 開局 */
-async function begin() {
-  keepAwake();
-  if (cfg.input === 'cam' && !DEMO && !camReady && !stubFn) {
-    show('prep');
-    $('prepBox').innerHTML = `<h2>鏡頭準備中…</h2><p>請坐好，讓鏡頭看得到<b>肩膀和兩隻手</b>。</p><p>答題時，<b>哪一隻手伸到答案上都算</b>；選好後手放回膝上。</p>`;
-    try { await initCam(); }
-    catch (e) {
-      $('prepBox').innerHTML = `<h2>打不開鏡頭</h2><p>可能是沒有允許使用鏡頭，或這台機器沒有鏡頭。</p><div class="btns"><button class="pri" id="toTap">改用點螢幕</button><button id="toBack">回上一頁</button></div>`;
-      $('toTap').onclick = () => { cfg.input = 'tap'; startRound(); };
-      $('toBack').onclick = () => show('setup');
-      return;
-    }
-  }
-  if (DEMO && cfg.input === 'cam' && !stubFn) stubFn = demoLandmarks;
-  if (cfg.input === 'tilt' && !stubFn) {
-    show('prep');
-    $('prepBox').innerHTML = `<h2>手機這樣拿</h2>
-      <div class="demo4"><div><b>📱</b>手機直拿<br>貼在胸口</div><div><b>💪</b>手肘夾緊<br>身體旁邊</div><div><b>↔️</b>用身體帶<br>往左往右倒</div><div class="x"><b>✗</b>不要只<br>轉手腕</div></div>
-      <p>答案在哪一邊，身體就往哪一邊倒；三選一時，<b>往前倒</b>選上面那個。</p>
-      <div class="btns"><button class="pri" id="tiltGo">好，開始</button></div>`;
-    $('tiltGo').onclick = async () => { await askTilt(); startRound(); };
-    return;
-  }
-  startRound();
+/* 開局前「怎麼玩」：為什麼玩（生活目的）→ 三步玩法 → 怎麼回答（示範動畫）→ 先練習動作／開始 */
+function showHowto(onGo) {
+  const b = BANKS[cfg.act], h = howtoOf(cfg.act, cfg.level), np = needPractice();
+  const fig = cfg.input === 'cam' ? `<div class="figs">${FIG_CAM(cfg.layout)}</div>` : cfg.input === 'tilt' ? `<div class="figs">${FIG_TILT}</div>` : `<div class="figs tfig"><figure>${FIG_TOUCH}碰答案那一大塊</figure></div>`;
+  show('prep'); $('prepBox').classList.add('wide');
+  $('prepBox').innerHTML = `<div class="how">
+    <div class="howhead"><span class="pic" ${picStyle(cfg.act)}></span><div><span class="kind">怎麼玩．第 ${cfg.level} 級</span><h2>${b.name}</h2><p class="why">${h.why}</p></div></div>
+    <ol class="howsteps">${h.steps.map((s) => `<li><span>${s}</span></li>`).join('')}</ol>
+    <div class="howmove">${fig}<div class="mt"><b>怎麼回答：</b>${MOVE_TXT[cfg.input]}</div></div>
+    <div class="btns"><button class="pri" id="howGo">${np ? '先練習一次動作' : '開始'}</button><button id="howBack">回上一頁</button></div>
+    ${np ? '<p class="note">練習不算分，大約 30 秒；練過一次，下次就直接開始。</p>' : ''}</div>`;
+  $('howGo').onclick = onGo;
+  $('howBack').onclick = () => { show('setup'); releaseWake(); };
 }
-$('btnGo').onclick = begin;
-$('stopBtn').onclick = () => { if (!G) return; if (G.log.length) finish(); else { G.ended = true; show('setup'); releaseWake(); } };
+/* again＝玩完頁「再玩一次」：玩法剛看過，不再說明 */
+async function begin(again) {
+  keepAwake();
+  BGM.start();   // 要在按鈕點下去的當下開始，瀏覽器才准出聲
+  const go = async () => {
+    if (cfg.input === 'tilt' && !stubFn) await askTilt();   // iOS 要在按鈕點下去時問權限
+    if (cfg.input === 'cam' && !DEMO && !camReady && !stubFn) {
+      show('prep'); $('prepBox').classList.remove('wide');
+      $('prepBox').innerHTML = `<h2>鏡頭準備中…</h2><p>如果跳出「要使用相機嗎？」，請按<b>「允許」</b>。</p><p>請坐好，讓鏡頭看得到<b>肩膀和兩隻手</b>。</p>`;
+      try { await initCam(); }
+      catch (e) {
+        $('prepBox').innerHTML = `<h2>打不開鏡頭</h2><p>可能是沒有允許使用鏡頭，或這台機器沒有鏡頭。</p><div class="btns"><button class="pri" id="toTap">改用點螢幕</button><button id="toBack">回上一頁</button></div>`;
+        $('toTap').onclick = () => { cfg.input = 'tap'; startRound(); };
+        $('toBack').onclick = () => show('setup');
+        return;
+      }
+    }
+    if (DEMO && cfg.input === 'cam' && !stubFn) stubFn = demoLandmarks;
+    const qs = buildQs();
+    if (needPractice()) startPractice(qs); else startRound(qs);
+  };
+  if (again === true || DEMO || HOWTO_SKIP) return go();
+  showHowto(go);
+}
+$('btnGo').onclick = () => begin();
+/* 觸控模式：「結束」要長按 2 秒（手掌大面積碰螢幕時不會誤按），同觸動練習站長按齒輪 */
+let holdT = null;
+function setStopHold(on) { const b = $('stopBtn'); b.classList.toggle('holdable', on); b.textContent = on ? '長按結束' : '結束'; }
+$('stopBtn').addEventListener('pointerdown', (e) => {
+  if (cfg.input !== 'tap' || PR) return;
+  e.stopPropagation(); const b = $('stopBtn'); b.classList.add('holding');
+  clearTimeout(holdT); holdT = setTimeout(() => { b.classList.remove('holding'); vib(20); doStop(); }, 2000);
+});
+for (const n of ['pointerup', 'pointercancel', 'pointerleave']) $('stopBtn').addEventListener(n, () => { clearTimeout(holdT); $('stopBtn').classList.remove('holding'); });
+$('stopBtn').onclick = () => { if (cfg.input === 'tap' && !PR) return; doStop(); };
+function doStop() {
+  if (PR) { PR = null; A = null; cancelAnimationFrame(raf); veil(null); $('mini').classList.remove('big'); $('stage').innerHTML = ''; renderSetup(); show('setup'); releaseWake(); return; }
+  if (!G) return; if (G.log.length) finish(); else { G.ended = true; show('setup'); releaseWake(); }
+};
 
 /* 測試用掛勾：stubCam(fn) 餵合成骨架走鏡頭路線；feedTilt(roll,pitch) 走傾斜路線 */
 window.__quiz = {
   cfg, store,
-  get G() { return G; }, get A() { return A; },
+  get G() { return G; }, get A() { return A; }, get PR() { return PR; },
   stubCam(fn) { stubFn = fn; camReady = true; },
   feedTilt(roll, pitch) { TL.a = { roll, pitch }; TL.t = performance.now(); },
   begin, startRound,
+  get bgm() { return BGM.state; }, BGM,
 };
 </script>
 </body>

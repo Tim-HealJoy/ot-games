@@ -34,7 +34,9 @@ export const GAMES = [
     img: 'img/boar.jpg', demoParam: 'demo=1', muteParam: 'mute=1', note: '',
     diffNames: { easy: '輕鬆', normal: '普通', hard: '挑戰' },
   },
-  /* 2026-11-12 植物園拍鳥 v0.5（線上連同網域的 /bird-v05-beta/，紀錄互通） */
+  /* 2026-11-12 拍鳥對話加：植物園拍鳥 v0.5（手機直接拿著轉身；電腦開時可按「用電腦＋手機玩」掃 QR）。
+     本機用 index_local.html：QR 會指到線上 https 手機頁（bird-v05-beta），經雲端中繼連回這台電腦。
+     只有初階／進階兩級：入口推薦 hard＝進階，easy、normal＝初階。 */
   {
     id: 'bird', name: '植物園拍鳥', train: '坐著慢慢轉身、抬頭，用手機拍下正在做事的鳥',
     input: 'phone', local: '/gandong-beta/2026-11-11_拍鳥復健遊戲/game_v0.5/index_local.html', online: 'https://games.otshih.com/bird-v05-beta/',

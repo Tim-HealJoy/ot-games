@@ -1,18 +1,40 @@
 /* 感．動復能：入口「小測」（約 1 分鐘）
    流程與釣魚接頭（釣魚/game/assess-hook.js）相同，只是名稱叫「小測」，畫面用 DOM 畫：
    1. 左手 3 下、右手 3 下（assess/lift.js）：舉到最高、停一下、放下。
-   2. 看圖 8 題（assess/gonogo.js）：魚就舉手、垃圾不動，順序同釣魚的 GO_IDS／NOGO_IDS。
+   2. 記菜（2026-11-12 新增）：先看 3 樣要買的東西，跟著唸一遍（約 10 秒）。
+   3. 看圖 8 題（assess/gonogo.js）：魚就舉手、垃圾不動，順序同釣魚的 GO_IDS／NOGO_IDS。這關同時是記菜的干擾作業。
+   4. 想起來 6 題：一次一樣，剛剛要買的就舉手、沒有要買的手不動（同一個 GoNoGo 判定，舉手動作和第 3 關一樣）。
    鏡頭樣本一律用 assess/signal.js 的 HandSignal 算 lh、rh（與各遊戲量測關同一把尺）。
    ?demo=1：不開鏡頭，用假的手跑完（左手比右手低、反應約 0.75 秒、第 2 個垃圾手滑），紀錄標 demo:true。
    ?mute=1：完全不出聲（不建立 AudioContext）。 */
 import { LiftMeasure } from './assess/lift.js?v=1';
 import { GoNoGo, GNG } from './assess/gonogo.js?v=1';
 import { HandSignal } from './assess/signal.js?v=1';
+import { itemById } from '../動作答題/banks/market.js';
 
-export const VER = 'hub-0.1';
+export const VER = 'hub-0.2';
 const GO_IDS = ['tilapia', 'milkfish', 'snapper', 'tilapia', 'milkfish'];
 const NOGO_IDS = ['shoe', 'can', 'shoe'];
-const VOICES = ['as_left', 'as_right', 'as_again', 'as_low', 'as_rest', 'as_gng', 'as_pain'];
+const VOICES = ['as_left', 'as_right', 'as_again', 'as_low', 'as_rest', 'as_gng', 'as_pain', 'as_mem', 'as_rec'];
+
+/* ---------- 記菜（2026-11-12 老闆：入口評估加記憶；作答選 A「看過就舉手」） ----------
+   借 Mini-Cog「記 3 個 → 干擾作業 → 回想」的結構（Borson et al., 2000），改成圖片＋再認（一次一樣、舉手＝有要買）。
+   再認比自由回想容易，鑑別力較低〔推論〕；之後連續滿分的人可改記 4 樣（待老闆決定）。
+   3 本題本輪流（依這個人做過幾次記菜），每本 3 樣要買＋3 樣沒買；沒買的跟要買的同類（菜對菜、水果對水果），
+   但避開長得太像的組合（菜市場記清單的 SIMILAR），也不用魚，免得和「魚和垃圾」混在一起。 */
+export const MEM_BOOKS = [
+  { id: 'A', buy: ['cabbage', 'banana', 'eggs'], not: ['broccoli', 'pineapple', 'milk'] },
+  { id: 'B', buy: ['tomatoes', 'apples', 'tofu'], not: ['carrot', 'grapes', 'pudding'] },
+  { id: 'C', buy: ['spring_onion', 'kiwi', 'enoki'], not: ['garlic', 'cherry', 'sweet_potato'] },
+];
+export const MEM = {
+  showSec: 10,                                   /* 看 3 樣多久（語音約 6 秒，固定時間，每次一樣才能比較） */
+  seq: ['go', 'nogo', 'go', 'nogo', 'nogo', 'go'],  /* go＝要買的、nogo＝沒買的；固定順序 */
+  winSec: 4,                                     /* 每樣看幾秒：要想一下，比魚和垃圾多 1 秒 */
+  recIntroSec: 5,
+};
+const memImg = (id) => `../動作答題/img/price/${id}.jpg`;
+const memName = (id) => (itemById(id) || {}).short || id;
 const SIDE = { L: '左手', R: '右手' };
 const REST_LINE = -0.5;            /* 入口沒有個人校正，放下線用釣魚未校正時的值 */
 const LO = -1, HI = 1.3;           /* 高度條的範圍（軀幹長） */
@@ -51,7 +73,7 @@ function createAudio(mute) {
 
 /* el：小測畫面的根節點（index.html 的 #scrQuiz）
    getSubject()：現在的個案；onDone(rec)：量完（含略過）回傳要存的紀錄；onExit()：按回首頁 */
-export function createQuiz(el, { demo = false, mute = false, getSubject, onDone, onExit }) {
+export function createQuiz(el, { demo = false, mute = false, getSubject, onDone, onExit, memBook = () => 0 }) {
   const q = (s) => el.querySelector(s);
   const E = {
     h: q('.qz-h'), k: q('.qz-k'), body: q('.qz-body'), video: q('.qz-cam video'), none: q('.qz-none'),
@@ -63,6 +85,12 @@ export function createQuiz(el, { demo = false, mute = false, getSubject, onDone,
   const AE = createAudio(mute);
   const IMG = {};
   for (const id of new Set([...GO_IDS, ...NOGO_IDS])) { const im = new Image(); im.src = `assess/img/${id}.webp`; IMG[id] = im; }
+  for (const b of MEM_BOOKS) for (const id of [...b.buy, ...b.not]) { const im = new Image(); im.src = memImg(id); IMG[id] = im; }
+  /* 記菜的 3 樣：畫面元素由這裡建立（index.html 不用改結構） */
+  E.mem = document.createElement('div'); E.mem.className = 'qz-memo'; E.mem.style.display = 'none';
+  E.mem.innerHTML = '<div class="qz-memo-row">' + [0, 1, 2].map(() => '<figure><img alt=""><figcaption></figcaption></figure>').join('') + '</div>';
+  E.body.appendChild(E.mem);
+  E.memFig = [...E.mem.querySelectorAll('figure')];
   E.gdots.innerHTML = GNG.seq.map(() => '<i></i>').join('');
   q('.qz-meter').querySelectorAll('i').forEach((i) => { i.style.bottom = pct(+i.dataset.v) + '%'; });
 
@@ -133,6 +161,12 @@ export function createQuiz(el, { demo = false, mute = false, getSubject, onDone,
       const lift = st.stim.kind === 'go' || (st.stim.kind === 'nogo' && st.ni === 2);
       if (lift && e > 0.75) { const v = low + Math.min(1, (e - 0.75) / 0.5) * 1.2; return { t: now, lh: v, rh: low, lm: null }; }
     }
+    /* 記菜：要買的 3 樣都舉，沒買的第 2 樣手滑舉了（答對 5／6），想得比較久（約 1.3 秒） */
+    if (st.stage === 'rec' && st.stim && !st.stim.res) {
+      const e = (now - st.stim.t) / 1000;
+      const lift = st.stim.kind === 'go' || (st.stim.kind === 'nogo' && st.stim.k === 1);
+      if (lift && e > 1.3) { const v = low + Math.min(1, (e - 1.3) / 0.5) * 1.2; return { t: now, lh: low, rh: v, lm: null }; }
+    }
     return { t: now, lh: low, rh: low, lm: null };
   }
 
@@ -141,14 +175,18 @@ export function createQuiz(el, { demo = false, mute = false, getSubject, onDone,
   /* 「肩膀會痛」（2026-11-11，老闆：測試階段有反應肩膀痛，就不用勉強）
      舉手時按：舉手量測馬上停，已做的幾下留著，接著做看圖，提示「手抬一下就好」。
      看圖時按：小測直接結束。只記在今天這一筆（painNow），不改建檔資料。 */
+  /* 2026-11-12 加記菜：看 3 樣、魚和垃圾說明時按＝之後手抬一下就好；看圖、想起來時按＝直接結束（同原本「看圖時按」） */
+  const HURT_STAGES = ['intro', 'lift', 'memShow', 'gngIntro', 'gng', 'recIntro', 'rec'];
   function hurt() {
     if (!st || st.painNow) return;
-    if (!['intro', 'lift', 'gngIntro', 'gng'].includes(st.stage)) return;
+    if (!HURT_STAGES.includes(st.stage)) return;
     st.painNow = true; clearTimeout(painTimer); AE.stop();
     if (st.stage === 'intro' || st.stage === 'lift') {
       while (!st.lift.done) st.lift.skipSide();
-      stage('gngIntro'); AE.say('as_gng');
+      toMem();
       msg('不勉強，手先休息', 3.5, true);
+    } else if (st.stage === 'memShow' || st.stage === 'gngIntro') {
+      msg('不勉強，等一下手抬一下就好', 3.5, true);
     } else finish(false);
   }
   function msg(text, sec, good = true) { if (st) st.msg = { text, until: performance.now() + sec * 1000, good }; }
@@ -159,7 +197,14 @@ export function createQuiz(el, { demo = false, mute = false, getSubject, onDone,
     const s = getSubject();
     stop();
     st = { s, stage: 'ready', t: 0, at: null, msg: null, stim: null, gi: 0, ni: 0, demo: {}, seq: -1, sampleAt: null, last: null,
-      lift: new LiftMeasure({ restLine: REST_LINE, aspect: 16 / 9 }), gng: new GoNoGo({ restLine: REST_LINE }) };
+      lift: new LiftMeasure({ restLine: REST_LINE, aspect: 16 / 9 }), gng: new GoNoGo({ restLine: REST_LINE }),
+      rec: new GoNoGo({ restLine: REST_LINE, seq: MEM.seq, winSec: MEM.winSec }), mem: null, memSkip: false, dots: null };
+    /* 題本輪流：做過幾次記菜就往下一本 */
+    let k = 0; try { k = Math.max(0, Math.floor(+memBook(s) || 0)); } catch (e) { k = 0; }
+    const book = MEM_BOOKS[k % MEM_BOOKS.length];
+    let bi = 0, ni = 0;
+    st.mem = { book: book.id, buy: book.buy, not: book.not, items: MEM.seq.map((kd) => (kd === 'go' ? book.buy[bi++] : book.not[ni++])), shownAt: null };
+    E.memFig.forEach((f, i) => { f.querySelector('img').src = memImg(book.buy[i]); f.querySelector('figcaption').textContent = memName(book.buy[i]); });
     E.pain.hidden = !(s && (s.pain === 'yes' || s.reach === 'effort'));   /* 做不到或會痛、有點吃力：開始前先說舉到舒服的高度就好 */
     E.startBtn.disabled = false;
     E.startBtn.textContent = demo ? '開始（展示，不開鏡頭）' : '開鏡頭，開始';
@@ -201,8 +246,11 @@ export function createQuiz(el, { demo = false, mute = false, getSubject, onDone,
     if (!st) return;
     if (st.stage === 'intro') return stage('lift');
     if (st.stage === 'lift') return onLift(st.lift.skipSide());
+    if (st.stage === 'memShow') { st.memSkip = true; AE.stop(); stage('gngIntro'); AE.say('as_gng'); return; }   /* 略過記菜：之後不問想起來 */
     if (st.stage === 'gngIntro') return stage('gng');
-    if (st.stage === 'gng' || st.stage === 'outro') return finish(false);
+    if (st.stage === 'gng') { if (st.memSkip) return finish(false); return toRec(); }   /* 略過看圖：記菜照樣問 */
+    if (st.stage === 'recIntro') return stage('rec');
+    if (st.stage === 'rec' || st.stage === 'outro') return finish(false);
   }
 
   function onLift(evs) {
@@ -214,7 +262,21 @@ export function createQuiz(el, { demo = false, mute = false, getSubject, onDone,
       else if (e.type === 'rep') { if (e.ok) { AE.good(); msg('很好', 1); } if (e.held) { AE.sayIdle('as_low'); msg('手放下來', 1.6, false); } }
       else if (e.type === 'remindLow') { AE.sayIdle('as_low'); msg('手先放下來', 2, false); }
       else if (e.type === 'skipSide') { AE.say('as_rest'); msg('這隻手先休息', 2.2, false); }
-      else if (e.type === 'done') { stage('gngIntro'); AE.say('as_gng'); }
+      else if (e.type === 'done') toMem();
+    }
+  }
+
+  function toMem() { stage('memShow'); st.mem.shownAt = Date.now(); AE.say('as_mem'); }
+  function toRec() { st.stim = null; stage('recIntro'); AE.say('as_rec'); }
+
+  function onRec(evs, now) {
+    for (const e of evs) {
+      if (e.type === 'stim') { st.stim = { kind: e.kind, k: e.kind === 'go' ? st.mem.items.slice(0, e.i).filter((_, j) => MEM.seq[j] === 'go').length : st.mem.items.slice(0, e.i).filter((_, j) => MEM.seq[j] === 'nogo').length, id: st.mem.items[e.i], t: now, res: null }; AE.soft(); }
+      else if (['hit', 'commission', 'reject', 'omission'].includes(e.type)) {
+        st.stim.res = e.type; st.stim.resAt = now;
+        if (e.type === 'hit' || e.type === 'reject') AE.good(); else AE.soft();
+      } else if (e.type === 'remindLow') { AE.sayIdle('as_low'); msg('手先放下來', 2, false); }
+      else if (e.type === 'done') stage('outro');
     }
   }
 
@@ -225,7 +287,7 @@ export function createQuiz(el, { demo = false, mute = false, getSubject, onDone,
         st.stim.res = e.type; st.stim.resAt = now;
         if (e.type === 'hit' || e.type === 'reject') AE.good(); else AE.soft();
       } else if (e.type === 'remindLow') { AE.sayIdle('as_low'); msg('手先放下來', 2, false); }
-      else if (e.type === 'done') stage('outro');
+      else if (e.type === 'done') { if (st.memSkip) stage('outro'); else toRec(); }
     }
   }
 
@@ -234,14 +296,17 @@ export function createQuiz(el, { demo = false, mute = false, getSubject, onDone,
     st.t += dt;
     if (!demo) track(now);
     let smp = null;
-    if (st.stage === 'lift' || st.stage === 'gng') smp = demo ? demoSample(now) : camSample(now);
+    if (st.stage === 'lift' || st.stage === 'gng' || st.stage === 'rec') smp = demo ? demoSample(now) : camSample(now);
     else if (!demo) { const L = cam.live; if (L) smp = { t: now, lh: L.lh, rh: L.rh }; }
     if (smp) st.last = smp;
     switch (st.stage) {
       case 'intro': if (st.t >= 2.5) stage('lift'); break;
       case 'lift': if (smp) onLift(st.lift.push(smp)); break;
+      case 'memShow': if (st.t >= MEM.showSec) { stage('gngIntro'); AE.say('as_gng'); } break;
       case 'gngIntro': if (st.t >= 5.2) stage('gng'); break;   /* 等「看到魚就舉手…」那句講完（約 4.9 秒） */
       case 'gng': if (smp) { const v = Math.max(smp.lh ?? -9, smp.rh ?? -9); onGng(st.gng.push({ t: smp.t, v: v > -9 ? v : null }), now); } break;
+      case 'recIntro': if (st.t >= MEM.recIntroSec) stage('rec'); break;
+      case 'rec': if (smp) { const v = Math.max(smp.lh ?? -9, smp.rh ?? -9); onRec(st.rec.push({ t: smp.t, v: v > -9 ? v : null }), now); } break;
       case 'outro': if (st.t >= 2.2) finish(true); break;
     }
     if (st) render(now);
@@ -251,11 +316,23 @@ export function createQuiz(el, { demo = false, mute = false, getSubject, onDone,
     const s = st.s;
     const rec = {
       code: s ? s.code : null, game: 'hub', ver: VER, at: st.at || Date.now(), input: demo ? 'demo' : 'cam', complete, pain: s ? s.pain : null,
-      lift: st.lift.summary(), gng: st.gng.trials.length ? st.gng.summary() : null, ...(demo ? { demo: true } : {}),
+      lift: st.lift.summary(), gng: st.gng.trials.length ? st.gng.summary() : null, mem: memSummary(), ...(demo ? { demo: true } : {}),
       ...(st.painNow ? { painNow: true } : {}),
     };
     stop(); st = null; closeCamera();
     onDone(rec);
+  }
+
+  /* 記菜結果：correct＝要買的舉了＋沒買的忍住（0～6）。沒問到（略過、按會痛提早結束）就 null */
+  function memSummary() {
+    const T = st.rec.trials;
+    if (!T.length) return st.memSkip ? { skipped: true, book: st.mem.book } : null;
+    const g = st.rec.summary();
+    return {
+      book: st.mem.book, buy: st.mem.buy, not: st.mem.not, n: T.length, of: MEM.seq.length, showSec: MEM.showSec,
+      hits: g.hits, misses: g.omissions, fa: g.commissions, cr: g.nogoN - g.commissions, correct: g.hits + (g.nogoN - g.commissions),
+      rtMedian: g.rtMedian, notLow: g.notLow, trials: T.map((x) => ({ ...x, id: st.mem.items[x.i] })),
+    };
   }
 
   function exit() { stop(); st = null; closeCamera(); onExit(); }
@@ -264,26 +341,31 @@ export function createQuiz(el, { demo = false, mute = false, getSubject, onDone,
   const cache = new Map();
   const set = (node, key, val) => {
     const c = cache.get(node) || {}; if (c[key] === val) return; c[key] = val; cache.set(node, c);
-    if (key === 'text') node.textContent = val; else if (key === 'cls') node.className = val; else if (key === 'src') node.src = val; else node.style[key] = val;
+    if (key === 'text') node.textContent = val; else if (key === 'html') node.innerHTML = val; else if (key === 'cls') node.className = val; else if (key === 'src') node.src = val; else node.style[key] = val;
   };
 
   function render(now) {
     if (!st) return;
     const S = st.stage, L = st.lift;
-    const mode = S === 'ready' || S === 'loading' ? 'start' : S === 'gngIntro' || S === 'gng' || S === 'outro' ? 'gng' : 'lift';
+    const REC = S === 'recIntro' || S === 'rec' || (S === 'outro' && !st.memSkip);
+    const mode = S === 'ready' || S === 'loading' ? 'start' : S === 'memShow' ? 'mem' : ['gngIntro', 'gng', 'recIntro', 'rec', 'outro'].includes(S) ? 'gng' : 'lift';
     set(el, 'cls', `screen qz qz-${mode}${demo ? ' qz-demo' : ''}`);
     set(E.start, 'display', mode === 'start' ? '' : 'none');
     let head = '';
-    if (S === 'ready' || S === 'loading') head = '左右手各舉 3 下，再看 8 張圖';
+    if (S === 'ready' || S === 'loading') head = '舉手、記菜、看圖，約 1 分半';
     else if (S === 'intro') head = '兩隻手各舉 3 下';
     else if (S === 'lift') { const nm = SIDE[L.sideId]; head = L.st === 'low' ? `${nm}先放下來` : pain() ? `${nm}舉到不會痛的高度，停一下` : `${nm}舉到最高，停一下`; }
     else if (S === 'gngIntro') head = st.painNow ? '看到魚，手抬一下就好；看到垃圾手不要動' : '看到魚就舉手，看到垃圾手不要動';
     else if (S === 'gng') head = st.stim && !st.stim.res ? '' : '手放下來，等下一張';
+    else if (S === 'memShow') head = '要買這 3 樣，跟著唸一遍，記起來';
+    else if (S === 'recIntro') head = st.painNow ? '剛剛要買的，手抬一下；沒有要買的，手不要動' : '剛剛要買的就舉手，沒有要買的手不要動';
+    else if (S === 'rec') head = st.stim && !st.stim.res ? (st.painNow ? '剛剛有要買這一樣？有就手抬一下' : '剛剛有要買這一樣？有就舉手') : '手放下來，等下一樣';
     else head = '小測完成';
     set(E.h, 'text', head);
     set(E.skip, 'display', mode === 'start' || S === 'outro' ? 'none' : '');
-    set(E.skip, 'text', S === 'lift' ? '略過這一手' : S === 'gng' ? '略過看圖' : '略過');
-    set(E.hurt, 'display', !st.painNow && ['intro', 'lift', 'gngIntro', 'gng'].includes(S) ? '' : 'none');
+    set(E.skip, 'text', S === 'lift' ? '略過這一手' : S === 'gng' ? '略過看圖' : S === 'memShow' ? '略過記菜' : S === 'rec' ? '略過' : '略過');
+    set(E.hurt, 'display', !st.painNow && HURT_STAGES.includes(S) ? '' : 'none');
+    set(E.mem, 'display', mode === 'mem' ? '' : 'none');
     set(E.none, 'display', demo ? '' : 'none');
 
     for (const sd of ['L', 'R']) {
@@ -298,15 +380,21 @@ export function createQuiz(el, { demo = false, mute = false, getSubject, onDone,
     set(E.fill, 'height', (v == null ? 0 : pct(v)) + '%');
 
     if (mode === 'gng') {
-      const Sx = st.stim, show = S === 'gng' && Sx && !(Sx.res && now - Sx.resAt > 700);
-      set(E.rule, 'display', S === 'gngIntro' ? '' : 'none');
+      /* 看圖與想起來共用同一塊：點點數量、規則字、回饋字依階段換 */
+      const dotsFor = REC ? 'rec' : 'gng';
+      if (st.dots !== dotsFor) { st.dots = dotsFor; E.gdots.innerHTML = (REC ? MEM.seq : GNG.seq).map(() => '<i></i>').join(''); }
+      const Sx = st.stim, show = (S === 'gng' || S === 'rec') && Sx && !(Sx.res && now - Sx.resAt > 700);
+      set(E.rule, 'display', S === 'gngIntro' || S === 'recIntro' ? '' : 'none');
+      set(E.rule, 'html', REC ? '剛剛要買 → 舉手<br>沒有要買 → 不動' : '魚 → 舉手<br>垃圾 → 不動');
       set(E.img, 'display', show ? '' : 'none');
       if (show) { set(E.img, 'src', IMG[Sx.id].src); set(E.img, 'cls', Sx.res ? 'dim' : ''); }
-      const RES = { hit: ['舉起來了', 'good'], reject: ['忍住了', 'good'], commission: ['是垃圾喔', 'bad'], omission: ['游走了', 'bad'] };
+      const RES = REC ? { hit: ['對，有要買', 'good'], reject: ['對，沒有要買', 'good'], commission: ['這樣沒有要買', 'bad'], omission: ['這樣有要買喔', 'bad'] }
+        : { hit: ['舉起來了', 'good'], reject: ['忍住了', 'good'], commission: ['是垃圾喔', 'bad'], omission: ['游走了', 'bad'] };
       const r = show && Sx.res ? RES[Sx.res] : null;
       set(E.res, 'text', r ? r[0] : ''); set(E.res, 'cls', `qz-res ${r ? r[1] : ''}`);
       if (S === 'outro') set(E.res, 'text', '');
-      E.gdots.querySelectorAll('i').forEach((d, k) => set(d, 'cls', k < st.gng.trials.length ? 'ok' : ''));
+      const nDone = REC ? st.rec.trials.length : st.gng.trials.length;
+      E.gdots.querySelectorAll('i').forEach((d, k) => { d.className = k < nDone ? 'ok' : ''; });
     }
     const m = st.msg && st.msg.until > now ? st.msg : null;
     set(E.msg, 'display', m ? '' : 'none');
@@ -323,7 +411,7 @@ export function createQuiz(el, { demo = false, mute = false, getSubject, onDone,
     open, exit,
     get active() { return !!st; },
     get state() {
-      return st && { stage: st.stage, painNow: !!st.painNow, lift: { st: st.lift.st, side: st.lift.sideId, rep: st.lift.rep, done: st.lift.done }, gng: { st: st.gng.st, i: st.gng.i }, stim: st.stim && { kind: st.stim.kind, id: st.stim.id, res: st.stim.res }, last: st.last && { lh: st.last.lh, rh: st.last.rh } };
+      return st && { stage: st.stage, painNow: !!st.painNow, lift: { st: st.lift.st, side: st.lift.sideId, rep: st.lift.rep, done: st.lift.done }, gng: { st: st.gng.st, i: st.gng.i }, rec: { st: st.rec.st, i: st.rec.i }, mem: st.mem && { book: st.mem.book, items: st.mem.items }, memSkip: st.memSkip, stim: st.stim && { kind: st.stim.kind, id: st.stim.id, res: st.stim.res }, last: st.last && { lh: st.last.lh, rh: st.last.rh } };
     },
     /* 測試用假鏡頭：fn(now) 回傳這一格的骨架（MediaPipe 33 點陣列的陣列，每人一組），走真正的 signal.js → 量測路線 */
     stubCam(fn) {

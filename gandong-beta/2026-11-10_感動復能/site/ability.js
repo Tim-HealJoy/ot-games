@@ -8,6 +8,7 @@
    民眾版只講「練習表現」「第幾級」，不講分數、不講退化。 */
 import { MIND_AXES, MOVE_AXES, QUIZ, axesOf } from './catalog.js';
 import { buildCards, axisPoints, playedToday, dayKey, heightLevel, tiltLevel } from './scorecard.js';
+import { flagsOf } from './recommend.js';
 
 export const RADAR = { unlockN: 3, recentN: 5, days: 30, week: 7 };
 const DAY = 864e5;
@@ -72,10 +73,28 @@ export function summaryLine(r) {
   return head + next;
 }
 
-/* ---------- 今日點心：三樣，至少 1 樣動、1 樣感（第八節） ---------- */
-/* in：{ code, quizSessions, assessSessions, plan（入口今天的推薦，可為 null）, lastLevel(act)→等級, now }
-   out：[{ kind:'check'|'game'|'quiz', id, level?, diff?, why, done }] */
-export function todaySnack({ code = '', quizSessions = [], assessSessions = [], plan = null, lastLevel = () => null, now = Date.now() } = {}) {
+/* ---------- 今日遊戲：三樣，至少 1 樣動、1 樣感（第八節） ----------
+   2026-11-12 老闆：要依玩家在小測（評估）的表現，給當天適合的遊戲。規則全部〔暫定〕，待老闆審：
+   1. 動：今天小測推薦的第一款（recommend.js，看舉手與看圖）。
+   2. 記菜答對 ≤4／6（memLow）：一定排「菜市場記清單」，從低等級開始（≤3 樣對→第 1 級、4 樣→最高第 2 級）。
+   3. 記菜答對 5／6：也排記清單，最高第 3 級。
+   4. 看圖慢（slow）或忍不住（impulsive）：排「哪一個比較快」，最高第 2 級，看清楚再答。
+   5. 其餘位置照雷達補（還沒畫出來的軸先、分數低的軸次之）。
+   6. 記菜 ≤4 或看圖慢／忍不住：今天其他答題最高第 2 級（今天先輕鬆）；記菜全對、看圖順：沿用上次等級，記清單沒玩過就從第 3 級。
+   7. 今天沒做小測：照原本雷達規則（第一樣是「先做小測」）。 */
+export function entryMind(entry) {
+  if (!entry) return null;
+  const f = flagsOf(null, entry);
+  const c = f.memCorrect;
+  const memStart = c == null ? null : c >= 6 ? 3 : c >= 5 ? 2 : 1;          /* 記清單沒玩過時的起點 */
+  const memCap = c == null ? 5 : c >= 6 ? 5 : c >= 5 ? 3 : c >= 4 ? 2 : 1;  /* 今天記清單最高幾級 */
+  const easy = f.memLow || f.slow || f.impulsive;
+  return { ...f, memStart, memCap, capOther: easy ? 2 : 5 };
+}
+
+/* in：{ code, quizSessions, assessSessions, plan（入口今天的推薦，可為 null）, entry（今天的小測紀錄，可為 null）, lastLevel(act)→等級, now }
+   out：[{ kind:'check'|'game'|'quiz', id, level?, diff?, why, done, src? }]；src='entry'＝依今天小測排的 */
+export function todaySnack({ code = '', quizSessions = [], assessSessions = [], plan = null, entry = null, lastLevel = () => null, now = Date.now() } = {}) {
   /* 完成＝玩完一局或按「肩膀會痛」安全停止；遊戲只開了頭（入口量測抄過去）不算 */
   const cards = buildCards({ quizSessions, assessSessions }).filter((c) => !c.demo && c.who === code);
   const { quiz: playedQuiz, game: playedGame } = playedToday(cards, code, now);
@@ -95,6 +114,22 @@ export function todaySnack({ code = '', quizSessions = [], assessSessions = [], 
     return a.score - b.score;
   });
   const chosen = new Set(), usedAxis = new Set();
+  const E = entryMind(entry);
+  const addQuiz = (id, level, why, axis) => {
+    const q = QUIZ.find((x) => x.id === id); if (!q || chosen.has(id) || out.length >= 3) return;
+    chosen.add(id); axesOf(q.elements).forEach((a) => usedAxis.add(a));
+    out.push({ kind: 'quiz', id, level, why, axis, done: playedQuiz.has(id), src: 'entry' });
+  };
+  if (E) {
+    if (!E.noMem && !E.memOk) {   /* 規則 2、3 */
+      const last = lastLevel('memo');
+      const lv = last ? Math.max(1, Math.min(E.memCap, last)) : E.memStart;
+      addQuiz('memo', lv, E.memLow ? `剛剛記菜之後，今天從第 ${lv} 級慢慢練「記得住」。` : `剛剛記菜答對 ${E.memCorrect} 樣，今天用第 ${lv} 級再練一下「記得住」。`, 'mem');
+    }
+    if (E.slow || E.impulsive) {  /* 規則 4 */
+      addQuiz('speed', Math.max(1, Math.min(2, lastLevel('speed') || 1)), '剛剛看圖之後，選一樣看清楚再答的，慢慢來不用急。', 'att');
+    }
+  }
   for (const ax of order) {
     if (out.length >= 3) break;
     if (usedAxis.has(ax.id)) continue;
@@ -104,7 +139,9 @@ export function todaySnack({ code = '', quizSessions = [], assessSessions = [], 
     const q = cand.find((c) => !playedQuiz.has(c.id)) || cand[0];
     chosen.add(q.id); axesOf(q.elements).forEach((a) => usedAxis.add(a));
     const why = ax.score == null ? `「${ax.name}」再玩 ${ax.need} 次，雷達就畫得出來。` : `多練「${ax.name}」：${ax.plain}。`;
-    out.push({ kind: 'quiz', id: q.id, level: lastLevel(q.id) || 2, why, axis: ax.id, done: playedQuiz.has(q.id) });
+    let level = lastLevel(q.id) || (q.id === 'memo' && E && E.memStart ? E.memStart : 2);
+    if (E) level = Math.max(1, Math.min(E.capOther, q.id === 'memo' ? E.memCap : 5, level));   /* 規則 6 */
+    out.push({ kind: 'quiz', id: q.id, level, why: E && E.capOther < 5 ? `${why}今天先從第 ${level} 級輕鬆玩。` : why, axis: ax.id, done: playedQuiz.has(q.id) });
   }
   return out;
 }

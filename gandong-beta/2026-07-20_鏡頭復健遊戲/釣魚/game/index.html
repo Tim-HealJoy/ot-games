@@ -1413,9 +1413,10 @@ function drawCam(bx,by,w,h,{line=null,big=false}={}){
   if(big&&ly!=null){ const tx=atLine?'到了':'舉到這裡'; ctx.font=`900 40px ${FONT}`; const tw=ctx.measureText(tx).width+36, yy=clamp(ly+36,by+30,by+h-30); rr(bx+w-tw-14,yy-28,tw,56,14,atLine?'#5BE08A':'#FFC400'); txt(tx,bx+w-14-tw/2,yy+1,40,'#1C2A33','center','',0); }
   rr(bx,by,w,h,16,null,'#fff5',3);
 }
-/* 示範（v1.9，11-11 老闆：示範要更清楚）：斜前 45 度的阿公，坐正、雙手打直往前舉過頭，循環播放（art/demo_raise/）。
+/* 示範（v1.9，11-11 老闆：示範要更清楚）：坐正、雙手打直往前舉過頭，循環播放。
+   11-12 改成全遊戲共用的 3D 示範人（無臉、運動衣，老闆：不要阿公，因為不知道使用者是誰）；來源 2026-11-10_感動復能/3D示範人樣式/示範_動作庫_v0.4.html?export=1&a=lift，舊阿公圖在 _舊版/v1.9_阿公示範圖_2026-11-12/。
    練習時偵測到身體後仰或手肘彎，換成那個錯誤的圖（紅叉）停 3 秒，再回到正確動作。 */
-const DEMO_IMG={ok:'assets/raise_ok.webp',top:'assets/raise_top.webp',rest:'assets/raise_rest.webp',lean:'assets/raise_ng_lean.webp',bent:'assets/raise_ng_bent.webp'};
+const DEMO_IMG={ok:'assets/raise_ok.webp?v=3d1',top:'assets/raise_top.webp?v=3d1',rest:'assets/raise_rest.webp?v=3d1',lean:'assets/raise_ng_lean.webp?v=3d1',bent:'assets/raise_ng_bent.webp?v=3d1'};
 let demoWant=null, demoNg=null;
 function demoAt(key,x,y,w,h){ demoWant={key,x,y,w,h}; }
 function demoSync(){ const el=$('demoImg'); if(!demoWant){ if(!el.classList.contains('hidden'))hide(el); return; }
@@ -1423,7 +1424,7 @@ function demoSync(){ const el=$('demoImg'); if(!demoWant){ if(!el.classList.cont
   if(el.dataset.k!==o.key){ el.dataset.k=o.key; el.src=DEMO_IMG[o.key]; }
   el.style.left=(ox/d+o.x*k)+'px'; el.style.top=(oy/d+o.y*k)+'px'; el.style.width=(o.w*k)+'px'; el.style.height=(o.h*k)+'px';
   if(el.classList.contains('hidden'))show(el); }
-function drawDemo(x,y,w,h,now,{key='ok',title='跟著阿公做',lines=['手臂打直、背坐正','慢慢舉過頭']}={}){
+function drawDemo(x,y,w,h,now,{key='ok',title='跟著做',lines=['手臂打直、背坐正','慢慢舉過頭']}={}){
   const ng=demoNg&&demoNg.until>now?demoNg:null;
   rr(x,y,w,h,22,'#F4EFE3',ng?'#C02A18':'#134F72',ng?9:5);
   txt(ng?'不要這樣':title,x+w/2,y+54,50,ng?'#C02A18':'#134F72','center','',0);

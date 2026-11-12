@@ -82,6 +82,7 @@ const CSS = `
 #assess .side .dots i{width:calc(var(--u)*2.6);height:calc(var(--u)*2.6);border-radius:50%;background:#e7eef0;border:3px solid #1f5f7a;display:flex;align-items:center;justify-content:center;font-style:normal;color:#fff;font-size:calc(var(--u)*1.6)}
 #assess .side .dots i.cur{background:#ffe9a8}#assess .side .dots i.ok{background:#3cc277}
 #assess .side .skip{font-size:calc(var(--u)*1.7);color:#8a8070}
+#assess .side .d3{width:calc(var(--u)*13);height:calc(var(--u)*13);object-fit:contain;display:block}#assess.gng .side .d3{display:none}
 #assess .side .mirror{font-size:calc(var(--u)*1.3);color:#8a8070}
 #assess .cam{position:relative;flex:0 0 auto;aspect-ratio:16/9;height:100%;background:#0b1d22;border-radius:calc(var(--u)*1.2);overflow:hidden;border:3px solid #fff}
 #assess .cam video{width:100%;height:100%;object-fit:cover;transform:scaleX(-1);display:block}
@@ -183,7 +184,7 @@ export function createAssess(g) {
   ov.innerHTML = `<div class="k">試網：開始撈魚前，看看每個人的手</div><div class="h"></div>
     <div class="seat a hide"></div><div class="seat b hide"></div><div class="rest a hide">休息一下</div><div class="rest b hide">休息一下</div>
     <div class="body">
-      <div class="side"><div class="nm" data-s="L">左手</div><div class="dots" data-s="L"></div><div class="skip hide" data-s="L">先休息</div>
+      <div class="side"><img class="d3" alt="示範：一隻手往上舉到最高，停一下，再放下來" src="demo3d/demo3d_up_L.webp?v=1"><div class="nm" data-s="L">左手</div><div class="dots" data-s="L"></div><div class="skip hide" data-s="L">先休息</div>
         <div class="nm" data-s="R">右手</div><div class="dots" data-s="R"></div><div class="skip hide" data-s="R">先休息</div><div class="mirror">畫面是鏡子</div></div>
       <div class="cam"><video playsinline muted></video><div class="dim"></div><div class="tag a">左邊</div><div class="tag b">右邊</div><div class="none hide">展示模式（沒有開鏡頭）</div></div>
       <div class="meter"><div class="cap">高度</div><b></b><i data-v="0"><span>肩膀</span></i><i data-v="0.6"><span>頭頂</span></i></div>
@@ -193,7 +194,7 @@ export function createAssess(g) {
     <div class="btns"><button type="button" data-b="back">← 回設定畫面</button><button type="button" data-b="skip">略過這一手</button></div>`;
   $('stage').appendChild(ov);
   const q = (s) => ov.querySelector(s), qa = (s) => ov.querySelectorAll(s);
-  const E = { h: q('.h'), video: q('.cam video'), dim: q('.cam .dim'), none: q('.cam .none'), fill: q('.meter b'), img: q('.stim img'), res: q('.stim .res'), rule: q('.stim .rule'), gdots: q('.stim .gdots'), msg: q('.msg'), skip: q('[data-b=skip]') };
+  const E = { d3: q('.side .d3'), h: q('.h'), video: q('.cam video'), dim: q('.cam .dim'), none: q('.cam .none'), fill: q('.meter b'), img: q('.stim img'), res: q('.stim .res'), rule: q('.stim .rule'), gdots: q('.stim .gdots'), msg: q('.msg'), skip: q('[data-b=skip]') };
   const LO = -1, HI = 1.3, pct = (v) => Math.max(0, Math.min(1, (v - LO) / (HI - LO))) * 100;
   qa('.meter i').forEach((i) => { i.style.bottom = pct(+i.dataset.v) + '%'; });
   q('[data-b=back]').onclick = () => g.back();
@@ -397,6 +398,8 @@ export function createAssess(g) {
         set(q(`.dots[data-s=${sd}]`), 'html', skipped ? '' : Array.from({ length: reps }, (_, i) => `<i class="${i < n ? 'ok' : active && i === n ? 'cur' : ''}">${i < n ? '✓' : ''}</i>`).join(''));
       }
       const sd = S.stage === 'lift' && L ? L.sideId : 'L', smp = S.last;
+      /* 3D 示範人（11-12 起全遊戲共用）：輪到哪隻手就示範哪隻手；畫面是鏡子，「左手」示範舉在畫面左邊 */
+      const d3 = `demo3d/demo3d_up_${sd}.webp?v=1`; if (E.d3.getAttribute('src') !== d3) E.d3.setAttribute('src', d3);
       const v = smp ? (sd === 'L' ? smp.lh : smp.rh) : null;
       set(E.fill, 'height', v == null || S.stage !== 'lift' ? '0%' : pct(v) + '%');
       set(E.skip, 'text', '略過這一手');

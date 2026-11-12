@@ -66,7 +66,19 @@ export const QUIZ = [
   { id: 'place', goal: 'lang', name: '台灣地名名產', how: '二選一、三選一', line: '「台中」有名的是太陽餅還是牛舌餅？', elements: ['命名', '懷舊敘說'] },
 ].map((q) => ({ ...q, kind: 'quiz', img: `img/act_${q.id}.jpg`, url: `${QUIZ_BASE}?act=${q.id}` }));
 
-/* 「動」：五款動作遊戲的訓練要素（網址、圖在 games.js） */
+/* 「用手碰」五款（11-12，平板用支架立在桌上、坐正舉手輕碰、大面積觸控；在 ../觸控練習/，紀錄同樣寫 gandong_quiz_v1）。
+   side＝放在「動」或「感」底下；沒有封面圖，卡片用 icon。 */
+const TOUCH_BASE = '../觸控練習/';
+export const TOUCH = [
+  { id: 'pat', side: 'move', goal: 'endure', icon: '🛏️', name: '拍拍看', how: '用手碰', line: '天氣好，幫忙把棉被拍一拍', elements: ['持續'] },
+  { id: 'lr', side: 'move', goal: 'reach', icon: '🏮', name: '左右輪流', how: '用手碰', line: '元宵節，亮的燈籠碰一下就點亮', elements: ['伸取跨中線', '選擇反應'] },
+  { id: 'order', side: 'mind', goal: 'mem', icon: '🧺', name: '照順序碰', how: '用手碰', line: '記住阿嬤要的菜，照順序拿', elements: ['記住順序'] },
+  { id: 'say', side: 'mind', goal: 'lang', icon: '💬', name: '說說看', how: '家人陪著玩', line: '題目說出來，家人聽完碰一下', elements: ['命名'] },
+  { id: 'nogo', side: 'mind', goal: 'att', icon: '🍢', name: '這個不能碰', how: '用手碰', line: '夜市好料碰一下，垃圾忍住不碰', elements: ['忍住不動', '選擇反應'] },
+].map((t) => ({ ...t, kind: 'touch', img: `img/touch_${t.id}.jpg?v=2`, url: `${TOUCH_BASE}?act=${t.id}` }));   // 封面 11-12 Codex 生成（art/gen_touch_covers.sh）
+export const touchById = (id) => TOUCH.find((t) => t.id === id) || null;
+
+/* 「動」：六款動作遊戲的訓練要素（網址、圖在 games.js；拍鳥 11-12 加入） */
 export const GAME_ELEMENTS = {
   fishing: ['舉高', '忍住不動', '選擇反應'],
   netlift: ['舉高', '持續'],
@@ -81,6 +93,7 @@ export const GOALS = [
   { id: 'lift', side: 'move', name: '手舉得高', life: '梳頭、晾衣服、拿櫃子上的碗', icon: '🙌' },
   { id: 'reach', side: 'move', name: '手伸得遠', life: '拿桌子另一頭的杯子、跨過身體拿東西', icon: '🤲' },
   { id: 'trunk', side: 'move', name: '坐得穩', life: '坐著轉身、彎腰穿鞋不搖晃', icon: '🪑' },
+  { id: 'endure', side: 'move', name: '手動得久', life: '拍棉被、擦桌子，手不會一下就累', icon: '✋' },
   { id: 'att', side: 'mind', name: '看得清、反應快', life: '過馬路看車、在一堆東西裡找到要的', icon: '👀' },
   { id: 'mem', side: 'mind', name: '記得住', life: '記得要買什麼、藥吃了沒', icon: '📝' },
   { id: 'exe', side: 'mind', name: '做事有順序', life: '泡茶、出門前一步一步來', icon: '🧭' },

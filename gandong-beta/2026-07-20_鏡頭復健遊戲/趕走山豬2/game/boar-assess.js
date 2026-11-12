@@ -215,10 +215,10 @@ export function createAssess(g) {
     const rec = { code: s.code, game: GAME, ver: VER, at: st.at, input: g.DEMO ? 'demo' : 'cam', complete, pain: s.pain,
       lift: st.lift.summary(), gng: st.gng.trials.length ? st.gng.summary() : null, ...(st.painNow ? { painNow: true } : {}), ...(g.DEMO ? { demo: true } : {}) };
     store.addSession(rec);
-    const next = st.next; st = null; g.TR.closePose?.(); g.exitTrial();
+    const next = st.next; st = null; demoHide(); g.TR.closePose?.(); g.exitTrial();
     next();
   }
-  function cancel() { if (st) { st = null; g.TR.closePose?.(); } }
+  function cancel() { demoHide(); if (st) { st = null; g.TR.closePose?.(); } }
 
   /* ---------- 結算 ---------- */
   function download(kind, code) {
@@ -324,9 +324,19 @@ export function createAssess(g) {
     return checkBanned(c.textContent);
   }
 
+  /* ---------- 3D 示範人（11-12 老闆：所有遊戲用同一位 3D 示範人，不用阿公）：輪到哪隻手就示範哪隻手。
+     畫面是鏡子，所以「左手」的示範是舉在畫面左邊那隻手。動圖畫在畫布上只會停在第一格，所以用一張浮在畫布上的圖片。 ---------- */
+  let demoEl = null;
+  function demoAt(sd, x, y, s) {
+    if (!demoEl) { demoEl = document.createElement('img'); demoEl.alt = '示範：一隻手往上舉到最高，停一下，再放下來'; demoEl.style.cssText = 'position:fixed;z-index:5;pointer-events:none;object-fit:contain;display:none'; document.body.appendChild(demoEl); }
+    const src = `demo3d/demo3d_up_${sd}.webp?v=1`;
+    if (demoEl.getAttribute('src') !== src) demoEl.setAttribute('src', src);
+    Object.assign(demoEl.style, { left: x + 'px', top: y + 'px', width: s + 'px', height: s + 'px', display: 'block' });
+  }
+  function demoHide() { if (demoEl) demoEl.style.display = 'none'; }
   /* ---------- 試手畫面（畫在遊戲畫布上） ---------- */
   function draw(ctx, CW, CH) {
-    if (!st) return;
+    if (!st) { demoHide(); return; }
     const F = g.font, m = Math.min(CW, CH), top = Math.max(70, CH * 0.14), bot = CH - Math.max(70, CH * 0.12), bh = bot - top;
     ctx.fillStyle = 'rgba(58,40,22,.93)'; ctx.fillRect(0, 0, CW, CH);
     const txt = (t, x, y, s, c = '#fff8e8', al = 'center') => { ctx.font = `900 ${Math.round(s)}px ${F}`; ctx.textAlign = al; ctx.fillStyle = c; ctx.fillText(t, x, y); };
@@ -347,13 +357,15 @@ export function createAssess(g) {
     if (st.stage === 'load' || st.stage === 'intro' || st.stage === 'lift') {
       const L = st.lift, lw = Math.min(CW * 0.24, 300), mw = Math.min(CW * 0.08, 90);
       card(16, top, lw, bh);
+      const ds = Math.min(lw - 20, bh * 0.4);
+      demoAt(st.stage === 'lift' ? L.sideId : 'L', 16 + (lw - ds) / 2, top + 8, ds);
       for (const [i, sd] of ['L', 'R'].entries()) {
-        const y = top + bh * (0.28 + i * 0.42), act = st.stage === 'lift' && L.sideId === sd && !L.done, n = L.reps.filter((r) => r.side === sd).length;
-        txt(SIDE[sd], 16 + lw / 2, y - bh * 0.06, m * (act ? 0.07 : 0.055), act ? '#c0452f' : '#7a6248');
-        if (L.skipped.includes(sd)) txt('先休息', 16 + lw / 2, y + bh * 0.1, m * 0.045, '#7a6248');
+        const rh = bh - ds - 8, y = top + 8 + ds + rh * (0.22 + i * 0.5), act = st.stage === 'lift' && L.sideId === sd && !L.done, n = L.reps.filter((r) => r.side === sd).length;
+        txt(SIDE[sd], 16 + lw / 2, y - rh * 0.08, m * (act ? 0.07 : 0.055), act ? '#c0452f' : '#7a6248');
+        if (L.skipped.includes(sd)) txt('先休息', 16 + lw / 2, y + rh * 0.16, m * 0.045, '#7a6248');
         else for (let k = 0; k < 3; k++) { const cx = 16 + lw / 2 + (k - 1) * lw * 0.28, r = Math.min(lw * 0.11, m * 0.045), on = k < n;
-          ctx.beginPath(); ctx.arc(cx, y + bh * 0.08, r, 0, 7); ctx.fillStyle = on ? '#4f8f3a' : act ? '#ffe08a' : '#eadcc0'; ctx.fill();
-          if (on) txt('✓', cx, y + bh * 0.08 + r * 0.4, r * 1.2, '#fff'); }
+          ctx.beginPath(); ctx.arc(cx, y + rh * 0.1, r, 0, 7); ctx.fillStyle = on ? '#4f8f3a' : act ? '#ffe08a' : '#eadcc0'; ctx.fill();
+          if (on) txt('✓', cx, y + rh * 0.1 + r * 0.4, r * 1.2, '#fff'); }
       }
       camBox(32 + lw, top, CW - lw - mw - 80, bh);
       const mx = CW - mw - 16, side = st.stage === 'lift' ? L.sideId : 'L', v = side === 'L' ? st.h.lh : st.h.rh, lo = -1, hi = 1.3;
@@ -362,6 +374,7 @@ export function createAssess(g) {
       if (v != null) { ctx.fillStyle = '#ffd45a'; ctx.beginPath(); ctx.roundRect(mx + 6, yv(v), mw - 12, top + bh - yv(v), 10); ctx.fill(); }
       for (const [lv, nm] of pain() ? [[0, '肩膀']] : [[0, '肩膀'], [0.6, '頭頂']]) { ctx.fillStyle = '#fff8'; ctx.fillRect(mx - 6, yv(lv) - 2, mw + 12, 4); txt(nm, mx - 10, yv(lv) + m * 0.012, m * 0.032, '#ffe9b8', 'right'); }
     } else {
+      demoHide();
       const lw = (CW - 48) * 0.42; camBox(16, top, lw, bh);
       const rx = 32 + lw, rw = CW - rx - 16; ctx.fillStyle = 'rgba(255,255,255,.08)'; ctx.beginPath(); ctx.roundRect(rx, top, rw, bh, 16); ctx.fill();
       const cx = rx + rw / 2;

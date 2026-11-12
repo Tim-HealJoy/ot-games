@@ -34,6 +34,9 @@ body[data-theme="neon"] .appbar{background:rgba(16,12,4,.97);border-bottom:3px s
 body[data-theme="neon"] .appbar::before{content:"";display:block;height:16px;background:var(--bulbs) 0 0/24px 16px repeat-x,#0A0702}
 body[data-theme="neon"] .logo{color:var(--y)}
 body[data-theme="neon"] .logo-mark{width:auto;padding:0 12px;border-radius:999px;font-size:17px;letter-spacing:0;background:var(--y);color:#100C04;box-shadow:0 0 0 3px #100C04,0 0 0 6px var(--y),0 0 18px rgba(255,212,0,.5)}
+/* 2026-11-12 品牌 logo：黑底用白色版（深藍改白，橘、天藍保留），檔案在 brand/，由 品牌logo/make_logo_assets.py 產生 */
+.logo-img{display:block;height:60px;width:auto}
+@media (max-width:760px){.logo-img{height:46px}}
 body[data-theme="neon"] .tabs a{border-radius:16px;color:var(--ink);border:2px solid transparent}
 body[data-theme="neon"] .tabs a:hover{background:var(--soft);border-color:var(--line)}
 body[data-theme="neon"] .tabs a.on{background:var(--y);color:#100C04;border-color:var(--y);box-shadow:0 0 14px rgba(255,212,0,.45)}
@@ -197,6 +200,3 @@ body[data-theme="neon"] .goals.one{grid-template-columns:1fr}
   body[data-theme="neon"] .tabs a{color:var(--ink)}
   body[data-theme="neon"] .snack.done a::after{width:80px;height:80px;font-size:20px;top:62px;right:12px}
 }
-/* 2026-11-12 品牌 logo：黑底用白色版 */
-.logo-img{display:block;height:60px;width:auto}
-@media (max-width:760px){.logo-img{height:46px}}
