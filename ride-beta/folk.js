@@ -105,3 +105,19 @@ export function buffaloPose(b, st, dt, speed, startle) {
   st.tl = (st.tl || 0) + dt * 1.7;
   u.tail.rotation.z = Math.sin(st.tl) * .35;
 }
+
+/** 狗：對角的腳一起動、尾巴搖；alert＞0 時停下、尾巴豎直、頭抬高（要衝出去的前兆），bark＞0 時頭一點一點 */
+export function dogPose(d, st, dt, speed, alert = 0, bark = 0) {
+  const u = d.userData.dog;
+  st.amp = follow(st.amp || 0, clamp(speed / 1.4, 0, 1.3), 6, dt);
+  st.ph = (st.ph || 0) + dt * speed / .45 * Math.PI;
+  const A = .5 * st.amp, s = Math.sin(st.ph);
+  u.legs[0].rotation.x = follow(u.legs[0].rotation.x, s * A, 18, dt); u.legs[3].rotation.x = follow(u.legs[3].rotation.x, s * A, 18, dt);
+  u.legs[1].rotation.x = follow(u.legs[1].rotation.x, -s * A, 18, dt); u.legs[2].rotation.x = follow(u.legs[2].rotation.x, -s * A, 18, dt);
+  u.body.position.y = Math.abs(Math.cos(st.ph)) * .025 * st.amp;
+  st.tw = (st.tw || 0) + dt * (alert > 0 ? 3 : 11);
+  u.tail.rotation.x = follow(u.tail.rotation.x, alert > 0 ? -.9 : -.2, 8, dt);
+  u.tail.rotation.y = Math.sin(st.tw) * (alert > 0 ? .08 : .45);
+  st.bk = (st.bk || 0) + dt * 14;
+  u.head.rotation.x = follow(u.head.rotation.x, alert > 0 ? -.35 + (bark > 0 ? .18 * Math.sin(st.bk) : 0) : .05 * Math.sin(st.ph * 2), 10, dt);
+}

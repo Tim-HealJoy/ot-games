@@ -590,6 +590,13 @@ export function makeKit(style) {
       db.add(box(.075, .3, .9), M(0x27343c, {rough: .15, metal: .4}), T(0, .42, .56));
       db.into(piv); g.add(piv);
     }
+    if (o.doorR) {   // 右後門：乘客在路邊下車，門往右打開
+      const piv = new THREE.Group(); piv.position.set(W / 2 + .01, .72, .2); piv.name = 'doorR';
+      const db = nb();
+      db.add(box(.07, .62, 1.0), c, T(0, 0, .5), .02);
+      db.add(box(.075, .3, .78), M(0x27343c, {rough: .15, metal: .4}), T(0, .42, .5));
+      db.into(piv); g.add(piv);
+    }
     return g;
   }
   function makePickup(color = 0xe9ece8, o = {}) { // 發財車
@@ -756,6 +763,42 @@ export function makeKit(style) {
     g.userData.buffalo = {body, head, legs, tail};
     return g;
   }
+  /** 狗：身體、頭、四隻腳、尾巴分開，走路會擺腳搖尾巴，要衝之前尾巴豎起來 */
+  function makeDog(o = {}) {
+    const g = new THREE.Group(), fur = M(o.col ?? 0xc8a06a), dark = M(o.dark ?? 0x4a382a);
+    const body = new THREE.Group(); g.add(body);
+    body.add(part(b => {
+      limb(b, fur, new V3(0, .36, -.2), new V3(0, .36, .2), .12, .02);
+      b.add(sph(.12, 10, 8), fur, T(0, .41, -.26), .015);
+      b.add(cyl(.085, .085, .035, 10), M(0xd23a3a), T(0, .47, -.33, 0, 1.2));   // 紅項圈
+    }));
+    const head = new THREE.Group(); head.position.set(0, .52, -.37); body.add(head);
+    head.add(part(b => {
+      b.add(sph(.1, 10, 8), fur, T(0, .03, 0), .015);
+      b.add(box(.085, .075, .13), fur, T(0, -.01, -.1), .012);
+      b.add(sph(.024, 6, 4), M(0x161616), T(0, .01, -.17));
+      for (const s of [-1, 1]) { b.add(box(.05, .1, .035), dark, T(s * .07, .12, .01, 0, 0, s * .35), .008); b.add(sph(.015, 6, 4), M(0x111111), T(s * .045, .06, -.08)); }
+    }));
+    const leg = (x, z) => { const l = new THREE.Group(); l.position.set(x, .32, z); l.add(part(b => { limb(b, fur, new V3(0, 0, 0), new V3(0, -.29, 0), .034, .01); b.add(box(.06, .03, .08), dark, T(0, -.31, -.015)); })); g.add(l); return l; };
+    const legs = [leg(-.075, -.24), leg(.075, -.24), leg(-.075, .2), leg(.075, .2)];
+    const tail = new THREE.Group(); tail.position.set(0, .42, .3); body.add(tail);
+    tail.add(part(b => limb(b, fur, new V3(0, 0, 0), new V3(0, .06, .2), .026, .008)));
+    g.userData.dog = {body, head, legs, tail};
+    return g;
+  }
+  /** 資源回收推車：兩輪推車，上面疊滿紙箱 */
+  function makeRecycleCart() {
+    return part(b => {
+      const fr = M(0x6f7478), card = M(0xc89a62), card2 = M(0xb5854f), rope = M(0x9a8a5a);
+      b.add(box(.72, .05, 1.0), fr, T(0, .34, 0), .015);
+      for (const s of [-1, 1]) { b.add(cyl(.17, .17, .06, 12), M(0x222222), T(s * .4, .17, .18, 0, 0, Math.PI / 2)); b.add(box(.04, .7, .04), fr, T(s * .34, .68, .52)); }
+      b.add(box(.72, .04, .04), fr, T(0, 1.02, .52));
+      b.add(box(.68, .32, .9), card, T(0, .54, 0), .015); b.add(box(.6, .3, .8), card2, T(.02, .85, -.02), .015); b.add(box(.5, .26, .6), card, T(-.04, 1.13, .02), .015);
+      for (const z of [-.3, .3]) b.add(box(.74, .02, .03), rope, T(0, 1.0, z));
+    });
+  }
+  /** 雨傘：傘面＋傘柄，掛在手上 */
+  function makeUmbrella(col = 0x2f6fb3) { return part(b => { b.add(box(.02, .9, .02), M(0x3a3a3a), T(0, .45, 0)); b.add(cyl(.03, .55, .2, 12), M(col), T(0, .92, 0), .015); }); }
   /** 頭上的鈴鐺提示：還沒按鈴的人頭上冒一個 */
   let bellMat = null;
   function makeBellIcon() {
@@ -1366,7 +1409,7 @@ export function makeKit(style) {
     withOpts(o, fn) { BO = o || {}; try { return fn(); } finally { BO = {}; } },
     tree, wire, cart, busStop, streetFood, hydrant, planters, signMat, markMat, pavingMat, roadMat,
     bendSigns, parts: {roundStrip: tRoundStrip, island: tIsland, quadrant: tQuadrant, leg: tLeg, legPad: tLegPad, cap: tCap},
-    style, M, ink, nb, A, finishBannerMat, person, makeRig, makePoleLoad, makeStick, makeCart, makeDuck, makeBuffalo, makeBellIcon, scooterBody, addLamp, plateUv, plateMat, miscMat, fabricMat, stripeMat, makeGarbageTruck, makeScooter, makeSedan, makePickup, makeBus, makeTruck, makeBox, makePerson, setCountdown,
+    style, M, ink, nb, A, finishBannerMat, person, makeRig, makePoleLoad, makeStick, makeCart, makeDuck, makeBuffalo, makeDog, makeRecycleCart, makeUmbrella, makeBellIcon, scooterBody, addLamp, plateUv, plateMat, miscMat, fabricMat, stripeMat, makeGarbageTruck, makeScooter, makeSedan, makePickup, makeBus, makeTruck, makeBox, makePerson, setCountdown,
     templates: {
       ord1: () => tOrd(101), ord2: () => tOrd(202, {arrow: true}), ord3: () => tOrd(303, {curbR: 'yellow'}), ord4: () => tOrd(404),
       alley: () => tOrd(505, {alley: true}), market: () => tMarket(606), market2: () => tMarket(616), temple: () => tTemple(707), school: () => tSchool(808),

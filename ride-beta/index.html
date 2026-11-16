@@ -115,6 +115,12 @@ h2{margin:0;font-size:clamp(24px,3vw,34px);font-weight:900}
 .tutFoot{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px;margin-top:8px}.tutFoot small{font-weight:800;color:var(--mut);font-size:14px}
 /* 示範動作：身體帶著手機往左、往右傾；按煞車時大拇指往下按 */
 .demo svg{width:100%;height:auto;display:block}
+/* 3D 示範人（11-12）：依步驟換圖 */
+.demo .d3w{position:relative}.demo .d3w .d3{display:none;width:100%;height:auto;aspect-ratio:1}
+.demo[data-step=hold] .s-hold,.demo[data-step=left] .s-left,.demo[data-step=right] .s-right,.demo[data-step=btn] .s-hold,.demo[data-step=ready] .s-hold{display:block}
+.demo .d3w .arL,.demo .d3w .arR{position:absolute;top:38%;font-size:clamp(20px,3vw,30px);font-weight:900;color:#e8622c}.demo .d3w .arL{left:2%}.demo .d3w .arR{right:2%}
+.demo .d3w .thumb{position:absolute;left:50%;bottom:4%;margin-left:-2.6em;width:5.2em;text-align:center;background:#e8622c;color:#fff;font-weight:900;border-radius:999px;padding:2px 0;font-size:clamp(13px,1.5vw,17px)}
+.demo .d3w .ok{position:absolute;left:0;right:0;top:2%;text-align:center;font-weight:900;color:#2f9a63;font-size:clamp(14px,1.6vw,18px)}
 .demo .lean{transform-box:view-box;transform-origin:80px 126px;transition:transform .4s}
 .demo[data-step=left] .lean{animation:tLeanL 2s ease-in-out infinite}.demo[data-step=right] .lean{animation:tLeanR 2s ease-in-out infinite}
 @keyframes tLeanL{0%,100%{transform:rotate(0)}35%,65%{transform:rotate(-17deg)}}@keyframes tLeanR{0%,100%{transform:rotate(0)}35%,65%{transform:rotate(17deg)}}

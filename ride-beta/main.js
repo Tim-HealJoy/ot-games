@@ -19,6 +19,7 @@ const CLOUD = window.RIDE_CLOUD || {}, LOCAL_CLOUD = LOCALHOST && !qs.has('lan')
 let RELAY = (LOCALHOST && qs.get('relay')) || window.RIDE_RELAY || (LOCAL_CLOUD ? CLOUD.relay : '');
 const tilt = window.createTilt();
 const awake = window.createAwake({video: TOUCH});   // 手機在操作時電腦沒人碰，螢幕一樣不能暗
+let AS = null;   // 評估層（ride-assess.js，非同步載入；沒載入就是 null，遊戲照常）
 
 const canvas = $('c');
 const renderer = new THREE.WebGLRenderer({canvas, antialias: true, powerPreference: 'high-performance'});
@@ -66,6 +67,8 @@ const Snd = {
   bump() { this.beep(120, .18, 'square', .1, -50); },
   rumble() { this.beep(68 + Math.random() * 34, .08, 'square', .06); },
   bell() { [0, .14].forEach(d => { this.beep(2350, .42, 'sine', .07, 0, d); this.beep(3130, .3, 'sine', .035, 0, d); this.beep(4700, .12, 'triangle', .012, 0, d); }); },   // 鐵馬鈴：叮叮
+  bark() { [0, .2].forEach(d => { this.beep(520, .09, 'sawtooth', .05, -260, d); this.beep(300, .07, 'square', .03, -120, d); }); },   // 汪汪
+  thud() { this.beep(150, .12, 'square', .09, -60); this.beep(320, .06, 'triangle', .05); },   // 兩台車碰在一起：叩
   quack() { [0, .16, .3].forEach(d => this.beep(560, .08, 'sawtooth', .035, -220, d)); },
   moo() { this.beep(118, .75, 'sawtooth', .045, -22); this.beep(236, .6, 'triangle', .02, -40, .05); },
   flash() { this.beep(1900, .08, 'square', .05); this.beep(1100, .22, 'square', .05, 0, .09); },
@@ -130,6 +133,7 @@ function renderRoutes() {
   if (!got) $('packs').querySelectorAll('.startTag').forEach(s => { s.hidden = false; });
   $('medalCount').textContent = `每條路有 3 枚章，已蓋 ${got} / ${all} 枚。`;
   $('modeSolo').classList.toggle('on', app.mode === 'solo'); $('modeDuel').classList.toggle('on', app.mode === 'duel');
+  AS?.refresh();
   $('packs').querySelectorAll('[data-r]').forEach(b => { b.onclick = () => { Snd.init(); chooseRoute(b.dataset.r); }; });
 }
 function setRoute(id) {
@@ -181,7 +185,7 @@ function connect() {
       const m = JSON.parse(e.data);
       if (m.t === 'taken') { net.ws = null; ws.close(); pickRoom(true); app.qr = ''; connect(); setupQR(); renderLobby(); return; }   // 房間碼撞號，換一個
       if (m.t === 'idle') { net.idle = true; return; }
-      if (m.t === 'in') { net.input[m.slot] = {tilt: m.tilt, brake: m.brake, t: performance.now()}; }
+      if (m.t === 'in') { net.input[m.slot] = {tilt: m.tilt, brake: m.brake, r: Number.isFinite(m.r) ? m.r : null, t: performance.now()}; }   // r：手機原始傾斜（度），試車用
       if (m.t === 'rtc') onRtc(m.slot, m.d);
       if (m.t === 'players') { net.players = m.players; onPlayers(); }
     };
@@ -197,7 +201,7 @@ function onRtc(slot, d) {
       if (x.p != null) { link.send({q: x.p}); return; }
       if (!(x.n > net.lastN[slot])) return;   // 直連不保證順序，舊資料丟掉
       net.lastN[slot] = x.n;
-      net.input[slot] = {tilt: clamp(+x.v || 0, -1, 1), brake: !!x.b, t: performance.now()};
+      net.input[slot] = {tilt: clamp(+x.v || 0, -1, 1), brake: !!x.b, r: Number.isFinite(x.r) ? x.r : null, t: performance.now()};
     },
   });
   if (d?.sdp?.type === 'offer') net.lastN[slot] = 0;
@@ -350,7 +354,7 @@ const duelInput = n => () => {
 
 /* ───────── 比賽 ───────── */
 const PCOL = {1: '#e8622c', 2: '#2c6fb3'};
-function clearRace() { app.rides.forEach(r => r.dispose()); app.rides = []; $('hudLayer').innerHTML = ''; app.racing = false; app.paused = false; $('pauseBox').classList.remove('on'); $('brief').classList.remove('on'); endTut(false); document.body.classList.remove('counting'); app.phoneGone = false; app.resuming = false; app.ignoreLost = false; app.phoneKey = ''; $('phoneBox').classList.remove('on'); }
+function clearRace() { AS?.cancel(); app.rides.forEach(r => r.dispose()); app.rides = []; $('hudLayer').innerHTML = ''; app.racing = false; app.paused = false; $('pauseBox').classList.remove('on'); $('brief').classList.remove('on'); endTut(false); document.body.classList.remove('counting'); app.phoneGone = false; app.resuming = false; app.ignoreLost = false; app.phoneKey = ''; $('phoneBox').classList.remove('on'); }
 function helpFor(n, duel) {
   if (slotInfo(n).src === 'phone') return {steer: duel ? '傾斜手機轉向，眼睛看這半邊' : '傾斜手機轉向，眼睛看電腦螢幕', brake: '按住手機上的「煞車」', bell: '前面有人！按手機上的「按鈴」'};
   if (TOUCH && !duel) return {steer: tilt.live ? '左右傾斜手機轉向' : '按畫面左下的 ◀ ▶ 轉向', brake: '按住右下角「煞車」', bell: '前面有人！按右下角的「按鈴」'};
@@ -381,9 +385,15 @@ function tutText(kind, n, pack) {
     return {hold: '用鍵盤，不用校正', left: `按 ${L} 往左`, right: `按 ${R} 往右`, btn: `按 ${B} ${btn}`, ready: `都做到了！按住 ${B} 2 秒就出發`, keys: [L, R, B]};
   }
   if (kind === 'pad') return {hold: '讀不到傾斜，改用畫面上的按鈕', left: '按左下的 ◀', right: '按 ▶', btn: `按右下的「${btn}」`, ready: `都做到了！按住「${btn}」2 秒就出發`, keys: ['◀', '▶', btn]};
-  return {hold: '手機橫拿像握龍頭，拿好不動（自動校正）', left: '身體帶著手機往左傾', right: '再往右傾', btn: `按一下${kind === 'tilt' ? '右下角' : '手機上'}的「${btn}」`, ready: `都做到了！按住「${btn}」2 秒就出發`};
+  return {hold: '手機橫拿像握龍頭，貼近胸口拿好不動（自動校正）', left: '手肘夾緊，用身體帶著手機往左傾', right: '再用身體往右傾', btn: `按一下${kind === 'tilt' ? '右下角' : '手機上'}的「${btn}」`, ready: `都做到了！按住「${btn}」2 秒就出發`};
 }
-function figPhone(pack) {   // 示範的人：上半身和手機一起傾斜，手機右邊是煞車或鈴
+/* 11-12 換成全遊戲共用的 3D 示範人（和試車同一組圖）：拿好＝坐正、往左／往右＝只往那邊倒的循環、按鈕＝坐正＋按鈕提示；舊的線條人留在 figPhoneOld */
+function figPhone(pack) {
+  const btn = pack === 'bike' ? '按鈴' : '煞車';
+  return `<div class="d3w"><img class="d3 s-hold" src="assess-img/lean_center.webp?v=3d1" alt="示範：手機橫拿貼近胸口，坐正"><img class="d3 s-left" src="assess-img/lean_left_loop.webp?v=3d1" alt="示範：用身體帶著手機往左傾"><img class="d3 s-right" src="assess-img/lean_right_loop.webp?v=3d1" alt="示範：用身體帶著手機往右傾">
+<span class="arL">◀</span><span class="arR">▶</span><span class="thumb">按「${btn}」</span><span class="ok">拿穩</span></div>`;
+}
+function figPhoneOld(pack) {   // 示範的人：上半身和手機一起傾斜，手機右邊是煞車或鈴
   const bc = pack === 'bike' ? '#f2b705' : '#e8622c';
   return `<svg viewBox="0 0 160 130" aria-hidden="true"><text class="arL" x="6" y="58" font-size="26" font-weight="900" fill="#e8622c">◀</text><text class="arR" x="130" y="58" font-size="26" font-weight="900" fill="#e8622c">▶</text>
 <g class="lean"><path d="M46 128 Q48 72 80 68 Q112 72 114 128 Z" fill="#4f86c6" stroke="#2b2622" stroke-width="3"/>
@@ -479,6 +489,10 @@ async function startRace() {
   $('load').classList.remove('on');
   const Rt = ROUTES[app.routeId], hp = helpFor(1, duel);
   app.counting = true; document.body.classList.add('counting');
+  if (AS?.need()) {   // 選了個案、這次開機還沒量過：教學前先「試車」（讀不到傾斜就跳過，流程照舊）
+    if (DEMO_N || app.usesPhone[1] || (TOUCH && tilt.state !== 'insecure' && tilt.state !== 'unsupported')) { const ok = await AS.start(); if (!ok || !app.racing) return; }
+    else AS.note('這次用鍵盤或畫面按鈕騎，沒有試車。');
+  }
   if (!SKIP_TUT) {   // 先教學，不馬上出發；教的人有時間講解
     const ok = await runTutorial(duel, P, Rt);
     if (!ok || !app.racing) return;
@@ -545,6 +559,7 @@ function showResult() {
   const btns = `<div class="rBtns"><button class="btn pri" id="again">再騎一次</button>${nextId ? `<button class="btn" id="toNext">下一條：${ROUTES[nextId].name} ▶</button>` : ''}<button class="btn" id="toRoutes">選路線</button><button class="btn ghost" id="toHome">回首頁</button></div>${app.usesPhone?.[1] || app.usesPhone?.[2] ? '<div class="fb" style="color:var(--mut)">也可以直接在手機按「再騎一次」。</div>' : ''}`;
   const fb = `<div class="fb">歡迎給我回饋與建議：<a href="https://www.facebook.com/shihyuting.OT" target="_blank" rel="noopener">職能治療師施昱廷粉專</a></div>`;
   $('resultBox').innerHTML = duel ? `${head}${btns}${fb}` : head.replace('@@BTNS@@', btns + fb);
+  if (!duel) AS?.afterResult(R[1], $('resultBox').querySelector('.soloSide'));   // 選了個案才會出現動作報告
   window.__lastResult = {results: R, winner};
   showScreen('result');
   $('again').onclick = () => { clearRace(); if (duel) enterLobby(); else startRace(); };
@@ -652,16 +667,27 @@ async function phoneBack() {
 function step(dt) {
   if (tilt.live !== app.tiltLive) { app.tiltLive = tilt.live; syncPads(); }
   watchPhones();
+  if (AS?.active) AS.tick();
   if (app.tut) tickTut();
   if (app.paused || (!app.racing && !app.rides.every(r => r.S.finished))) return;
   if (app.cdHideAt && performance.now() > app.cdHideAt) { app.cdHideAt = 0; $('count').classList.remove('on'); }
   const n = Math.max(1, Math.ceil(dt / .017));
   for (let i = 0; i < n; i++) app.rides.forEach(r => r.sim(dt / n));
-  if (app.rides.length === 2) syncRivals();
+  if (app.rides.length === 2) { syncRivals(); bumpRiders(); }
   // 雙人：第一位到了之後，另一位還有 20 秒
   if (app.finishedAt != null && performance.now() - app.finishedAt > 20000) app.rides.forEach(r => r.finish());
   else if (app.finishedAt != null && app.rides.length === 2) { const left = Math.max(1, Math.ceil(20 - (performance.now() - app.finishedAt) / 1000)); app.rides.forEach(r => r.banner(r.S.finished ? `到了！等對手，還有 ${left} 秒` : `對手到了！還有 ${left} 秒`)); }
   if (app.racing) app.rides.forEach((r, i) => { const n = i + 1; if (app.usesPhone?.[n]) r.notice(performance.now() - net.input[n].t > 1500 ? '手機沒有訊號：請點亮手機，回到遊戲頁面' : ''); });
+}
+/** 兩位玩家碰在一起：像瑪利歐賽車一樣互相彈開、車身晃、手機震動，不扣血（老闆 2026-11-15 定案） */
+function bumpRiders() {
+  const [a, b] = app.rides; if (!a?.bumpBy) return;
+  if (a.S.phase !== 'ride' || b.S.phase !== 'ride' || a.S.finished || b.S.finished) return;
+  const dx = b.S.x - a.S.x, ds = b.S.s - a.S.s, now = performance.now();
+  if (Math.abs(dx) > .62 || Math.abs(ds) > 1.5 || now - (app.lastBump || 0) < 450) return;
+  app.lastBump = now;
+  const dir = Math.sign(dx) || (Math.random() < .5 ? 1 : -1), pow = clamp(2.4 + Math.abs(a.S.vx - b.S.vx) * .45, 2.4, 4.2);
+  a.bumpBy(-dir, pow); b.bumpBy(dir, pow);
 }
 function syncRivals() {
   const [a, b] = app.rides, f = a.FINISH_A;
@@ -670,6 +696,24 @@ function syncRivals() {
   a.setRivalDot(pb, d > 2 ? `領先 ${d} 公尺` : d < -2 ? `落後 ${-d} 公尺` : '並排！');
   b.setRivalDot(pa, d < -2 ? `領先 ${-d} 公尺` : d > 2 ? `落後 ${d} 公尺` : '並排！');
 }
+
+/* ───────── 評估層：路線頁「個案紀錄」、出發前「試車」、結算頁動作報告（ride-assess.js）。載入失敗就當沒有，遊戲照常 ───────── */
+import('./ride-assess.js').then(m => {
+  AS = m.createRideAssess({
+    $, demo: DEMO_N > 0, tilt,
+    mode: () => app.mode, route: () => app.routeId,
+    btn: () => (ROUTES[app.routeId]?.pack === 'bike' ? '按鈴' : '煞車'),
+    inputKind: () => (app.usesPhone?.[1] ? 'phone' : 'tilt'),
+    input: () => {   // 試車用手機原始傾斜（度），不經遊戲的自動校正
+      if (app.usesPhone?.[1]) { const i = net.input[1], ok = performance.now() - i.t < 1000; return {raw: ok && Number.isFinite(i.r) ? i.r : null, brake: ok && !!i.brake}; }
+      return {raw: tilt.live && Number.isFinite(tilt.roll) ? tilt.roll : null, brake: !!(keys.b || keys.s || solo.brake)};
+    },
+    syncRoom: extra => syncRoom({phase: 'race', ...extra}),
+    quit: () => $('quit').click(),
+    playStats: r => ({route: app.routeId, score: r.score, arrived: !!r.arrived, early: r.early, crashes: r.crashes, tickets: r.tickets, bumps: r.bumps, walkers: r.walkers, restarts: r.restarts}),
+  });
+  AS.mountUi(); window.__app.assess = AS;
+}).catch(e => console.warn('評估層沒有載入，遊戲照常：', e));
 
 show.set('bike', 'agong', 'iron');
 showScreen('home');

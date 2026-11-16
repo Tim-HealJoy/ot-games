@@ -6,7 +6,7 @@ import {THEMES, themedTemplate, themedPart, trackSidePiece} from './themes.js';
 import {expandSeq, buildRoad, routeStats, ringShape, ringKappa, bendKappa, trackWarp, polarWarp, bakeGroup, RING} from './road.js';
 import {buildValley, itemTemplates, RW, LANE} from './valley.js';
 import {makePlayerMesh} from './roster.js';
-import {newPose, walkPose, knock, fallPose, poleSway, duckPose, buffaloPose, follow, toLocal} from './folk.js';
+import {newPose, walkPose, knock, fallPose, poleSway, duckPose, buffaloPose, dogPose, follow, toLocal} from './folk.js';
 
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v)), lerp = (a, b, t) => a + (b - a) * t, ease = t => { t = clamp(t, 0, 1); return t * t * (3 - 2 * t); };
 
@@ -15,6 +15,9 @@ export const MODES = {
   normal: {v: 11.1, cue: 3.6, go: 1.8, hint: false, rain: false, brake: 10, label: '一般'},
   storm: {v: 11.1, cue: 3.1, go: 1.5, hint: false, rain: true, brake: 6, label: '颱風天', slip: true},
 };
+/* 公平規則（2026-11-15）：路況「真正發生」之後，至少留 1.5 秒給人反應，再加上煞停需要的時間。
+   依據：Green (2000) 駕駛遇到突發狀況約 1.5 秒才踩下煞車。難度改靠路況密度，不靠縮短反應時間。 */
+export const REACT = 1.5;
 export const PACKS = {
   bike: {name: '回家吃飯', era: '民國 50 年代．鐵馬', ctrl: '只要傾斜', goal: '趕在天黑前到厝'},
   moto: {name: '上班打卡', era: '現在．機車', ctrl: '傾斜＋煞車', goal: '8:30 前打卡'},
@@ -28,26 +31,26 @@ export const ROUTES = {
   rice: {pack: 'bike', name: '稻田回家路', stars: 2, kind: 'valley', mode: 'easy', song: 'bangchunhong', tag: '黃昏稻田，按鈴請人讓路', tip: '看到路上有人，遠遠就按鈴請他讓路；閃開竹簍和坑洞路，別騎進田埂', limit: 105, dens: 1, seq: [0, 1, 2, 'bridge', 3, 0, 1, 'shrine', 2, 3, 'rail', 0, 1, 'barn', 2, 'home'],
     zones: {0: '田間小路', 3: '石橋', 7: '土地公廟前', 10: '五分車平交道', 13: '穀倉邊', 15: '回厝的路'}, says: {3: '過了石橋，快到半路了', 7: '土地公保佑，平安回家', 10: '小火車在等人', 13: '聞到飯香了', 15: '看到炊煙，到厝了'}},
   breakfast: {pack: 'moto', name: '巷口買早餐', stars: 1, kind: 'street', mode: 'easy', theme: 'dawn', song: 'diudiudang', tag: '清晨老社區，早餐攤冒白煙', tip: '巷子多：經過巷口先放慢；路面破損要繞開，騎上去會扣血',
-    rough: 2, bag: ['parkPull', 'door', 'pedestrian', 'pothole'], crossBag: ['redLight', 'redRunner'], traffic: {opp: ['m1', 'car', 'm2', 'taxi', 'm3'], oppGap: 62, same: 1, flow: 2},
+    rough: 2, bag: ['parkPull', 'taxiStop', 'door', 'dogWalk', 'pedestrian', 'pothole'], crossBag: ['redLight', 'redRunner'], traffic: {opp: ['m1', 'car', 'm2', 'taxi', 'm3'], oppGap: 62, same: 1, flow: 2},
     seq: [['ord3', '住家巷口'], ['alley', ''], ['ord1', '早餐街'], ['ord3', ''], ['alley', '巷口豆漿店'], ['cross', '民生路口'], ['ord1', ''], ['alley', ''], ['ord3', '饅頭店前'], ['cross', '公司前路口'], ['ord4', ''], ['finish', '公司到了']]},
   market: {pack: 'moto', name: '廟口菜市場', stars: 2, kind: 'street', mode: 'normal', v: 9.4, theme: 'noon', song: 'sikuihong', tag: '正午廟口，紅燈籠下鑽人潮', tip: '有人要過馬路就煞車，別跟貨車貼太近；彎道會把車往外甩',
-    rough: 2, bag: ['pedestrian', 'parkPull', 'truckDrop', 'pedestrian', 'door'], crossBag: ['redRunner', 'redLight', 'leftTurn'], traffic: {opp: ['m1', 'pick', 'm2', 'car', 'm3', 'pick'], oppGap: 52, same: 2, flow: 3},
+    rough: 2, bag: ['pedestrian', 'roadWalk', 'parkPull', 'truckDrop', 'dogWalk', 'door', 'taxiStop'], crossBag: ['redRunner', 'redLight', 'leftTurn'], traffic: {opp: ['m1', 'pick', 'm2', 'car', 'm3', 'pick'], oppGap: 52, same: 2, flow: 3},
     seq: [['ord1', '住家巷口'], ['market', '福安市場'], ['market2', ''], ['ord3', '市場彎道', {turn: 35}], ['temple', '福安宮前'], ['market', ''], ['market2', '黃昏市場街'], ['ord1', '', {turn: -35}], ['temple', ''], ['cross', '福安路口'], ['market', ''], ['market2', ''], ['ord3', '', {turn: -30}], ['ord1', ''], ['market', ''], ['cross', '中興路口'], ['ord4', ''], ['finish', '公司到了']]},
   school: {pack: 'moto', name: '國小上學路', stars: 2, kind: 'street', mode: 'normal', v: 9.7, theme: 'shade', song: 'shangxue', tag: '綠蔭校園，路隊小朋友過馬路', tip: '小朋友會突然過馬路：校門口前先減速；彎道記得修方向',
-    rough: 2, bag: ['pedestrian', 'door', 'parkPull', 'pedestrian', 'pothole'], crossBag: ['redLight', 'leftTurn', 'redRunner'], traffic: {opp: ['bus', 'm1', 'car', 'm2', 'car', 'm3'], oppGap: 48, same: 2, flow: 3},
+    rough: 2, bag: ['pedestrian', 'dogWalk', 'door', 'parkPull', 'roadWalk', 'pothole'], crossBag: ['redLight', 'leftTurn', 'redRunner'], traffic: {opp: ['bus', 'm1', 'car', 'm2', 'car', 'm3'], oppGap: 48, same: 2, flow: 3},
     seq: [['ord1', '住家巷口'], ['school', '幸福國小'], ['ord4', '文具店街'], ['ord2', '林蔭彎道', {turn: -40}], ['alley', ''], ['school', ''], ['cross', '仁愛路口'], ['ord2', '林蔭大道'], ['ord3', '', {turn: 40}], ['school', '校門口'], ['ord3', ''], ['ord1', '', {turn: 30}], ['ord4', '', {turn: -30}], ['cross', '信義路口'], ['alley', ''], ['ord1', ''], ['school', ''], ['ord4', ''], ['finish', '公司到了']]},
   rush: {pack: 'moto', name: '大馬路尖峰', stars: 3, kind: 'street', mode: 'normal', v: 12.5, cue: 3.2, go: 1.6, theme: 'haze', song: 'jianfeng', tag: '高架捷運下，彎道和圓環一路考驗', tip: '速度快車又多：別貼前車；彎道提早修方向，進圓環先讓環內車',
-    rough: 3, bag: ['suddenBrake', 'truckDrop', 'wrongWay', 'suddenBrake', 'parkPull', 'pothole'], crossBag: ['rightTruck', 'leftTurn', 'redLight', 'redRunner'], traffic: {opp: ['bus', 'taxi', 'car', 'm1', 'bus', 'car', 'taxi', 'm2', 'car', 'bus', 'm3', 'car'], oppGap: 30, same: 5, flow: 9},
+    rough: 3, bag: ['suddenBrake', 'taxiStop', 'truckDrop', 'wrongWay', 'taxiStop', 'parkPull', 'pothole'], crossBag: ['rightTruck', 'leftTurn', 'redLight', 'redRunner'], traffic: {opp: ['bus', 'taxi', 'car', 'm1', 'bus', 'car', 'taxi', 'm2', 'car', 'bus', 'm3', 'car'], oppGap: 30, same: 5, flow: 9},
     seq: [['ord1', '住家巷口'], ['ord2', '大馬路'], ['cross', '光復路口'], ['ord3', ''], ['ord1', '高架大彎', {turn: 50, n: 2}], ['work', '道路施工中'], ['ord2', ''], ['cross', '中正路口'], ['ord1', ''], ['round', '中山圓環', {exit: 'straight'}], ['ord2', ''], ['ord3', '', {turn: -45, n: 2}], ['cross', '復興路口'], ['ord4', ''], ['work', '前方又施工'], ['ord2', ''], ['ord1', '', {turn: -30}], ['ord3', '', {turn: 25}], ['cross', '上班路口'], ['ord1', ''], ['ord4', ''], ['finish', '公司到了']]},
   storm: {pack: 'moto', name: '颱風天照常上班', stars: 5, kind: 'street', mode: 'storm', v: 10.4, theme: 'storm', song: 'uyahue', songBpm: 92, gust: true, tag: '烏雲暴雨，強風、大彎加兩座圓環', tip: '路滑難煞又有強風：大彎和圓環都要提早減速',
-    rough: 4, bag: ['pothole', 'door', 'parkPull', 'pothole', 'wrongWay', 'truckDrop'], crossBag: ['redRunner', 'leftTurn', 'redLight'], traffic: {opp: ['pick', 'm1', 'car', 'm2'], oppGap: 70, same: 1, flow: 1, garbage: false},
+    rough: 4, bag: ['pothole', 'roadWalk', 'door', 'parkPull', 'taxiStop', 'wrongWay', 'truckDrop'], crossBag: ['redRunner', 'leftTurn', 'redLight'], traffic: {opp: ['pick', 'm1', 'car', 'm2'], oppGap: 70, same: 1, flow: 1, garbage: false},
     seq: [['ord1', '住家巷口'], ['ord3', '風雨交加'], ['work', '路樹倒了'], ['ord2', '', {turn: 45, n: 2}], ['cross', '民族路口'], ['alley', ''], ['round', '民權圓環', {exit: 'straight'}], ['ord2', '積水路段'], ['ord4', '', {turn: -60, n: 2}], ['work', '招牌掉下來'], ['ord4', ''], ['cross', '建國路口'], ['ord1', ''], ['ord3', '', {turn: 35}], ['ord1', '', {turn: -35}], ['alley', ''], ['round', '中正圓環', {exit: 'left'}], ['ord2', ''], ['ord3', '', {turn: 60, n: 2}], ['ord1', '', {turn: 30}], ['cross', '上班路口'], ['ord3', ''], ['ord4', ''], ['finish', '公司到了']]},
 };
 /** 路線有多長、幾個彎、幾座圓環（給選路線頁看） */
 export const routeInfo = id => { const r = ROUTES[id]; return r.kind === 'valley' ? {km: r.seq.length * CHUNK / 1000, bends: 0, rounds: 0} : routeStats(r.seq); };
 export const SOON = {bike: [['甘蔗田五分車', 2], ['鹽田海邊路', 2], ['廟會夜歸', 3]], moto: [['機車瀑布上橋', 4]]};
-export const LABEL = {parkPull: '紅線違停車起步', door: '並排車開門', truckDrop: '貨車掉貨', work: '施工縮減車道', pothole: '路面坑洞', wrongWay: '逆向機車', redRunner: '路口機車闖紅燈', leftTurn: '對向左轉搶快', rightTruck: '右轉大車', alley: '巷口衝出', pedestrian: '行人過馬路', suddenBrake: '前車急煞', redLight: '黃燈轉紅燈', ringYield: '圓環讓環內車', rough: '路面不平', gutter: '路邊水溝蓋', ditch: '騎進田埂', dirt: '坑洞泥巴路', rail: '橋欄杆', basket: '路上的竹簍', npcBike: '撞到別人的鐵馬', sideSwipe: '撞到旁邊的機車', walker: '撞到路上的人', duck: '撞進鴨群', buffalo: '撞到水牛', rearEnd: '追撞內側車', oncoming: '撞上對向來車', ticket: '紅單', crash: '摔車'};
-export const TIPS = {walker: '看到前面有人，遠遠就按鈴，他們才來得及讓開。', duck: '鴨群會散開亂跑，提早按鈴或換一條線。', buffalo: '水牛走得慢，要更早按鈴，或自己繞開。', parkPull: '路邊車亮方向燈，先當它會出來。', door: '和路邊停車保持一個車門寬。', truckDrop: '別貼在載貨車後面，留反應距離。', work: '看到箭頭板就提早併到開放車道。', pothole: '路面顏色變了，先減速再閃。', wrongWay: '對向機車靠過來，先減速、守住自己的路線。', redRunner: '綠燈亮了，還是先看左右。', leftTurn: '對向車打左轉燈，別假設它會等您。', rightTruck: '大車打右轉燈，不要停在它右邊。', alley: '巷口被車擋住時，先放慢。', pedestrian: '靠近行人穿越道先減速，行人優先。', suddenBrake: '跟車距離要夠，前車煞車才來得及。', redLight: '黃燈不要衝，紅燈一定停。', ringYield: '進圓環前先減速，環內的車先走。', rough: '路面顏色變深、路邊有警告牌，就提早換到平整的車道。', gutter: '路邊水溝蓋又顛又滑，彎道要修回車道，別貼著路邊騎。', ditch: '眼睛看遠一點，車頭擺回路中間，田埂會一直扣血。', dirt: '顏色變深又有碎石的路面，提早往旁邊繞。', rail: '過橋靠中間騎，別貼著欄杆。', basket: '看到竹簍就提早換線，別等到眼前才閃。', npcBike: '前面的鐵馬比較慢，先看好旁邊再超過去，超車要留一個車身寬。', sideSwipe: '換線前先看旁邊和後面有沒有機車，跟旁邊的車留一點距離。', rearEnd: '內側的車可能比您慢，跟車要留距離。', oncoming: '別跨到對向車道，超車完要回到自己這邊。', ticket: '紅燈一定停，雙黃線不能跨。'};
+export const LABEL = {parkPull: '紅線違停車起步', door: '並排車開門', truckDrop: '貨車掉貨', work: '施工縮減車道', pothole: '路面坑洞', wrongWay: '逆向機車', redRunner: '路口機車闖紅燈', leftTurn: '對向左轉搶快', rightTruck: '右轉大車', alley: '巷口衝出', pedestrian: '行人過馬路', taxiStop: '小黃急靠邊', dogWalk: '遛狗的人', roadWalk: '走在路邊的行人', suddenBrake: '前車急煞', redLight: '黃燈轉紅燈', ringYield: '圓環讓環內車', rough: '路面不平', gutter: '路邊水溝蓋', ditch: '騎進田埂', dirt: '坑洞泥巴路', rail: '橋欄杆', basket: '路上的竹簍', npcBike: '撞到別人的鐵馬', sideSwipe: '撞到旁邊的機車', walker: '撞到路上的人', duck: '撞進鴨群', buffalo: '撞到水牛', rearEnd: '追撞內側車', oncoming: '撞上對向來車', ticket: '紅單', crash: '摔車'};
+export const TIPS = {walker: '看到前面有人，遠遠就按鈴，他們才來得及讓開。', duck: '鴨群會散開亂跑，提早按鈴或換一條線。', buffalo: '水牛走得慢，要更早按鈴，或自己繞開。', parkPull: '路邊車亮方向燈，先當它會出來。', door: '和路邊停車保持一個車門寬。', truckDrop: '別貼在載貨車後面，留反應距離。', work: '看到箭頭板就提早併到開放車道。', pothole: '路面顏色變了，先減速再閃。', wrongWay: '對向機車靠過來，先減速、守住自己的路線。', redRunner: '綠燈亮了，還是先看左右。', leftTurn: '對向車打左轉燈，別假設它會等您。', rightTruck: '大車打右轉燈，不要停在它右邊。', alley: '巷口被車擋住時，先放慢。', pedestrian: '靠近行人穿越道先減速，行人優先。', taxiStop: '路邊有人招手、小黃打右轉燈，就先放慢，別鑽到它右邊。', dogWalk: '看到狗停下來、尾巴豎起來，就先往旁邊讓。', roadWalk: '騎樓被擋住，行人會走到路上，經過時留一個車身寬。', suddenBrake: '跟車距離要夠，前車煞車才來得及。', redLight: '黃燈不要衝，紅燈一定停。', ringYield: '進圓環前先減速，環內的車先走。', rough: '路面顏色變深、路邊有警告牌，就提早換到平整的車道。', gutter: '路邊水溝蓋又顛又滑，彎道要修回車道，別貼著路邊騎。', ditch: '眼睛看遠一點，車頭擺回路中間，田埂會一直扣血。', dirt: '顏色變深又有碎石的路面，提早往旁邊繞。', rail: '過橋靠中間騎，別貼著欄杆。', basket: '看到竹簍就提早換線，別等到眼前才閃。', npcBike: '前面的鐵馬比較慢，先看好旁邊再超過去，超車要留一個車身寬。', sideSwipe: '換線前先看旁邊和後面有沒有機車，跟旁邊的車留一點距離。', rearEnd: '內側的車可能比您慢，跟車要留距離。', oncoming: '別跨到對向車道，超車完要回到自己這邊。', ticket: '紅燈一定停，雙黃線不能跨。'};
 const TPLC = new WeakMap();
 function template(kit, k, theme) { if (!TPLC.has(kit)) TPLC.set(kit, {}); const c = TPLC.get(kit), key = (theme || '') + '|' + k; return c[key] ??= theme ? themedTemplate(kit, theme, k) : kit.templates[k](); }
 /* 彎道路段：把直的街景彎過去，同樣的彎只做一次 */
@@ -99,7 +102,14 @@ export function createRide(cfg) {
   const {kit, routeId, seed = 1, hud = null, snd: Snd = NOOP_SND, demo: DEMO = 0, player: me = {}, rival: rivalInfo = null, label = '', help = {}} = cfg;
   const route = ROUTES[routeId], valley = route.kind === 'valley', pack = route.pack;
   const DMG = route.dmg ?? 1, HIT = Math.round(HP.crash * DMG), RUB = Math.max(1, Math.round(HP.rough * DMG));   // 新手路線扣血減半
-  const MODE = MODES[route.mode], NOM = route.v ?? MODE.v, TH = route.theme ? THEMES[route.theme] : null, CUE = route.cue ?? MODE.cue, GO = route.go ?? MODE.go;
+  const MODE = MODES[route.mode], NOM = route.v ?? MODE.v, TH = route.theme ? THEMES[route.theme] : null, CUE0 = route.cue ?? MODE.cue, GO0 = route.go ?? MODE.go;
+  // 公平規則：真正發生（GO）到撞上，至少要有「反應 1.5 秒＋煞停」；先兆（CUE）跟著往前推，兩者間隔不變
+  const GO = Math.max(GO0, Math.ceil((NOM / MODE.brake + REACT) * 10) / 10), CUE = Math.max(CUE0, GO + (CUE0 - GO0));
+  // 前車急煞、貨車掉貨用距離觸發：同一條規則換算成距離（公尺）
+  const SB_GO = Math.max(19, (NOM - 1.4) * REACT + (NOM - 1.4) ** 2 / (2 * MODE.brake) + 2), SB_CUE = SB_GO + 8;
+  const TD_GO = Math.max(25, NOM * REACT + NOM * NOM / (2 * MODE.brake) + 4), TD_CUE = TD_GO + 9;   // +4：箱子掉下來還會往前滑
+  // 小黃急靠邊：煞停要走 14 公尺；切進來那一刻和玩家至少隔這麼遠，晚 1.5 秒才煞也停得住
+  const TAXI_STOP = 14, TAXI_X = 5.0, TAXI_GAP = Math.max(8, NOM * REACT + NOM * NOM / (2 * MODE.brake) - TAXI_STOP + 2), DOG_X = 5.3;
   const $h = sel => hud?.querySelector(sel) ?? document.createElement('div');
   const el = {clock: $h('.clock'), clockL: $h('.clockL'), clockV: $h('.clockV'), speedL: $h('.speedL'), speedV: $h('.speedV'), scoreL: $h('.scoreL'), scoreV: $h('.scoreV'), gauge: $h('.gaugeFill'), prog: $h('.progressFill'), meDot: $h('.dotMe'), riDot: $h('.dotRi'), combo: $h('.combo'), zone: $h('.zone'), hint: $h('.hint'), toasts: $h('.toasts'), flash: $h('.flash'), vig: $h('.vig'), tint: $h('.tint'), lead: $h('.lead'), tag: $h('.tag'), gaugeBox: $h('.gauge'), gaugeV: $h('.gaugeV'), ko: $h('.ko'), koT: $h('.koT'), koS: $h('.koS'), banner: $h('.banner'), notice: $h('.notice')};
   el.tag.textContent = label;
@@ -188,7 +198,7 @@ export function createRide(cfg) {
   /* ───────── 狀態與提示 ───────── */
   const freshState = () => ({phase: 'wait', t: 0, s: 8, x: (valley ? 0 : 4.6) + (cfg.laneOffset || 0), v: 0, vx: 0, lean: 0, brake: false, gauge: HP.start, score: 0, combo: 0, maxCombo: 0, crashes: 0, bumps: 0, tickets: 0, early: 0, late: 0, ok: 0, tested: 0, fakes: 0,
     leads: [], worst: null, worstRank: 0, clock: 0, invuln: 0, crashT: 0, crashDir: 1, shake: 0, seen: new Set(), zoneIdx: -1, ycross: 0, wrongSide: 0, arriveT: 0, hintT: 0, lastBrake: -9, zoneT: 0, seed,
-    walkersAll: 0, missed: 0, bellHeld: false, baskets: 0, offroad: false, offT: 0, dusk: 0, finished: false, restarts: 0, redoT: 0, gustT: 6, gustDur: 0, gustDir: 1, boltT: 7, warned: new Set(), roughs: 0, surf: null, surfEv: null, surfIn: 0, surfHit: 0, surfSlow: 1, rumbleT: 0, loss: {}});
+    push: 0, safeT: 0, nudges: 0, walkersAll: 0, missed: 0, bellHeld: false, baskets: 0, offroad: false, offT: 0, dusk: 0, finished: false, restarts: 0, redoT: 0, gustT: 6, gustDur: 0, gustDir: 1, boltT: 7, warned: new Set(), roughs: 0, surf: null, surfEv: null, surfIn: 0, surfHit: 0, surfSlow: 1, rumbleT: 0, loss: {}});
   let S = freshState();
   let EVENTS = [], AMB = [], result = null, inputFn = cfg.input || (() => ({steer: 0, brake: false}));
   function toast(txt, cls = 'good') { if (!hud) return; const box = el.toasts; if (cls === 'see' && box.querySelector('.see')) return; const t = document.createElement('div'); t.className = 'toast ' + cls; t.textContent = txt; box.appendChild(t); while (box.children.length > 3) box.firstChild.remove(); setTimeout(() => t.remove(), cls === 'see' ? 900 : 1450); }
@@ -212,7 +222,20 @@ export function createRide(cfg) {
   function showZone(n) { el.zone.textContent = n; el.zone.classList.add('on'); S.zoneT = 3.2; }
 
 /* ───────── 事件 ───────── */
-function setBlink(o, side, on) { o.blinkSide = on ? side : null; if (!on) o.lamps[side === 'L' ? 'L' : 'R'].forEach(m => { m.visible = false; }); }
+/** 頭上的對話泡泡（汪！、小黃！）：畫面上大小固定，遠遠就看得到，是給玩家的先兆 */
+const BUBC = {};
+function bubble(txt, col = '#d23a3a') {
+  const mat = BUBC[txt] ??= (() => {
+    const c = document.createElement('canvas'); c.width = 192; c.height = 104; const g = c.getContext('2d');
+    g.fillStyle = '#fffdf4'; g.strokeStyle = '#2b2622'; g.lineWidth = 7; g.beginPath(); g.roundRect(6, 6, 180, 70, 22); g.fill(); g.stroke();
+    g.beginPath(); g.moveTo(80, 74); g.lineTo(96, 98); g.lineTo(108, 74); g.fill(); g.stroke(); g.fillRect(84, 66, 22, 10);
+    g.fillStyle = col; g.font = '900 46px "PingFang TC","Noto Sans TC",sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(txt, 96, 42);
+    const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace;
+    return new THREE.SpriteMaterial({map: t, depthTest: false, fog: false, sizeAttenuation: false});
+  })();
+  const sp = new THREE.Sprite(mat); sp.scale.set(.13, .07, 1); sp.renderOrder = 9; sp.visible = false; return sp;
+}
+function setBlink(o, side, on) { o.blinkSide = on ? side : null; o.lamps[side === 'L' ? 'L' : 'R'].forEach(m => { m.scale.setScalar(on ? 1.8 : 1); if (!on) m.visible = false; }); }
 function ent(group, x, a, hw, hl, yaw = 0) { scene.add(group); return {g: group, x, a, hw, hl, yaw, lamps: lampsOf(group), blinkSide: null, live: true}; }
 const COLORS = [0xf2f2ee, 0x2f3338, 0xb8bdc2, 0x9a2f2f, 0x2c5e92];
 const curveAt = (p0, p1, p2, u) => { const i = 1 - u; return {x: i * i * p0.x + 2 * i * u * p1.x + u * u * p2.x, a: i * i * p0.a + 2 * i * u * p1.a + u * u * p2.a, dx: 2 * i * (p1.x - p0.x) + 2 * u * (p2.x - p1.x), da: 2 * i * (p1.a - p0.a) + 2 * u * (p2.a - p1.a)}; };
@@ -224,6 +247,9 @@ function placeRingCar(e, R, d, r) {
   e.wx = R.cx + (vx * c - vz * s) * r; e.wz = R.cz + (vx * s + vz * c) * r; e.wth = T.th + psi;
   e.g.position.set(e.wx, 0, e.wz); e.g.rotation.y = -e.wth;
 }
+function taxiCut(ev) { ev.ph = 1; ev.u = 0; ev.v = Math.max(ev.vt, NOM * .5); ev.dec = ev.v * ev.v / (2 * TAXI_STOP); Snd.beep(330, .25, 'sawtooth', .02, -60); }
+/** 內側車道的事件車（小黃）：前面有一般車就跟車，不穿過去 */
+function laneV(e, v) { for (const o of AMB) if (o.same && Math.abs(o.x - e.x) < 1.3 && o.a > e.a) v = Math.min(v, Math.max(0, (o.a - o.hl - e.a - e.hl - 3) * 1.2)); return v; }
 function followV(e, v) {
   if (e.a < S.s && Math.abs(e.x - S.x) < e.hw + .7) v = Math.min(v, Math.max(0, (S.s - e.a - e.hl - 1.4) * 1.6));
   const red = nextRed(e.a); if (red != null) v = Math.min(v, Math.max(0, (red - e.a - e.hl - .6) * 1.3));
@@ -265,7 +291,7 @@ const H = {
       ev.lane = clamp(S.x, 4.25, 5.2); ev.e = ent(kit.makePickup(0xdfe6ea, {rail: 0x3d7fbf}), ev.lane, S.s + 75, .9, 2.1); ev.v = NOM * .5; ev.ents = [ev.e];
       ev.loose = ev.e.g.getObjectByName('looseCrate'); ev.boxE = ent(kit.makeBox(), ev.lane, 0, .5, .42); ev.boxE.g.visible = false; ev.boxE.live = false; ev.ents.push(ev.boxE);
     },
-    tta(ev) { const gap = ev.e.a - S.s; return ev.dropped ? (ev.boxE.a - S.s) / NOM : gap > 34 ? 99 : gap > 25 ? CUE - .01 : GO - .01; },
+    tta(ev) { const gap = ev.e.a - S.s; return ev.dropped ? (ev.boxE.a - S.s) / NOM : gap > TD_CUE ? 99 : gap > TD_GO ? CUE - .01 : GO - .01; },
     corr: ev => Math.abs(S.x - ev.lane) < 1.15,
     onCue() { Snd.click(); },
     onGo(ev) {
@@ -301,10 +327,10 @@ const H = {
   },
   redRunner: {
     cls: 'brake', spawnAt: 110,
-    spawn(ev) { ev.e = ent(kit.makeScooter({body: 0x2b2d33, helmet: 0xe23b35, shirt: 0x2b2b2e, box: 0x3fa266}), 60, ev.anchor, .95, .42, Math.PI / 2); ev.e.g.visible = false; ev.e.live = false; ev.ents = [ev.e]; },
+    spawn(ev) { ev.e = ent(kit.makeScooter({body: 0x2b2d33, helmet: 0xe23b35, shirt: 0x2b2b2e, box: 0x3fa266}), 60, ev.anchor, .95, .42, Math.PI / 2); ev.ents = [ev.e]; },
     corr: () => true,
-    onCue(ev) { const tt = (ev.anchor - S.s) / Math.max(S.v, 3); ev.e.x = S.x + 12.5 * tt; ev.e.g.visible = true; ev.e.live = true; ev.vc = 12.5; if (ev.fake) ev.stopX = 9.4; Snd.beep(200, .5, 'sawtooth', .025, 120); },
-    tick(ev, dt) { if (ev.tCue == null) return; if (ev.fake && ev.e.x < ev.stopX + 12) ev.vc = Math.max(0, (ev.e.x - ev.stopX) * 1.4); ev.e.x -= ev.vc * dt; if (!ev.fake && ev.tGo != null && ev.e.x < S.x - 8 && !ev.honked) { ev.honked = true; } },
+    onCue(ev) { const tt = (ev.anchor - S.s) / Math.max(S.v, 3); ev.e.x = Math.min(ev.e.x, S.x + 12.5 * tt); ev.vc = 12.5; if (ev.fake) ev.stopX = 9.4; Snd.beep(200, .5, 'sawtooth', .025, 120); },
+    tick(ev, dt) { if (ev.tCue == null) { const tt = (ev.anchor - S.s) / Math.max(S.v, 3); ev.e.x = Math.min(ev.e.x, 60, S.x + 12.5 * tt); return; } if (ev.fake && ev.e.x < ev.stopX + 12) ev.vc = Math.max(0, (ev.e.x - ev.stopX) * 1.4); ev.e.x -= ev.vc * dt; if (!ev.fake && ev.tGo != null && ev.e.x < S.x - 8 && !ev.honked) { ev.honked = true; } },
     done: ev => ev.tCue != null && (!ev.fake && ev.e.x < S.x - 5 || S.s > ev.anchor + 8),
     dead: ev => ev.done2 && (ev.e.x < -70 || S.s > ev.anchor + 50) || S.s > ev.anchor + 80,
   },
@@ -321,7 +347,7 @@ const H = {
       const e = ev.e;
       if (ev.u < 0) { e.a = Math.max(ev.P0.a, e.a - 8.5 * dt); if (ev.tGo != null && !ev.fake) ev.u = 0; else if (ev.fake && S.s > ev.anchor + 3) ev.u = 0; return; }
       if (ev.u < 1) {
-        ev.u = Math.min(1, ev.u + dt / 1.65); const p = curveAt(ev.P0, ev.P1, ev.P2, ev.u); e.x = p.x; e.a = p.a; faceFrom(e, p.dx, p.da);
+        ev.u = Math.min(1, ev.u + dt / (1.65 * GO / 1.8)); const p = curveAt(ev.P0, ev.P1, ev.P2, ev.u); e.x = p.x; e.a = p.a; faceFrom(e, p.dx, p.da);
       } else { e.x += 8.5 * dt; }
     },
     done: ev => (ev.u >= 0 && !ev.fake && ev.e.x > S.x + 3) || S.s > ev.anchor + 8,
@@ -348,12 +374,12 @@ const H = {
     cls: 'brake', spawnAt: 110,
     spawn(ev) {
       ev.van = ent(kit.makePickup(0xcfd6da, {loose: false}), 6.05, ev.anchor - 8, .9, 2.1);
-      ev.e = ent(kit.makeScooter({body: 0xd64f4f, helmet: 0x2c6fb3, shirt: 0xeeeadc, box: 0xf07a2a}), 40, ev.anchor, .95, .42, Math.PI / 2); ev.e.g.visible = false; ev.e.live = false; ev.ents = [ev.van, ev.e];
+      ev.e = ent(kit.makeScooter({body: 0xd64f4f, helmet: 0x2c6fb3, shirt: 0xeeeadc, box: 0xf07a2a}), 40, ev.anchor, .95, .42, Math.PI / 2); ev.ents = [ev.van, ev.e];
     },
     corr: () => true,
-    onCue(ev) { const tt = (ev.anchor - S.s) / Math.max(S.v, 3); ev.e.x = S.x + 6.6 * tt; ev.e.g.visible = true; ev.e.live = true; ev.vc = 6.6; Snd.beep(180, .4, 'sawtooth', .025, 80); },
+    onCue(ev) { const tt = (ev.anchor - S.s) / Math.max(S.v, 3); ev.e.x = Math.min(ev.e.x, S.x + 6.6 * tt); ev.vc = 6.6; Snd.beep(180, .4, 'sawtooth', .025, 80); },
     tick(ev, dt) {
-      if (ev.tCue == null) return; const e = ev.e;
+      if (ev.tCue == null) { const tt = (ev.anchor - S.s) / Math.max(S.v, 3); ev.e.x = Math.min(ev.e.x, 40, S.x + 6.6 * tt); return; } const e = ev.e;
       if (ev.fake) { ev.vc = Math.max(0, (e.x - 8.4) * 1.6); e.x -= ev.vc * dt; return; }
       if (e.x > 2.7) { e.x -= ev.vc * dt; } else { e.a += followV(e, 10) * dt; e.yaw = Math.max(0, e.yaw - dt * 3.2); e.hw = .42; e.hl = .9; }
     },
@@ -366,12 +392,12 @@ const H = {
       const elder = ev.rng() < .5, g = new THREE.Group();
       ev.rig = kit.makeRig(elder ? {shirt: 0xc85a7a, hair: 0xc9c5bc} : {shirt: 0xf3f2ea, pants: 0x28456f, hat: 0xf6d13b, scale: .78}); g.add(ev.rig); ev.pose = newPose();
       if (elder) { ev.cart = kit.makeCart(); ev.cart.position.set(.1, 0, -.55); g.add(ev.cart); }
-      ev.e = ent(g, 30, ev.anchor, .4, .42, Math.PI / 2); ev.e.g.visible = false; ev.e.live = false; ev.ents = [ev.e]; ev.spd = elder ? 1.25 : 1.6;
+      ev.e = ent(g, 7.7, ev.anchor, .4, .42, Math.PI / 2); ev.ents = [ev.e]; ev.spd = elder ? 1.25 : 1.6; ev.elder = elder;
     },
     corr: () => true,
-    onCue(ev) { const tt = (ev.anchor - S.s) / Math.max(S.v, 3); ev.e.x = Math.max(7.6, S.x + ev.spd * tt); ev.e.g.visible = true; ev.e.live = true; },
+    onCue(ev) { const tt = (ev.anchor - S.s) / Math.max(S.v, 3); ev.spd = clamp((ev.e.x - S.x) / Math.max(tt, .5), ev.elder ? .7 : .85, ev.elder ? 1.35 : 1.7); },
     tick(ev, dt) {
-      if (ev.tCue == null) return;
+      if (ev.tCue == null) { walkPose(ev.rig, ev.pose, dt, 0); return; }
       const e = ev.e;
       if (ev.crashed && !ev.knocked) {   // 被撞到：人往車子前進的方向倒下，推車往前滑一點
         ev.knocked = true; e.live = false; ev.cartV = ev.cart ? 1.3 : 0;
@@ -386,10 +412,156 @@ const H = {
     done: ev => ev.tCue != null && ((!ev.fake && ev.e.x < S.x - 1.1) || S.s > ev.anchor + 4),
     dead: ev => ev.e.x < -9 || S.s > ev.anchor + 45,
   },
+  taxiStop: {   // 小黃要放乘客下車：路邊有人招手 → 右轉燈 → 從內側車道切到外側、減速停下 → 開右後門
+    cls: 'dodge', spawnAt: 125,
+    spawn(ev) {
+      const e = ev.e = ent(kit.makeSedan(0xf2d23a, {taxi: true, doorR: true}), 1.55, 0, .95, 2.25); e.bw = .95; e.bl = 2.25;
+      let a0 = S.s + 32;   // 內側車道找一段沒車的地方出現
+      for (const c of [32, 40, 26, 48, 20, 56]) { const a = S.s + c; if (!AMB.some(o => o.same && Math.abs(o.a - a) < 8)) { a0 = a; break; } }
+      e.a = a0; ev.trig = ev.anchor - TAXI_STOP; ev.vt = NOM * .85; ev.ph = 0;
+      ev.pivot = e.g.getObjectByName('doorR'); ev.ang = 0; ev.angT = 0;
+      const wg = new THREE.Group(); ev.wRig = kit.makeRig({shirt: 0x6a8fc4, pants: 0x3a3a40}); wg.add(ev.wRig); ev.wPose = newPose();
+      ev.waver = ent(wg, 7.5, ev.anchor + 2.4, .26, .26, Math.PI); ev.waver.live = false;   // 站在人行道向小黃招手：看得到的先兆，不是障礙
+      ev.wBub = bubble('小黃！', '#c98a00'); ev.wBub.position.y = 2.25; wg.add(ev.wBub);
+      const pg = new THREE.Group(); ev.pRig = kit.makeRig({shirt: 0xd9a03a, pants: 0x2f3a4a, hair: 0x5a4a3a}); pg.add(ev.pRig); ev.pPose = newPose();
+      ev.pas = ent(pg, 0, 0, .26, .26, -Math.PI / 2); ev.pas.g.visible = false; ev.pas.live = false;
+      ev.ents = [e, ev.waver, ev.pas];
+    },
+    tta(ev) { return ev.ph > 0 ? GO - .01 : (ev.trig - ev.e.a) / Math.max(ev.vt, 1) + GO; },
+    corr: () => S.x > 3.6,
+    onCue(ev) { setBlink(ev.e, 'R', true); },
+    onGo(ev) { if (S.s > ev.e.a - ev.e.hl - TAXI_GAP * .5) ev.ph = .5; else taxiCut(ev); },   // 玩家已經在旁邊或前面：先不切
+    tick(ev, dt) {
+      const e = ev.e, p = ev.pas;
+      walkPose(ev.wRig, ev.wPose, dt, 0, ev.ph < 2 ? {armRz: 2.55 + .35 * Math.sin(S.t * 9), armR: 0} : {});   // 小黃停好之前一直招手
+      ev.wBub.visible = ev.ph < 2 && !ev.fake && ev.anchor - S.s < 70 && ev.anchor - S.s > 3;
+      if (ev.ph === 0) {   // 還沒切：調整車速，讓牠切進來那一刻和玩家剛好隔一段公平的距離
+        const D = ev.trig - e.a, P = ev.trig - TAXI_GAP - e.hl - S.s;
+        ev.vt = P > 1 ? clamp(D * Math.max(S.v, NOM * .6) / P, NOM * .45, NOM * 1.25) : NOM * .95;
+        e.a += laneV(e, followV(e, ev.vt)) * dt;
+        if (ev.fake && ev.tGo != null && S.t - ev.tGo > 1.4) setBlink(e, 'R', false);
+      } else if (ev.ph === .5) {   // 等玩家：距離又拉開了、或玩家已經過去 8 公尺，才切（切到玩家後面不會撞到人）
+        e.a += laneV(e, followV(e, NOM * .7)) * dt;
+        if (e.a - e.hl - S.s > TAXI_GAP || S.s - e.a - e.hl > 8) taxiCut(ev);
+      } else if (ev.ph === 1) {   // 切進外側，一路減速停到招手的人旁邊
+        ev.u = Math.min(1, ev.u + dt / 1.7); ev.v = Math.max(0, ev.v - ev.dec * dt);
+        e.x = lerp(1.55, TAXI_X, ease(ev.u)); e.a += ev.v * dt; e.yaw = -.26 * Math.sin(Math.PI * ev.u);
+        e.lamps.B.forEach(m => { m.visible = true; });
+        if (ev.u >= 1 && ev.v <= 0) { ev.ph = 2; ev.tStop = S.t; e.yaw = 0; }
+      } else if (ev.ph === 2) {   // 停好：開右後門，乘客下車走上人行道
+        const u = S.t - ev.tStop;
+        if (u > .5 && !ev.doorDone && ev.angT === 0) { ev.angT = 1.15; Snd.click(); }
+        if (u > .9 && !p.g.visible) { p.g.visible = true; p.live = true; p.x = e.x + 1.3; p.a = e.a - .7; }
+        if (u > 3.4 && ev.angT > 0) { ev.angT = 0; ev.doorDone = true; Snd.click(); }
+        if (u > 4.4 && ev.ang < .05) { ev.ph = 3; ev.v = 0; setBlink(e, 'R', false); setBlink(e, 'L', true); e.lamps.B.forEach(m => { m.visible = false; }); }
+      } else {   // 開走：慢慢加速；旁邊有玩家就先不往左切
+        ev.v = Math.min(NOM * .9, ev.v + 2.2 * dt); e.a += laneV(e, followV(e, ev.v)) * dt;
+        const beside = S.x < e.x && S.s > e.a - e.hl - 4 && S.s < e.a + e.hl + 1;
+        if (!beside) e.x = Math.max(1.55, e.x - .8 * dt);
+        if (e.x <= 1.6) setBlink(e, 'L', false);
+      }
+      if (p.g.visible) {   // 乘客
+        if (ev.crashed && !ev.pKnock && Math.abs(S.x - p.x) < 1.1 && Math.abs(S.s - p.a) < 1.6) { ev.pKnock = true; p.live = false; const [lx, lz] = toLocal((Math.sign(p.x - S.x) || 1) * .55, -1, p.yaw); knock(ev.pPose, lx, lz); }
+        if (ev.pPose.fall) fallPose(ev.pRig, ev.pPose, dt);
+        else if (p.x < 7.45) { p.x += .95 * dt; walkPose(ev.pRig, ev.pPose, dt, .95); }
+        else { p.live = false; p.yaw = 0; p.a += .9 * dt; walkPose(ev.pRig, ev.pPose, dt, .9); }
+      }
+      ev.ang += (ev.angT - ev.ang) * Math.min(1, dt * 6); ev.pivot.rotation.y = ev.ang;
+    },
+    extra(ev) { if (ev.ang < .3) return null; const e = ev.e, c = Math.cos(ev.ang), sn = Math.sin(ev.ang), x0 = e.x + .92, x1 = x0 + sn; return {x: (x0 + x1) / 2, a: e.a - .2 - .5 * c, hw: (x1 - x0) / 2, hl: Math.max(.22, .5 * c)}; },
+    done: ev => S.s > ev.e.a + 4 || ev.ph === 3 || (ev.fake && ev.tGo != null && S.t - ev.tGo > 2.6),
+    dead: ev => (S.s > ev.e.a + 45 && S.s > ev.waver.a + 45) || ev.e.a > S.s + 260 || (ev.tStop != null && S.t - ev.tStop > 40),
+  },
+  dogWalk: {   // 騎樓停滿機車，人牽狗走在路邊；狗停下來、尾巴豎起來（先兆），接著往路中間衝
+    cls: 'dodge', spawnAt: 125,
+    spawn(ev) {
+      const r = ev.rng, pg = new THREE.Group();
+      ev.rig = kit.makeRig([{shirt: 0xd9775a, pants: 0x3d4250}, {shirt: 0x7fae6a, pants: 0x2f3442, hair: 0xb9b3a8}, {shirt: 0xe8d9b0, pants: 0x4a3f5a}][r() * 3 | 0]); pg.add(ev.rig); ev.pose = newPose();
+      ev.e = ent(pg, 6.0, ev.anchor - 1.1, .28, .3);
+      const dg = kit.makeDog([{}, {col: 0x2c2724, dark: 0x1c1816}, {col: 0xefe6d6, dark: 0xb8875a}][r() * 3 | 0]); dg.scale.setScalar(1.2);
+      ev.d = ent(dg, DOG_X, ev.anchor, .22, .48); ev.dPose = {}; ev.bub = bubble('汪！'); ev.bub.position.y = 1.15; dg.add(ev.bub);
+      ev.leash = new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(), new THREE.Vector3()]), new THREE.LineBasicMaterial({color: 0xd23a3a})); ev.leash.frustumCulled = false; scene.add(ev.leash);
+      ev.deco = [];
+      for (let k = 0; k < 4; k++) {   // 騎樓口停滿機車：人才會走到路上
+        const m = kit.makeScooter({rider: false, body: [0x3f7fc4, 0xd64f4f, 0xe0a33a, 0x9aa0a6][k]}), w = road.map(7.25, ev.anchor - 8 + k * 3.4);
+        m.position.set(w.x, 0, w.z); m.rotation.y = -w.th + 1.2; scene.add(m); ev.deco.push(m);
+      }
+      ev.ents = [ev.d, ev.e]; ev.mode = 'walk'; ev.mT = 0;
+    },
+    tta: ev => (ev.d.a - S.s) / (ev.mode === 'walk' ? Math.max(NOM - 1, 3) : NOM),
+    corr: () => S.x > 3.4,
+    onCue(ev) { ev.mode = 'alert'; Snd.bark?.(); },
+    onGo(ev) { ev.mode = 'lunge'; ev.mT = 0; Snd.bark?.(); },
+    tick(ev, dt) {
+      const p = ev.e, d = ev.d;
+      if (ev.crashed && !ev.knocked) {   // 撞到人：人倒下；撞到狗：狗哀一聲跑回人行道
+        ev.knocked = true;
+        if (Math.abs(S.x - p.x) < .75 && Math.abs(S.s - p.a) < 1.3) { p.live = false; const [lx, lz] = toLocal((Math.sign(p.x - S.x) || 1) * .55, -1, p.yaw); knock(ev.pose, lx, lz); }
+        else { d.live = false; ev.mode = 'flee'; Snd.bark?.(); }
+      }
+      if (ev.fake && ev.mode === 'alert' && ev.tGo != null && S.t - ev.tGo > 1.6) ev.mode = 'walk';   // 假警報：狗嗅一嗅就繼續走
+      ev.mT += dt;
+      let sp = 0, alert = 0, bark = 0;
+      if (ev.mode === 'walk') sp = 1;
+      else if (ev.mode === 'alert') alert = 1;
+      else if (ev.mode === 'lunge') {   // 往路中間衝 0.5 秒，叫個不停，接著被拉回來
+        alert = 1; bark = 1; const u = ease(ev.mT / .5); d.x = lerp(DOG_X, 4.15, u); d.yaw = lerp(0, Math.PI / 2, u); d.hw = lerp(.22, .48, u); d.hl = lerp(.48, .22, u);
+        if (ev.mT > 2.2) { ev.mode = 'back'; ev.mT = 0; }
+      } else if (ev.mode === 'back') {
+        const u = ease(ev.mT / 1.1); d.x = lerp(4.15, DOG_X, u); d.yaw = lerp(Math.PI / 2, 0, u); d.hw = lerp(.48, .22, u); d.hl = lerp(.22, .48, u);
+        if (ev.mT > 1.2) { ev.mode = 'walk'; ev.mT = 0; }
+      } else if (ev.mode === 'flee') { d.x = Math.min(7.6, d.x + 3 * dt); d.yaw = -Math.PI / 2; sp = 2.4; }
+      if (ev.mode !== 'flee') d.a += sp * dt;
+      if (!ev.pose.fall) { p.a += (ev.mode === 'walk' ? 1 : 0) * dt; walkPose(ev.rig, ev.pose, dt, ev.mode === 'walk' ? 1 : 0, {armL: -.55, armLz: alert ? -.35 : -.12, lean: ev.mode === 'lunge' ? -.12 : undefined}); }
+      else fallPose(ev.rig, ev.pose, dt);
+      dogPose(d.g, ev.dPose, dt, ev.mode === 'lunge' && ev.mT < .5 ? 3 : sp, alert, bark);
+      ev.bub.visible = (ev.mode === 'alert' || ev.mode === 'lunge') && Math.sin(S.t * 14) > -.6;
+      // 牽繩：人的左手 → 狗的項圈
+      const h = road.map(p.x - .3, p.a + .15), cA = road.map(d.x - .4 * Math.sin(d.yaw), d.a + .4 * Math.cos(d.yaw)), pos = ev.leash.geometry.attributes.position;
+      pos.setXYZ(0, h.x, .88, h.z); pos.setXYZ(1, cA.x, .56, cA.z); pos.needsUpdate = true; ev.leash.visible = !ev.pose.fall && ev.mode !== 'flee';
+    },
+    done: ev => S.s > Math.max(ev.d.a, ev.e.a) + 3,
+    dead: ev => S.s > ev.e.a + 45,
+    cleanup(ev) { scene.remove(ev.leash); ev.deco.forEach(m => scene.remove(m)); },
+  },
+  roadWalk: {   // 騎樓被擋，行人沿著路邊走（回收推車、提菜、颱風天撐傘）；前面路邊停了機車，他會往路中間繞一步
+    cls: 'dodge', spawnAt: 125,
+    spawn(ev) {
+      const r = ev.rng, wet = !!MODE.rain, kind = wet ? 'umb' : r() < .55 ? 'cart' : 'bag', g = new THREE.Group();
+      ev.rig = kit.makeRig(kind === 'cart' ? {shirt: 0x8f8a7a, pants: 0x3a3a36, hair: 0xd8d4cc, straw: true} : {shirt: wet ? 0x5c7fb0 : 0xe6c84f, pants: 0x2f3442}); g.add(ev.rig); ev.pose = newPose();
+      const R = ev.rig.userData.rig;
+      if (kind === 'cart') { ev.cart = kit.makeRecycleCart(); ev.cart.position.set(0, 0, -.95); g.add(ev.cart); }
+      if (kind === 'umb') { ev.umb = kit.makeUmbrella(r() < .5 ? 0x2f6fb3 : 0xd04a5a); ev.umb.position.set(.03 * R.k, -.42 * R.k, 0); R.armR.add(ev.umb); }
+      ev.kind = kind; ev.spd = kind === 'cart' ? .7 : .95; ev.x0 = kind === 'cart' ? 5.75 : 5.95; ev.dx = kind === 'cart' ? .9 : .95;
+      ev.e = ent(g, ev.x0, ev.anchor, kind === 'cart' ? .42 : .28, kind === 'cart' ? 1.05 : .3);
+      // 路邊停一台機車：算好他走到機車旁邊時，剛好是「真正發生」的時候
+      const rel = Math.max(NOM - ev.spd, 1), tGo = Math.max(0, (ev.anchor - S.s - GO * rel) / rel);
+      ev.parkA = ev.anchor + ev.spd * tGo + (kind === 'cart' ? 2.3 : 1.3);
+      ev.park = ent(kit.makeScooter({rider: false, body: 0x7eb4a8}), 6.3, ev.parkA, .36, .85);
+      ev.ents = [ev.e, ev.park]; ev.out = 0;
+    },
+    tta: ev => (ev.e.a - S.s) / Math.max(NOM - ev.spd, 3),
+    corr: ev => S.x > ev.x0 - ev.dx - (ev.kind === 'cart' ? .69 : .56),
+    onGo(ev) { ev.step = true; },
+    tick(ev, dt) {
+      const e = ev.e;
+      if (ev.crashed && !ev.knocked && Math.abs(S.s - e.a) < 2.5) { ev.knocked = true; e.live = false; if (ev.kind !== 'cart') { const [lx, lz] = toLocal((Math.sign(e.x - S.x) || 1) * .55, -1, e.yaw); knock(ev.pose, lx, lz); } }
+      if (ev.pose.fall) { fallPose(ev.rig, ev.pose, dt); return; }
+      const near = ev.parkA - e.a < (ev.kind === 'cart' ? 2.4 : 1.4), past = e.a > ev.parkA + (ev.kind === 'cart' ? 1.6 : 1.1);
+      if (!ev.fake && (ev.step || near) && !past) ev.out = Math.min(1, ev.out + dt / 1.1);
+      else if (past) ev.out = Math.max(0, ev.out - dt / 1.4);
+      const sp = ev.fake && near && !past ? 0 : ev.spd;   // 假警報：停下來等，不繞出來
+      e.x = lerp(ev.x0, ev.x0 - ev.dx, ease(ev.out)); e.a += sp * dt;
+      walkPose(ev.rig, ev.pose, dt, sp, ev.kind === 'cart' ? {armL: -1.15, armR: -1.15, lean: .22} : ev.kind === 'umb' ? {armR: -.75, armRz: .12} : {});
+      if (ev.umb) ev.umb.rotation.z = Math.sin(S.t * 3.1) * .16;
+    },
+    done: ev => S.s > ev.e.a + 2.5,
+    dead: ev => S.s > ev.e.a + 45 && S.s > ev.parkA + 45,
+  },
   suddenBrake: {
     cls: 'dodge', spawnAt: 70,
     spawn(ev) { ev.e = ent(kit.makeSedan(ev.rng() < .4 ? 0xf2d23a : COLORS[ev.rng() * 5 | 0], {taxi: false}), clamp(S.x, 4.35, 5.2), S.s + 70, .95, 2.25); ev.v = NOM * .5; ev.ents = [ev.e]; },
-    tta(ev) { const gap = ev.e.a - S.s; return gap > 27 ? 99 : gap > 19 ? CUE - .01 : GO - .01; },
+    tta(ev) { const gap = ev.e.a - S.s; return gap > SB_CUE ? 99 : gap > SB_GO ? CUE - .01 : GO - .01; },
     corr: ev => Math.abs(S.x - ev.e.x) < 1.35,
     onCue(ev) { ev.e.lamps.B.forEach(m => { m.visible = true; }); },
     onGo(ev) { ev.hard = true; },
@@ -489,7 +661,7 @@ function planEvents(seed) {
   const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = r() * (i + 1) | 0; [a[i], a[j]] = [a[j], a[i]]; } return a; };
   const crossBag = shuffle(route.crossBag || ['redRunner', 'leftTurn', 'rightTruck', 'redLight']);
   const openBag = shuffle(route.bag || ['parkPull', 'door', 'pothole', 'wrongWay', 'suddenBrake', 'truckDrop']);
-  const MOVING = ['truckDrop', 'suddenBrake'];
+  const MOVING = ['truckDrop', 'suddenBrake', 'taxiStop'];
   let oi = 0, ci = 0, skipNext = false;
   const reserved = new Set();   // 移動車輛會開進下一格，那格不再放東西
   slots.forEach((slot, idx) => {
@@ -504,7 +676,7 @@ function planEvents(seed) {
     else { type = openBag[oi++ % openBag.length]; if (MOVING.includes(type)) skipNext = true; }
     if (!type) return;
     if (MODE.skip && slot.type !== 'cross' && slot.type !== 'work' && idx % 3 === 2) return;
-    const canFake = ['parkPull', 'door', 'redRunner', 'leftTurn', 'alley', 'pedestrian', 'suddenBrake'].includes(type);
+    const canFake = ['parkPull', 'door', 'redRunner', 'leftTurn', 'alley', 'pedestrian', 'suddenBrake', 'taxiStop', 'dogWalk', 'roadWalk'].includes(type);
     evs.push({type, anchor, slot, fake: canFake && r() < .2, state: 'idle', rng: mulberry(seed * 31 + idx), ents: []});
   });
   // 破損路面：每條路固定幾塊，先放在沒有其他路況的直路，不夠才換掉一般路況
@@ -567,15 +739,26 @@ function overlap(r) {
   }
   return Math.abs(S.x - r.x) < PLAYER_HW + r.hw * .92 && Math.abs(S.s - r.a) < PLAYER_HL + r.hl * .92;
 }
+/** 從後面或側後方來的車：玩家看不到，碰到只晃一下、按喇叭，不扣血（公平規則 4） */
+const blindSide = e => (e.flow && (e.a < S.s + .2 || S.t - (e.passT ?? -9) < 1.2)) || (e.same && e.a < S.s - .5);
+function nudge(e) {
+  e.v = Math.min(e.v, Math.max(0, S.v * .75)); e.x += e.x > S.x ? .3 : -.3;
+  if (S.t - (e.nudgeT ?? -9) < .9) return;
+  e.nudgeT = S.t; S.nudges++; S.push = (S.x >= e.x ? 1 : -1) * 1.4; S.safeT = .6; S.shake = Math.max(S.shake, .3);   // 推開一點點；0.6 秒內撞到別的東西也不扣血 Snd.horn(); cfg.onHit?.(.3);
+  if (!S.warned.has('blind')) { S.warned.add('blind'); hint('後面有車！換線前先看旁邊', 2.4); } else toast('擦到旁邊的車，沒扣血', 'warn');
+}
 function checkCollisions() {
-  if (S.invuln > 0 || S.phase !== 'ride') return;
+  if (S.invuln > 0 || S.safeT > 0 || S.phase !== 'ride') return;
   for (const ev of EVENTS) {
     if (ev.state === 'idle' || ev.state === 'dead') continue;
     for (const e of ev.ents) if (e.live && overlap(e)) { crash(ev); return; }
     const ex = H[ev.type].extra?.(ev); if (ex && overlap(ex)) { crash(ev); return; }
   }
-  for (const e of AMB) if (e.flow && e.a < S.s - PLAYER_HL && overlap(e)) e.v = Math.min(e.v, S.v * .6);   // 後面的機車追上來：它自己煞車，不算玩家的錯
-  for (const e of AMB) if (e.solid && !(e.flow && e.a < S.s - PLAYER_HL) && !(e.op && road.inRing(e.a)) && !(e.ringCar && e.wx == null) && overlap(e)) { crash(null, e); return; }
+  for (const e of AMB) {
+    if (!e.solid || (e.op && road.inRing(e.a)) || (e.ringCar && e.wx == null) || !overlap(e)) continue;
+    if (blindSide(e)) { nudge(e); continue; }   // 後面追上來的機車、內側後方的車：不算玩家的錯
+    crash(null, e); return;
+  }
   for (const slot of slots) if (slot.colliders && Math.abs(S.s - slot.a - 20) < 40) for (const c of slot.colliders) {
     const r = {x: (c.x0 + c.x1) / 2, hw: (c.x1 - c.x0) / 2, a: slot.a + (-c.z0 - c.z1) / 2, hl: (c.z0 - c.z1) / 2};
     if (overlap(r)) { const ev = EVENTS.find(v => v.slot === slot && v.type === 'work'); crash(ev, null, 2.2); return; }
@@ -619,7 +802,7 @@ function tickSurface(dt) {
   S.surf = sf; S.surfSlow = sf.slow; S.surfIn += dt;
   S.rumbleT -= dt; if (S.rumbleT <= 0) { S.rumbleT = .13; Snd.rumble(); }
   S.shake = Math.max(S.shake, .16);
-  if (S.invuln > 0 || S.surfIn < ROUGH_GRACE || S.surfHit > 0) return;
+  if (S.invuln > 0 || S.safeT > 0 || S.surfIn < ROUGH_GRACE || S.surfHit > 0) return;
   S.surfHit = ROUGH_EVERY; S.roughs++; S.combo = 0;
   addGauge(-RUB, sf.key); Snd.bump(); cfg.onHit?.(.3); noteWorst(LABEL[sf.key], 1.5);
   if (S.surfEv && !S.surfEv.crashed) { S.surfEv.crashed = true; S.bumps++; }
@@ -707,6 +890,7 @@ function tickAmbient(dt) {
     if (e.ringCar) { e.ringCar.d += 6.5 * dt; placeRingCar(e, e.ringCar.R, e.ringCar.d, e.ringCar.r); continue; }
     if (e.op) { e.a += e.v * dt; if (e.a < S.s - 40) { e.a = S.s + 230 + Math.random() * 90; } continue; }
     if (e.flow) {
+      const rel = e.a - S.s; if (e.rel0 != null && e.rel0 < 0 && rel >= 0) e.passT = S.t; e.rel0 = rel;   // 從後面超過玩家的那一刻
       const red = nextRed(e.a); let tgt = NOM * 1.12;
       if (red != null && red - e.a < 30) tgt = Math.max(0, (red - e.a - 1) * 1.1);
       tgt = flowSteer(e, tgt, dt);   // 前面有障礙：換到空的位置，換不過去就減速跟在後面
@@ -734,28 +918,45 @@ function tickAmbient(dt) {
 }
   /* ───────── 自動試玩（驗證與展示用） ───────── */
 let demoTarget = 4.6, demoB = false;
+/** 換線前看旁邊：從現在的位置到目標之間，前後一段距離內有看得到的車或人，就先不換 */
+function laneClear(x1) {
+  if (Math.abs(x1 - S.x) < .15) return true;
+  const lo = Math.min(S.x, x1), hi = Math.max(S.x, x1);
+  const blocks = o => o.x + o.hw * .92 + PLAYER_HW > lo && o.x - o.hw * .92 - PLAYER_HW < hi && o.a + o.hl > S.s - PLAYER_HL - .6 && o.a - o.hl < S.s + PLAYER_HL + 2 + S.v * .35;
+  for (const o of AMB) if ((o.flow || o.same) && !o.world && blocks(o)) return false;
+  for (const ev of EVENTS) if (ev.state !== 'idle' && ev.state !== 'dead') for (const o of ev.ents) if (o.live && !o.world && blocks(o)) return false;
+  return true;
+}
 function demoThink() {
   demoTarget = 4.6; demoB = false;
   if (DEMO === 2) return;
-  const delay = DEMO === 3 ? 2.2 : .4;
+  const delay = DEMO === 3 ? 2.2 : DEMO === 4 ? 1.2 : .4, late = DEMO === 4;   // 4＝只在真正發生後才看到，再晚 1.2 秒反應
+  let pri = 0, threat = false;
+  const want = (x, p) => { if (p > pri) { pri = p; demoTarget = x; } };
   for (const ev of EVENTS) {
     if (ev.state !== 'cue' && ev.state !== 'go' && ev.state !== 'wait') continue;
+    const surf = ev.type === 'rough' || ev.type === 'pothole';
     if (ev.resolved && ev.type !== 'redLight') {
-      if (H[ev.type].cls === 'dodge' && ev.ents.some(e => e.live && e.x > 3 && Math.abs(e.a - S.s) < 8)) demoTarget = Math.min(demoTarget, 2.95);
+      if (H[ev.type].cls === 'dodge' && ev.ents.some(e => e.live && e.x > 3 && Math.abs(e.a - S.s) < 8)) want(2.95, 2);
       continue;
     }
     if (ev.type === 'redLight') {
       if (ev.sig !== 'G' && ev.sig !== 'G2' && !ev.crossed && S.t - ev.tCue > delay) { const d = ev.anchor - S.s; if (d < Math.max(5, S.v * S.v / (2 * MODE.brake) + 3)) demoB = true; }
       continue;
     }
-    if (ev.tCue == null || S.t - ev.tCue < delay) continue;
-    if (H[ev.type].cls === 'dodge') { demoTarget = ev.type === 'work' ? 2.0 : ev.cx != null && ev.cx < 3.4 ? 4.6 : 2.95; } else if (S.t - ev.tCue < 3.4) demoB = true;
+    const t0 = late && ev.type !== 'work' && !surf ? ev.tGo : ev.tCue;
+    if (t0 == null || S.t - t0 < delay) continue;
+    if (H[ev.type].cls === 'dodge') { want(ev.type === 'work' ? 2.0 : ev.cx != null && ev.cx < 3.4 ? 4.6 : 3.1, ev.type === 'work' ? 3 : surf ? 1 : 2); if (!surf && ev.anchor > S.s - 2) threat = true; }
+    else if (S.t - t0 < 3.4) demoB = true;
   }
-  for (const slot of slots) if (slot.colliders && S.s > slot.a - 26 && S.s < slot.a + 37) demoTarget = 2.0;
-  for (const e of AMB) if (e.same && Math.abs(e.x - S.x) < 1.35 && e.a > S.s && e.a - S.s < 9 + e.hl) demoB = true;
+  for (const slot of slots) if (slot.colliders && S.s > slot.a - 26 && S.s < slot.a + 37) want(2.0, 3);
+  if (!laneClear(demoTarget)) { demoTarget = S.x; if (threat || pri >= 3) demoB = true; }   // 旁邊有車：守住車道、先煞車
+  for (const e of AMB) if (e.same && Math.abs(e.x - S.x) < 1.35 && e.a > S.s && e.a - S.s < 4 + e.hl + S.v * .5 + S.v * S.v / (2 * MODE.brake)) demoB = true;
   for (const e of AMB) if (e.flow && Math.abs(e.x - S.x) < .8 && e.a > S.s && e.a - S.s < 4 + S.v * .5 && e.v < S.v) demoB = true;
+  const stopD = 3 + S.v * .5 + S.v * S.v / (2 * MODE.brake);   // 看得到的東西擋在正前方：煞車（人也會這樣做）
+  for (const ev of EVENTS) if (ev.state !== 'idle' && ev.state !== 'dead') for (const o of ev.ents) if (o.live && !o.world && Math.abs(o.x - S.x) < o.hw * .92 + PLAYER_HW + .2 && o.a - o.hl > S.s && o.a - o.hl - S.s < stopD + PLAYER_HL) demoB = true;
 }
-const demoSteer = () => clamp((demoTarget - S.x) * 1.4, -1, 1);
+const demoSteer = () => clamp((demoTarget - S.x) * 1.4 - S.vx * (MODE.slip ? .35 : .15), -1, 1);   // 快到目標就提早回正，避免甩過頭（路滑時更早）
 const demoBrake = () => demoB;
 
   /* ───────── 鐵馬路線：按鈴請路上的人讓路、閃竹簍、超慢車 ───────── */
@@ -993,7 +1194,8 @@ const demoBrake = () => demoB;
     const vxT = steer * 5.4 * clamp(S.v / NOM + .15, .15, 1.1), grip = MODE.slip ? 3.4 : 9;
     S.vx += (vxT - S.vx) * Math.min(1, dt * grip);
     const k = road.kappa(S.s), fling = k * S.v * S.v;   // 右彎（k > 0）把車往左甩，要自己修回來
-    S.x = clamp(S.x + (S.vx - fling * CURVE_PUSH) * dt, x0, x1);
+    S.x = clamp(S.x + (S.vx - fling * CURVE_PUSH + S.push) * dt, x0, x1);
+    S.push *= Math.exp(-5 * dt);
     S.s += S.v * dt;
     S.lean += (clamp(-S.vx * .085 - fling * .045, -.3, .3) - S.lean) * Math.min(1, dt * 9);
   }
@@ -1029,7 +1231,7 @@ const demoBrake = () => demoB;
       if (S.crashT <= 0) restart();
       return;
     }
-    S.invuln = Math.max(0, S.invuln - dt);
+    S.invuln = Math.max(0, S.invuln - dt); S.safeT = Math.max(0, S.safeT - dt);
     S.shake = Math.max(0, S.shake - dt * 1.6);
     if (S.hintT > 0) { S.hintT -= dt; if (S.hintT <= 0) el.hint.classList.remove('on'); }
     if (DEMO && !valley) demoThink();
@@ -1074,8 +1276,10 @@ const demoBrake = () => demoB;
   }
   function tickGust(dt) { // 颱風天：一陣陣強風把車往旁邊吹
     S.gustT -= dt;
-    if (S.gustT <= 0) { S.gustT = 7 + Math.random() * 5; S.gustDur = 1.7; S.gustDir = S.x > 4.2 ? -1 : 1; hint(S.gustDir > 0 ? '強風往右吹！握穩龍頭' : '強風往左吹！握穩龍頭', 1.7); Snd.gust(); }
-    if (S.gustDur > 0) { S.gustDur -= dt; S.x = clamp(S.x + S.gustDir * 1.6 * dt, -6.4, 6.55); }
+    if (S.gustT <= 0 && EVENTS.some(ev => (ev.state === 'cue' || ev.state === 'go') && !ev.resolved && Math.abs(ev.anchor - S.s) < 45)) S.gustT = 1.5;   // 前面有路況正在發生：強風晚一點再來，不疊在一起
+    if (S.gustT <= 0) { S.gustT = 7 + Math.random() * 5; S.gustWarn = .9; S.gustDur = 1.7; S.gustDir = S.x > 4.2 ? -1 : 1; hint(S.gustDir > 0 ? '強風要往右吹了！握穩龍頭' : '強風要往左吹了！握穩龍頭', 2.6); Snd.gust(); }
+    if (S.gustWarn > 0) S.gustWarn -= dt;   // 先預告，0.9 秒後才真的吹
+    else if (S.gustDur > 0) { S.gustDur -= dt; if (!(S.gustDir < 0 && S.x <= 3.0)) S.x = clamp(S.x + S.gustDir * 1.6 * clamp(S.v / NOM, 0, 1) * dt, -6.4, 6.55); }   // 騎越快吹越偏；停下來就吹不動；不會把人吹進汽車道
     S.boltT -= dt;
     if (S.boltT <= 0) { S.boltT = 10 + Math.random() * 8; flashWhite(.32); setTimeout(() => Snd.thunder(), 450); }
   }
@@ -1215,6 +1419,12 @@ const demoBrake = () => demoB;
     setInput(fn) { inputFn = fn; },
     setLow(v) { low = !!v; sun.castShadow = !low; },
     setRival(x, s, lean, vis = true) { if (!rivalG) return; const w = road.map(x, s); rivalG.position.set(w.x, 0, w.z); rivalG.rotation.y = -w.th; rivalG.userData.lean = lean; rivalG.visible = vis && s > S.s - 7 && !(Math.abs(x - S.x) < .55 && Math.abs(s - S.s) < 1.7); rivalG.userData.tag.visible = s > S.s + 1.5; },
+    /** 和另一位玩家碰在一起：往 dir 那邊彈開，車身晃一下、手機震動，不扣血；彈開後 0.5 秒內撞到東西也不扣血 */
+    bumpBy(dir, pow = 2.6) {
+      if (S.phase !== 'ride') return;
+      S.push = dir * pow; S.vx *= .3; S.lean = clamp(S.lean - dir * .14, -.35, .35); S.shake = Math.max(S.shake, .35); S.safeT = .5; S.bumpsP = (S.bumpsP || 0) + 1;
+      Snd.thud?.(); cfg.onHit?.(.3); if (S.bumpsP <= 2) toast('碰！和對手撞在一起', 'warn');
+    },
     setRivalDot(pct, leadTxt) { el.riDot.style.left = pct + '%'; el.lead.textContent = leadTxt; },
     banner(txt) { el.banner.textContent = txt || ''; el.banner.classList.toggle('on', !!txt); },
     notice(txt) { el.notice.textContent = txt || ''; el.notice.classList.toggle('on', !!txt); },
