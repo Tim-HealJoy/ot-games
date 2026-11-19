@@ -1,0 +1,322 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>注意力訓練・填寫對應 題目產生器｜免費下載 A4 PDF</title>
+<meta name="description" content="職能治療師設計的長輩注意力練習單：看對照表，把每個圖形的號碼寫下來。5 個難度、每次題目都不一樣，一鍵下載 A4 PDF（附解答），在家就能印。">
+<meta name="theme-color" content="#3F6293">
+<link rel="icon" href="../favicon.png">
+<meta property="og:type" content="website">
+<meta property="og:title" content="注意力訓練・填寫對應 題目產生器">
+<meta property="og:description" content="選難度、按一下，就能下載 A4 練習單（附解答）。每次題目都不一樣，免費印給家裡長輩寫。">
+<meta property="og:image" content="https://games.otshih.com/match-sheet/share.png">
+<meta property="og:url" content="https://games.otshih.com/match-sheet/">
+<script src="/open-in-browser.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F4EFE3; --card:#FFFDF8; --ink:#2B2620; --muted:#6B6257; --line:#E2D9C7;
+  --blue:#3F6293; --blue-d:#2E4A72; --blue-l:#E6ECF5; --orange:#C4622F;
+  --sans:"Noto Sans TC","PingFang TC","Microsoft JhengHei",-apple-system,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html{-webkit-text-size-adjust:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:17px;line-height:1.6}
+button,input{font:inherit;color:inherit}
+button{cursor:pointer;touch-action:manipulation}
+a{color:var(--blue)}
+
+.wrap{max-width:1180px;margin:0 auto;padding:0 16px}
+header.top{padding:28px 0 18px}
+.eyebrow{display:inline-block;background:var(--blue);color:#fff;font-size:14px;font-weight:700;padding:3px 12px;border-radius:999px;letter-spacing:1px}
+h1{font-size:clamp(26px,5vw,38px);line-height:1.3;margin:10px 0 6px;font-weight:700}
+.lead{color:var(--muted);font-size:17px}
+
+.grid{display:grid;grid-template-columns:minmax(0,420px) minmax(0,1fr);gap:24px;align-items:start;padding-bottom:28px}
+@media (max-width:860px){.grid{grid-template-columns:minmax(0,1fr)}}
+
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:20px}
+.step{font-weight:700;font-size:18px;display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.step b{display:inline-grid;place-items:center;width:28px;height:28px;border-radius:50%;background:var(--ink);color:#fff;font-size:15px;flex:none}
+.block+.block{margin-top:22px;padding-top:20px;border-top:1px dashed var(--line)}
+
+/* 難度按鈕 */
+.levels{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}
+.lv{border:2px solid var(--line);background:#fff;border-radius:14px;padding:10px 2px 8px;text-align:center;line-height:1.25}
+.lv .n{display:block;font-size:26px;font-weight:700}
+.lv .t{display:block;font-size:13px;color:var(--muted)}
+.lv[aria-pressed="true"]{border-color:var(--blue);background:var(--blue);color:#fff}
+.lv[aria-pressed="true"] .t{color:#DCE5F2}
+.desc{margin-top:10px;background:var(--blue-l);border-radius:12px;padding:10px 14px;font-size:16px}
+.desc strong{color:var(--blue-d)}
+
+/* 自訂 */
+details.custom{margin-top:12px;border:1px solid var(--line);border-radius:14px;background:#fff}
+details.custom summary{list-style:none;padding:12px 16px;font-weight:700;cursor:pointer;display:flex;justify-content:space-between;align-items:center}
+details.custom summary::-webkit-details-marker{display:none}
+details.custom summary::after{content:"＋";font-size:20px;color:var(--muted)}
+details.custom[open] summary::after{content:"－"}
+details.custom[open] summary{border-bottom:1px solid var(--line)}
+.cbody{padding:14px 16px 16px;display:grid;gap:14px}
+.range label{display:flex;justify-content:space-between;font-size:16px;margin-bottom:4px}
+.range output{font-weight:700;color:var(--blue-d)}
+input[type=range]{width:100%;height:32px;accent-color:var(--blue)}
+.check{display:flex;gap:10px;align-items:flex-start;font-size:16px;line-height:1.45}
+.check input{width:22px;height:22px;flex:none;margin-top:1px;accent-color:var(--blue)}
+.check.off{opacity:.45}
+.check small{display:block;color:var(--muted);font-size:13.5px}
+
+/* 份數 */
+.stepper{display:flex;align-items:center;gap:12px}
+.stepper button{width:52px;height:52px;border-radius:50%;border:2px solid var(--line);background:#fff;font-size:26px;font-weight:700;line-height:1}
+.stepper output{font-size:28px;font-weight:700;min-width:64px;text-align:center}
+.hint{color:var(--muted);font-size:15px;margin-top:6px}
+.check.ans{margin-top:12px}
+
+/* 主要按鈕 */
+.actions{display:grid;gap:10px}
+.btn{border:0;border-radius:16px;min-height:60px;padding:10px 18px;font-size:20px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:10px}
+.btn.primary{background:var(--orange);color:#fff;box-shadow:0 4px 0 #9A4A22}
+.btn.primary:active{transform:translateY(3px);box-shadow:0 1px 0 #9A4A22}
+.btn.ghost{background:#fff;border:2px solid var(--ink);color:var(--ink)}
+.btn[disabled]{opacity:.6;cursor:wait}
+.status{min-height:24px;font-size:15px;color:var(--muted);text-align:center}
+
+/* 預覽 */
+.preview{position:sticky;top:12px}
+@media (max-width:860px){.preview{position:static}}
+.ptabs{display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;align-items:center}
+.ptab{border:2px solid var(--line);background:#fff;border-radius:999px;padding:6px 18px;font-weight:700;font-size:16px}
+.ptab[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:#fff}
+.pnote{margin-left:auto;color:var(--muted);font-size:14px}
+.paper{background:#fff;border-radius:6px;box-shadow:0 1px 2px rgba(0,0,0,.08),0 10px 28px rgba(60,40,10,.14);overflow:hidden;max-width:620px;margin:0 auto}
+.paper canvas{display:block;width:100%;height:auto;aspect-ratio:210/297}
+
+/* 帶法 */
+section.howto{padding:8px 0 28px}
+h2{font-size:24px;margin-bottom:14px}
+.tips{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
+.tip{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px 18px}
+.tip h3{font-size:18px;margin-bottom:6px;display:flex;gap:8px;align-items:center}
+.tip h3 span{font-size:24px}
+.tip p{color:#4A433A;font-size:16px}
+
+footer.foot{border-top:1px solid var(--line);padding:22px 0 36px;color:var(--muted);font-size:15px}
+.foot .who{color:var(--ink);font-weight:700;font-size:17px}
+.foot .fb{display:inline-flex;align-items:center;gap:8px;margin-top:10px;background:#fff;border:2px solid var(--blue);color:var(--blue-d);font-weight:700;text-decoration:none;border-radius:999px;padding:8px 18px}
+.foot p+p{margin-top:6px}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="top">
+    <span class="eyebrow">免費練習單</span>
+    <h1>注意力訓練・填寫對應<br>題目產生器</h1>
+    <p class="lead">看對照表，把每個圖形的號碼寫下來。選好難度按一下，就能下載 A4 練習單（附解答），每次題目都不一樣。</p>
+  </header>
+
+  <div class="grid">
+    <!-- 左：設定 -->
+    <section class="card" aria-label="設定">
+      <div class="block">
+        <div class="step"><b>1</b>選難度</div>
+        <div class="levels" id="levels"></div>
+        <p class="desc" id="desc"></p>
+
+        <details class="custom" id="custom">
+          <summary>自訂難度（治療師微調用）</summary>
+          <div class="cbody">
+            <div class="range"><label for="cN">圖形有幾種<output id="oN"></output></label><input id="cN" type="range" min="3" max="10" step="1"></div>
+            <div class="range"><label for="cCols">每排幾格<output id="oCols"></output></label><input id="cCols" type="range" min="3" max="10" step="1"></div>
+            <div class="range"><label for="cRows">要寫幾排<output id="oRows"></output></label><input id="cRows" type="range" min="2" max="7" step="1"></div>
+            <label class="check"><input id="cSimilar" type="checkbox"><span>用很像的圖形<small>箭頭上下左右、正倒三角形、實心空心菱形、左右半黑圓</small></span></label>
+            <label class="check" id="permWrap"><input id="cPerm" type="checkbox"><span>每排每種圖形剛好出現一次<small>「圖形種類」和「每排幾格」一樣多時才能用，比較簡單</small></span></label>
+            <label class="check"><input id="cDemo" type="checkbox"><span>第一排放灰色示範</span></label>
+            <label class="check"><input id="cBottom" type="checkbox"><span>對照表放在最下面<small>要往下找，比較難</small></span></label>
+          </div>
+        </details>
+      </div>
+
+      <div class="block">
+        <div class="step"><b>2</b>要印幾份</div>
+        <div class="stepper">
+          <button type="button" id="minus" aria-label="少一份">－</button>
+          <output id="copies">1</output>
+          <button type="button" id="plus" aria-label="多一份">＋</button>
+        </div>
+        <p class="hint">一次印給好幾位長輩時用，每一份的題目都不一樣。</p>
+        <label class="check ans"><input id="withAns" type="checkbox" checked><span>附解答頁（放在最後面，方便抽掉）</span></label>
+      </div>
+
+      <div class="block">
+        <div class="step"><b>3</b>下載</div>
+        <div class="actions">
+          <button class="btn primary" id="dl" type="button">📄 下載 PDF</button>
+          <button class="btn ghost" id="again" type="button">🔄 換一組題目</button>
+          <p class="status" id="status" role="status"></p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 右：預覽 -->
+    <section class="preview" aria-label="預覽">
+      <div class="ptabs">
+        <button class="ptab" type="button" data-p="q" aria-pressed="true">作答頁</button>
+        <button class="ptab" type="button" data-p="a" aria-pressed="false">解答頁</button>
+        <span class="pnote" id="pnote">預覽（第 1 份）</span>
+      </div>
+      <div class="paper"><canvas id="cv" width="840" height="1188" aria-label="練習單預覽"></canvas></div>
+    </section>
+  </div>
+
+  <section class="howto">
+    <h2>怎麼陪長輩寫</h2>
+    <div class="tips">
+      <div class="tip"><h3><span>👉</span>先一起走一次</h3><p>用手指著灰色示範排：「這是圓形 → 上面對照表找圓形 → 下面是 1」，走過一次再讓長輩自己寫。</p></div>
+      <div class="tip"><h3><span>🪜</span>從第 1 級開始</h3><p>先選簡單的，讓長輩有成功感。寫得順、幾乎不用提醒，下次再往上一級。</p></div>
+      <div class="tip"><h3><span>🔍</span>寫錯先別急著改</h3><p>請長輩回頭再對一次對照表，自己找出來；全部寫完，再一起拿解答頁對答案。</p></div>
+      <div class="tip"><h3><span>⏱️</span>記下花多少時間</h3><p>同一個級別，下次寫得更快、錯得更少，就是進步。可以把時間寫在紙的角落。</p></div>
+    </div>
+  </section>
+
+  <footer class="foot">
+    <p class="who">教案設計：施昱廷 職能治療師</p>
+    <p>用了覺得好用、或有想要的新題型，歡迎到粉專留言告訴我。</p>
+    <a class="fb" href="https://www.facebook.com/shihyuting.OT" target="_blank" rel="noopener">👍 職能治療師 施昱廷 粉專</a>
+    <p style="margin-top:14px">更多教案與小遊戲：<a href="https://otshih.com/" target="_blank" rel="noopener">OTshih.com</a></p>
+  </footer>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="sheet.js?v=1"></script>
+<script>
+(function(){
+  'use strict';
+  var MS = window.MatchSheet, $ = function(id){ return document.getElementById(id); };
+  var state = { level: 1, copies: 1, seed: newSeed(), page: 'q', custom: null };
+
+  function newSeed(){ return 10000 + Math.floor(Math.random() * 90000); }
+  function cfg(){ return state.level ? MS.LEVELS[state.level - 1] : MS.customConfig(state.custom); }
+
+  /* 難度按鈕 */
+  var lvBox = $('levels');
+  MS.LEVELS.forEach(function(L){
+    var b = document.createElement('button');
+    b.type = 'button'; b.className = 'lv'; b.dataset.lv = L.no;
+    b.innerHTML = '<span class="n">' + L.no + '</span><span class="t">' + L.label + '</span>';
+    b.addEventListener('click', function(){ pickLevel(L.no); });
+    lvBox.appendChild(b);
+  });
+
+  function describe(c){
+    var s = '<strong>' + (c.no ? '第 ' + c.no + ' 級' : '自訂') + '</strong>：' + c.shapes.length + ' 種圖形、每排 ' + c.cols + ' 格、要寫 ' + c.rows + ' 排';
+    var notes = [];
+    if (c.perm) notes.push('每排每種圖形剛好一次');
+    else notes.push('同一種圖形會重複出現');
+    if (c.similar) notes.push('有長得很像的圖形');
+    if (c.legendBottom) notes.push('對照表在最下面');
+    if (!c.demo) notes.push('沒有示範排');
+    return s + '。' + notes.join('，') + '。';
+  }
+
+  function syncCustomInputs(c){
+    $('cN').value = c.shapes.length; $('cCols').value = c.cols; $('cRows').value = c.rows;
+    $('cSimilar').checked = c.similar; $('cPerm').checked = c.perm; $('cDemo').checked = c.demo; $('cBottom').checked = c.legendBottom;
+    updateOutputs();
+  }
+  function updateOutputs(){
+    $('oN').textContent = $('cN').value + ' 種';
+    $('oCols').textContent = $('cCols').value + ' 格';
+    $('oRows').textContent = $('cRows').value + ' 排';
+    var canPerm = $('cN').value === $('cCols').value;
+    $('cPerm').disabled = !canPerm;
+    $('permWrap').classList.toggle('off', !canPerm);
+  }
+
+  function pickLevel(no){
+    state.level = no; state.seed = newSeed();
+    syncCustomInputs(MS.LEVELS[no - 1]);
+    refresh();
+  }
+
+  function readCustom(){
+    state.level = 0;
+    state.custom = {
+      n: +$('cN').value, cols: +$('cCols').value, rows: +$('cRows').value,
+      similar: $('cSimilar').checked, perm: $('cPerm').checked, demo: $('cDemo').checked, legendBottom: $('cBottom').checked
+    };
+    updateOutputs(); refresh();
+  }
+  ['cN','cCols','cRows'].forEach(function(id){ $(id).addEventListener('input', readCustom); });
+  ['cSimilar','cPerm','cDemo','cBottom'].forEach(function(id){ $(id).addEventListener('change', readCustom); });
+
+  /* 份數 */
+  function setCopies(n){
+    state.copies = Math.max(1, Math.min(10, n));
+    $('copies').textContent = state.copies;
+    $('minus').disabled = state.copies === 1; $('plus').disabled = state.copies === 10;
+  }
+  $('minus').addEventListener('click', function(){ setCopies(state.copies - 1); });
+  $('plus').addEventListener('click', function(){ setCopies(state.copies + 1); });
+
+  /* 預覽 */
+  document.querySelectorAll('.ptab').forEach(function(b){
+    b.addEventListener('click', function(){ state.page = b.dataset.p; refresh(); });
+  });
+
+  function refresh(){
+    var c = cfg();
+    document.querySelectorAll('.lv').forEach(function(b){ b.setAttribute('aria-pressed', String(+b.dataset.lv === state.level)); });
+    $('desc').innerHTML = describe(c);
+    document.querySelectorAll('.ptab').forEach(function(b){ b.setAttribute('aria-pressed', String(b.dataset.p === state.page)); });
+    var cv = $('cv'), w = cv.getBoundingClientRect().width || 600;
+    var k = Math.min(9, Math.max(3, w * (window.devicePixelRatio || 1) / 210));
+    MS.drawPage(cv, c, MS.generate(c, state.seed), { answer: state.page === 'a', seed: state.seed, copyNo: 1, copies: state.copies, pxPerMm: k });
+    $('status').textContent = '';
+  }
+
+  $('again').addEventListener('click', function(){ state.seed = newSeed(); refresh(); });
+
+  /* 下載 PDF */
+  $('dl').addEventListener('click', function(){
+    var btn = this;
+    if (!window.jspdf) { $('status').textContent = 'PDF 工具還在載入，請稍等幾秒再按一次。'; return; }
+    btn.disabled = true; $('status').textContent = '正在產生 PDF…';
+    setTimeout(function(){
+      try {
+        var c = cfg(), doc = new window.jspdf.jsPDF({ unit: 'mm', format: 'a4', compress: true });
+        var cv = document.createElement('canvas'), first = true, sets = [];
+        for (var i = 0; i < state.copies; i++) sets.push({ seed: state.seed + i * 7919, no: i + 1 });
+        function add(set, answer){
+          MS.drawPage(cv, c, MS.generate(c, set.seed), { answer: answer, seed: set.seed, copyNo: set.no, copies: state.copies, pxPerMm: 8 });
+          if (!first) doc.addPage();
+          first = false;
+          doc.addImage(cv.toDataURL('image/png'), 'PNG', 0, 0, 210, 297, undefined, 'FAST');
+        }
+        sets.forEach(function(s){ add(s, false); });
+        if ($('withAns').checked) sets.forEach(function(s){ add(s, true); });
+        var name = '注意力訓練_填寫對應_' + (c.no ? '第' + c.no + '級' : '自訂') + (state.copies > 1 ? '_' + state.copies + '份' : '') + '_' + state.seed + '.pdf';
+        doc.save(name);
+        $('status').textContent = '已下載：' + name;
+      } catch (e) {
+        $('status').textContent = '產生失敗，請重新整理頁面再試一次。（' + e.message + '）';
+      }
+      btn.disabled = false;
+    }, 30);
+  });
+
+  var rt; window.addEventListener('resize', function(){ clearTimeout(rt); rt = setTimeout(refresh, 150); });
+
+  setCopies(1);
+  syncCustomInputs(MS.LEVELS[0]);
+  refresh();                       // 先用系統字畫一次，不讓畫面空白
+  MS.loadFonts().then(refresh);    // 網路字型到了再重畫
+})();
+</script>
+<script defer src="https://static.cloudflareinsights.com/beacon.min.js" data-cf-beacon='{"token": "3df68cf5d6bd4975b97a157f7ff3cafb"}'></script>
+</body>
+</html>
